@@ -7,7 +7,7 @@
 	<property name="version" value="snapshot" />
 
 	<property name="manifest.vendor" value="University of Michigan"/>
-	<property name="copyright" value="(c) The Regents of the University of Michigan, 2010"/>
+	<property name="copyright" value="(c) The Regents of the University of Michigan, 2013"/>
 
 	<property name="src" location="src/main/java" />
 	<property name="lib" location="lib" />
