@@ -17,10 +17,7 @@ import edu.umich.soar.visualsoar.misc.Prefs;
 import edu.umich.soar.visualsoar.misc.SoarFileFilter;
 import edu.umich.soar.visualsoar.misc.TemplateManager;
 import edu.umich.soar.visualsoar.misc.TextFileFilter;
-import edu.umich.soar.visualsoar.operatorwindow.FileNode;
-import edu.umich.soar.visualsoar.operatorwindow.OperatorNode;
-import edu.umich.soar.visualsoar.operatorwindow.OperatorRootNode;
-import edu.umich.soar.visualsoar.operatorwindow.OperatorWindow;
+import edu.umich.soar.visualsoar.operatorwindow.*;
 import edu.umich.soar.visualsoar.parser.ParseException;
 import edu.umich.soar.visualsoar.parser.TokenMgrError;
 import edu.umich.soar.visualsoar.ruleeditor.RuleEditor;
@@ -47,6 +44,7 @@ import javax.swing.undo.*;
 import javax.swing.event.*;
 import javax.swing.border.TitledBorder;
 
+import java.nio.file.Files;
 import java.util.*;
 import java.util.List;
 
@@ -100,7 +98,6 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
     Action cascadeAction = new CascadeAction();
     Action tileWindowsAction = new TileWindowsAction();
     Action reTileWindowsAction = new ReTileWindowsAction();
-    Action sendProductionsAction = new SendProductionsAction();
 	PerformableAction verifyProjectAction = new VerifyProjectAction();
 	Action checkSyntaxErrorsAction = new CheckSyntaxErrorsAction();
 	PerformableAction checkAllProductionsAction = new CheckAllProductionsAction();
@@ -127,9 +124,6 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 	Action soarRuntimeSendRawCommandAction = new SoarRuntimeSendRawCommandAction();
 	Action soarRuntimeSendAllFilesAction = new SendAllFilesToSoarAction() ;
 
-	public Kernel getKernel()			{ return m_Kernel ; }
-	public String getActiveAgentName()  { return m_ActiveAgent ; }
-
 	public Agent getActiveAgent()
 	{
 		if (m_Kernel == null || m_ActiveAgent == null)
@@ -141,7 +135,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 	{
 		String lines[] = result.split("\n") ;
 		
-		Vector v = new Vector();
+		Vector<String> v = new Vector<String>();
 		
 		for (int i = 0 ; i < lines.length ; i++)
 			v.add(lines[i]) ;
@@ -274,7 +268,9 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 	private JMenu createFileMenu() 
     {
 		JMenu fileMenu = new JMenu("File");
-		// The File Menu
+
+		//First create a new JMenuItem object for each item in the menu and
+		//tie it to the its associated handler
 		JMenuItem newProjectItem = new JMenuItem("New Project...");
 		newProjectItem.addActionListener(newProjectAction);
 		newProjectAction.addPropertyChangeListener(
@@ -305,12 +301,13 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		exitItem.addActionListener(exitAction);
 		exitAction.addPropertyChangeListener(
             new ActionButtonAssociation(exitAction,exitItem));
-		
+
 		JMenuItem saveProjectAsItem = new JMenuItem("Save Project As...");
 		saveProjectAsItem.addActionListener(saveProjectAsAction);
 		saveProjectAsAction.addPropertyChangeListener(
             new ActionButtonAssociation(saveProjectAsAction,saveProjectAsItem));
-		
+
+		//Add all the JMenuItem objects to the file menu
 		fileMenu.add(newProjectItem);
 		fileMenu.add(openProjectItem);
         fileMenu.add(openFileItem);
@@ -326,7 +323,6 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		fileMenu.add(exitItem);
 		
 		// register mnemonics and accelerators
-		
 		fileMenu.setMnemonic('F');
 		newProjectItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N,Event.CTRL_MASK));
 		newProjectItem.setMnemonic(KeyEvent.VK_N);
@@ -1065,9 +1061,9 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 
 	/**
      * Attempts to save the datamap
-     * @see OperatorWindow.saveHierarchy()
+     * @see OperatorWindow#saveHierarchy()
      */
-	class SaveDataMapAndProjectAction extends PerformableAction 
+	class SaveDataMapAndProjectAction extends PerformableAction
     {
 		public SaveDataMapAndProjectAction() 
         {
@@ -1085,7 +1081,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		public void actionPerformed(ActionEvent event) 
         {
 			perform();	
-			Vector v = new Vector();
+			Vector<String> v = new Vector<String>();
 			v.add("DataMap and Project Saved");
 			setFeedbackListData(v);
 		}
@@ -1385,7 +1381,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		public void actionPerformed(ActionEvent event)
         {
 			perform();
-			Vector v = new Vector();
+			Vector<String> v = new Vector<String>();
 			v.add("Export Finished");
 			setFeedbackListData(v);
 		}
@@ -1801,8 +1797,8 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
         int value, min, max;
 		JProgressBar progressBar;
 		JDialog progressDialog;
-        Vector vecEntities;
-        Vector parsedProds, vecErrors = new Vector();
+        Vector<TreeNode> vecEntities;
+        Vector vecErrors = new Vector();
         int entityNum = 0;
 
         public UpdateThread(Vector v, String title)
@@ -1904,11 +1900,12 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 
         public void perform()
         {
-			Enumeration bfe = operatorWindow.breadthFirstEnumeration();
-            Vector vecNodes = new Vector(10, 50);
+			Enumeration<TreeNode> bfe = operatorWindow.breadthFirstEnumeration();
+            Vector<OperatorNode> vecNodes = new Vector<>(10, 50);
 			while(bfe.hasMoreElements())
             {
-				vecNodes.add(bfe.nextElement());
+            	OperatorNode node = (OperatorNode) bfe.nextElement();
+				vecNodes.add(node);
 			}
 			(new VerifyProjectThread(vecNodes, "Verifiying Project...")).start();
         }
@@ -2473,21 +2470,100 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 			setEnabled(false);
 		}
 
+		/** I'm flabbergasted that a method like this
+		 * isn't available in the base Java distribution.
+		 * @param orig copy the contents of this file...
+		 * @param dest ...into this file
+		 */
+		public void copyFile(File orig, File dest) throws IOException {
+			try {
+				FileInputStream fis = new FileInputStream(orig);
+				FileOutputStream fos = new FileOutputStream(dest);
+				Scanner scan = new Scanner(fis);
+				PrintWriter pw = new PrintWriter(fos);
+				while(scan.hasNextLine()) {
+					String line = scan.nextLine();
+					pw.println(line);
+				}
+				scan.close();
+				pw.close();
+			}
+			catch(IOException ioe) {
+				String message = "Save As Failed!\n";
+				message += "Exception copying file " + orig + "\n to " + dest;
+				JOptionPane.showMessageDialog(MainFrame.getMainFrame(),message,"Save As Failed",JOptionPane.ERROR_MESSAGE);
+				System.err.println(ioe);
+				throw ioe;
+			}
+		}//copyFile
+
+		/**
+		 * copyAllFiles
+		 *
+		 * copies all files associated with the children of a given
+		 * OperatorNode.  This method recurses into all descendents (not just
+		 * direct children).
+		 *
+		 * Note:  I suspect there is a better way to recurse the file
+		 *        structure but I'm not seeing it.  (Nuxoll - 20 Aug '22)
+		 *
+		 * @param oldFolder  folder to copy files from
+		 * @param newFolder  folder associated with the given node
+		 * @param node the given node
+		 */
+		public void copyAllFiles(String oldFolder,
+								 String newFolder,
+								 OperatorNode node) {
+
+			int childCount = node.getChildCount();
+			for(int i = 0; i < childCount; ++i)
+			{
+				OperatorNode child = (OperatorNode)node.getChildAt(i);
+
+				//If the child is a file copy it
+				String newNodeName = child.getFileName();
+				if (newNodeName != null) {
+					String oldNodeName = newNodeName.replace(newFolder, oldFolder);
+					File orig = new File(oldNodeName);
+					File dest = new File(newNodeName);
+					if (orig.exists() && orig.isFile()) {
+						try {
+							copyFile(orig, dest);
+						} catch(IOException ioe) {
+							//no need to report anything as copyFile() already has
+							return;
+						}
+					}
+				}
+
+				//if child is a sub-folder recurse into it
+				//note:  child could be both file and sub-folder!
+				String recurseNewFolder = child.getFolderName();
+				if (! recurseNewFolder.equals(newFolder)) {
+					String recurseOldFolder = recurseNewFolder.replace(newFolder, oldFolder);
+					copyAllFiles(recurseOldFolder, recurseNewFolder, child);
+				}
+			}//for
+		}//copyAllFiles
+
+
 		public void actionPerformed(ActionEvent e) 
         {
 			SaveProjectAsDialog spad = new SaveProjectAsDialog(MainFrame.getMainFrame());
             spad.setVisible(true);
 
-            OperatorRootNode orn = (OperatorRootNode)(operatorWindow.getModel().getRoot());
-            File oldProjectFile = new File(orn.getProjectFile());
+            OperatorRootNode root = (OperatorRootNode)(operatorWindow.getModel().getRoot());
+            File oldProjectFile = new File(root.getProjectFile());
+			String oldProjPath = root.getFolderName();
 
 			if (spad.wasApproved()) 
             {
 				String newName = spad.getNewAgentName();
-                String newPath = spad.getNewAgentPath();
-				if(OperatorWindow.isProjectNameValid(newName)) 
+                String newRootPath = spad.getNewAgentPath();
+                String newProjPath = newRootPath + File.separator + newName;
+				if(OperatorWindow.isProjectNameValid(newName))
                 {
-					operatorWindow.saveProjectAs(newName, newPath);
+					operatorWindow.saveProjectAs(newName, newRootPath);
 
                     // Regenerate the *_source.soar files in the old project
                     try 
@@ -2505,11 +2581,13 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
                         return;
                     }
 
+					copyAllFiles(oldProjPath, newProjPath, root);
+
                     JInternalFrame[] jif = DesktopPane.getAllFrames();
                     for(int i = 0; i < jif.length; ++i)
-          
+
                     {
-                        if(jif[i] instanceof RuleEditor) 
+                        if(jif[i] instanceof RuleEditor)
                         {
                             RuleEditor oldRuleEditor = (RuleEditor)jif[i];
                             OperatorNode newNode = oldRuleEditor.getNode();
@@ -2533,7 +2611,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 				}
 			}
 		}
-	}
+	}//class SaveProjectAsAction
 
     class TileWindowsAction extends AbstractAction 
     {

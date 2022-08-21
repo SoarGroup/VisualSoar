@@ -5,8 +5,6 @@ import edu.umich.soar.visualsoar.datamap.SoarWorkingMemoryModel;
 import edu.umich.soar.visualsoar.graph.NamedEdge;
 import edu.umich.soar.visualsoar.graph.SoarIdentifierVertex;
 import edu.umich.soar.visualsoar.graph.SoarVertex;
-import edu.umich.soar.visualsoar.parser.ParseException;
-import edu.umich.soar.visualsoar.ruleeditor.RuleEditor;
 import javax.swing.tree.*;
 import java.io.*;
 import java.awt.Component;
@@ -14,7 +12,7 @@ import java.awt.datatransfer.DataFlavor;
 import java.util.*;
 import javax.swing.JOptionPane;
 
-class SoarOperatorNode extends FileNode 
+public class SoarOperatorNode extends FileNode
 {
 
     /////////////////////////////////////////
@@ -61,20 +59,6 @@ class SoarOperatorNode extends FileNode
         folderName = inFolderName;
         dataMapId = inDataMapId;
         dataMapIdNumber = inDataMapId.getValue();
-        isHighLevel = true;
-    }
-
-    /**
-     * This will construct a high-level operator node, this one supports
-     * serialization, restoreId must be called to get this object into a good
-     * state
-     */
-    public SoarOperatorNode(String inName,int inId,String inFileName,String inFolderName,int inDataMapIdNumber) 
-    {
-
-        this(inName,inId,inFileName);
-        folderName = inFolderName;
-        dataMapIdNumber = inDataMapIdNumber;
         isHighLevel = true;
     }
 
@@ -307,7 +291,7 @@ class SoarOperatorNode extends FileNode
     
     /**
      * The user wants to rename this node
-     * @param model the model for which this node is contained within
+     * @param operatorWindow
      * @param newName the new name that the user wants this node to be called
      */
         
@@ -432,7 +416,7 @@ class SoarOperatorNode extends FileNode
 
     /**
      * This is the function that gets called when you want to add a suboperator to this node
-     * @param model the tree model for which this node is currently a member
+     * @param operatorWindow
      * @param newOperatorName the name of the new operator to add
      */
     public OperatorNode addSuboperator(OperatorWindow operatorWindow,
@@ -474,7 +458,7 @@ class SoarOperatorNode extends FileNode
 
     /**
      * This is the function that gets called when you want to add a sub Impasse Operator to this node
-     * @param model the tree model for which this node is currently a member
+     * @param operatorWindow
      * @param newOperatorName the name of the new operator to add
      */
     public OperatorNode addImpasseOperator(OperatorWindow operatorWindow,
@@ -534,7 +518,7 @@ class SoarOperatorNode extends FileNode
     /**
      * This is the function that gets called when you want to add a sub file
      * operator to this node
-     * @param model the tree model for which this node is currently a member
+     * @param operatorWindow
      * @param newFileName the name of the new operator to add
      */
     public OperatorNode addFileOperator(OperatorWindow operatorWindow, SoarWorkingMemoryModel swmm, String newFileName) throws IOException 
@@ -560,10 +544,8 @@ class SoarOperatorNode extends FileNode
     
     public void addLink(OperatorWindow operatorWindow,LinkNode linkNode) 
     {
-
-        try 
+        try
         {
-
             if(!isHighLevel)
             firstTimeAdd(operatorWindow,operatorWindow.getDatamap());
             operatorWindow.addChild(this,linkNode);
@@ -576,12 +558,11 @@ class SoarOperatorNode extends FileNode
     
     /**
      * Removes the selected operator from the tree if it is allowed
-     * @param model the model for which this node is a member of
+     * @param operatorWindow
      */ 
     public void delete(OperatorWindow operatorWindow) 
     {
-
-        if(isHighLevel) 
+        if(isHighLevel)
         {
 
             if(!linkNodes.isEmpty()) 
@@ -624,7 +605,7 @@ class SoarOperatorNode extends FileNode
     /**
      * A child has been deleted from this node, so check if this node has
      * become a low-level operator now
-     * @param model the model for which this node is associated
+     * @param operatorWindow
      */
     public void notifyDeletionOfChild(OperatorWindow operatorWindow,
                                       OperatorNode child) 

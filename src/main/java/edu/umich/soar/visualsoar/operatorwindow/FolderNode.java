@@ -6,7 +6,6 @@ import edu.umich.soar.visualsoar.datamap.SoarWorkingMemoryModel;
 import java.io.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.Component;
-import javax.swing.tree.DefaultTreeModel;
 import javax.swing.JOptionPane;
 import java.util.*;
 
@@ -32,8 +31,8 @@ public class FolderNode extends OperatorNode implements java.io.Serializable
 ///////////////////////////////////////////////////////////////////
     /**
      * This constructs a folder node for the Operator Window
-     * @param name the name of the node
-     * @param folder the folder for which this node is associated
+     * @param inName the name of the node
+     * @param inFolderName the folder for which this node is associated
      */
     public FolderNode(String inName,int inId,String inFolderName) 
     {
@@ -85,7 +84,7 @@ public class FolderNode extends OperatorNode implements java.io.Serializable
     /**
      * This is the function that gets called when you want to add a sub file
      * operator to this node
-     * @param model the tree model for which this node is currently a member
+     * @param operatorWindow
      * @param newFileName the name of the new operator to add
      */
     public OperatorNode addFileOperator(OperatorWindow operatorWindow, SoarWorkingMemoryModel swmm, String newFileName) throws IOException 
@@ -109,7 +108,7 @@ public class FolderNode extends OperatorNode implements java.io.Serializable
     /**
      * This is the function that gets called when you want to add a suboperator
      * to this node
-     * @param model the tree model for which this node is currently a member
+     * @param swmm the tree model for which this node is currently a member
      * @param newOperatorName the name of the new operator to add
      */
     public OperatorNode addSuboperator(OperatorWindow operatorWindow,
@@ -142,7 +141,7 @@ public class FolderNode extends OperatorNode implements java.io.Serializable
     /**
      * This is the function that gets called when you want to add a sub Impasse
      * Operator to this node
-     * @param model the tree model for which this node is currently a member
+     * @param operatorWindow
      * @param newOperatorName the name of the new operator to add */
     public OperatorNode addImpasseOperator(OperatorWindow operatorWindow, SoarWorkingMemoryModel swmm,String newOperatorName) throws IOException 
     {
@@ -376,8 +375,8 @@ public class FolderNode extends OperatorNode implements java.io.Serializable
     
     public void sourceChildren() throws IOException 
     {
-
-        Writer w = new FileWriter(getFullPathName() + File.separator + folderName + "_source.soar");
+        String filename = getFullPathName() + File.separator + folderName + "_source.soar";
+        Writer w = new FileWriter(filename);
         int childCount = getChildCount();
         for(int i = 0; i < childCount; ++i) 
         {

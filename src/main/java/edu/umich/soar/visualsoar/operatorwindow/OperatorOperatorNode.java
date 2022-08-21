@@ -156,7 +156,7 @@ class OperatorOperatorNode extends SoarOperatorNode {
 
     /**
      * The user wants to rename this node
-     * @param model the model for which this node is contained within
+     * @param operatorWindow
      * @param newName the new name that the user wants this node to be called
      */
     public void rename(OperatorWindow operatorWindow,

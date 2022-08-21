@@ -18,7 +18,7 @@ import javax.swing.JOptionPane;
  *  Similar to SoarOperatorNode in every way other than
  *  writing to disk.
  */
-class ImpasseOperatorNode extends SoarOperatorNode 
+public class ImpasseOperatorNode extends SoarOperatorNode
 {
 
 

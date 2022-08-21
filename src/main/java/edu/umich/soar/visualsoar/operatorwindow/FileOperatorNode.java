@@ -20,7 +20,7 @@ import javax.swing.JOptionPane;
  *  with itself, instead, it uses the datamap of its' Operator parent
  *  Supports sub-filing.
  */
-class FileOperatorNode extends SoarOperatorNode {
+public class FileOperatorNode extends SoarOperatorNode {
 
 	/////////////////////////////////////////
 	// Constructors

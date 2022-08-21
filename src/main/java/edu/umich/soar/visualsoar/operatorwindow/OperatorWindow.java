@@ -25,7 +25,6 @@ import java.awt.datatransfer.*;
 import java.awt.event.*;
 import java.io.*;
 import java.util.*;
-import javax.swing.plaf.metal.*;
 
 /**
  * A class to implement the behavior of the operator window
@@ -88,7 +87,7 @@ public class OperatorWindow extends JTree
                                      {
                                          suggestShowContextMenu(e.getX(), e.getY());
                                      }
-                                     if ((e.getClickCount() == 2 && ((e.getModifiers() & e.BUTTON1_MASK) == e.BUTTON1_MASK))) 
+                                     if ((e.getClickCount() == 2 && ((e.getModifiersEx() & e.BUTTON1_DOWN_MASK) == e.BUTTON1_DOWN_MASK)))
                                      {
                                          openRules();                    
                                      }
@@ -384,7 +383,7 @@ public class OperatorWindow extends JTree
     /**
      * Removes a node from the operator window
      * @param operatorNode the node that is to be removed
-     * @see DefaultTreeModel#removeNodeFromParent(OperatorNode)
+     * @see DefaultTreeModel#removeNodeFromParent
      */
     public void removeNode(OperatorNode operatorNode) 
     {
@@ -996,7 +995,7 @@ public class OperatorWindow extends JTree
    * @param opNode the operator node to geneate a datamap for.  If null is
    *               passed in then the currently selected node will be used.
    * @param parseErrors parse errors discovered during generation
-   * @param vecgenerations new datamap entries that were generated provided as a
+   * @param vecGenerations new datamap entries that were generated provided as a
    *                       list of FeedbackListObjects for easy reporting
    */
 	public void generateDataMap(OperatorNode opNode,
@@ -1085,7 +1084,7 @@ public class OperatorWindow extends JTree
     
     /**
      * Opens up an existing operator hierarchy
-     * @param file the file that describes the operator hierarchy
+     * @param in_file the file that describes the operator hierarchy
      * @see #openVersionFour(FileReader, String)
      * @throws Exception Invalid version number, must be version number 1-5
      */
@@ -1128,7 +1127,7 @@ public class OperatorWindow extends JTree
 
     /**
      * Opens a Version One Operator Hierarchy file
-     * @see #readVersionOne(FileReader)
+     * @see #readVersionOne
      * @see SoarWorkingMemoryReader#read(SoarWorkingMemoryModel, Reader, Reader)
      */
     private void openVersionOne(FileReader fr,
@@ -1173,7 +1172,7 @@ public class OperatorWindow extends JTree
 
     /**
      * Opens a Version two Operator Hierarchy file
-     * @see #readVersionTwo(FileReader)
+     * @see #readVersionTwo
      * @see SoarWorkingMemoryReader#read(SoarWorkingMemoryModel, Reader, Reader)
      */
     private void openVersionTwo(FileReader fr,String parentPath) throws IOException, NumberFormatException 
@@ -1215,7 +1214,7 @@ public class OperatorWindow extends JTree
 
     /**
      * Opens a Version Three Operator Hierarchy file
-     * @see #readVersionThree(FileReader)
+     * @see #readVersionThree
      * @see SoarWorkingMemoryReader#read(SoarWorkingMemoryModel, Reader, Reader)
      */
     private void openVersionThree(FileReader fr,String parentPath) throws IOException, NumberFormatException 
@@ -1255,7 +1254,7 @@ public class OperatorWindow extends JTree
 
     /**
      * Opens a Version Four Operator Hierarchy file
-     * @see #readVersionFour(FileReader)
+     * @see #readVersionFour
      * @see SoarWorkingMemoryReader#read(SoarWorkingMemoryModel, Reader, Reader)
      */
     private void openVersionFour(FileReader fr,String parentPath) throws IOException, NumberFormatException 
@@ -1297,7 +1296,7 @@ public class OperatorWindow extends JTree
 
     /**
      * Opens a Version Five Operator Hierarchy file
-     * @see #readVersionOne(FileReader)
+     * @see #readVersionOne
      * @see SoarWorkingMemoryReader#read(SoarWorkingMemoryModel, Reader, Reader)
      */
     private void openVersionFive(FileReader fr,String parentPath) throws IOException, NumberFormatException 
@@ -1363,7 +1362,7 @@ public class OperatorWindow extends JTree
     /**
      * Returns a breadth first enumeration of the tree
      */
-    public Enumeration breadthFirstEnumeration() 
+    public Enumeration<javax.swing.tree.TreeNode> breadthFirstEnumeration()
     {
         return ((DefaultMutableTreeNode)(treeModel.getRoot())).breadthFirstEnumeration();
     }
@@ -1390,10 +1389,12 @@ public class OperatorWindow extends JTree
      */
     public void saveProjectAs(String newName, String newPath) 
     {
+        //Save the original to file first
         saveHierarchy();
 
+        //Make a copy here:
         OperatorRootNode orn = (OperatorRootNode)(getModel().getRoot());
-        orn.renameAndBackup(this,newName, newPath);
+        orn.renameAndBackup(this, newName, newPath);
     }
 
     /**
@@ -1402,9 +1403,9 @@ public class OperatorWindow extends JTree
      * @param inFileName name of the file to be saved - .vsa file
      * @param inDataMapName name of the datamapfile - .dm file
      * @see #reduceWorkingMemory()
-     * @see TreeFileWriter#write(FileWriter,DefaultTreeModel)
-     * @see SoarWorkingMemoryModel#write(FileWriter)
-     * @see SoarWorkingMemoryModel#writeComments(FileWriter)
+     * @see TreeFileWriter#write
+     * @see SoarWorkingMemoryModel#write
+     * @see SoarWorkingMemoryModel#writeComments
      * @throws Exception i/o exception
      */
 
@@ -1443,9 +1444,9 @@ public class OperatorWindow extends JTree
      * @param inFileName name of the file to be saved - .vsa file
      * @param inDataMapName name of the datamapfile - .dm file
      * @see #reduceWorkingMemory()
-     * @see TreeFileWriter#write(FileWriter,DefaultTreeModel)
-     * @see SoarWorkingMemoryModel#write(FileWriter)
-     * @see SoarWorkingMemoryModel#writeComments(FileWriter)
+     * @see TreeFileWriter#write
+     * @see SoarWorkingMemoryModel#write
+     * @see SoarWorkingMemoryModel#writeComments
      * @throws Exception i/o exception
      */
     public void writeOutHierarchy(File inFileName, File inDataMapName) 
@@ -1483,7 +1484,7 @@ public class OperatorWindow extends JTree
      * Save entire Operator Hierarchy (including datamap)
      * @see #writeOutHierarchy(File,File)
      */
-    public void saveHierarchy() 
+    public void saveHierarchy()
     {
         OperatorRootNode orn = (OperatorRootNode)(getModel().getRoot());
         File projectFileName = new File(orn.getProjectFile());
@@ -1493,7 +1494,7 @@ public class OperatorWindow extends JTree
 
     /**
      * Saves Hierarchy and then closes it.
-     * @see #saveHierarchy()
+     * @see #saveHierarchy
      */
     public void closeHierarchy() 
     {
@@ -1547,7 +1548,7 @@ public class OperatorWindow extends JTree
             }
             OperatorNode selection = (OperatorNode)path.getLastPathComponent();
             
-            Transferable t = new TransferableOperatorNodeLink(new Integer(selection.getId()));
+            Transferable t = new TransferableOperatorNodeLink(selection.getId());
             if (action == DnDConstants.ACTION_LINK)  
             {
                 DragSource.getDefaultDragSource().startDrag(e,DragSource.DefaultLinkNoDrop,t,new OWDragSourceListener(selection));
@@ -1877,7 +1878,7 @@ public class OperatorWindow extends JTree
      * Searches all files in the project for the specified string and returns a
      * Vector of FindInProjectListObjects of all instances
      * @param opNode the operator subtree (which may be the whole project) to search
-     * @param StringToFind the String to Find
+     * @param stringToFind the String to Find
      * @param matchCase
      */
     public void findInProject(OperatorNode opNode,
@@ -1949,7 +1950,7 @@ public class OperatorWindow extends JTree
     public void findInProjectAndOpenRule(String stringToFind, boolean matchCase) 
     {
         TreeModel model = getModel();
-        TreeNode root = (TreeNode)model.getRoot();
+        VSTreeNode root = (VSTreeNode)model.getRoot();
         Enumeration bfe = root.breadthFirstEnumeration();
         
         if (! matchCase) 
@@ -2006,7 +2007,7 @@ public class OperatorWindow extends JTree
     public void sendProductions(Writer w) throws IOException 
     {
         TreeModel model = getModel();
-        TreeNode root = (TreeNode)model.getRoot();
+        VSTreeNode root = (VSTreeNode)model.getRoot();
         Enumeration bfe = root.breadthFirstEnumeration();
         while(bfe.hasMoreElements()) 
         {
@@ -2036,17 +2037,17 @@ public class OperatorWindow extends JTree
     {
         // This hash table has keys of Id's and a pointer as a value
         // it is used for parent lookup
-        Hashtable ht = new Hashtable(); 
+        Hashtable<Integer, VSTreeNode> ht = new Hashtable<>();
         
         // Special Case Root Node
         // tree specific stuff
         int rootId = ReaderUtils.getInteger(r);
         
         // node stuff
-        TreeNode root = makeNodeVersionOne(r);
+        VSTreeNode root = makeNodeVersionOne(r);
         
         // add the new node to the hash table
-        ht.put(new Integer(rootId),root);
+        ht.put(rootId,root);
 
         // Read in all the other nodes
         while(r.ready()) 
@@ -2056,7 +2057,7 @@ public class OperatorWindow extends JTree
             int parentId = ReaderUtils.getInteger(r);
             
             // get the parent
-            OperatorNode parent = (OperatorNode)ht.get(new Integer(parentId));
+            OperatorNode parent = (OperatorNode)ht.get(parentId);
             
             // read in the node
             OperatorNode node = makeNodeVersionOne(r);
@@ -2065,7 +2066,7 @@ public class OperatorWindow extends JTree
             addChild(parent,node);
 
             // add that node to the hash table
-            ht.put(new Integer(nodeId),node);
+            ht.put(nodeId,node);
         }
         setModel(new DefaultTreeModel(root));
     }
@@ -2085,16 +2086,16 @@ public class OperatorWindow extends JTree
         // it is used for parent lookup
 
 
-        Hashtable ht = new Hashtable();
+        Hashtable<Integer, VSTreeNode> ht = new Hashtable<>();
         java.util.List linkNodesToRestore = new LinkedList();
         HashMap persistentIdLookup = new HashMap();
         // Special Case Root Node
         // tree specific stuff
-        String rootId = ReaderUtils.getWord(r);
+        int rootId = ReaderUtils.getInteger(r);
         SoarIdentifierVertex sv = new SoarIdentifierVertex(0);
 
         // node stuff
-        TreeNode root = makeNodeVersionFive(persistentIdLookup,linkNodesToRestore,r, sv);
+        VSTreeNode root = makeNodeVersionFive(persistentIdLookup,linkNodesToRestore,r, sv);
 
         // add the new node to the hash table
         ht.put(rootId,root);
@@ -2114,17 +2115,17 @@ public class OperatorWindow extends JTree
 
                 // try to get DataMapId from the parent in case it is a high level file operator
                 //    high level file operators use the dataMap of the next highest (on the tree) regular operator
-                if(ht.get(new Integer(parentId)) instanceof SoarOperatorNode) 
+                if(ht.get(parentId) instanceof SoarOperatorNode)
                 {
-                    SoarOperatorNode soarParent = (SoarOperatorNode)ht.get(new Integer(parentId));
+                    SoarOperatorNode soarParent = (SoarOperatorNode)ht.get(parentId);
                     parentDataMapId = soarParent.getStateIdVertex();
                 }
 
                 OperatorNode node = makeNodeVersionFive(persistentIdLookup,linkNodesToRestore,r, parentDataMapId);
-                OperatorNode parent = (OperatorNode)ht.get(new Integer(parentId));
+                OperatorNode parent = (OperatorNode)ht.get(parentId);
                 addChild(parent,node);
                 // add that node to the hash table
-                ht.put(new Integer(nodeIdOrEnd),node);
+                ht.put(nodeId,node);
             }
             else 
             {
@@ -2150,7 +2151,7 @@ public class OperatorWindow extends JTree
     {
         // This hash table has keys of Id's and a pointer as a value
         // it is used for parent lookup
-        Hashtable ht = new Hashtable();
+        Hashtable<Integer, VSTreeNode> ht = new Hashtable<>();
         java.util.List linkNodesToRestore = new LinkedList();
         HashMap persistentIdLookup = new HashMap();
 
@@ -2159,10 +2160,10 @@ public class OperatorWindow extends JTree
         int rootId = ReaderUtils.getInteger(r);
 
         // node stuff
-        TreeNode root = makeNodeVersionFour(persistentIdLookup,linkNodesToRestore,r);
+        VSTreeNode root = makeNodeVersionFour(persistentIdLookup,linkNodesToRestore,r);
 
         // add the new node to the hash table
-        ht.put(new Integer(rootId),root);
+        ht.put(rootId,root);
 
         // Read in all the other nodes
         boolean done = false;
@@ -2179,10 +2180,10 @@ public class OperatorWindow extends JTree
 
 
                 OperatorNode node = makeNodeVersionFour(persistentIdLookup,linkNodesToRestore,r);
-                OperatorNode parent = (OperatorNode)ht.get(new Integer(parentId));
+                OperatorNode parent = (OperatorNode)ht.get(parentId);
                 addChild(parent,node);
                 // add that node to the hash table
-                ht.put(new Integer(nodeIdOrEnd),node);
+                ht.put(nodeId,node);
             }
             else 
             {
@@ -2208,7 +2209,7 @@ public class OperatorWindow extends JTree
     {
         // This hash table has keys of Id's and a pointer as a value
         // it is used for parent lookup
-        Hashtable ht = new Hashtable();
+        Hashtable<Integer, VSTreeNode> ht = new Hashtable<>();
         java.util.List linkNodesToRestore = new LinkedList();
         HashMap persistentIdLookup = new HashMap();
 
@@ -2217,10 +2218,10 @@ public class OperatorWindow extends JTree
         int rootId = ReaderUtils.getInteger(r);
 
         // node stuff
-        TreeNode root = makeNodeVersionThree(persistentIdLookup,linkNodesToRestore,r);
+        VSTreeNode root = makeNodeVersionThree(persistentIdLookup,linkNodesToRestore,r);
 
         // add the new node to the hash table
-        ht.put(new Integer(rootId),root);
+        ht.put(rootId,root);
 
         // Read in all the other nodes
         boolean done = false;
@@ -2234,14 +2235,14 @@ public class OperatorWindow extends JTree
                 int parentId = ReaderUtils.getInteger(r);
 
                 // get the parent
-                OperatorNode parent = (OperatorNode)ht.get(new Integer(parentId));
+                OperatorNode parent = (OperatorNode)ht.get(parentId);
 
                 // read in the node
                 OperatorNode node = makeNodeVersionThree(persistentIdLookup,linkNodesToRestore,r);
                 addChild(parent,node);
 
                 // add that node to the hash table
-                ht.put(new Integer(nodeId),node);
+                ht.put(nodeId,node);
             }
             else 
             {
@@ -2267,7 +2268,7 @@ public class OperatorWindow extends JTree
     {
         // This hash table has keys of Id's and a pointer as a value
         // it is used for parent lookup
-        Hashtable ht = new Hashtable(); 
+        Hashtable<Integer, VSTreeNode> ht = new Hashtable<>();
         java.util.List linkNodesToRestore = new LinkedList();
         HashMap persistentIdLookup = new HashMap();
         
@@ -2276,10 +2277,10 @@ public class OperatorWindow extends JTree
         int rootId = ReaderUtils.getInteger(r);
         
         // node stuff
-        TreeNode root = makeNodeVersionTwo(persistentIdLookup,linkNodesToRestore,r);
+        VSTreeNode root = makeNodeVersionTwo(persistentIdLookup,linkNodesToRestore,r);
         
         // add the new node to the hash table
-        ht.put(new Integer(rootId),root);
+        ht.put(rootId,root);
 
         // Read in all the other nodes
         while(r.ready()) 
@@ -2289,7 +2290,7 @@ public class OperatorWindow extends JTree
             int parentId = ReaderUtils.getInteger(r);
             
             // get the parent
-            OperatorNode parent = (OperatorNode)ht.get(new Integer(parentId));
+            OperatorNode parent = (OperatorNode)ht.get(parentId);
             
             // read in the node
             OperatorNode node = makeNodeVersionTwo(persistentIdLookup,linkNodesToRestore,r);
@@ -2297,7 +2298,7 @@ public class OperatorWindow extends JTree
             addChild(parent,node);
                         
             // add that node to the hash table
-            ht.put(new Integer(nodeId),node);
+            ht.put(nodeId,node);
         }
         Iterator i = linkNodesToRestore.iterator();
         while(i.hasNext()) 
@@ -2371,7 +2372,7 @@ public class OperatorWindow extends JTree
         throw new IOException("Parse Error");
         
         if(retVal != null)
-        linkedToMap.put(new Integer(ReaderUtils.getInteger(r)),retVal);
+        linkedToMap.put(ReaderUtils.getInteger(r),retVal);
         return retVal;
     }
 
@@ -2434,7 +2435,7 @@ public class OperatorWindow extends JTree
         throw new IOException("Parse Error");
         
         if(retVal != null)
-        linkedToMap.put(new Integer(ReaderUtils.getInteger(r)),retVal);
+        linkedToMap.put(ReaderUtils.getInteger(r),retVal);
         return retVal;
     }
 
@@ -2480,7 +2481,7 @@ public class OperatorWindow extends JTree
         throw new IOException("Parse Error");
         
         if(retVal != null)
-        linkedToMap.put(new Integer(ReaderUtils.getInteger(r)),retVal);
+        linkedToMap.put(ReaderUtils.getInteger(r),retVal);
         return retVal;
     }
 
@@ -2526,7 +2527,7 @@ public class OperatorWindow extends JTree
         throw new IOException("Parse Error");
         
         if(retVal != null)
-        linkedToMap.put(new Integer(ReaderUtils.getInteger(r)),retVal);
+        linkedToMap.put(ReaderUtils.getInteger(r),retVal);
         return retVal;
     }
 

@@ -32,9 +32,9 @@ public class OperatorRootNode extends FolderNode implements java.io.Serializable
 ///////////////////////////////////////////////////////////////////
 	/**
 	 * This constructs the normal OperatorRootNode object
-	 * @param name the name of the node
-	 * @param folder the folder which the node is associated
-	 * @param dataMap the path to the datamap
+	 * @param inName the name of the node
+	 * @param inFullPathStart
+	 * @param inFolder
 	 */
 	public OperatorRootNode(String inName, int inId,String inFullPathStart, String inFolder) {
 		super(inName,inId,inFolder);
@@ -81,12 +81,12 @@ public class OperatorRootNode extends FolderNode implements java.io.Serializable
 	
 	/**
 	 * Adds a suboperator underneath this root node
-	 * @param model the three model that this node is a part of
+	 * @param operatorWindow
 	 * @param swmm the Working Memory Model so that we can add corresponding entries to the datamap
 	 * @param newOperatorName the name of the operator being added
 	 */
 	public OperatorNode addSuboperator(OperatorWindow operatorWindow, SoarWorkingMemoryModel swmm,String newOperatorName) throws IOException {
-		OperatorNode newOperator = super.addSuboperator(operatorWindow,swmm,newOperatorName);
+		super.addSuboperator(operatorWindow,swmm,newOperatorName);
 
 		SoarVertex oper = swmm.createNewSoarId();
 		SoarVertex operName = swmm.createNewEnumeration(newOperatorName);
@@ -95,6 +95,8 @@ public class OperatorRootNode extends FolderNode implements java.io.Serializable
 
 		return this;
 	}
+
+	public String getName() { return this.name; }
 	
 	public String getProjectFile() {
 		return fullPathStart + File.separator + name + ".vsa";
@@ -130,7 +132,7 @@ public class OperatorRootNode extends FolderNode implements java.io.Serializable
 		deleteItem.setEnabled(false);
 		renameItem.setEnabled(true);
 		exportItem.setEnabled(false);
-    impasseSubMenu.setEnabled(true);
+    	impasseSubMenu.setEnabled(true);
 		checkChildrenAgainstDataMapItem.setEnabled(true);
 		contextMenu.show(c,x,y);
 	}
@@ -143,7 +145,7 @@ public class OperatorRootNode extends FolderNode implements java.io.Serializable
 		DataMap dataMap = new DataMap(swmm,swmm.getTopstate(),toString());
 		dataMap.setVisible(true);
 		pw.addDataMap(dataMap);
-    pw.getDesktopPane().dmAddDataMap(swmm.getTopstate().getValue(), dataMap);
+    	pw.getDesktopPane().dmAddDataMap(swmm.getTopstate().getValue(), dataMap);
 	}
 	
 	/**
@@ -153,62 +155,81 @@ public class OperatorRootNode extends FolderNode implements java.io.Serializable
 	public SoarIdentifierVertex getStateIdVertex() {
 		return MainFrame.getMainFrame().getOperatorWindow().getDatamap().getTopstate();
 	}
-	
+
+	/**
+	 * rename
+	 * is used by {@link #renameAndBackup}
+	 *
+	 * @param operatorWindow
+	 * @param newName
+	 * @param newPath
+	 * @throws IOException
+	 */
 	public void rename(OperatorWindow operatorWindow, String newName, String newPath) throws IOException {
 		DefaultTreeModel model = (DefaultTreeModel)operatorWindow.getModel();
 		File oldFolder = new File(getFolderName());		
 		File newFolder = new File(newPath + File.separator + newName);
-		// Rename Folder
-		if (!oldFolder.renameTo(newFolder)) {
-			JOptionPane.showMessageDialog(MainFrame.getMainFrame(),"Folder Rename Failed!","Rename Error",JOptionPane.ERROR_MESSAGE);
-			return;
-		}
-		folderName = newFolder.getName();
-		name = newName;
-    fullPathStart = newPath;
+
+		this.folderName = newFolder.getName();
+		this.name = newName;
+    	this.fullPathStart = newPath;
 
 		model.nodeChanged(this);
-	}
+	}//rename
 	
 	public void importFunc(Reader r,OperatorWindow operatorWindow,SoarWorkingMemoryModel swmm) throws IOException, NumberFormatException {
 			VSEImporter.read(r,this,operatorWindow,swmm,VSEImporter.HLOPERATOR | VSEImporter.OPERATOR);
 	}
 	
-	public void renameAndBackup(OperatorWindow operatorWindow,String newName, String newPath) {
+	public void renameAndBackup(OperatorWindow operatorWindow, String newName, String newPath) {
 
-    String oldFullPathStart = fullPathStart;
-    String oldFolder = folderName;
-
-    if( new File(newPath + File.separator + newName + ".vsa").exists()) {
-      JOptionPane.showMessageDialog(MainFrame.getMainFrame(),"An agent with this name already exists at this location.","Naming Error",JOptionPane.ERROR_MESSAGE);
-			return;
-    }
-    /*
-		if(name.equals(newName)) {
-			JOptionPane.showMessageDialog(MainFrame.getMainFrame(),"The new name must be different from the current name.","Naming Error",JOptionPane.ERROR_MESSAGE);
-			return;
+		if( new File(newPath + File.separator + newName + ".vsa").exists()) {
+		  JOptionPane.showMessageDialog(MainFrame.getMainFrame(),"An agent with this name already exists at this location.","Naming Error",JOptionPane.ERROR_MESSAGE);
+				return;
 		}
-      */
-		File oldFolderName = new File(getFolderName());
-		try {
-			rename(operatorWindow,newName, newPath);
-			oldFolderName.mkdir();
 
-			FileWriter graphWriter = new FileWriter(oldFolderName.getPath() + File.separator + oldFolderName.getName() + ".dm");
+		//Create the parent folder if it doesn't exist
+		File parentFolder = new File(newPath);
+		if (!parentFolder.exists()) {
+			parentFolder.mkdir();
+		}
+
+		//Create the new project folder if it doesn't exist
+		File newFolder = new File(newPath + File.separator + newName);
+		if (! newFolder.exists()) {
+			newFolder.mkdir();
+		}
+
+		try {
+			//Update the instance variables identifying this project
+			rename(operatorWindow, newName, newPath);
+
+			//Create a subfolder for the .dm file
+			String newDataFolderName = newPath + File.separator + newName;
+			File newDataFolder = new File(newDataFolderName);
+			if (! newDataFolder.exists()) {
+				newDataFolder.mkdir();
+			}
+
+			//Create the new datamap file
+			String newGraphFileName = newDataFolderName + File.separator + newName + ".dm";
+			FileWriter graphWriter = new FileWriter(newGraphFileName);
 			operatorWindow.getDatamap().write(graphWriter);
 			graphWriter.close();
 
 			for(int i = 0; i < getChildCount(); ++i) {
-				((OperatorNode)getChildAt(i)).copyStructures(oldFolderName);
+				OperatorNode child = (OperatorNode)getChildAt(i);
+				child.copyStructures(newDataFolder);
 			}
 		}
 		catch(IOException ioe) {
 			JOptionPane.showMessageDialog(MainFrame.getMainFrame(),"Save As Failed!","Save As Failed",JOptionPane.ERROR_MESSAGE);
 		}
-	}
+	}//renameAndBackup
 
 	public void startSourcing() throws IOException {
-		Writer w = new FileWriter(fullPathStart + File.separator + folderName + ".soar");
+		String filename = fullPathStart + File.separator + folderName + ".soar";
+		Writer w = new FileWriter(filename);
 		source(w);
 		w.close();
 		sourceRecursive();		

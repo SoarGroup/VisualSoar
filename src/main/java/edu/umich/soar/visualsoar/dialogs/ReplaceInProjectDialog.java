@@ -4,15 +4,10 @@ import edu.umich.soar.visualsoar.MainFrame;
 import edu.umich.soar.visualsoar.misc.FeedbackListObject;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorNode;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorWindow;
-import edu.umich.soar.visualsoar.operatorwindow.TreeNode;
 import edu.umich.soar.visualsoar.ruleeditor.RuleEditor;
 
 import javax.swing.*;
-import javax.swing.tree.*;
-import javax.swing.filechooser.FileFilter;
 import java.awt.*;
-import java.awt.dnd.*;
-import java.awt.datatransfer.*;
 import java.awt.event.*;
 import java.io.*;
 import java.util.*;

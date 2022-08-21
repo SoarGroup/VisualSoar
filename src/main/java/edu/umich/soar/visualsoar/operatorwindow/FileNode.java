@@ -64,7 +64,7 @@ public class FileNode extends OperatorNode implements java.io.Serializable
     /**
      * This is the function that gets called when you want to add a file to this
      * node
-     * @param model the tree model for which this node is currently a member
+     * @param operatorWindow
      * @param newFileName the name of the new operator to add
      */
     public void addFile(OperatorWindow operatorWindow, String newFileName) throws IOException 
@@ -149,7 +149,7 @@ public class FileNode extends OperatorNode implements java.io.Serializable
     
     /**
      * The user wants to rename this node
-     * @param model the model for which this node is contained within
+     * @param operatorWindow
      * @param newName the new name that the user wants this node to be called
      */
     public void rename(OperatorWindow operatorWindow,
@@ -211,7 +211,7 @@ public class FileNode extends OperatorNode implements java.io.Serializable
      * @param w where the file should be written to
      * @throws IOException if there is an error writing to the writer
      */
-    public void exportFile(Writer w,int id) throws IOException 
+    public void exportFile(Writer w, int id) throws IOException
     {
         w.write("RULE_FILE " + id + " ");
         if(ruleEditor == null) 

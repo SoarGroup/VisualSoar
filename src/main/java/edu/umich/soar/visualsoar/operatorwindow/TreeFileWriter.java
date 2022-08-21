@@ -37,7 +37,7 @@ public class TreeFileWriter {
 		// child without first processing its parent
 		Enumeration e = root.preorderEnumeration();
 
-		TreeNode node = (TreeNode)e.nextElement();
+		VSTreeNode node = (VSTreeNode)e.nextElement();
 		ht.put(node, nodeID);
 
 		// special case for the root node
@@ -52,7 +52,7 @@ public class TreeFileWriter {
 
 		while(e.hasMoreElements()) {
 			nodeID = new Integer(nodeID.intValue() + 1);
-			node = (TreeNode)e.nextElement();
+			node = (VSTreeNode)e.nextElement();
 			ht.put(node, nodeID);
 
 			// Again the same technique write out the tree information, then the node specific stuff, then

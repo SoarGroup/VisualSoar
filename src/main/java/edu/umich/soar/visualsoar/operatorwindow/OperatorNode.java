@@ -9,14 +9,11 @@ import edu.umich.soar.visualsoar.parser.ParseException;
 import edu.umich.soar.visualsoar.parser.TokenMgrError;
 
 import java.awt.datatransfer.*;
-import java.awt.dnd.*;
 import javax.swing.*;
 import java.awt.event.*;
 import java.awt.Component;
-import javax.swing.tree.*;
 import java.util.*;
 import java.io.*;
-import java.awt.dnd.*;
 
 
 /**
@@ -25,7 +22,7 @@ import java.awt.dnd.*;
  * @author Brad Jones
  * @version 0.5a 5 Aug 1999
  */
-public abstract class OperatorNode extends TreeNode implements java.io.Serializable {
+public abstract class OperatorNode extends VSTreeNode implements java.io.Serializable {
 ///////////////////////////////////////////////////////////////////
 // Data Members
 ////////////////////////////////////////////////////////////////////
@@ -530,7 +527,7 @@ public abstract class OperatorNode extends TreeNode implements java.io.Serializa
 	 * if this function gets called it means that the node did not properly overload
 	 * the function, so the user just told the program to do something that it cannot
 	 * all this function does is print out an error message to that effect
-	 * @param model the tree model for which this node is currently a member
+	 * @param operatorWindow
 	 * @param newOperatorName the name of the new operator to add
 	 */
 	public OperatorNode addSuboperator(OperatorWindow operatorWindow, SoarWorkingMemoryModel swmm, String newOperatorName) throws IOException {
@@ -543,7 +540,7 @@ public abstract class OperatorNode extends TreeNode implements java.io.Serializa
 	 * if this function gets called it means that the node did not properly overload
 	 * the function, so the user just told the program to do something that it cannot
 	 * all this function does is print out an error message to that effect
-	 * @param model the tree model for which this node is currently a member
+	 * @param operatorWindow
 	 * @param newOperatorName the name of the new operator to add
 	 */
   public OperatorNode addImpasseOperator(OperatorWindow operatorWindow, SoarWorkingMemoryModel swmm, String newOperatorName) throws IOException {
@@ -556,8 +553,6 @@ public abstract class OperatorNode extends TreeNode implements java.io.Serializa
 	 * if this function gets called it means that the node did not properly overload
 	 * the function, so the user just told the program to do something that it cannot
 	 * all this function does is print out an error message to that effect
-	 * @param model the model for which this node is a member of
-	 * @param newChild the child that you want to add to the tree
 	 */
 	public OperatorNode addFileOperator(OperatorWindow operatorWindow, SoarWorkingMemoryModel swmm, String newFileName) throws IOException {
 		System.err.println("addFileOperator: This should never get called");
@@ -579,14 +574,12 @@ public abstract class OperatorNode extends TreeNode implements java.io.Serializa
 	 * if this function gets called it means that the node did not properly overload
 	 * the function, so the user just told the program to do something that it cannot
 	 * all this function does is print out an error message to that effect
-	 * @param model the model for which this node is a member of
-	 */ 
+	 */
 	public void delete(OperatorWindow operatorWindow) {}
 	
 	/**
 	 * Tell the parent that a node has been deleted
 	 * a node should do when a child is deleted - nothing
-	 * @param model the tree model that this node is a member of
 	 */
 	public void notifyDeletionOfChild(OperatorWindow operatorWindow,OperatorNode child) {
 	}
@@ -648,7 +641,7 @@ public abstract class OperatorNode extends TreeNode implements java.io.Serializa
 	 * if this function gets called it means that the node did not properly overload
 	 * the function, so the user just told the program to do something that it cannot
 	 * all this function does is print out an error message to that effect
-	 * @param model the model for which this node is contained within
+	 * @param operatorWindow
 	 * @param newName the new name that the user wants this node to be called
 	 */
 	public void rename(OperatorWindow operatorWindow, String newName) throws IOException {
@@ -694,8 +687,8 @@ public abstract class OperatorNode extends TreeNode implements java.io.Serializa
 		// This hash table is used to associate pointers with id's
 		// given a pointer you can lookup the id for the that node
 		// this is used for parent id lookup
-		Hashtable ht = new Hashtable();
-		Integer nodeID = new Integer(0);
+		Hashtable<OperatorNode, Integer> ht = new Hashtable<>();
+		Integer nodeID = 0;
 		
 		// Doing this enumeration guarentees that we will never reach a
 		// child without first processing its parent
@@ -715,7 +708,7 @@ public abstract class OperatorNode extends TreeNode implements java.io.Serializa
 		w.write("\n");
 
 		while(e.hasMoreElements()) {
-			nodeID = new Integer(nodeID.intValue() + 1);
+			nodeID = nodeID.intValue() + 1;
 			node = (OperatorNode)e.nextElement();
 			ht.put(node, nodeID);
 			
