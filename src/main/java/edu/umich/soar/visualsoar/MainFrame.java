@@ -1,5 +1,6 @@
 package edu.umich.soar.visualsoar;
 import edu.umich.soar.visualsoar.datamap.DataMap;
+import edu.umich.soar.visualsoar.datamap.SoarWorkingMemoryModel;
 import edu.umich.soar.visualsoar.dialogs.AboutDialog;
 import edu.umich.soar.visualsoar.dialogs.FindDialog;
 import edu.umich.soar.visualsoar.dialogs.FindInProjectDialog;
@@ -100,6 +101,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
     Action reTileWindowsAction = new ReTileWindowsAction();
 	PerformableAction verifyProjectAction = new VerifyProjectAction();
 	Action checkSyntaxErrorsAction = new CheckSyntaxErrorsAction();
+	Action loadTopStateDatamapAction = new LoadTopStateDatamapAction();
 	PerformableAction checkAllProductionsAction = new CheckAllProductionsAction();
     Action searchDataMapCreateAction = new SearchDataMapCreateAction();
     Action searchDataMapTestAction = new SearchDataMapTestAction();
@@ -386,15 +388,25 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
     {
 		JMenu datamapMenu = new JMenu("Datamap");
 
+		JMenuItem topStateDatamapItem = new JMenuItem("Display Top-State Datamap");
+		topStateDatamapItem.addActionListener(loadTopStateDatamapAction);
+		topStateDatamapItem.addPropertyChangeListener(
+				new ActionButtonAssociation(loadTopStateDatamapAction,topStateDatamapItem));
+
 		JMenuItem checkAllProductionsItem = new JMenuItem("Check All Productions Against the Datamap");
 		checkAllProductionsItem.addActionListener(checkAllProductionsAction);
 		checkAllProductionsAction.addPropertyChangeListener(
-            new ActionButtonAssociation(checkAllProductionsAction,checkAllProductionsItem));
+				new ActionButtonAssociation(checkAllProductionsAction,checkAllProductionsItem));
 
 		JMenuItem checkSyntaxErrorsItem = new JMenuItem("Check All Productions for Syntax Errors");
 		checkSyntaxErrorsItem.addActionListener(checkSyntaxErrorsAction);
 		checkSyntaxErrorsAction.addPropertyChangeListener(
             new ActionButtonAssociation(checkSyntaxErrorsAction,checkSyntaxErrorsItem));
+
+		JMenuItem generateDataMapItem = new JMenuItem("Generate the Datamap from the Current Operator Hierarchy");
+		generateDataMapItem.addActionListener(generateDataMapAction);
+		generateDataMapAction.addPropertyChangeListener(
+				new ActionButtonAssociation(generateDataMapAction, generateDataMapItem));
 
 		JMenuItem searchDataMapTestItem = new JMenuItem("Search the Datamap for WMEs that are Never Tested");
 		searchDataMapTestItem.addActionListener(searchDataMapTestAction);
@@ -421,11 +433,8 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		searchDataMapNoTestNoCreateAction.addPropertyChangeListener(
             new ActionButtonAssociation(searchDataMapNoTestNoCreateAction,searchDataMapNoTestNoCreateItem));
 
-		JMenuItem generateDataMapItem = new JMenuItem("Generate the Datamap from the Current Operator Hierarchy");
-        generateDataMapItem.addActionListener(generateDataMapAction);
-        generateDataMapAction.addPropertyChangeListener(
-            new ActionButtonAssociation(generateDataMapAction, generateDataMapItem));
-
+		datamapMenu.add(topStateDatamapItem);
+		datamapMenu.addSeparator();
 		datamapMenu.add(checkAllProductionsItem);
 		datamapMenu.add(checkSyntaxErrorsItem);
 		datamapMenu.addSeparator();
@@ -959,6 +968,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
     {
   		// Enable various actions
 		saveAllFilesAction.setEnabled(areEnabled);
+		loadTopStateDatamapAction.setEnabled(areEnabled);
 		checkAllProductionsAction.setEnabled(areEnabled);
 		checkSyntaxErrorsAction.setEnabled(areEnabled);
         searchDataMapTestAction.setEnabled(areEnabled);
@@ -1955,8 +1965,33 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 	
 	}//class VerifyProjectAction
 
-    
- 	/**
+	/**
+	 * class LoadTopStateDatamapAction
+	 *
+	 * This action loads the top-state datamap
+	 *
+	 * @author Andrew Nuxoll
+	 * @version 08 Sep 2022
+	 */
+	class LoadTopStateDatamapAction extends AbstractAction
+	{
+		public LoadTopStateDatamapAction()
+		{
+			super("Check All Productions for Syntax Errors");
+			setEnabled(false);
+		}
+
+		public void actionPerformed(ActionEvent ae)
+		{
+			OperatorRootNode root = (OperatorRootNode)(operatorWindow.getModel().getRoot());
+			SoarWorkingMemoryModel dataMap = MainFrame.this.operatorWindow.getDatamap();
+			root.openDataMap(dataMap, MainFrame.this);
+		}
+
+	}//class LoadTopStateDatamapAction
+
+
+	/**
      * This action searches all productions in the project for syntax
      * errors only.   Operation status is displayed in a progress bar.
      * Results are displayed in the feedback list

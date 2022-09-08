@@ -1,12 +1,8 @@
 package edu.umich.soar.visualsoar.ruleeditor;
 
 import java.io.*;
-import java.util.TreeMap;
 import java.awt.*;
 import javax.swing.text.*;
-import java.util.Enumeration;
-
-import edu.umich.soar.visualsoar.MainFrame;
 import edu.umich.soar.visualsoar.misc.Prefs;
 import edu.umich.soar.visualsoar.misc.SyntaxColor;
 import edu.umich.soar.visualsoar.parser.ASCII_CharStream;
@@ -14,7 +10,6 @@ import edu.umich.soar.visualsoar.parser.SoarParserConstants;
 import edu.umich.soar.visualsoar.parser.SoarParserTokenManager;
 import edu.umich.soar.visualsoar.parser.Token;
 import edu.umich.soar.visualsoar.parser.TokenMgrError;
-import javax.swing.*;
 
 public class SoarDocument extends DefaultStyledDocument
 {
@@ -33,7 +28,13 @@ public class SoarDocument extends DefaultStyledDocument
                              String str,
                              AttributeSet a) throws BadLocationException
     {
-        super.insertString(offset, str, a);
+        System.out.println("offset: " + offset + " str=" + (str.equals("\n") ? "\\n" : str));
+        try {
+            super.insertString(offset, str, a);
+        }
+        catch(BadLocationException ble) {
+            ble.printStackTrace();
+        }
         
         if (! Prefs.highlightingEnabled.getBoolean())
         {
@@ -41,7 +42,7 @@ public class SoarDocument extends DefaultStyledDocument
         }
         
         int     length = str.length();
-        
+
         if (length == 1)
         {
             colorSyntax(offset);
@@ -128,6 +129,9 @@ public class SoarDocument extends DefaultStyledDocument
         {
             e.printStackTrace();
         }
+        catch (StringIndexOutOfBoundsException sioobe) {
+            sioobe.printStackTrace();
+        }
         
         return theLine;
     } // getElementString()
@@ -152,14 +156,21 @@ public class SoarDocument extends DefaultStyledDocument
     {
         Color               theColor = colorTable[kind];
         SimpleAttributeSet  attrib = new SimpleAttributeSet();
+
         String text = null;
         try
         {
             text = getText(begPos,length);
         }
-        catch(BadLocationException ble) {}
-        
-        StyleConstants.setForeground(attrib, theColor);             
+        catch(BadLocationException ble) {
+            ble.printStackTrace();
+        }
+
+        //TODO: DEBUG
+        System.out.println("begPos=" + begPos + " length=" + length);
+
+
+        StyleConstants.setForeground(attrib, theColor);
         setCharacterAttributes(begPos, length, attrib, false);
     }//colorRange()
 
@@ -463,7 +474,7 @@ public class SoarDocument extends DefaultStyledDocument
      * The Token class created by JavaCC does not have a copy ctor.
      * Since we can't edit that class we improvise a copy ctor here.
      *
-     * @param dest Token to copy to 
+     * @param dst Token to copy to
      * @param src Token to copy from 
      * @author Andrew Nuxoll
      * 24 Nov 03
@@ -567,10 +578,15 @@ public class SoarDocument extends DefaultStyledDocument
     {
         Content                 data = getContent();
         Token                   currToken = new Token();
-        Element                 currElem = root.getElement(root.getElementIndex(caretPos));
+        Element                 currElem = root.getElement(caretPos);
+
+        //If the element has zero size no work need be done
+        if (currElem == null) return;
+        if (currElem.getEndOffset() <= currElem.getStartOffset()) return;
+
         String                  currLine;
         int                     offset = currElem.getStartOffset();
-        
+
         currLine = getElementString(currElem, data);
 
         //Create a token manager. Since we don't know what lexical state we're
@@ -578,14 +594,14 @@ public class SoarDocument extends DefaultStyledDocument
         Reader r = new StringReader(currLine);
         SoarParserTokenManager mgr = guessLexicalState(r, currToken);
 
+
         // init all the text to black
         colorRange(offset, currLine.length(), SoarParserConstants.DEFAULT);
-                
+
         while (currToken.kind != SoarParserConstants.EOF)
         {
-        
             evaluateToken(currToken, offset, mgr);
-            
+
             try
             {
                 currToken = mgr.getNextToken();
@@ -597,8 +613,8 @@ public class SoarDocument extends DefaultStyledDocument
                  */
                 return;
             }
-            
-        }  // iterate through tokens    
+
+        }  // iterate through tokens
 
         
     } // colorSyntax (one line)
@@ -707,7 +723,7 @@ public class SoarDocument extends DefaultStyledDocument
         }
 
         elemIndex = root.getElementIndex(selectionStart);
-        prevLineIndex = elemIndex -1;
+        prevLineIndex = elemIndex - 1;
         endIndex = root.getElementIndex(selectionEnd);
 
         // endIndex is one less if last line just a line feed

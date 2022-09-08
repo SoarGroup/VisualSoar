@@ -37,7 +37,7 @@ public abstract class OperatorNode extends VSTreeNode implements java.io.Seriali
     static protected JMenuItem stateNoChangeImpasseItem = new JMenuItem("State No-Change Impasse");
 
 	static protected JMenuItem openRulesItem = new JMenuItem("Open Rules");
-	static protected JMenuItem openDataMapItem = new JMenuItem("Open DataMap");
+	static protected JMenuItem openDataMapItem = new JMenuItem("Open Datamap");
 	static protected JMenuItem searchItem = new JMenuItem("Find...");
 	static protected JMenuItem replaceItem = new JMenuItem("Replace...");
 	static protected JMenuItem deleteItem = new JMenuItem("Delete");

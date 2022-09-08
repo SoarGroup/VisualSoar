@@ -177,7 +177,7 @@ public class EditorPane extends javax.swing.JEditorPane
      * @exception IllegalArgumentException  if pos is an
      *  invalid position in the model
      * @see JTextArea
-     * @see TextComponent#setText
+     * @see java.awt.TextComponent#setText 
      */
     public void insert(String str, int pos)
     {

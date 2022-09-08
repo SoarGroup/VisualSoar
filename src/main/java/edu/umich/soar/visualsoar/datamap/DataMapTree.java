@@ -73,7 +73,7 @@ public class DataMapTree extends JTree implements ClipboardOwner
 	private static JMenuItem ValidateEntryItem = new JMenuItem("Validate Entry");
 	private static JMenuItem ValidateAllItem = new JMenuItem("Validate All");
 
-	private static JMenu ChangeTypeSubMenu = new JMenu("Change DataMap Type...");
+	private static JMenu ChangeTypeSubMenu = new JMenu("Change Datamap Type...");
 	private static JMenuItem ChangeToIdentifierItem = new JMenuItem("to Identifier");
 	private static JMenuItem ChangeToEnumerationItem = new JMenuItem("to Enumeration");
 	private static JMenuItem ChangeToIntegerItem = new JMenuItem("to Integer");
@@ -349,9 +349,7 @@ public class DataMapTree extends JTree implements ClipboardOwner
 	 * sets some data fields as well as specifying the custom cell renderer for 
 	 * italicizing links and add the mouse adapter for right-clicking.
 	 * @param model the model which specifies the contents of the tree.
-	 * @param inProjectWindow the main project window.
-	 * @param map the Datamap which contains this tree.
-	 * @see VSTreeCellRenderer
+	 *
 	 */
 	 public DataMapTree(TreeModel model, SoarWorkingMemoryModel _swmm) 
 	{
@@ -1595,7 +1593,7 @@ public class DataMapTree extends JTree implements ClipboardOwner
 
 	 /**
 	  *  Selects (highlights and centers) the requested edge within the datamap.
-	  *  @param edge the requested NamedEdge to select
+	  *  @param desiredEdge the requested NamedEdge to select
 	  *  @return the FakeTreeNode that contains the desired edge,  null if could not find
 	  */
 	 public FakeTreeNode selectEdge(NamedEdge desiredEdge) 

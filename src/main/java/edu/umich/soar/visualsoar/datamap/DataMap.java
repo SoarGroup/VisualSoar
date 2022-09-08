@@ -98,12 +98,12 @@ public class DataMap extends CustomInternalFrame
 		pasteItem.addActionListener(dataMapTree.pasteAction);
 
 
-        JMenuItem searchItem = new JMenuItem("Search DataMap");
+        JMenuItem searchItem = new JMenuItem("Search Datamap");
         editMenu.add(searchItem);
         searchItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F, Event.CTRL_MASK));
         searchItem.addActionListener(dataMapTree.searchAction);
 
-        JMenuItem validateItem = new JMenuItem("Validate DataMap");
+        JMenuItem validateItem = new JMenuItem("Validate Datamap");
         validateMenu.add(validateItem);
         validateItem.addActionListener(dataMapTree.validateDataMapAction);
 
