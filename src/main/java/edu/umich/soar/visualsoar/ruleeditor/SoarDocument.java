@@ -28,7 +28,9 @@ public class SoarDocument extends DefaultStyledDocument
                              String str,
                              AttributeSet a) throws BadLocationException
     {
-        System.out.println("offset: " + offset + " str=" + (str.equals("\n") ? "\\n" : str));
+        //TODO:  DEBUG
+        //System.out.println("offset: " + offset + " str=" + (str.equals("\n") ? "\\n" : str));
+
         try {
             super.insertString(offset, str, a);
         }
@@ -167,7 +169,7 @@ public class SoarDocument extends DefaultStyledDocument
         }
 
         //TODO: DEBUG
-        System.out.println("begPos=" + begPos + " length=" + length);
+        System.out.println("colorRange(): begPos=" + begPos + " length=" + length);
 
 
         StyleConstants.setForeground(attrib, theColor);
@@ -576,9 +578,10 @@ public class SoarDocument extends DefaultStyledDocument
     //Color the syntax of a single line
     public void colorSyntax(int caretPos)
     {
-        Content                 data = getContent();
-        Token                   currToken = new Token();
-        Element                 currElem = root.getElement(caretPos);
+        Content data      = getContent();
+        int     lineNum   = root.getElementIndex(caretPos);
+        Element currElem  = root.getElement(lineNum);
+        Token   currToken = new Token();
 
         //If the element has zero size no work need be done
         if (currElem == null) return;
@@ -646,7 +649,12 @@ public class SoarDocument extends DefaultStyledDocument
                    
         // init all the text to black
         //colorRange(startPos, totalLength, SoarParserConstants.DEFAULT);
-        
+
+        //To make inline comments work we need track the end position of the
+        // previous token.
+        int prevLineNum = -1;
+        int prevPos = -1;
+
         while (currToken.kind != SoarParserConstants.EOF)
         {
         
@@ -661,7 +669,7 @@ public class SoarDocument extends DefaultStyledDocument
             {
                 evaluateToken(currToken, currElem.getStartOffset() - 1, mgr);
             }
-            
+
             try
             {
                 currToken = mgr.getNextToken();
