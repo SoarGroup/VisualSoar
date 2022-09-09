@@ -1369,6 +1369,10 @@ public class SoarDocument extends DefaultStyledDocument
                 prevLine = prevLine.substring(0, prevLine.indexOf('#') - 1);
             }
         }
+
+        //remove any trailing whitespace
+        prevLine = prevLine.replaceAll("\\s+$", "");
+
         return prevLine;
     }
 } // class SoarDocument
