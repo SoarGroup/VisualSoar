@@ -10,21 +10,14 @@ import edu.umich.soar.visualsoar.dialogs.PreferencesDialog;
 import edu.umich.soar.visualsoar.dialogs.ReplaceInProjectDialog;
 import edu.umich.soar.visualsoar.dialogs.SaveProjectAsDialog;
 import edu.umich.soar.visualsoar.graph.NamedEdge;
-import edu.umich.soar.visualsoar.misc.CustomDesktopPane;
-import edu.umich.soar.visualsoar.misc.CustomInternalFrame;
-import edu.umich.soar.visualsoar.misc.FeedbackList;
-import edu.umich.soar.visualsoar.misc.PerformableAction;
-import edu.umich.soar.visualsoar.misc.Prefs;
-import edu.umich.soar.visualsoar.misc.SoarFileFilter;
-import edu.umich.soar.visualsoar.misc.TemplateManager;
-import edu.umich.soar.visualsoar.misc.TextFileFilter;
+import edu.umich.soar.visualsoar.misc.*;
 import edu.umich.soar.visualsoar.operatorwindow.*;
-import edu.umich.soar.visualsoar.parser.ParseException;
-import edu.umich.soar.visualsoar.parser.TokenMgrError;
+import edu.umich.soar.visualsoar.parser.*;
 import edu.umich.soar.visualsoar.ruleeditor.RuleEditor;
 import edu.umich.soar.visualsoar.threepenny.SoarRuntimeSendRawCommandDialog;
 import edu.umich.soar.visualsoar.util.ActionButtonAssociation;
 import edu.umich.soar.visualsoar.util.MenuAdapter;
+import edu.umich.soar.visualsoar.parser.Pair;
 
 // 3P
 import sml.Agent;
@@ -37,6 +30,7 @@ import java.awt.dnd.*;
 import java.awt.event.*;
 import java.awt.datatransfer.*;
 import javax.swing.*;
+import javax.swing.Action;
 import javax.swing.tree.*;
 import javax.swing.text.*;
 import java.io.*;
@@ -2021,14 +2015,29 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
             {
                 super(v, title);
             }
-                
-            public boolean checkEntity(Object node) throws IOException
+
+			public boolean checkEntity(Object node) throws IOException
             {
                 OperatorNode opNode = (OperatorNode)node;
                 
                 try
                 {
-                    opNode.parseProductions();
+                    Vector prods = opNode.parseProductions();
+
+                    //check for errors parser may not report
+                    if ((prods != null) && (prods.size() > 0)) {
+						Iterator prodIter = prods.iterator();
+						while(prodIter.hasNext()) {
+							SoarProduction sprod = (SoarProduction) prodIter.next();
+							FeedbackListObject flobj = SuppParseChecks.checkUndefinedVarRHS(opNode, sprod);
+							if (flobj != null) {
+								vecErrors.add(flobj);
+								return true;
+							}
+						}
+					}
+
+
                 }
                 catch(ParseException pe)
                 {
