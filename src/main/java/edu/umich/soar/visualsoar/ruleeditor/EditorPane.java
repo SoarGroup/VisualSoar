@@ -320,6 +320,60 @@ public class EditorPane extends javax.swing.JEditorPane
         
     }//getLineText()
 
+
+    /**
+     * sets the selection to the current line
+     *
+     * @author Andrew Nuxoll
+     * @version 22 Sep 2022
+     */
+    public void selectCurrLIne() throws BadLocationException {
+        int lineNum = 1+getLineOfOffset(getCaretPosition());
+        Document doc = getDocument();
+        Element map = doc.getDefaultRootElement();
+        int startOffset = getLineStartOffset(lineNum - 1);
+        int endOffset = doc.getLength() - 1;
+
+        if (lineNum + 1 < map.getElementCount())
+        {
+            endOffset = getLineStartOffset(lineNum) - 1;
+        }
+
+        setSelectionStart(startOffset);
+        setSelectionEnd(endOffset);
+    }//selectCurrLIne
+
+    /**
+     * Expands the current selection to include only entire lines
+     * If nothing is currently selected, then the current line is
+     * selected.
+     */
+    public void expandSelectionToEntireLines() throws BadLocationException
+    {
+        String selectedText = getSelectedText();
+        if ((selectedText == null) || (selectedText.length() == 0)) {
+            selectCurrLIne();
+            return;
+        }
+
+        //set new selection start position
+        Document doc = getDocument();
+        Element map = doc.getDefaultRootElement();
+        int lineNum = 1+getLineOfOffset(getSelectionStart());
+        int startOffset = getLineStartOffset(lineNum - 1);
+        setSelectionStart(startOffset);
+
+        //set new selection end position
+        lineNum = 1+getLineOfOffset(getSelectionEnd());
+        int endOffset = doc.getLength() - 1;
+        if (lineNum + 1 < map.getElementCount()) {
+            endOffset = getLineStartOffset(lineNum) - 1;
+        }
+        setSelectionEnd(endOffset);
+
+    }//expandSelectionToEntireLines
+
+
     
     /**
      * Stolen from JTextComponent...

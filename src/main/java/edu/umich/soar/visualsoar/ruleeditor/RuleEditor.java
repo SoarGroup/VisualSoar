@@ -1347,6 +1347,10 @@ public class RuleEditor extends CustomInternalFrame
         reJustifyItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_J,
                                                             Event.CTRL_MASK));
 
+        commentOutItem.setMnemonic(KeyEvent.VK_SLASH);
+        commentOutItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_SLASH,
+                                                             Event.CTRL_MASK));
+
         menuBar.add(editMenu);
     }
 
@@ -1930,27 +1934,59 @@ public class RuleEditor extends CustomInternalFrame
             super("Comment Out");
         }
 
+        private boolean isCommentedOut(String text) {
+            if (text.length() == 0) return false;
+            String[] lines = text.split("[\r\n]+");
+            for(String line : lines) {
+                if (line.trim().charAt(0) != '#') return false;
+            }
+            return true;
+        }
+
         public void actionPerformed(ActionEvent e) 
         {
+            //Get the text to be commented out
+            try {
+                editorPane.expandSelectionToEntireLines();
+            } catch (BadLocationException ex) {
+                return; //shouldn't happen...
+            }
             String selectedText = editorPane.getSelectedText();
-            if(selectedText != null) 
-            {
-                String commentText = "#" + selectedText;
-                int nl = commentText.indexOf('\n');
-                while(nl != -1) 
-                {
-                    commentText = commentText.substring(0,nl+1) + "#" + commentText.substring(nl+1,commentText.length());
-                    nl = (nl+1) >= commentText.length() ? -1 : commentText.indexOf('\n',nl+1);
-                }
+            if ((selectedText == null) || (selectedText.length() == 0)) {
+                return; //also shouldn't happen
+            }
 
-                editorPane.replaceRange(commentText,editorPane.getSelectionStart(),editorPane.getSelectionEnd());
+            //If all the selected text is already commented out then
+            //we want to uncomment instead (i.e., a toggle)
+            if (isCommentedOut(selectedText)) {
+                uncommentOutAction.actionPerformed(e);
+                return;
             }
-            else 
+
+            //Save the current selection to restore later
+            int selStart = editorPane.getSelectionStart();
+            int selEnd = editorPane.getSelectionEnd();
+
+            //comment out the text
+            String commentText = "#" + selectedText;
+            int nl = commentText.indexOf('\n');
+            while(nl != -1)
             {
-                getToolkit().beep();
+                commentText = commentText.substring(0,nl+1) + "#" + commentText.substring(nl+1,commentText.length());
+                nl = (nl+1) >= commentText.length() ? -1 : commentText.indexOf('\n',nl+1);
+
+                //increment selection end to accomodate added char
+                selEnd++;
             }
-        }
-    }
+
+            editorPane.replaceRange(commentText,editorPane.getSelectionStart(),editorPane.getSelectionEnd());
+
+            //restore the selection
+            editorPane.setSelectionStart(selStart);
+            editorPane.setSelectionEnd(selEnd);
+
+        }//actionPerformed
+    }//class CommentOutAction
 
     /**
      * This class uncomments (takes out the # in the first position for every line) from the currently selected
@@ -1968,17 +2004,37 @@ public class RuleEditor extends CustomInternalFrame
             String selectedText = editorPane.getSelectedText();
             if(selectedText != null) 
             {
+                //Save the current selection to restore later
+                int selStart = editorPane.getSelectionStart();
+                int selEnd = editorPane.getSelectionEnd();
+
+
                 String uncommentText = selectedText;
-                if(uncommentText.charAt(0) == '#')
-                uncommentText = uncommentText.substring(1,uncommentText.length());
+                if(uncommentText.charAt(0) == '#') {
+                    uncommentText = uncommentText.substring(1, uncommentText.length());
+
+                    //decrease the selection range to accommodate missing char
+                    selEnd--;
+                }
                 int nlp = uncommentText.indexOf("\n#");
                 while(nlp != -1) 
                 {
                     uncommentText = uncommentText.substring(0,nlp+1) + uncommentText.substring(nlp+2,uncommentText.length());
                     nlp = uncommentText.indexOf("\n#",nlp+1);
+
+                    //decrease the selection range to accommodate missing char
+                    selEnd--;
                 }
 
                 editorPane.replaceRange(uncommentText,editorPane.getSelectionStart(),editorPane.getSelectionEnd());
+
+                //restore the selection
+                if (selEnd > selStart) {
+                    editorPane.setSelectionStart(selStart);
+                    editorPane.setSelectionEnd(selEnd);
+                }
+
+
             }
             else 
             {
