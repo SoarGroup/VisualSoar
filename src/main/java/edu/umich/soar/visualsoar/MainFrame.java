@@ -2022,9 +2022,12 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
                 
                 try
                 {
+
+					//This is the main parsing here
                     Vector prods = opNode.parseProductions();
 
-                    //check for errors parser may not report
+                    //Check for Supplmental Error:  Variable on RHS never
+					// created or tested
                     if ((prods != null) && (prods.size() > 0)) {
 						Iterator prodIter = prods.iterator();
 						while(prodIter.hasNext()) {

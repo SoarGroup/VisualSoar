@@ -13,28 +13,23 @@ import edu.umich.soar.visualsoar.misc.Template;
 import edu.umich.soar.visualsoar.misc.TemplateInstantiationException;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorNode;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorRootNode;
-import edu.umich.soar.visualsoar.parser.Pair;
-import edu.umich.soar.visualsoar.parser.ParseException;
-import edu.umich.soar.visualsoar.parser.SoarParser;
-import edu.umich.soar.visualsoar.parser.SoarParserConstants;
-import edu.umich.soar.visualsoar.parser.SoarProduction;
-import edu.umich.soar.visualsoar.parser.TokenMgrError;
-import edu.umich.soar.visualsoar.parser.Triple;
-import edu.umich.soar.visualsoar.parser.TriplesExtractor;
+import edu.umich.soar.visualsoar.parser.*;
 import edu.umich.soar.visualsoar.util.ActionButtonAssociation;
 import edu.umich.soar.visualsoar.util.EnumerationIteratorWrapper;
 import edu.umich.soar.visualsoar.util.MenuAdapter;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
+import javax.swing.Action;
 import javax.swing.text.*;
-import javax.swing.tree.*;
 import java.io.*;
 
 import javax.swing.event.*;
 import java.beans.*;
 import javax.swing.undo.*;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 //QUESTION: Why aren't we importing edu.umich.visualsoar.parser.*??
 //ANSWER:   It creates compile ambiguities between parser.Action and
@@ -42,7 +37,6 @@ import java.util.*;
 
 // 3P
 import sml.Agent;
-import sml.Kernel;
 
 /**
  * This is the rule editor window
@@ -129,7 +123,7 @@ public class RuleEditor extends CustomInternalFrame
     /**
      * Constructs a new JInternalFrame, sets its size and
      * adds the editor pane to it
-     * @param in_fileName the file to which this RuleEditor is associated
+     * @param inFileName the file to which this RuleEditor is associated
      */
     public RuleEditor(File inFileName,OperatorNode inNode) throws IOException 
     {
@@ -238,7 +232,7 @@ public class RuleEditor extends CustomInternalFrame
      * adds the editor pane to it.
    * This constructor is for opening external files not associated with the
    * project.
-     * @param in_fileName the file to which this RuleEditor is associated
+     * @param inFileName the file to which this RuleEditor is associated
      */
     public RuleEditor(File inFileName) throws IOException 
     {
@@ -292,21 +286,22 @@ public class RuleEditor extends CustomInternalFrame
             new DocumentListener() 
             {
                 public void insertUpdate(DocumentEvent e) 
+                {
+                    if (!change)
                     {
-                        if (!change) 
-                        {
-                            change = true;
-                            modifiedLabel.setText("Modified");
-                        }
+                        change = true;
+                        modifiedLabel.setText("Modified");
                     }
-                public void removeUpdate(DocumentEvent e) 
+                }
+
+                public void removeUpdate(DocumentEvent e)
+                {
+                    if (!change)
                     {
-                        if (!change) 
-                        {
-                            change = true;
-                            modifiedLabel.setText("Modified");
-                        }
+                        change = true;
+                        modifiedLabel.setText("Modified");
                     }
+                }
                 public void changedUpdate(DocumentEvent e) {}
             });
 
@@ -973,10 +968,6 @@ public class RuleEditor extends CustomInternalFrame
     /**
      * Takes the selected text within the editorPane checks to see if that is the string
      * that we are looking for, if it is then it replaces it and selects the new text
-     * @param toFind the string to find in the document to replace
-     * @param Replace the string to replace the toFind string
-     * @param forward whether or not to search forward
-     * @param caseSensitive whether or not this search is caseSensitive
      */
     public void replace() 
     {
@@ -1011,10 +1002,6 @@ public class RuleEditor extends CustomInternalFrame
 
     /**
      * Replaces all instances (before/after) the caret with the specified string
-     * @param toFind the string to find in the document to replace
-     * @param Replace the string to replace the toFind string
-     * @param forward whether or not to search forward
-     * @param caseSensitive whether or not this search is caseSensitive
      */
     public void replaceAll() 
     {
@@ -1071,12 +1058,53 @@ public class RuleEditor extends CustomInternalFrame
     }
 
     /**
+     * fixUnmatchedBraces
+     *
+     * If you forget to put a close brace at the end of your production
+     * VS will thoughtfully insert it for you.
+     *
+     * Note:  There is a sister method {@link SuppParseChecks#fixUnmatchedBraces}
+     * which does the same thing for files that are not currently open.  They
+     * share {@link SuppParseChecks#findMissingBracePositions(String)} and
+     * {@link SuppParseChecks#insertBraces} as helper methods.
+     */
+    public void fixUnmatchedBraces() {
+        String text = editorPane.getText();
+
+        //Add any required braces
+        Vector<Integer> bracePositions = SuppParseChecks.findMissingBracePositions(text);
+        if (bracePositions.isEmpty()) return; //nothing to do
+
+        //Add required braces
+        text = SuppParseChecks.insertBraces(text, bracePositions);
+
+        //Adjust the caretPosition
+        int caretPos = editorPane.getCaretPosition();
+        for(int i : bracePositions) {
+            if (i < caretPos) caretPos += 2;
+        }
+        editorPane.setCaretPosition(caretPos);
+
+
+        //TODO: It would be nice to inform the user somehow that the
+        //      code has been edited.  However the only way I see to do
+        //      that without explicit support for such a message is to
+        //      throw a ParseException which defeats the purpose of the
+        //      edit.  So it's a silent edit.  -:AMN: 22 Sep 2022
+
+        editorPane.setText(text);
+
+    }//fixUnmatchedBraces
+
+    /**
      * In order for the file to be valid for the parser
      * there must be a newline following
      */
     private void makeValidForParser() 
     {
         String text = editorPane.getText();
+
+        //Add a trailing newline if needed
         int pound = text.lastIndexOf("#");
         if(pound == -1)
         return;
@@ -1086,6 +1114,7 @@ public class RuleEditor extends CustomInternalFrame
             text += "\n";
             editorPane.setText(text);
         }
+
     }
 
     /**
@@ -1251,10 +1280,10 @@ public class RuleEditor extends CustomInternalFrame
             new MenuAdapter() 
             {
                 public void menuSelected(MenuEvent e) 
-                    {
-                        undoAction.setEnabled(undoManager.canUndo());
-                        redoAction.setEnabled(undoManager.canRedo());
-                    }
+                {
+                    undoAction.setEnabled(undoManager.canUndo());
+                    redoAction.setEnabled(undoManager.canRedo());
+                }
             });
         
         editMenu.addSeparator();
@@ -2082,14 +2111,7 @@ public class RuleEditor extends CustomInternalFrame
          */
         private void display(java.util.List completeMatches) 
         {
-            if(completeMatches.size() == 0) 
-            {
-                getToolkit().beep();
-            }
-            else 
-            {
-                MainFrame.getMainFrame().setFeedbackListData(new Vector(completeMatches));
-            }
+            MainFrame.getMainFrame().setFeedbackListData(new Vector(completeMatches));
         }    // end of display()
 
 
@@ -2476,7 +2498,7 @@ public class RuleEditor extends CustomInternalFrame
 				MainFrame.getMainFrame().reportResult(result) ;
             }
         }
-    }//SendExciseProductionToSoarAction
+    }//class SendExciseProductionToSoarAction
 
     class BackupThread extends Thread 
     {
@@ -2532,7 +2554,7 @@ public class RuleEditor extends CustomInternalFrame
         }
     }//class BackupThread
 
-    class CustomUndoManager extends UndoManager 
+    class CustomUndoManager extends UndoManager
     {
         public static final int positionsSize = 100;
         int[] positions = new int[positionsSize];
@@ -2551,7 +2573,7 @@ public class RuleEditor extends CustomInternalFrame
         
         public boolean addEdit(UndoableEdit anEdit) 
         {
-            if(!anEdit.getPresentationName().equals("style change")) 
+            if(! anEdit.getPresentationName().equals("style change"))
             {
                 if (posNdx == positionsSize)
                 {
@@ -2564,10 +2586,10 @@ public class RuleEditor extends CustomInternalFrame
                         posNdx++;
                     }
                 }
-                
+
                 positions[posNdx] = editorPane.getCaretPosition();
                 posNdx++;
-                
+
                 return super.addEdit(anEdit);
             }
             else 

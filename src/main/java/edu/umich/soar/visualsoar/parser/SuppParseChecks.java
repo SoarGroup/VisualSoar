@@ -2,9 +2,18 @@ package edu.umich.soar.visualsoar.parser;
 
 import edu.umich.soar.visualsoar.misc.FeedbackListObject;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorNode;
+import edu.umich.soar.visualsoar.parser.Action;
+import edu.umich.soar.visualsoar.ruleeditor.RuleEditor;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Iterator;
 import java.util.Vector;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * class SuppParseChecks
@@ -167,8 +176,7 @@ public class SuppParseChecks {
         // Example:  "(<s> ^foo <v>)" uses "<s>" and creates "<v>"
         Iterator actIter = prod.getActionSide().getActions();
         while(actIter.hasNext()) {
-            //Have to use full path to class name because javax.swing.Action also exists...
-            edu.umich.soar.visualsoar.parser.Action act = (edu.umich.soar.visualsoar.parser.Action)actIter.next();
+            Action act = (Action)actIter.next();
             if (! act.isVarAttrValMake()) continue; //ignore function call
 
             //The identifier slot is always a used variable
@@ -209,6 +217,150 @@ public class SuppParseChecks {
         return null;
 
     }//checkUndefinedVarRHS
+
+    /**
+     * findMissingBracePositions
+     *
+     * given the text of some Soar code, this method indentifies
+     * if there is an unmatched brace at the end of any of its productions.
+     * This is a syntax error that can be fixed automatically for the user.
+     *
+     *
+     * @param text  the code to analyze
+     * @return  the locations where braces should be placed
+     */
+    public static Vector<Integer> findMissingBracePositions(String text) {
+        //find the start position of each production
+        Pattern prodPattern = Pattern.compile("[ \n\t\r]sp[ \t\n\r]*\\{");
+        Matcher prodMatch = prodPattern.matcher(text);
+        Vector<Integer> prodStarts = new Vector<Integer>();
+        while(prodMatch.find()) {
+            prodStarts.add(prodMatch.start());
+        }
+        prodStarts.add(text.length() - 1); //add end of file
+
+        //This vertor stores all the places to insert a courtesy close brace
+        // (typically there will be none)
+        Vector<Integer> bracePositions = new Vector<Integer>();
+        for(int pos = 0; pos < prodStarts.size() - 1; ++pos) {
+            int start = pos;
+            int end = prodStarts.get(pos + 1);
+
+            //Count the open and close braces to detect a mismatch
+            int depth = 0;
+            for(int i = start; i <= end; ++i) {
+                switch(text.charAt(i)) {
+                    case '{':
+                        depth++;
+                        break;
+                    case '}':
+                        depth--;
+                        break;
+                    case '#':  //ignore comments
+                        while(text.charAt(i) != '\n') {
+                            i++;
+                        }
+                        break;
+                }
+            }//counting braces
+
+            //if there was a one-level mismatch see if the last brace appears
+            // to be missing
+            if (depth == 1) {
+                int lastCloseParen = text.lastIndexOf(')', end);
+                int lastCloseBrace = text.lastIndexOf('}', end);
+
+                //if there was no close paren at all then something's up,
+                //time to bail out
+                if (lastCloseParen != -1) {
+
+                    //Either the last brace is completely absent or
+                    //it precedes the last paren.  Either way, we've found
+                    //a place to insert a brace
+                    if ((lastCloseParen > lastCloseBrace)
+                            || (lastCloseBrace == -1)) {
+                        //calculate where to put a courtesy brace
+                        int index = end - 1;
+                        while (Character.isWhitespace(text.charAt(index))) {
+                            index--;
+                        }
+                        index++;
+                        bracePositions.add(lastCloseParen + 1);
+                    }
+                }
+            }//mismatch found
+        }//for each production
+
+        return bracePositions;
+    }//findMissingBracePositions
+
+    /**
+     * inserts closing braces at given positions.  This is meant to be used
+     * with the return value of {@link #findMissingBracePositions}
+     *
+     * @param text  the to to insert them
+     * @param bracePositions  where to insert them
+     * @return  the revised text
+     */
+    public static String insertBraces(String text, Vector<Integer> bracePositions) {
+        if (bracePositions.size() > 0) {
+            int offset = 0;
+            for(int i : bracePositions) {
+                String before = text.substring(0, i + offset);
+                String after = text.substring(i + offset);
+                text = before + "\n}" + after;
+                offset++;
+            }
+        }//if
+
+        return text;
+    }//insertBraces
+
+    /**
+     * fixUnmatchedBraces
+     *
+     * If you forget to put a close brace at the end of your production
+     * VS will thoughtfully insert it for you.
+     *
+     * Note:  There is a sister method {@link RuleEditor#fixUnmatchedBraces()}
+     * which does the same thing for files that are currently open.  They
+     * share {@link #findMissingBracePositions(String)} and
+     * {@link #insertBraces} as helper methods.
+     *
+     * @param filename of the file to check
+     */
+    public static void fixUnmatchedBraces(String filename) {
+        //Read in the file content
+        Path fPath = Paths.get(filename);
+        String fileContent = "";
+        try {
+            byte[] bytes = Files.readAllBytes(fPath);
+            fileContent = new String (bytes);
+        }
+        catch (IOException e) {
+            //quiet fail.  This inot important enough to do anything about it
+            //and likely to be caught by other parts of VisualSoar.
+            return;
+        }
+
+        //insert braces as needed
+        Vector<Integer> bracePositions = findMissingBracePositions(fileContent);
+        if (bracePositions.size() > 0) {
+            fileContent = insertBraces(fileContent, bracePositions);
+
+
+            //Write back the file
+            try {
+                Files.writeString(fPath, fileContent);
+            } catch (IOException e) {
+                //quiet fail.  This inot important enough to do anything about it.
+                //and likely to be caught by other parts of VisualSoar.
+                return;
+            }
+
+        }//if file was changed
+
+    }//fixUnmatchedBraces
 
 
 }//class SuppParseChecks

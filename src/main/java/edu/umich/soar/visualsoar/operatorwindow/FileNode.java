@@ -4,6 +4,7 @@ import edu.umich.soar.visualsoar.datamap.SoarWorkingMemoryModel;
 import edu.umich.soar.visualsoar.misc.FeedbackListObject;
 import edu.umich.soar.visualsoar.parser.ParseException;
 import edu.umich.soar.visualsoar.parser.SoarParser;
+import edu.umich.soar.visualsoar.parser.SuppParseChecks;
 import edu.umich.soar.visualsoar.parser.TokenMgrError;
 import edu.umich.soar.visualsoar.ruleeditor.RuleEditor;
 import edu.umich.soar.visualsoar.util.EnumerationIteratorWrapper;
@@ -310,12 +311,19 @@ public class FileNode extends OperatorNode implements java.io.Serializable
         
         if(ruleEditor == null) 
         {
+            //This version is for files that are closed (:AMN: Sep 2022)
+            SuppParseChecks.fixUnmatchedBraces(getFileName());
+
             java.io.Reader r = new java.io.FileReader(getFileName());
             SoarParser aParser = new SoarParser(r);
             Vector v = aParser.VisualSoarFile();
             r.close();
             return v;
         }
+
+        //This version is for files that are open (:AMN: Sep 2022)
+        ruleEditor.fixUnmatchedBraces();
+
         return ruleEditor.parseProductions();
     }
 
