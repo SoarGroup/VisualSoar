@@ -7,9 +7,12 @@ import edu.umich.soar.visualsoar.ruleeditor.RuleEditor;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.Iterator;
 import java.util.Vector;
 import java.util.regex.Matcher;
@@ -348,10 +351,11 @@ public class SuppParseChecks {
         if (bracePositions.size() > 0) {
             fileContent = insertBraces(fileContent, bracePositions);
 
-
             //Write back the file
             try {
-                Files.writeString(fPath, fileContent);
+                PrintWriter pw = new PrintWriter(filename);
+                pw.print(fileContent);
+                pw.close();
             } catch (IOException e) {
                 //quiet fail.  This inot important enough to do anything about it.
                 //and likely to be caught by other parts of VisualSoar.

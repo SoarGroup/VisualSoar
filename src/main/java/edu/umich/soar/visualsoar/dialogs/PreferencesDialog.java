@@ -43,8 +43,10 @@ public class PreferencesDialog extends JDialog {
 	boolean				approved = false;
 
 	JCheckBox     autoIndentingCheckBox = new JCheckBox("Auto-Indenting", Prefs.autoIndentingEnabled.getBoolean());
-  JCheckBox     autoSoarCompleteCheckBox = new JCheckBox("Auto-Soar Complete", Prefs.autoSoarCompleteEnabled.getBoolean());
+  	JCheckBox     autoSoarCompleteCheckBox = new JCheckBox("Auto-Soar Complete", Prefs.autoSoarCompleteEnabled.getBoolean());
 
+  	/** used to let the user change the font size of the editor font */
+	NumberTextField editorFontField = new NumberTextField();
 
 
 	/**
@@ -59,7 +61,8 @@ public class PreferencesDialog extends JDialog {
 		GridBagConstraints 	c = new GridBagConstraints();
 		JPanel				ruleEditorPanel = new JPanel();
 		JPanel				generalPanel = new JPanel();
-    JPanel        checkBoxPanel = new JPanel();
+    	JPanel        		checkBoxPanel = new JPanel();
+    	JPanel 				editorFontPanel = new JPanel();
 
 		colorPanel = new SyntaxColorsPanel(Prefs.getSyntaxColors());
 
@@ -71,23 +74,33 @@ public class PreferencesDialog extends JDialog {
 		c.gridwidth = GridBagConstraints.REMAINDER;
 		c.fill = GridBagConstraints.HORIZONTAL;
 
-    checkBoxPanel.setLayout(new BorderLayout());
-    checkBoxPanel.setBorder(new CompoundBorder(
-			  BorderFactory.createTitledBorder("Auto Formatting"),
-			  BorderFactory.createEmptyBorder(10,10,10,10)));
-    checkBoxPanel.add(autoIndentingCheckBox, BorderLayout.NORTH);
-    checkBoxPanel.add(autoSoarCompleteCheckBox, BorderLayout.SOUTH);
+		//Auto-Formatting Section
+		checkBoxPanel.setLayout(new BorderLayout());
+		checkBoxPanel.setBorder(new CompoundBorder(
+				  BorderFactory.createTitledBorder("Auto Formatting"),
+				  BorderFactory.createEmptyBorder(10,10,10,10)));
+		checkBoxPanel.add(autoIndentingCheckBox, BorderLayout.NORTH);
+		checkBoxPanel.add(autoSoarCompleteCheckBox, BorderLayout.SOUTH);
 
-    ruleEditorPanel.setLayout(new BorderLayout());
-		ruleEditorPanel.add(colorPanel, BorderLayout.NORTH);
-		ruleEditorPanel.add(checkBoxPanel, BorderLayout.SOUTH);
+    	//Font Size Section (added by :AMN: on 25 Sep 2022)
+		editorFontPanel.setBorder(new CompoundBorder(
+				BorderFactory.createTitledBorder("Editor Font"),
+				BorderFactory.createEmptyBorder(10,10,10,10)));
+		editorFontPanel.add(Box.createHorizontalBox());
+		editorFontPanel.add(new JLabel("Font Size: "));
+		editorFontField.setText("" + SoarDocument.getFontSize());
+		editorFontPanel.add(editorFontField);
 
-		generalPanel.setLayout(new BorderLayout());
+    	ruleEditorPanel.setLayout(new BoxLayout(ruleEditorPanel, BoxLayout.Y_AXIS));
+		ruleEditorPanel.add(colorPanel);
+		ruleEditorPanel.add(editorFontPanel);
+		ruleEditorPanel.add(checkBoxPanel);
+
+		generalPanel.setLayout(new BoxLayout(generalPanel, BoxLayout.Y_AXIS));
 		generalPanel.add(tilePanel, BorderLayout.SOUTH);
 
-
-		tabPane.addTab("General", generalPanel);
 		tabPane.addTab("Rule Editor", ruleEditorPanel);
+		tabPane.addTab("General", generalPanel);
 
 		tabPane.setSelectedIndex(0);
 
@@ -122,6 +135,14 @@ public class PreferencesDialog extends JDialog {
 				commitChanges();
 				Prefs.setSyntaxColors(colorTable);
 				dispose();
+
+				//Set a new font size
+				int fontSize = Integer.parseInt(editorFontField.getText());
+				if (fontSize != SoarDocument.getFontSize()) {
+					fontSize = Math.max(SoarDocument.MIN_FONT_SIZE, fontSize);
+					fontSize = Math.min(SoarDocument.MAX_FONT_SIZE, fontSize);
+					SoarDocument.setFontSize(fontSize);
+				}
 			}
 		});
 

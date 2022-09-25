@@ -46,7 +46,16 @@ public class DirectorySelectionDialog extends JDialog {
 		if(pos != -1) {
 			String volumeName = fullPath.substring(0,pos+1);
 			File[] roots = File.listRoots();
-			if(roots != null && roots.length != 1) {
+
+			//This should never happen?
+			if (roots == null) return;
+
+			//Unix-based OS
+			if ( (roots.length == 1) && (roots[0].getPath().equals("/")) ) {
+				directoryTree.setPath(directory);
+			}
+			//Windoze
+			else {
 				for(int i = 0; i < roots.length; ++i) {
 					if(roots[i].getPath().compareTo(volumeName) == 0) {
 						rootSelector.setSelectedItem(roots[i]);

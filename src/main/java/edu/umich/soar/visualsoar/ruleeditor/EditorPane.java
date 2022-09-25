@@ -1,6 +1,6 @@
 package edu.umich.soar.visualsoar.ruleeditor;
 
-import java.awt.Dimension;
+import java.awt.*;
 import javax.swing.plaf.TextUI;
 import java.awt.dnd.*;
 import java.awt.datatransfer.*;
@@ -100,7 +100,8 @@ public class EditorPane extends javax.swing.JEditorPane
 
         if (Prefs.highlightingEnabled.getBoolean())
         {
-            setEditorKit(new StyledEditorKit());
+            StyledEditorKit sek = new StyledEditorKit();
+            setEditorKit(sek);
         }
 
         Keymap    map = JTextComponent.addKeymap("Justify Keymap", getKeymap());
@@ -128,7 +129,6 @@ public class EditorPane extends javax.swing.JEditorPane
         MouseListener popupListener = new PopupListener();
         addMouseListener(popupListener);
 
-        
     }//EditorPane ctor
 
     public JPopupMenu getContextMenu()
@@ -373,8 +373,6 @@ public class EditorPane extends javax.swing.JEditorPane
 
     }//expandSelectionToEntireLines
 
-
-    
     /**
      * Stolen from JTextComponent...
      *

@@ -8,11 +8,7 @@ import javax.swing.*;
  * Dialog which takes input for the editing of one of four different
  * types of numerical vertices in the data map
  * @author Jon Bauman
- * @see FloatRangeVertex
- * @see FloatVertex
- * @see IntegerRangeVertex
- * @see IntegerVertex
- * @see DataMapTree 
+ *
  */
 public class EditNumberDialog extends JDialog {
 

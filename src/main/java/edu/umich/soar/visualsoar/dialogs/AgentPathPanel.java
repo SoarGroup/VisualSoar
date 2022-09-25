@@ -44,6 +44,11 @@ class AgentPathPanel extends JPanel {
 				if (dsd.wasApproved()) {
 					File file = dsd.getSelectedDirectory();
 					pathField.setText(file.getPath());
+
+					//Save this working folder for next time
+					if (file.isDirectory()) {
+						workingDir = file.getPath();
+					}
 				}
 			}
 		});

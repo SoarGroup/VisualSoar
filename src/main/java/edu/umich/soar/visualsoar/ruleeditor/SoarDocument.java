@@ -2,6 +2,7 @@ package edu.umich.soar.visualsoar.ruleeditor;
 
 import java.io.*;
 import java.awt.*;
+import java.util.Enumeration;
 import javax.swing.text.*;
 import edu.umich.soar.visualsoar.misc.Prefs;
 import edu.umich.soar.visualsoar.misc.SyntaxColor;
@@ -13,17 +14,37 @@ import edu.umich.soar.visualsoar.parser.TokenMgrError;
 
 public class SoarDocument extends DefaultStyledDocument
 {
+    //These are enforced by the preferences dialog
+    public static final int MIN_FONT_SIZE = 6;
+    public static final int DEFAULT_FONT_SIZE = 12;
+    public static final int MAX_FONT_SIZE = 100;
+
 
     AbstractElement root = (AbstractElement)getDefaultRootElement();
     SyntaxColor[]   colorTable;
     boolean         inRHS = false; // Are we in the RHS of a production?
+    private static int fontSize = DEFAULT_FONT_SIZE;
     
     public SoarDocument()
     {
         colorTable = (SyntaxColor[])Prefs.getSyntaxColors().clone();
+
+        //set default font size
+        Style defaultStyle = this.getStyle("default");
+        MutableAttributeSet attributeSet = new SimpleAttributeSet();
+        StyleConstants.setFontSize(attributeSet, SoarDocument.fontSize);
+        defaultStyle.addAttributes(attributeSet);
     }
-    
-                    
+
+    public static int getFontSize() {
+        return SoarDocument.fontSize;
+    }
+
+    public static void setFontSize(int size) {
+        SoarDocument.fontSize = size;
+    }
+
+
     public void insertString(int offset,
                              String str,
                              AttributeSet a) throws BadLocationException
@@ -169,7 +190,7 @@ public class SoarDocument extends DefaultStyledDocument
         }
 
         //TODO: DEBUG
-        System.out.println("colorRange(): begPos=" + begPos + " length=" + length);
+        //System.out.println("colorRange(): begPos=" + begPos + " length=" + length);
 
 
         StyleConstants.setForeground(attrib, theColor);
@@ -596,7 +617,6 @@ public class SoarDocument extends DefaultStyledDocument
         //in, guess the most likely state.
         Reader r = new StringReader(currLine);
         SoarParserTokenManager mgr = guessLexicalState(r, currToken);
-
 
         // init all the text to black
         colorRange(offset, currLine.length(), SoarParserConstants.DEFAULT);
@@ -1375,4 +1395,6 @@ public class SoarDocument extends DefaultStyledDocument
 
         return prevLine;
     }
+
+
 } // class SoarDocument
