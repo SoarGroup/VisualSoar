@@ -308,7 +308,7 @@ public class FileNode extends OperatorNode implements java.io.Serializable
     public Vector parseProductions() throws ParseException, java.io.IOException 
     {
         if(name.startsWith("_")) return null;
-        
+
         if(ruleEditor == null) 
         {
             //This version is for files that are closed (:AMN: Sep 2022)

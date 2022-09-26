@@ -1175,6 +1175,7 @@ public class RuleEditor extends CustomInternalFrame
     {
         makeValidForParser();
         SoarParser parser = new SoarParser(new StringReader(getAllText()));
+
         return parser.VisualSoarFile();
     }
 

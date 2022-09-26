@@ -1971,7 +1971,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 	{
 		public LoadTopStateDatamapAction()
 		{
-			super("Check All Productions for Syntax Errors");
+			super("Load Top-State Data Map");
 			setEnabled(false);
 		}
 

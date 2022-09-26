@@ -2,11 +2,10 @@ package edu.umich.soar.visualsoar.ruleeditor;
 
 import java.io.*;
 import java.awt.*;
-import java.util.Enumeration;
 import javax.swing.text.*;
 import edu.umich.soar.visualsoar.misc.Prefs;
 import edu.umich.soar.visualsoar.misc.SyntaxColor;
-import edu.umich.soar.visualsoar.parser.ASCII_CharStream;
+import edu.umich.soar.visualsoar.parser.SimpleCharStream;
 import edu.umich.soar.visualsoar.parser.SoarParserConstants;
 import edu.umich.soar.visualsoar.parser.SoarParserTokenManager;
 import edu.umich.soar.visualsoar.parser.Token;
@@ -387,8 +386,8 @@ public class SoarDocument extends DefaultStyledDocument
             case SoarParserConstants.PLUS:
             case SoarParserConstants.QMARK:
             case SoarParserConstants.TILDE:
-            case SoarParserConstants.LSQBRACET:
-            case SoarParserConstants.RSQBRACET:
+            case SoarParserConstants.LSQBRACKET:
+            case SoarParserConstants.RSQBRACKET:
             case SoarParserConstants.EXPONENT:
                 begin = startOffset + currToken.beginColumn;
                 colorRange(begin, 1, SoarParserConstants.DEFAULT);
@@ -438,7 +437,7 @@ public class SoarDocument extends DefaultStyledDocument
             int                     currLineNum;
             int                     offset;
             SoarParserTokenManager  mgr =
-                new SoarParserTokenManager(new ASCII_CharStream(r,0,0));
+                new SoarParserTokenManager(new SimpleCharStream(r,0,0));
                                             
             try
             {
@@ -540,7 +539,7 @@ public class SoarDocument extends DefaultStyledDocument
         
             //Since we don't know what lexical state we're in, guess
             //the most likely state: IN_SOAR_PRODUCTION
-            mgr = new SoarParserTokenManager(new ASCII_CharStream(r, 0, 0));
+            mgr = new SoarParserTokenManager(new SimpleCharStream(r, 0, 0));
             mgr.SwitchTo(SoarParserConstants.IN_SOAR_PRODUCTION);
 
             //Get a token
@@ -564,7 +563,7 @@ public class SoarDocument extends DefaultStyledDocument
 
             //Reset the reader and try the DEFAULT lexical state
             r.reset();
-            mgr = new SoarParserTokenManager(new ASCII_CharStream(r, 0, 0));
+            mgr = new SoarParserTokenManager(new SimpleCharStream(r, 0, 0));
         
             //Get a token
             try
@@ -574,7 +573,7 @@ public class SoarDocument extends DefaultStyledDocument
             catch (TokenMgrError tme)
             {
                 //Guess we'd better stick with IN_SOAR_PRODUCTION
-                mgr = new SoarParserTokenManager(new ASCII_CharStream(r, 0, 0));
+                mgr = new SoarParserTokenManager(new SimpleCharStream(r, 0, 0));
                 mgr.SwitchTo(SoarParserConstants.IN_SOAR_PRODUCTION);
                 copyToken(tok, ispTok);
                 return mgr;
@@ -587,7 +586,7 @@ public class SoarDocument extends DefaultStyledDocument
         {
             //This exception occurs when we call reset() on a closed reader
             //In this case we should stick with IN_SOAR_PRODUCTION
-            mgr = new SoarParserTokenManager(new ASCII_CharStream(r, 0, 0));
+            mgr = new SoarParserTokenManager(new SimpleCharStream(r, 0, 0));
             mgr.SwitchTo(SoarParserConstants.IN_SOAR_PRODUCTION);
             copyToken(tok, ispTok);
             return mgr;

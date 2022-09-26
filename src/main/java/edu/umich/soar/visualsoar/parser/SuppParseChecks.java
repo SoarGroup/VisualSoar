@@ -234,7 +234,7 @@ public class SuppParseChecks {
      */
     public static Vector<Integer> findMissingBracePositions(String text) {
         //find the start position of each production
-        Pattern prodPattern = Pattern.compile("[ \n\t\r]sp[ \t\n\r]*\\{");
+        Pattern prodPattern = Pattern.compile("[ \n\t\r][sg]p[ \t\n\r]*\\{");
         Matcher prodMatch = prodPattern.matcher(text);
         Vector<Integer> prodStarts = new Vector<Integer>();
         while(prodMatch.find()) {

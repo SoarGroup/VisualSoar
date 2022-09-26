@@ -20,7 +20,7 @@ options
 }
 
 PARSER_BEGIN(SoarParser)
-package edu.umich.visualsoar.parser;
+package edu.umich.soar.visualsoar.parser;
 import java.util.*;
 /**
 	@author Brad Jones
@@ -44,8 +44,8 @@ SKIP:
 TOKEN:
 {
     <SP:        "sp"> : IN_SOAR_PRODUCTION
-    |<GP:       "gp"> : IN_SOAR_PRODUCTION 
-    |<SOARCMD:  ("global"|"set"|"puts"|"alias"|"attention-lapse"|"attribute_preferences_mode"|"capture-input"|"chunk-name-format"|"command-to-file"|"default_wme_depth"|"dirs"|"echo"|"epmem"|"excise"|"explain-backtraces"|"firing-counts"|"format-watch"|"gds_print"|"help"|"indifferent-selection"|"init-soar"|"input-period"|"internal-symbols"|"io"|"learn"|"log"|"matches"|"max-chunks"|"max-elaborations"|"max-nil-output-cycles"|"max_chunks"|"max_elaborations"|"memories"|"monitor"|"multi-attributes"|"o-support-mode"|"output-strings-destination"|"o_support_mode"|"popd"|"predefined-aliases"|"predict"|"preferences"|"print"|"production-find"|"pushd"|"pwatch"|"quit"|"remove-wme"|"replay-input"|"rete-net"|"rhsfun"|"rl"|"run"|"save_backtraces"|"select"|"send"|"soar"|"soar8"|"soarnews"|"soartk"|"start-attention-lapse"|"stats"|"stop-soar"|"topd"|"tsi"|"unalias"|"variables"|"version"|"viSTEAM"|"vt"|"vtutor"|"wake-from-attention-lapse"|"wake"|"warnings"|"watch")(~["\n","\r"])*>
+    |<GP:       "gp"> : IN_SOAR_PRODUCTION
+    |<SOARCMD:  ("global"|"set"|"puts"|"alias"|"attention-lapse"|"attribute_preferences_mode"|"capture-input"|"chunk"|"chunk-name-format"|"command-to-file"|"debug"|"decide"|"default_wme_depth"|"dirs"|"echo"|"epmem"|"excise"|"explain-backtraces"|"firing-counts"|"format-watch"|"gds_print"|"help"|"indifferent-selection"|"init-soar"|"input-period"|"internal-symbols"|"io"|"learn"|"log"|"matches"|"max-chunks"|"max-elaborations"|"max-nil-output-cycles"|"max_chunks"|"max_elaborations"|"memories"|"monitor"|"multi-attributes"|"o-support-mode"|"output"|"output-strings-destination"|"o_support_mode"|"popd"|"predefined-aliases"|"predict"|"preferences"|"print"|"production"|"production-find"|"pushd"|"pwatch"|"quit"|"remove-wme"|"replay-input"|"rete-net"|"rhsfun"|"rl"|"run"|"save_backtraces"|"select"|"send"|"smem"|"soar"|"soar8"|"soarnews"|"soartk"|"start-attention-lapse"|"stats"|"stop-soar"|"svs"|"topd"|"trace"|"tsi"|"unalias"|"variables"|"version"|"viSTEAM"|"visualize"|"vt"|"vtutor"|"wake-from-attention-lapse"|"wake"|"warnings"|"watch"|"wm")(~["\n","\r"])*>
 }
 
 < IN_SOAR_PRODUCTION > SKIP: 
@@ -84,8 +84,8 @@ TOKEN:
      |<RBRACE:		"}">
 	 |<RPAREN:		")">
 	 |<TILDE:		"~">
-	 |<LSQBRACET:   "[">
-	 |<RSQBRACET:   "]">
+	 |<LSQBRACKET:   "[">
+	 |<RSQBRACKET:   "]">
 	 |<QUOTE:		"\"">
      |<PRODTYPE:  (":chunk"|":default"|":o-support"|":i-support"|":monitor"|":interrupt"|":template")>
 	 // I know the variable looks weird but it does appear to be correct
@@ -99,7 +99,7 @@ TOKEN:
 	 				| (["0"-"9"])+ (<EXPONENT>)? ["f","F","d","D"]
 	  >
 	 | < #EXPONENT: ["e","E"] (["+","-"])? (["0"-"9"])+ >
-	 |<TCL_PREPROCESS: "[" (~["]"])* "]">
+	 |<TCL_PREPROCESS: "<LSQBRACKET>" (~["]"])* <RSQBRACKET> >
 }
 
 
@@ -133,7 +133,7 @@ SoarProduction soarProduction() :
 }
 {
 // Begining of the production
-	<SP>
+	(<SP> | <GP>)
 	(<LBRACE> | <QUOTE>)
 // its name	
 	t = <SYMBOLIC_CONST>
@@ -186,7 +186,7 @@ void handleDocumentationQuote(SoarProduction sp)
 	The grammar that this recognizes
 	<ConditionSide> 			::= <Condition>+
 	<FirstCondition>			::= '(' "state" VARIABLE <AttributeValueTest>* ')' 
-	<Condition>					::= ['-'] PositiveCondition | TCL_PREPROCESS
+	<Condition>					::= ['-'] PositiveCondition
 	<PositiveCondition>	    	::= <ConditionForOneIdentifier>
 									| '{' <Condition>+ '}'
 	<ConditionForOneIdentifier>	::= '(' VARIABLE <AttributeValueTest>* ')'
@@ -228,8 +228,6 @@ Condition condition() :
 	(<HYPHEN> { negated = true; })? 
 	(pcond = positiveCondition())
 	{ return new Condition(negated,pcond); }
-	| <TCL_PREPROCESS>
-	{ return null; } 
 }
 
 // Ok
@@ -384,9 +382,9 @@ DisjunctionTest disjunctionTest() :
 	Constant c;
 }
 {
-	<LDISJUNCT>
+	( <LDISJUNCT> | <LSQBRACKET> )
 	( c = constant() { dt.add(c); })+
-	<RDISJUNCT>
+	( <RDISJUNCT> | <RSQBRACKET> )
 	{ return dt;}
 }
 
