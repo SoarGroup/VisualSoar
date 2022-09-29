@@ -2158,7 +2158,8 @@ public class RuleEditor extends CustomInternalFrame
             }
             catch(ParseException pe) 
             {
-                getToolkit().beep();
+                //Removed 29 Sep 2022:  I don't think JEL likes it beeping here
+                //getToolkit().beep();
             }
         }   // end of attributeComplete()
 
@@ -2612,72 +2613,127 @@ public class RuleEditor extends CustomInternalFrame
         }
     }//class BackupThread
 
-    class CustomUndoManager extends UndoManager
-    {
-        public static final int positionsSize = 100;
-        int[] positions = new int[positionsSize];
-        int posNdx;
+    //These are characters are "significant" for the purpose of
+    //class CustomUndoableEdit (below)
+    private static char[] SIG_CHARS = {' ', '.', '\n', '\t', '{', '}', '(', ')', '^', '*'};
 
-        public CustomUndoManager()
-        {
-            super();
-            
-            posNdx = 0;
-            for(int i = 0; i < positionsSize; i++)
-            {
-                positions[i] = 0;
+    /**
+     * class CustomUndoableEvent
+     *
+     * We need to modify the isSignifcant() method in
+     * AbstractDocument.DefaultDocumentEvent. I don't want to subclass
+     * AbstractDocument.DefaultDocumentEvent because I'd have to also subclass
+     * AbstractDocument which seems like a can of works.  So, I've done a
+     * kludge-y subclass this way (see the 'parent' instance variable).
+     * If you see a clever-er solution please be my guest...
+     *
+     * @author Andrew Nuxoll
+     * @version 29 Sep 2022
+     */
+    class CustomUndoableEdit implements UndoableEdit {
+
+        private UndoableEdit parent;
+        private boolean significant = false;  // is this edit "significant"?
+
+        public CustomUndoableEdit(UndoableEdit initParent) {
+            this.parent = initParent;
+
+            //style changes aren't significant
+            if (this.parent.getPresentationName().equals("style change"))
+                return;
+
+            //Retrieve the text the user inserted for this edit
+            SoarDocument doc = (SoarDocument) editorPane.getDocument();
+            String lastText = doc.getLastInsertedText();
+
+            //If the last edit was a remove it's not significant (I think)
+            if (lastText == null) return;
+
+            //If the last insertion was the end of a word/line/phrase or
+            // a Soar coding element then it's significant  (see the SIG_CHARS
+            //constant)
+            for (char c : SIG_CHARS) {
+                if (lastText.indexOf(c) != -1) {
+                    this.significant = true;
+                    return;
+                }
             }
+        }//ctor
+
+        /** this is the only method whose behavior I've actually changed */
+        @Override
+        public boolean isSignificant() {
+            return this.significant;
+        }
+
+        //All the methods below just use the parent's functionality
+
+        @Override
+        public void undo() throws CannotUndoException { this.parent.undo(); }
+
+        @Override
+        public boolean canUndo() {  return this.parent.canUndo(); }
+
+        @Override
+        public void redo() throws CannotRedoException { this.parent.redo(); }
+
+        @Override
+        public boolean canRedo() { return this.parent.canRedo(); }
+
+        @Override
+        public void die() { this.parent.die(); }
+
+        @Override
+        public boolean addEdit(UndoableEdit anEdit) { return this.parent.addEdit(anEdit); }
+
+        @Override
+        public boolean replaceEdit(UndoableEdit anEdit) { return this.parent.replaceEdit(anEdit); }
+
+        @Override
+        public String getPresentationName() { return this.parent.getPresentationName(); }
+
+        @Override
+        public String getUndoPresentationName() { return this.parent.getUndoPresentationName(); }
+
+        @Override
+        public String getRedoPresentationName() { return this.parent.getRedoPresentationName(); }
+    }//class CustomUndoableEdit
+
+/**
+ * class CustomUndoManager
+ *
+ * The AbstractDocument that SoarDocument inherits from provides the ability
+ * to undo/redo.  In particular, it has an UndoManager that manages a series of
+ * UndoableEvent objects.  However we have to subclass these two classes
+ * (technically UndoableEvent is an interface not a class) in order to get
+ * the UndoManager to batch insigificant events together.
+ *
+ * For example if you type "sp" you've created four undoable events: one for
+ * each character and then one for each syntax highlight you've done to that
+ * character.  If you hit Undo you'd like all four of those events to be
+ * undone.  Doing them one at a time is a chore.
+ *
+ * Notably a more complex version of CustomUndoManager used to exist but
+ * had some buggy behavior.  In particular, it wasn't properly tracking
+ * syntax highlighting edits and creating exceptions.
+ *
+ * I (Nuxoll) couldn't figure out how to fix that implementation, so I
+ * replaced it with something simpler (if uglier) version below (and above)
+ * that seems to be working better.
+ */
+
+ class CustomUndoManager extends UndoManager
+    {
+        public CustomUndoManager() {
+            super();
+            setLimit(10000); //This seems to be enough?
         }
         
-        public boolean addEdit(UndoableEdit anEdit) 
-        {
-            if(! anEdit.getPresentationName().equals("style change"))
-            {
-                if (posNdx == positionsSize)
-                {
-                    //Shift the array to make room for future edits
-                    posNdx = 0;
-                    for(int i = positionsSize/2; i < positionsSize; i++)
-                    {
-                        positions[posNdx] = positions[i];
-                        positions[i] = 0;
-                        posNdx++;
-                    }
-                }
+        public boolean addEdit(UndoableEdit anEdit) {
+            CustomUndoableEdit customEdit = new CustomUndoableEdit(anEdit);
 
-                positions[posNdx] = editorPane.getCaretPosition();
-                posNdx++;
-
-                return super.addEdit(anEdit);
-            }
-            else 
-            {
-                return false;
-            }
+            return super.addEdit(customEdit);
         }
-
-        public void undo()
-        {
-            if ( posNdx > 0)
-            {
-                posNdx--;
-                editorPane.setCaretPosition(positions[posNdx]);
-            }
-
-            super.undo();
-        }
-
-        public void redo()
-        {
-            if ( posNdx < positionsSize )
-            {
-                editorPane.setCaretPosition(positions[posNdx]);
-                posNdx++;
-            }
-
-            super.redo();
-        }
-
     }//CustomUndoManager
 
     //Override the implementation in CustomInternalFrame

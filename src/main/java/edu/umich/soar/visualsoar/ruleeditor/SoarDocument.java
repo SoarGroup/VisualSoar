@@ -23,6 +23,14 @@ public class SoarDocument extends DefaultStyledDocument
     SyntaxColor[]   colorTable;
     boolean         inRHS = false; // Are we in the RHS of a production?
     private static int fontSize = DEFAULT_FONT_SIZE;
+
+    //A SoarDocument logs each last inserted text so that
+    // RuleEditor.CustomUndoManager can decide whether that text is
+    // "significant" for the purposes of the CustomUndoableEvent
+    //In addition to starting as null, this string should be set to null
+    // whenever text is deleted.  This variable is set with a new
+    // value just BEFORE any new insert/remove.
+    private String lastInsertedText = null;
     
     public SoarDocument()
     {
@@ -43,18 +51,21 @@ public class SoarDocument extends DefaultStyledDocument
         SoarDocument.fontSize = size;
     }
 
+    public String getLastInsertedText() { return this.lastInsertedText; }
 
     public void insertString(int offset,
                              String str,
                              AttributeSet a) throws BadLocationException
     {
-        //TODO:  DEBUG
-        //System.out.println("offset: " + offset + " str=" + (str.equals("\n") ? "\\n" : str));
+
+        //Please see the big ass comment on this variable above
+        this.lastInsertedText = str;
 
         try {
             super.insertString(offset, str, a);
         }
         catch(BadLocationException ble) {
+            this.lastInsertedText = null;
             ble.printStackTrace();
         }
         
@@ -94,6 +105,9 @@ public class SoarDocument extends DefaultStyledDocument
     
     public void remove(int offs, int len) throws BadLocationException
     {
+        //please see the big ass comment on this variable above
+        this.lastInsertedText = null;
+
         super.remove(offs, len);
 
         colorSyntax(offs);
@@ -334,6 +348,10 @@ public class SoarDocument extends DefaultStyledDocument
                 
             case SoarParserConstants.SYMBOLIC_CONST :
                 begin = startOffset + currToken.beginColumn;
+
+                //If the token has no image then no highlighting to do
+                if (currToken.image == null) break;
+
                 //NOTE:  This assumes that tokens do not cross line barriers
                 length = currToken.image.length();
 

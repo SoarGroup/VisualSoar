@@ -98,8 +98,7 @@ public class EditorPane extends javax.swing.JEditorPane
     public EditorPane()
     {
 
-        if (Prefs.highlightingEnabled.getBoolean())
-        {
+        if (Prefs.highlightingEnabled.getBoolean()) {
             StyledEditorKit sek = new StyledEditorKit();
             setEditorKit(sek);
         }
