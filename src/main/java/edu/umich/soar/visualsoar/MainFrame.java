@@ -17,7 +17,6 @@ import edu.umich.soar.visualsoar.ruleeditor.RuleEditor;
 import edu.umich.soar.visualsoar.threepenny.SoarRuntimeSendRawCommandDialog;
 import edu.umich.soar.visualsoar.util.ActionButtonAssociation;
 import edu.umich.soar.visualsoar.util.MenuAdapter;
-import edu.umich.soar.visualsoar.parser.Pair;
 
 // 3P
 import sml.Agent;
@@ -26,20 +25,15 @@ import sml.smlStringEventId;
 import sml.sml_Names;
 
 import java.awt.*;
-import java.awt.dnd.*;
 import java.awt.event.*;
-import java.awt.datatransfer.*;
 import javax.swing.*;
 import javax.swing.Action;
 import javax.swing.tree.*;
-import javax.swing.text.*;
 import java.io.*;
 
-import javax.swing.undo.*;
 import javax.swing.event.*;
 import javax.swing.border.TitledBorder;
 
-import java.nio.file.Files;
 import java.util.*;
 import java.util.List;
 
@@ -1992,6 +1986,9 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
      */
 	class CheckSyntaxErrorsAction extends AbstractAction 
     {
+    	//a list of all production names seen is stored here so that duplicates can be found
+		private Vector<String> allProdNames = new Vector<String>();
+
 		public CheckSyntaxErrorsAction() 
         {
 			super("Check All Productions for Syntax Errors");
@@ -2000,6 +1997,10 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 	
 		public void actionPerformed(ActionEvent ae)
         {
+        	//reset the list for the new duplicate name check
+			this.allProdNames.clear();
+
+
 			Enumeration bfe = operatorWindow.breadthFirstEnumeration();
             Vector vecNodes = new Vector(10, 50);
 			while(bfe.hasMoreElements())
@@ -2016,13 +2017,33 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
                 super(v, title);
             }
 
+            /** Check for duplicate production names */
+            private void checkDuplicateProdNames(OperatorNode opNode) {
+				Vector<String> prodNames = opNode.getProdNames();
+				for(String prodName : prodNames) {
+					for(String allName : CheckSyntaxErrorsAction.this.allProdNames) {
+						if (allName.startsWith(prodName)) {
+							//Construct and add a FeedbackListObj
+							String errStr = "Warning: " + allName + " conflicts with " + prodName + " in " + opNode.getFileName();
+							int lineNo = opNode.getLineNumForString(prodName);
+							FeedbackListObject flobj = new FeedbackListObject(opNode, lineNo, errStr);
+							vecErrors.add(flobj);
+						}
+					}
+					//save each name in this file to check against future files
+					allProdNames.add(prodName + " in " + getName());
+				}//for
+			}//checkDuplicateProdNames
+
 			public boolean checkEntity(Object node) throws IOException
             {
                 OperatorNode opNode = (OperatorNode)node;
-                
+
+                //do this check first since it only generates warnings
+				checkDuplicateProdNames(opNode);
+
                 try
                 {
-
 					//This is the main parsing here
                     Vector prods = opNode.parseProductions();
 

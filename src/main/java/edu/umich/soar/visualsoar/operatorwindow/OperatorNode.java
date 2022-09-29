@@ -319,7 +319,13 @@ public abstract class OperatorNode extends VSTreeNode implements java.io.Seriali
 	public DataFlavor isDropOk(int action,DataFlavor[] dataFlavor) {
 		return null;
 	}
-	
+
+	public Vector<String> getProdNames() {
+		return new Vector<String>();
+	}
+
+	public int getLineNumForString(String target) { return 0; }
+
 	/**
 	 * This is a getter method for the folder name
 	 * if the node supports this operation it returns the

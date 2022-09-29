@@ -1939,6 +1939,7 @@ public class RuleEditor extends CustomInternalFrame
             if (text.length() == 0) return false;
             String[] lines = text.split("[\r\n]+");
             for(String line : lines) {
+                if (line.trim().length() == 0) return false;
                 if (line.trim().charAt(0) != '#') return false;
             }
             return true;

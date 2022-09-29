@@ -14,8 +14,13 @@ import java.awt.Component;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.JOptionPane;
 import javax.swing.tree.TreePath;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.awt.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * This is the  file node for the operator window
@@ -132,6 +137,8 @@ public class FileNode extends OperatorNode implements java.io.Serializable
     {
         ruleEditor = re;
     }
+
+    public RuleEditor getRuleEditor() { return this.ruleEditor; }
 
     
     /**
@@ -297,7 +304,7 @@ public class FileNode extends OperatorNode implements java.io.Serializable
         operatorWindow.removeNode(this);
         parent.notifyDeletionOfChild(operatorWindow,this);  
     }
-    
+
     /**
      * This will parse the productions for a given file node
      * if a rule editor is open for the file it just forwards the call to the 
@@ -309,8 +316,7 @@ public class FileNode extends OperatorNode implements java.io.Serializable
     {
         if(name.startsWith("_")) return null;
 
-        if(ruleEditor == null) 
-        {
+        if(ruleEditor == null) {
             //This version is for files that are closed (:AMN: Sep 2022)
             SuppParseChecks.fixUnmatchedBraces(getFileName());
 
@@ -395,6 +401,108 @@ public class FileNode extends OperatorNode implements java.io.Serializable
 
         
     }//CheckAgainstDatamap
+
+    /**
+     * retrieves the text of this FileNode.  If the file is open, the text
+     * is retrieved from the associated RuleEditor.  Otherwise it is
+     * retrieved from the file.
+     */
+    public String getText() {
+        String text = null;
+        if (ruleEditor != null) {
+            text = ruleEditor.getAllText();
+        } else {
+            try {
+                Path path = Paths.get(getFileName());
+                byte[] bytes = Files.readAllBytes(path);
+                text = new String(bytes);
+            } catch (IOException e) {
+                //quiet fail.  The null return value
+                return text;
+            }
+        }//else
+
+        return text;
+    }//getText
+
+    /**
+     * retrieves a list of the names of all productions in this file.
+     * Each production name in the list is appended with the line number
+     * in parens after it.
+     *
+     * @author Andrew Nuxoll
+     * @version 29 Sep 2022
+     * */
+    public Vector<String> getProdNames() {
+        //These files won't have productions
+        Vector<String> result = new Vector<String>();
+        if(getFileName().startsWith("_")) return result;
+
+        //Get the text of the file
+        String text = getText();
+
+        //find the start position of each production
+        Pattern prodPattern = Pattern.compile("[\n\r][\t ]*[sg]p[ \t\n\r]*\\{");
+        Matcher prodMatch = prodPattern.matcher(text);
+        while (prodMatch.find()) {
+            int start = prodMatch.end();
+            //search for the first letter of the production name
+            char ch = text.charAt(start);
+            while(Character.isWhitespace(ch)) {
+                start++;
+                ch = text.charAt(start);
+            }
+
+            //search for first char after the production name
+            int end = start + 1;
+            ch = text.charAt(end);
+            while( (! Character.isWhitespace(ch)) && (ch != '#') && (ch != ';') ) {
+                end++;
+                ch = text.charAt(end);
+            }
+
+            //Note:  the code above will miss the production name if you do
+            // something unconventional like this.
+            //        sp {   #some comment
+            //               production*name*here
+            // I didn't think this was worth checking for.  -:AMN: 29 Sep 2022
+
+            String prodName = text.substring(start, end).trim();
+            if (prodName.length() > 0) {
+                result.add(prodName);
+            }
+        }//while
+
+        return result;
+    }//getProdNames
+
+    /**
+     * getLineNumForString
+     *
+     * determines the line number of the first line of the file that contains
+     * a given string
+     *
+     * @return -1 if not found
+     */
+    public int getLineNumForString(String target) {
+        //Find the string
+        String fileContent = getText();
+        int index = fileContent.indexOf(target);
+
+        //Count the lines up to that point
+        int pos = fileContent.indexOf('\n');
+        int lines = 1;
+        while(pos < index) {
+            pos++;
+            if (pos >= fileContent.length()) break;  //shouldn't happen...
+            pos = fileContent.indexOf('\n', pos);
+            if (pos < 0) break; //also shouldn't happen
+            lines++;
+        }
+
+        return lines;
+
+    }//getLineNumForString
     
     /**
      * This opens/shows a rule editor with this nodes associated file
