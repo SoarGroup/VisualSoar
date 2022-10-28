@@ -5,3 +5,46 @@ the actual executable along with docs and
 lots of examples.
 
 Jones, Brad 1/19/01
+
+---------------------------------------------------------------------------
+
+Addendum by Nuxoll (27 Oct 2022):
+
+JavaCC in the Visual Soar respository may not work?
+
+   Some (very old) javacc source code is included in the repository but I don't
+   see any support in build.xml to actually rebuild it.  I note that there are
+   batch files in parser/javacc/bin to build and run javacc.  These are
+   (obviously) not going to work on a Linux or OS/X machine.  Also, they have
+   hardcoded paths that I suspect are not in sync with the current Soar build
+   environment.
+
+   I had better luck just downloading the most recent version of JavaCC and
+   using it.
+
+Steps:
+1.  Download/install javacc.  Navigate to the folder that contains it.
+
+2.  The installation should include a javacc script (likely javacc.bat on
+    Windows).  Run this and verify that you get a usage message.
+
+        ./javacc
+
+3.  Run the javacc script on soarparser.jj.
+        ./javacc xxx/VisualSoar/parser/soarparser.jj
+
+    (where "xxx" is the directory that contains the Visual Soar repository.)
+
+    This will generate these .java files:
+        ParseException.java          SoarParser.java
+        SimpleCharStream.java        Token.java
+        SoarParserConstants.java     SoarParserTokenManager.java
+        TokenMgrError.java
+
+4.  Copy the generated .java files to your Visual Soar repositry:
+
+         cp *.java xxx/VisualSoar/src/main/java/edu/umich/soar/visualsoar/parser/
+
+5.  Rebuild Visual Soar and run.
+
+

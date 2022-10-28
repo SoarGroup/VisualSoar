@@ -44,7 +44,7 @@ public abstract class OperatorNode extends VSTreeNode implements java.io.Seriali
 	static protected JMenuItem renameItem = new JMenuItem("Rename...");
 	static protected JMenuItem exportItem = new JMenuItem("Export");
 	static protected JMenuItem importItem = new JMenuItem("Import...");
-	static protected JMenuItem checkChildrenAgainstDataMapItem = new JMenuItem("Check Children Against DataMap");
+	static protected JMenuItem checkChildrenAgainstDataMapItem = new JMenuItem("Check Children Against Datamap");
 	static protected JMenuItem generateDataMapItem = new JMenuItem("Generate DataMap Entries for this File");
 
 	static {

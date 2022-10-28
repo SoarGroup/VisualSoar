@@ -1544,6 +1544,20 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 			{
 				System.out.println(ex.toString()) ;
 				message = "Exception when initializing the SML library.  Check that sml.jar is on the path along with soar-library." ;
+				Throwable cause = ex.getCause();
+				if (cause != null) {
+					String causeMsg = cause.toString();
+					String cmChopped = "\n\n";
+					while(causeMsg.length() > 40) {
+						int spaceIndex = causeMsg.indexOf(" ", 30);
+						if (spaceIndex == -1) break;
+						cmChopped += "\n" + causeMsg.substring(0, spaceIndex);
+						causeMsg = causeMsg.substring(spaceIndex);
+					}
+					cmChopped += causeMsg;
+					cmChopped = cmChopped.trim();
+					message += cmChopped;
+				}
 			}
 
 			if (!ok)
@@ -2023,15 +2037,27 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 				for(String prodName : prodNames) {
 					for(String allName : CheckSyntaxErrorsAction.this.allProdNames) {
 						if (allName.startsWith(prodName)) {
-							//Construct and add a FeedbackListObj
-							String errStr = "Warning: " + allName + " conflicts with " + prodName + " in " + opNode.getFileName();
-							int lineNo = opNode.getLineNumForString(prodName);
-							FeedbackListObject flobj = new FeedbackListObject(opNode, lineNo, errStr);
-							vecErrors.add(flobj);
+							//We *may* have a name conflict but it's possible that
+							//allName has a longer name.
+							//trim allName to just the name and check for match
+							String allNameOnly = allName.trim();
+							int spaceIndex = allNameOnly.indexOf(" ");
+							if (spaceIndex > 0) {
+								allNameOnly = allName.substring(0,spaceIndex);
+							}
+
+							//now check for equality
+							if (allNameOnly.equals(prodName)) {
+								//Construct and add a FeedbackListObj
+								String errStr = "Warning: " + allName + " name conflicts with " + prodName + " in " + opNode.getFileName();
+								int lineNo = opNode.getLineNumForString(prodName);
+								FeedbackListObject flobj = new FeedbackListObject(opNode, lineNo, errStr);
+								vecErrors.add(flobj);
+							}
 						}
 					}
 					//save each name in this file to check against future files
-					allProdNames.add(prodName + " in " + getName());
+					allProdNames.add(prodName + " in " + opNode.getFileName());
 				}//for
 			}//checkDuplicateProdNames
 
