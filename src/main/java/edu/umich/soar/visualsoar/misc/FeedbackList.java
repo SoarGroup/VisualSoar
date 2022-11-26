@@ -69,9 +69,10 @@ public class FeedbackList extends JList
                                 else 
                                 {
                                     dm = filo.createDataMap(MainFrame.getMainFrame().getOperatorWindow().getDatamap());
-                                    MainFrame.getMainFrame().getDesktopPane().dmAddDataMap(filo.getDataMapId(), dm);
+                                    MainFrame mf = MainFrame.getMainFrame();
+                                    mf.addDataMap(dm);
+                                    mf.getDesktopPane().dmAddDataMap(filo.getDataMapId(), dm);
                                     dm.setVisible(true);
-                                    MainFrame.getMainFrame().addDataMap(dm);
                                 }
                                 // Highlight the proper node within the datamap
                                 dm.selectEdge(filo.getEdge());
