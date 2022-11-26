@@ -17,7 +17,7 @@ class AboutEmailPanel extends JPanel {
 	JLabel emailLabel = 
 				new JLabel("If you have any questions or comments,");	 
 	JLabel emailLabel2 = 
-				new JLabel("contact us at visualSoar@eecs.umich.edu");
+				new JLabel("contact us at soar-help@googlegroups.com");
 
 	public AboutEmailPanel() {
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
