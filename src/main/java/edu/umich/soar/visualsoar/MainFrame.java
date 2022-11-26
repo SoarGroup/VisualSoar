@@ -1334,6 +1334,9 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 				projectActionsEnable(false);
 
 				feedbackList.clearListData();
+
+				//This acts as a flag to indicate there is no project
+				operatorWindow = null;
 			}
 			catch (java.beans.PropertyVetoException pve) {}
 
