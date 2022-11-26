@@ -452,13 +452,13 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
             new ActionButtonAssociation(cascadeAction,cascadeItem));
 		viewMenu.add(cascadeItem);
 		
-		JMenuItem tileWindowItem = new JMenuItem("Tile Windows");
+		JMenuItem tileWindowItem = new JMenuItem("Tile Windows Horizontally");
 		tileWindowItem.addActionListener(tileWindowsAction);
 		tileWindowItem.addPropertyChangeListener(
             new ActionButtonAssociation(tileWindowsAction,tileWindowItem));
 		viewMenu.add(tileWindowItem);
 		
-		JMenuItem reTileWindowItem = new JMenuItem("Re-Tile Windows");
+		JMenuItem reTileWindowItem = new JMenuItem("Tile Windows Vertically");
 		reTileWindowItem.addActionListener(reTileWindowsAction);
 		reTileWindowItem.addPropertyChangeListener(
             new ActionButtonAssociation(reTileWindowsAction,reTileWindowItem));
