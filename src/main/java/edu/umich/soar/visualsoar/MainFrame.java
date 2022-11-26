@@ -1332,6 +1332,8 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 				operatorDesktopSplit.setLeftComponent(null);
 
 				projectActionsEnable(false);
+
+				feedbackList.clearListData();
 			}
 			catch (java.beans.PropertyVetoException pve) {}
 
