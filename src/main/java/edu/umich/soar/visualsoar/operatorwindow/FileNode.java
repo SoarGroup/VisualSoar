@@ -268,7 +268,7 @@ public class FileNode extends OperatorNode implements java.io.Serializable
             impasseSubMenu.setEnabled(false);
             checkChildrenAgainstDataMapItem.setEnabled(false);
         }
-        else 
+        else  //not elaborations
         {
             addSuboperatorItem.setEnabled(false);
             addFileItem.setEnabled(false);

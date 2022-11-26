@@ -130,7 +130,7 @@ public class OperatorRootNode extends FolderNode implements java.io.Serializable
 		openRulesItem.setEnabled(false);
 		openDataMapItem.setEnabled(true);
 		deleteItem.setEnabled(false);
-		renameItem.setEnabled(true);
+		renameItem.setEnabled(false);
 		exportItem.setEnabled(false);
     	impasseSubMenu.setEnabled(true);
 		checkChildrenAgainstDataMapItem.setEnabled(true);
