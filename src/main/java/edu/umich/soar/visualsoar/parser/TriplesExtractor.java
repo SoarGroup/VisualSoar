@@ -35,6 +35,14 @@ public class TriplesExtractor {
 		extractVariables();
 		extractStateVariables();
 	}
+
+	//Create an object that only contains 1 triple (used to fix one datamap error at a time)
+	public TriplesExtractor(SoarProduction soarProduction, Triple one) {
+		d_soarProduction = soarProduction;
+		d_triples.add(one);
+		extractVariables();
+		extractStateVariables();
+	}
 		
 /////////////////////////////////////////////////////////////////////////////
 // Accessors

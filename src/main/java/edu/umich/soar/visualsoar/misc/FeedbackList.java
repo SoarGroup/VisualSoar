@@ -1,6 +1,8 @@
 package edu.umich.soar.visualsoar.misc;
 import edu.umich.soar.visualsoar.MainFrame;
 import edu.umich.soar.visualsoar.datamap.DataMap;
+import edu.umich.soar.visualsoar.operatorwindow.OperatorWindow;
+
 import java.util.*;
 import javax.swing.*;
 import javax.swing.border.*;
@@ -16,68 +18,56 @@ import java.awt.event.*;
  */
 
 
-public class FeedbackList extends JList 
+public class FeedbackList extends JList implements ActionListener
 {
 ///////////////////////////////////////////////////////////////////
-// Constructors
+// Instance Variables
 ///////////////////////////////////////////////////////////////////
+
     DefaultListModel dlm = new DefaultListModel();
+    FeedbackListObject selectedObj = null;  //currently selected object in the list
+    JPopupMenu rightClickContextMenu;
+    JMenuItem gotoSourceMenuItem = new JMenuItem("See Related Source Code or Datamap Entry");
+    JMenuItem dmAddMenuItem = new JMenuItem("Add Non-Validated Support to Datamap");
+
 
 ///////////////////////////////////////////////////////////////////
 // Constructors
 ///////////////////////////////////////////////////////////////////
+
+
     public FeedbackList()
     {
         setModel(dlm);
-        
+
+        //Constuct the context menu when users right click on a feedback item
+        rightClickContextMenu = new JPopupMenu();
+        gotoSourceMenuItem.addActionListener(this);
+        rightClickContextMenu.add(gotoSourceMenuItem);
+        dmAddMenuItem.addActionListener(this);
+        rightClickContextMenu.add(dmAddMenuItem);
+
+        //handle double click and right click
         addMouseListener(
             new MouseAdapter() 
             {
                 public void mouseClicked(MouseEvent e) 
                 {
-                    if (e.getClickCount() == 2) 
+                    //record currently selected object
+                    int index = locationToIndex(e.getPoint());
+                    if (dlm.getElementAt(index) instanceof FeedbackListObject) {
+                        selectedObj = (FeedbackListObject) dlm.getElementAt(index);
+                    }
+
+                    //double click:  go to associated source code
+                    if (e.getClickCount() == 2)
                     {
-                        int index = locationToIndex(e.getPoint());
-                        ListModel dlm = getModel();
-                        if (dlm.getElementAt(index) instanceof FeedbackListObject) 
-                        {
-                            FeedbackListObject filo = (FeedbackListObject)dlm.getElementAt(index);
-                            if(!filo.isDataMapObject()) 
-                            {
-                                filo.DisplayFile();
-                            }
-                            else 
-                            {
-                                // check to see if datamap already opened
-                                DataMap dm = MainFrame.getMainFrame().getDesktopPane().dmGetDataMap(filo.getDataMapId());
-                                
-                                // Only open a new window if the window does not already exist
-                                if( dm != null) 
-                                {
-                                    try 
-                                    {
-                                        if (dm.isIcon())
-                                        dm.setIcon(false);
-                                        dm.setSelected(true);
-                                        dm.moveToFront();
-                                    }
-                                    catch (java.beans.PropertyVetoException pve) 
-                                    {
-                                        System.err.println("Guess we can't do that");
-                                    }
-                                }
-                                else 
-                                {
-                                    dm = filo.createDataMap(MainFrame.getMainFrame().getOperatorWindow().getDatamap());
-                                    MainFrame mf = MainFrame.getMainFrame();
-                                    mf.addDataMap(dm);
-                                    mf.getDesktopPane().dmAddDataMap(filo.getDataMapId(), dm);
-                                    dm.setVisible(true);
-                                }
-                                // Highlight the proper node within the datamap
-                                dm.selectEdge(filo.getEdge());
-                            }
-                        }
+                        loadAssociatedSourceCode();
+                    }
+                    //right click:  context menu
+                    else if (SwingUtilities.isRightMouseButton(e)) {
+                        dmAddMenuItem.setEnabled(! selectedObj.isDataMapObject());
+                        rightClickContextMenu.show(e.getComponent(), e.getX(), e.getY());
                     }
                 }
             });
@@ -85,6 +75,74 @@ public class FeedbackList extends JList
         setCellRenderer(new FeedbackCellRenderer());
 
     }
+///////////////////////////////////////////////////////////////////
+// Methods
+///////////////////////////////////////////////////////////////////
+
+
+    /**
+     * this is called when the user selects an item on the context menu
+     */
+    @Override
+    public void actionPerformed(ActionEvent action) {
+        if (action.getSource().equals(gotoSourceMenuItem)) {
+            loadAssociatedSourceCode();
+        }
+        else if (action.getSource().equals(dmAddMenuItem)) {
+            OperatorWindow opWin = MainFrame.getMainFrame().getOperatorWindow();
+            Vector vecErrors = new Vector();
+            opWin.generateDataMapForOneError(selectedObj, vecErrors);
+            MainFrame.getMainFrame().setFeedbackListData(vecErrors);
+        }
+    }
+
+    /**
+     * loadAssociatedSourceCode
+     *
+     * loads the associated source code file and highlights the line that
+     * caused the feedback for the currently selected feedback list object
+     */
+    private void loadAssociatedSourceCode() {
+        if (this.selectedObj == null) return;  //nothing to do
+
+        ListModel dlm = getModel();
+        if(!this.selectedObj.isDataMapObject())
+        {
+            this.selectedObj.DisplayFile();
+        }
+        else
+        {
+            // check to see if datamap already opened
+            DataMap dm = MainFrame.getMainFrame().getDesktopPane().dmGetDataMap(this.selectedObj.getDataMapId());
+
+            // Only open a new window if the window does not already exist
+            if( dm != null)
+            {
+                try
+                {
+                    if (dm.isIcon())
+                    dm.setIcon(false);
+                    dm.setSelected(true);
+                    dm.moveToFront();
+                }
+                catch (java.beans.PropertyVetoException pve)
+                {
+                    System.err.println("Guess we can't do that");
+                }
+            }
+            else
+            {
+                dm = this.selectedObj.createDataMap(MainFrame.getMainFrame().getOperatorWindow().getDatamap());
+                MainFrame mf = MainFrame.getMainFrame();
+                mf.addDataMap(dm);
+                mf.getDesktopPane().dmAddDataMap(this.selectedObj.getDataMapId(), dm);
+                dm.setVisible(true);
+            }
+            // Highlight the proper node within the datamap
+            dm.selectEdge(this.selectedObj.getEdge());
+        }
+
+    }//loadAssociatedSourceCode
 
     /**
      * Override the default implementation.  We want to update the
@@ -162,6 +220,7 @@ public class FeedbackList extends JList
     }//setListData
 
 
+
     class FeedbackCellRenderer extends JLabel implements ListCellRenderer 
     {
         private Border lineBorder = BorderFactory.createLineBorder(Color.red,2),
@@ -183,7 +242,7 @@ public class FeedbackList extends JList
                                                       boolean cellHasFocus) 
         {
             setText(value.toString());
-            if(isSelected) 
+            if(isSelected)
             {
                 setForeground(list.getSelectionForeground());
                 setBackground(list.getSelectionBackground());

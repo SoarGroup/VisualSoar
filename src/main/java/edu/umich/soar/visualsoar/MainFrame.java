@@ -2265,7 +2265,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
                     {
                         vecErrors.add("WARNING:  datamap errors were found in "
                                       + opNode.getFileName()
-                                      + "'s productions.  This may invalid the current scan.");
+                                      + "'s productions.  This may invalidate the current scan.");
                     }
 
                     numChecks++;

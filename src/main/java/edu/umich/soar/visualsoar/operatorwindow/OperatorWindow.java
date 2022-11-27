@@ -25,6 +25,7 @@ import java.awt.datatransfer.*;
 import java.awt.event.*;
 import java.io.*;
 import java.util.*;
+import java.util.List;
 
 /**
  * A class to implement the behavior of the operator window
@@ -1059,29 +1060,101 @@ public class OperatorWindow extends JTree
         checkProductions(parentNode, parsedProds, parseErrors);
 
         //Generate a report that can be posted to the feedback list
-        e = new EnumerationIteratorWrapper(generations.iterator());
-        while(e.hasMoreElements()) 
+        fillFeedbackListFromErrors(opNode, vecGenerations, generations);
+
+    }//generateDataMap
+
+
+    /**
+     * generateDataMapForOneError
+     *
+     * behaves like {@link #generateDataMap} but it "fixes" just a single
+     * datamap error by adding a non-validated entry to the datamap.
+     *
+     * @param errToFix  error to fix (user has selected this)
+     *
+     * @return null on success or an error to post in the Feedback pane if
+     * this failed
+     */
+    public void generateDataMapForOneError(FeedbackListObject errToFix,
+                                             Vector vecGenerations)
+    {
+        OperatorNode opNode = errToFix.getNode();
+        if (opNode == null) {
+            vecGenerations.add("No operator associated with this entry.");
+            return;
+        }
+
+        //Parse all the productions in the file
+        Vector parsedProds = null;
+        try {
+            parsedProds = opNode.parseProductions();
+        }
+        catch(Exception e) {
+            //should never happen...
+            vecGenerations.add("Unable to generate datamap entry due to parse error.");
+            return;
+        }
+
+        // Find the datamap that these productions should be checked against
+        OperatorNode parentNode = (OperatorNode)opNode.getParent();
+        SoarIdentifierVertex siv = parentNode.getStateIdVertex();
+        if(siv == null)
+            siv = WorkingMemory.getTopstate();
+
+        //Generate the new datamap entries
+        Enumeration e = parsedProds.elements();
+        while(e.hasMoreElements()) {
+            SoarProduction sp = (SoarProduction)e.nextElement();
+            //we only care about the production that caused the error
+            if (errToFix.getMessage().startsWith(sp.getName())) {
+                List errs = WorkingMemory.checkGenerateSingleEntry(siv,sp,opNode,errToFix);
+
+                //The errs list should not be empty
+                if (errs.size() == 0) {
+                    errs.add(new FeedbackListObject(opNode, errToFix.getLine(),
+                            "Datamap entry operation failed."));
+                }
+
+                fillFeedbackListFromErrors(opNode, vecGenerations, errs);
+                break;
+            }
+        }
+
+    }//generateDataMap
+
+
+
+    /**
+     * genFeedbackListFromErrors
+     *
+     * Creates a list of FeedbackListObjects from a given set of parse errors
+     * and places them in a given vector.
+     */
+    private void fillFeedbackListFromErrors(OperatorNode opNode, Vector vecGenerations, List errorList) {
+        Enumeration e = new EnumerationIteratorWrapper(errorList.iterator());
+        while(e.hasMoreElements())
         {
-            try 
+            try
             {
                 String errorString = e.nextElement().toString();
                 String numberString = errorString.substring(errorString.indexOf("(")+1,errorString.indexOf(")"));
                 vecGenerations.add(
-                    new FeedbackListObject(opNode,
-                                           Integer.parseInt(numberString),
-                                           errorString,
-                                           true,
-                                           true,
-                                           true));
+                        new FeedbackListObject(opNode,
+                                Integer.parseInt(numberString),
+                                errorString,
+                                true,
+                                true,
+                                true));
             }
-            catch(NumberFormatException nfe) 
+            catch(NumberFormatException nfe)
             {
                 System.out.println("OperatorWindow.generateDataMap: This should never happen");
             }
         }
+    }//genFeedbackListFromErrors
 
-	}//generateDataMap
-    
+
     /**
      * Opens up an existing operator hierarchy
      * @param in_file the file that describes the operator hierarchy

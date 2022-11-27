@@ -10,9 +10,14 @@ import edu.umich.soar.visualsoar.graph.SoarIdentifierVertex;
 import edu.umich.soar.visualsoar.graph.SoarVertex;
 import edu.umich.soar.visualsoar.graph.StringVertex;
 import edu.umich.soar.visualsoar.graph.Vertex;
+import edu.umich.soar.visualsoar.misc.FeedbackListObject;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorNode;
+import edu.umich.soar.visualsoar.parser.Pair;
 import edu.umich.soar.visualsoar.parser.SoarProduction;
+import edu.umich.soar.visualsoar.parser.Triple;
 import edu.umich.soar.visualsoar.parser.TriplesExtractor;
+import edu.umich.soar.visualsoar.util.EnumerationIteratorWrapper;
+
 import java.util.*;
 import java.io.*;
 import javax.swing.*;
@@ -506,7 +511,7 @@ public class SoarWorkingMemoryModel
      * @param sp the Soar Production to check
      * @return a list of errors
      * @see DefaultCheckerErrorHandler
-     * @see DataMapChecker#check(SoarWorkingMemoryModel,SoarIdentifierVertex,TriplesExtractor,DefaultCheckerErrorHandler)
+     * @see DataMapChecker#check
      */
     public List checkProduction(SoarIdentifierVertex sv, SoarProduction sp) 
     {
@@ -525,7 +530,7 @@ public class SoarWorkingMemoryModel
      * @param fw the log file that is being written too - "CheckingProductions.log"
      * @return a list of errors
      * @see DefaultCheckerErrorHandler
-     * @see DataMapChecker#check(SoarWorkingMemoryModel,SoarIdentifierVertex,TriplesExtractor,DefaultCheckerErrorHandler)
+     * @see DataMapChecker#check
      */
     public List checkProductionLog(SoarIdentifierVertex sv, SoarProduction sp, FileWriter fw) 
     {
@@ -553,15 +558,47 @@ public class SoarWorkingMemoryModel
      * @param current the node being examined
      * @return a list of errors
      * @see DefaultCheckerErrorHandler
-     * @see DataMapChecker#complete(SoarWorkingMemoryModel,SoarIdentifierVertex,TriplesExtractor,DefaultCheckerErrorHandler,OperatorNode)
+     * @see DataMapChecker#complete
      */
-    public List checkGenerateProduction(SoarIdentifierVertex sv, SoarProduction sp, OperatorNode current) 
+    public List checkGenerateProduction(SoarIdentifierVertex sv, SoarProduction sp, OperatorNode current)
     {
         TriplesExtractor triplesExtractor = new TriplesExtractor(sp);
         DefaultCheckerErrorHandler dceh = new DefaultCheckerErrorHandler(sp.getName(), sp.getStartLine());
         DataMapChecker.complete(this,sv,triplesExtractor, dceh, current);
         return dceh.getErrors();
     }
+
+    /**
+     * checkGenerateSingleEntry
+     *
+     * is similar to {@link #checkGenerateProduction} except that it repairs
+     * only a single new datamap entry to address a particular error.
+     *
+     * @author Andrew Nuxoll
+     * @version 27 Nov 2022
+     */
+    public List checkGenerateSingleEntry(SoarIdentifierVertex sv,
+                                         SoarProduction sp,
+                                         OperatorNode current,
+                                         FeedbackListObject errToFix)
+    {
+        //Find the triple associated with this error
+        TriplesExtractor triplesExtractor = new TriplesExtractor(sp);
+        DefaultCheckerErrorHandler dceh = new DefaultCheckerErrorHandler(sp.getName(), sp.getStartLine());
+        Enumeration e = new EnumerationIteratorWrapper(triplesExtractor.triples());
+        while(e.hasMoreElements()) {
+            Triple currentTriple = (Triple) e.nextElement();
+            String tripStr = currentTriple.toString();
+            if (errToFix.getMessage().contains(tripStr)) {
+                //found it!  Now repair it.
+                TriplesExtractor oneErrTE = new TriplesExtractor(sp, currentTriple);
+                DataMapChecker.complete(this,sv,triplesExtractor, dceh, current);
+                break;
+            }
+        }
+
+        return dceh.getErrors();
+    }//checkGenerateSingleEntry
 
     /**
      * Return all parents of a vertex
