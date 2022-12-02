@@ -98,6 +98,11 @@ public class DataMap extends CustomInternalFrame
 		pasteItem.addActionListener(dataMapTree.pasteAction);
 
 
+        JMenuItem linkItem = new JMenuItem("Paste as Link");
+        editMenu.add(linkItem);
+        linkItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_L, Event.CTRL_MASK));
+        linkItem.addActionListener(dataMapTree.linkAction);
+
         JMenuItem searchItem = new JMenuItem("Search Datamap");
         editMenu.add(searchItem);
         searchItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F, Event.CTRL_MASK));

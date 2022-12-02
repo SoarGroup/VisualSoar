@@ -28,9 +28,23 @@ import java.io.*;
 import java.util.*;
 
 /**
- * A class to implement the behavior of the DataMap
+ * class DataMapTree
+ *
+ * A class to implement the behavior of the DataMap.  This class has
+ * these inner classes for responding to these events:
+ * 	  - DMTDragGestureListener implements DragGestureListener
+ * 	  - DMTDropGestureListener implements DropGestureListener
+ * 	  - DMTDragSourceListener implements DragSourceListener
+ * 	     . provides "drag over" feedback during a drag and drop operation
+ * 	  - CopyAction extends AbstractAction
+ * 	  - PasteAction extends AbstractAction
+ * 	  - SearchAction extends AbstractAction
+ * 	  - ValidateDataMapAction extends AbstractAction
+ * 	  - RemoveInvalidAction extends AbstractAction
+ *
  * @author Jon Bauman 
  * @author Brad Jones
+ * @author Andrew Nuxoll
  */
 
 public class DataMapTree extends JTree implements ClipboardOwner 
@@ -43,9 +57,10 @@ public class DataMapTree extends JTree implements ClipboardOwner
 	public static NamedEdge cutEdge;
 	private static DataMapTree s_DataMapTree;
 
-	//public Action cutAction = new CutAction();
+	//public Action cutAction = new CutAction();  //removed because too dangerous
 	public Action copyAction = new CopyAction();
 	public Action pasteAction = new PasteAction();
+	public Action linkAction = new LinkAction();
 	public Action searchAction = new SearchAction();
 	public Action validateDataMapAction = new ValidateDataMapAction();
 	public Action removeInvalidAction = new RemoveInvalidAction();
@@ -57,6 +72,10 @@ public class DataMapTree extends JTree implements ClipboardOwner
 	private static JMenuItem AddIntegerItem = new JMenuItem("Add Integer...");
 	private static JMenuItem AddFloatItem = new JMenuItem("Add Float...");
 	private static JMenuItem AddStringItem = new JMenuItem("Add String...");
+
+	private static JMenuItem CopyItem = new JMenuItem("Copy");
+	private static JMenuItem PasteItem = new JMenuItem("Paste");
+	private static JMenuItem LinkItem = new JMenuItem("Paste as Link");
 
 	private static JMenuItem SearchForItem = new JMenuItem("Search For...");
 	private static JMenuItem FindUsingProdsItem = new JMenuItem("Find Productions that Create or Test this WME");
@@ -90,6 +109,11 @@ public class DataMapTree extends JTree implements ClipboardOwner
 		contextMenu.add(AddIntegerItem);
 		contextMenu.add(AddFloatItem);
 		contextMenu.add(AddStringItem);
+
+		contextMenu.addSeparator();
+		contextMenu.add(CopyItem);
+		contextMenu.add(PasteItem);
+		contextMenu.add(LinkItem);
 
 		contextMenu.addSeparator();
 		contextMenu.add(SearchForItem);
@@ -211,12 +235,42 @@ public class DataMapTree extends JTree implements ClipboardOwner
 		});
 
 		AddStringItem.addActionListener(
-				new ActionListener() 
+				new ActionListener()
 				{
-					public void actionPerformed(ActionEvent e) 
+					public void actionPerformed(ActionEvent e)
 					{
 						DataMapTree dmt = (DataMapTree)contextMenu.getInvoker();
 						dmt.addString();
+					}
+				});
+
+		CopyItem.addActionListener(
+				new ActionListener()
+				{
+					public void actionPerformed(ActionEvent e)
+					{
+						DataMapTree dmt = (DataMapTree)contextMenu.getInvoker();
+						dmt.copyAction.actionPerformed(e);
+					}
+				});
+
+		PasteItem.addActionListener(
+				new ActionListener()
+				{
+					public void actionPerformed(ActionEvent e)
+					{
+						DataMapTree dmt = (DataMapTree)contextMenu.getInvoker();
+						dmt.pasteAction.actionPerformed(e);
+					}
+				});
+
+		LinkItem.addActionListener(
+				new ActionListener()
+				{
+					public void actionPerformed(ActionEvent e)
+					{
+						DataMapTree dmt = (DataMapTree)contextMenu.getInvoker();
+						dmt.linkAction.actionPerformed(e);
 					}
 				});
 
@@ -1053,9 +1107,10 @@ public class DataMapTree extends JTree implements ClipboardOwner
 			 return;
 		 }
 
+
+		 //Copy the data to the destination
 		 for (int i = 0; i < paths.length; i++) 
 		 {
-
 			 ftn = (FakeTreeNode)paths[i].getLastPathComponent();
 			 if(transferable.isDataFlavorSupported(dataFlavor)) 
 			 {
@@ -1069,8 +1124,71 @@ public class DataMapTree extends JTree implements ClipboardOwner
 		 }
 	 }
 
+	/**
+	 * link a portion of the datamap from the clipboard
+	 */
+	private void link()
+	{
+		TreePath[]          paths = getSelectionPaths();
+		FakeTreeNode        ftn;
+		FakeTreeNode        fakeParent;
+		Transferable        transferable;
+		DataFlavor          dataFlavor;
+		CopyVertexVector    data;
 
-	 /**
+		if (paths == null)
+		{
+			return;  //nothing to link
+		}
+
+		//Retrieve the data
+		transferable = clipboard.getContents(this);
+		dataFlavor = TransferableVertex.flavors[0];
+
+		try
+		{
+			data = (CopyVertexVector)transferable.getTransferData(dataFlavor);
+
+		} catch(UnsupportedFlavorException ufe)
+		{
+			ufe.printStackTrace();
+			return;
+		} catch(IOException ioe)
+		{
+			ioe.printStackTrace();
+			return;
+		}
+
+
+		//Copy the data to the destination
+		for (int i = 0; i < paths.length; i++)
+		{
+			ftn = (FakeTreeNode)paths[i].getLastPathComponent();
+			if(transferable.isDataFlavorSupported(dataFlavor))
+			{
+				//Note:  only the first item in the clipboard is linked
+				//       Perhaps we should allow multiple links at once?
+				//       Easy enough to do this:  wrap the code below in
+				//       a for-loop and replace the '0' below with loop var
+				SoarVertex  parent = ftn.getEnumeratingVertex();
+				SoarVertex child = (SoarVertex)data.getVertex(0);
+				swmm.addTriple(parent,data.getName(0),child);
+			}
+		}
+
+		//===============
+
+		//Get the thing we're dropping
+//		SoarVertex dataVertex =
+//				swmm.getVertexForId(((Integer)data.get(0)).intValue());
+
+//		//Perform the drop
+//
+	}//link
+
+
+
+	/**
 	  * Can change the values for an enumeration or number attribute
 	  */
 	 public void editValue() 
@@ -1723,6 +1841,9 @@ public class DataMapTree extends JTree implements ClipboardOwner
 	 }//displayGeneratedNodes
 
 
+	/**
+	 * class DMTDragGestureListener
+	 */
 	 class DMTDragGestureListener implements DragGestureListener 
 	 {
 		 public void dragGestureRecognized(DragGestureEvent dge) 
@@ -1772,7 +1893,12 @@ public class DataMapTree extends JTree implements ClipboardOwner
 		 }   
 	 }
 
-	 class DMTDropTargetListener implements DropTargetListener 
+	/**
+	 * class DMTDropTargetListener
+	 *
+	 *
+	 */
+	class DMTDropTargetListener implements DropTargetListener
 	 {
 		 public void dragEnter(DropTargetDragEvent dtde) {
 		 }
@@ -1845,11 +1971,20 @@ public class DataMapTree extends JTree implements ClipboardOwner
 		 public void dropActionChanged(DropTargetDragEvent dtde) {
 		 }
 
+		 /**
+		  * drop
+		  *
+		  * Gets called when the user releases the mouse in a drag-and-drop
+		  * operation in a datamap window.
+		  *
+		  */
 		 public void drop(DropTargetDropEvent e) 
 		 {
+		 	//Verify that drop is acceptable
 			 Point loc = e.getLocation();
 			 int x = (int)loc.getX(), y = (int)loc.getY();
 
+			 //action will be one of:  copy, move or link
 			 int action = e.getDropAction();
 			 if (isDropOK(x, y, action)) 
 			 {
@@ -1865,6 +2000,7 @@ public class DataMapTree extends JTree implements ClipboardOwner
 			 Cursor defaultCursor = new Cursor(Cursor.DEFAULT_CURSOR);
 			 DataMapTree.getDataMapTree().setCursor(defaultCursor);
 
+
 			 if (action == DnDConstants.ACTION_COPY) {
 				 System.out.println("dndcopy!");
 				 TreePath currentPath = getPathForLocation(x, y);
@@ -1872,33 +2008,31 @@ public class DataMapTree extends JTree implements ClipboardOwner
 				 CopyVertexVector copyVerticies = getCopyVerticies();
 				 setSelectionPath(currentPath);
 				 pasteCopyVertices(copyVerticies);
-			 } else {
-	
+			 } else {  //action is either MOVE or LINK
+
+				 //Extract the WME data from the event
 				 DataFlavor[] flavors = e.getCurrentDataFlavors();
 				 DataFlavor chosen = flavors[0];
-	
-	
-				 //Get the WME we're dropping
 				 Vector data = null;
-				 try 
+				 try
 				 {
 					 data = (Vector)e.getTransferable().getTransferData(chosen);
-				 } 
-				 catch(Throwable t) 
+				 }
+				 catch(Throwable t)
 				 {
 					 t.printStackTrace();
 					 e.dropComplete(false);
 					 return;
 				 }
-	
+
 				 //Get the target for the drop
 				 TreePath path = getPathForLocation(x, y);
 				 SoarVertex vertex = ((FakeTreeNode)path.getLastPathComponent()).getEnumeratingVertex();
-	
+
 				 //Get the thing we're dropping
 				 SoarVertex dataVertex =
-					 swmm.getVertexForId(((Integer)data.get(0)).intValue());
-	
+						 swmm.getVertexForId(((Integer)data.get(0)).intValue());
+
 				 //If we are moving a node, we have to first make sure that we're
 				 //not creating a loop.
 				 if ((action & DnDConstants.ACTION_MOVE) != 0)
@@ -1913,21 +2047,24 @@ public class DataMapTree extends JTree implements ClipboardOwner
 						 }
 					 }
 				 }
-	
+
 				 //Perform the drop
 				 swmm.addTriple(vertex,(String)data.get(1),dataVertex);
-				 if(action == DnDConstants.ACTION_MOVE) 
+				 if(action == DnDConstants.ACTION_MOVE)
 				 {
 					 NamedEdge ne = (NamedEdge)data.get(2);
 					 swmm.removeTriple((SoarVertex)ne.V0(),ne.getName(),(SoarVertex)ne.V1());
 				 }
-				 
-			 }
 
+			 }
 			 e.dropComplete(true);
 
 		 }
 
+		 /**
+		  * helper method for {@link #dragOver} and {@link #drop} to
+		  * determine if a given coordinate is a valid drop destination
+		  */
 		 boolean isDropOK(int x, int y, int action) 
 		 {
 			 TreePath path = getPathForLocation(x, y);
@@ -1950,7 +2087,7 @@ public class DataMapTree extends JTree implements ClipboardOwner
 			 return false;
 
 		 }
-	 }
+	 }//isDropOK
 
 	 class DMTDragSourceListener implements DragSourceListener 
 	 {
@@ -1966,22 +2103,18 @@ public class DataMapTree extends JTree implements ClipboardOwner
 			 Cursor cursor;
 			 if( (myaction & DnDConstants.ACTION_COPY) != 0) 
 			 {
-				 //context.setCursor(DragSource.DefaultCopyDrop);
 				 cursor = DragSource.DefaultCopyDrop;
 			 }
 			 else if( (myaction & DnDConstants.ACTION_LINK) != 0) 
 			 {
-				 //context.setCursor(DragSource.DefaultLinkDrop);
 				 cursor = DragSource.DefaultLinkDrop;
 			 }
 			 else if( (myaction & DnDConstants.ACTION_MOVE) != 0) 
 			 {
-				 //context.setCursor(DragSource.DefaultMoveDrop);
 				 cursor = DragSource.DefaultMoveDrop;
 			 }
 			 else 
 			 {
-				 //context.setCursor(DragSource.DefaultMoveNoDrop);
 				 cursor = DragSource.DefaultMoveNoDrop;
 			 }
 			 DataMapTree.getDataMapTree().setCursor(cursor);
@@ -2007,16 +2140,16 @@ public class DataMapTree extends JTree implements ClipboardOwner
 
 	 /*  Too Dangerous, see cut()
 
-    class CutAction extends AbstractAction 
+    class CutAction extends AbstractAction
 {
-    public void actionPerformed(ActionEvent e) 
+    public void actionPerformed(ActionEvent e)
 {
     cut();
     }
     }
 	  */
 
-	 class CopyAction extends AbstractAction 
+	 class CopyAction extends AbstractAction
 	 {
 		 public void actionPerformed(ActionEvent e) 
 		 {
@@ -2024,15 +2157,23 @@ public class DataMapTree extends JTree implements ClipboardOwner
 		 }
 	 }
 
-	 class PasteAction extends AbstractAction 
-	 {
-		 public void actionPerformed(ActionEvent e) 
-		 {
-			 paste();
-		 }
-	 }
+	class PasteAction extends AbstractAction
+	{
+		public void actionPerformed(ActionEvent e)
+		{
+			paste();
+		}
+	}
 
-	 class SearchAction extends AbstractAction 
+	class LinkAction extends AbstractAction
+	{
+		public void actionPerformed(ActionEvent e)
+		{
+			link();
+		}
+	}
+
+	class SearchAction extends AbstractAction
 	 {
 		 public SearchAction() 
 		 {
