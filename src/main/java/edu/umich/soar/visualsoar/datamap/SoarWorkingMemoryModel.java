@@ -67,6 +67,10 @@ public class SoarWorkingMemoryModel
             addTriple(getProperty("IO"),"input-link",getProperty("INPUTLINK"));
             addTriple(getProperty("IO"),"output-link",getProperty("OUTPUTLINK"));
             addTriple(getProperty("INITIALIZE-" + name),"name",createNewEnumeration("initialize-" + name));
+
+            //reward, epmem and smem (added Dec 2022)
+            addNewStandardWMEs(getProperty("TOPSTATE"));
+
         }
     }
 
@@ -387,7 +391,46 @@ public class SoarWorkingMemoryModel
         addTriple(s,"superstate",superstate);
         addTriple(s,"name",nameVertex);
         addTriple(s,"top-state",getTopstate());
+
+        //reward, epmem and smem (added Dec 2022)
+        addNewStandardWMEs(s);
+
         return s;
+    }
+
+    /**
+     * addNewStandardWMEs
+     *
+     * adds the new WMEs that are now standard on every state in Soar
+     * since Visual Soar was first created.  I put this in a helper method
+     * decided not tomove the existing standard WMEs to it so as to minimize
+     * my impact on the source code.  Perhaps I'm being too careful.
+     *
+     * @author :AMN:
+     * @version Dec 2022
+     */
+    private void addNewStandardWMEs(SoarVertex s) {
+        //^reward-link
+        SoarVertex reward = createNewSoarId();
+        addTriple(s, "reward-link", reward);
+
+        //^epmem et.al.
+        SoarVertex epmem = createNewSoarId();
+        addTriple(s, "epmem", epmem);
+        SoarVertex epCmd = createNewSoarId();
+        addTriple(epmem, "command", epCmd);
+        SoarVertex epPresentId = createNewInteger();
+        addTriple(epmem, "present-id", epPresentId);
+        SoarVertex epResult = createNewSoarId();
+        addTriple(epmem, "result", epResult);
+
+        //^smem et.al.
+        SoarVertex smem = createNewSoarId();
+        addTriple(s, "smem", smem);
+        SoarVertex smCmd = createNewSoarId();
+        addTriple(smem, "command", smCmd);
+        SoarVertex smResult = createNewSoarId();
+        addTriple(smem, "result", smResult);
     }
 
     /**
