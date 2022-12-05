@@ -392,10 +392,44 @@ public class SoarWorkingMemoryModel
         addTriple(s,"name",nameVertex);
         addTriple(s,"top-state",getTopstate());
 
+        addSubOperatorWMEs(s);
+
         //reward, epmem and smem (added Dec 2022)
         addNewStandardWMEs(s);
 
+
         return s;
+    }
+
+    /**
+     * addSubOperatorWMEs
+     *
+     * adds the WMEs that always appear in a sub-state.  There are other
+     * WMEs that don't always appear which have been omitted.  Perhaps
+     * JEL will ask me to add them in a subsequent revision?
+     *
+     */
+    private void addSubOperatorWMEs(SoarIdentifierVertex s) {
+        //^quiescence t
+        SoarVertex qui = createNewEnumeration("t");
+        addTriple(s, "quiescence", qui);
+
+        //^impasse
+        Vector impVec = new Vector();
+        impVec.add("tie");
+        impVec.add("conflict");
+        impVec.add("constraint-failure");
+        impVec.add("no-change");
+        SoarVertex impasse = createNewEnumeration(impVec);
+        addTriple(s, "impasse", impasse);
+
+        //^choices
+        Vector choiceVec = new Vector();
+        choiceVec.add("multiple");
+        choiceVec.add("constraint-failure");
+        choiceVec.add("none");
+        SoarVertex choices = createNewEnumeration(choiceVec);
+        addTriple(s, "choices", choices);
     }
 
     /**
