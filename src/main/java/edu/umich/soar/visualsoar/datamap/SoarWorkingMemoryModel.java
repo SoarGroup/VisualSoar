@@ -445,7 +445,7 @@ public class SoarWorkingMemoryModel
      */
     private void addNewStandardWMEs(SoarVertex s) {
         //^reward-link
-        SoarVertex reward = createNewSoarId();
+        SoarVertex reward = createNewFloat();
         addTriple(s, "reward-link", reward);
 
         //^epmem et.al.
