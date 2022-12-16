@@ -6,6 +6,9 @@
 bin
 target
 
+#tmp folder
+tmp
+
 # User-specific stuff
 .idea/**/workspace.xml
 .idea/**/tasks.xml
