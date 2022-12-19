@@ -24,7 +24,6 @@ class AutoTilePanel extends JPanel {
 
 	/**
 	 * Creates a titled border around the input field
-	 * @param theType the name to give to the titled border
 	 */
 	public AutoTilePanel() {
 		JPanel 	horizVertPanel = new JPanel();

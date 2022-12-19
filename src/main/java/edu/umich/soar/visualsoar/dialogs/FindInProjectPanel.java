@@ -11,7 +11,6 @@ import javax.swing.border.*;
  * option panel for the find dialogs
  * @author Andrew Nuxoll
  * @see FindInProjectDialog
- * @see FindReplaceInProjectDialog
  */
 class FindInProjectPanel extends JPanel
 {

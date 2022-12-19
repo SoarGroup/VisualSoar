@@ -50,9 +50,9 @@ public abstract class DirectedGraph extends Graph {
 		while (!queue.isEmpty() && !visitor.isDone()) {
 			Vertex vertex = (Vertex)queue.dequeue();
 			visitor.visit(vertex);
-			Enumeration q = emanatingEdges(vertex);
+			Enumeration<Edge> q = emanatingEdges(vertex);
 			while(q.hasMoreElements()) {
-				Edge edge = (Edge)q.nextElement();
+				Edge edge = q.nextElement();
 				Vertex to = edge.V1();
 				if (--inDegree[to.getValue()] == 0)
 					queue.enqueue(to);

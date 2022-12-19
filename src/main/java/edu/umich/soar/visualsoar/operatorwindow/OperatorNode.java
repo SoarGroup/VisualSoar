@@ -6,6 +6,7 @@ import edu.umich.soar.visualsoar.dialogs.FileAlreadyExistsDialog;
 import edu.umich.soar.visualsoar.graph.SoarIdentifierVertex;
 import edu.umich.soar.visualsoar.misc.FeedbackListObject;
 import edu.umich.soar.visualsoar.parser.ParseException;
+import edu.umich.soar.visualsoar.parser.SoarProduction;
 import edu.umich.soar.visualsoar.parser.TokenMgrError;
 
 import java.awt.datatransfer.*;
@@ -300,11 +301,11 @@ public abstract class OperatorNode extends VSTreeNode implements java.io.Seriali
   /**
    * overloaded by subclasses
    */
-	public Vector parseProductions() throws ParseException, java.io.IOException {
+	public Vector<SoarProduction> parseProductions() throws ParseException, java.io.IOException {
 		return null;
 	}
 
-    public boolean CheckAgainstDatamap(Vector vecErrors) throws IOException
+    public boolean CheckAgainstDatamap(Vector<FeedbackListObject> vecErrors) throws IOException
     {
         return false;           // no datamap errors found
     }

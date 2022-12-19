@@ -35,7 +35,7 @@ public class GlobalFindReplaceDialog extends JDialog {
 	
 	/**
 	 * @param owner Frame which owns the dialog
-	 * @param operators a reference to the OperatorWindow
+	 * @param ruleEditor a reference to the RuleEditor
 	 */
 	public GlobalFindReplaceDialog(final Frame owner,RuleEditor ruleEditor) {
 		super(owner, "Find & Replace", false);

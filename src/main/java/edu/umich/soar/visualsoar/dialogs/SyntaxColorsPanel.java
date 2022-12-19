@@ -42,10 +42,7 @@ class SyntaxColorsPanel extends JPanel {
 	 */
 	SyntaxColor[]	colorTable = Prefs.getSyntaxColors();
 
-	/**
-	 * Creates a titled border around the input field
-	 * @param theType the name to give to the titled border
-	 */
+	/** ctor */
 	public SyntaxColorsPanel(SyntaxColor[] oldColors) {
 		GridLayout 	layout = new GridLayout();
 		JPanel		enablePanel = new JPanel();

@@ -1171,7 +1171,7 @@ public class RuleEditor extends CustomInternalFrame
     }
 
 
-    public Vector parseProductions() throws ParseException
+    public Vector<SoarProduction> parseProductions() throws ParseException
     {
         makeValidForParser();
         SoarParser parser = new SoarParser(new StringReader(getAllText()));
@@ -1846,6 +1846,7 @@ public class RuleEditor extends CustomInternalFrame
             {
                 v = parseProductions();
                 MainFrame.getMainFrame().getOperatorWindow().checkProductions((OperatorNode)associatedNode.getParent(),
+                                                                              associatedNode,
                                                                               v,
                                                                               errors);
             }

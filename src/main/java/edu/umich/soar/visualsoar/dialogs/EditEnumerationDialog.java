@@ -9,8 +9,8 @@ import javax.swing.*;
  * Dialog which takes input for the editing of an EnumerationVertex 
  * in the data map.
  * @author Jon Bauman
- * @see EnumerationVertex
- * @see DataMapTree
+ * @see edu.umich.soar.visualsoar.graph.EnumerationVertex
+ * @see edu.umich.soar.visualsoar.datamap.DataMapTree
  */
 public class EditEnumerationDialog extends JDialog 
 {

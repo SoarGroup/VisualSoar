@@ -118,7 +118,7 @@ public class NamedEdge extends Edge
      * of this edge to the Writer that can later be read back in
      * to recreate this edge
      * @param w the stream to write the representation to
-     * @throws IOException if an error writing to the stream occurs
+     * @throws java.io.IOException if an error writing to the stream occurs
      */
     public void write(java.io.Writer w) throws java.io.IOException 
     {

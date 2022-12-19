@@ -125,10 +125,10 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 	{
 		String lines[] = result.split("\n") ;
 		
-		Vector<String> v = new Vector<String>();
+		Vector<FeedbackListObject> v = new Vector<>();
 		
 		for (int i = 0 ; i < lines.length ; i++)
-			v.add(lines[i]) ;
+			v.add(new FeedbackListObject(lines[i]));
 		
 		setFeedbackListData(v);
 	}
@@ -218,10 +218,21 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
      * Method updates the FeedBack list window
      * @param v the vector list of feedback data
      */
-	public void setFeedbackListData(Vector v) 
+	public void setFeedbackListData(Vector<FeedbackListObject> v)
     {
 		feedbackList.setListData(v);
 	}
+
+	/**
+	 * Method updates the FeedBack list window to contain a single message
+	 */
+	public void setFeedbackListData(String msg)
+	{
+		Vector<FeedbackListObject> vec = new Vector<>();
+		vec.add(new FeedbackListObject(msg));
+		setFeedbackListData(vec);
+	}
+
 
 	/**
      * Gets the project TemplateManager
@@ -1079,8 +1090,8 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		public void actionPerformed(ActionEvent event) 
         {
 			perform();	
-			Vector<String> v = new Vector<String>();
-			v.add("DataMap and Project Saved");
+			Vector<FeedbackListObject> v = new Vector<>();
+			v.add(new FeedbackListObject("DataMap and Project Saved"));
 			setFeedbackListData(v);
 		}
 	}
@@ -1384,8 +1395,8 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		public void actionPerformed(ActionEvent event)
         {
 			perform();
-			Vector<String> v = new Vector<String>();
-			v.add("Export Finished");
+			Vector<FeedbackListObject> v = new Vector<>();
+			v.add(new FeedbackListObject("Export Finished"));
 			setFeedbackListData(v);
 		}
 	}
@@ -1815,7 +1826,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		JProgressBar progressBar;
 		JDialog progressDialog;
         Vector<TreeNode> vecEntities;
-        Vector vecErrors = new Vector();
+        Vector<FeedbackListObject> vecErrors = new Vector<>();
         int entityNum = 0;
 
         public UpdateThread(Vector v, String title)
@@ -1888,7 +1899,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 
                 if(!anyErrors)
                 {
-                    vecErrors.add("There were no errors detected in this project.");
+                    vecErrors.add(new FeedbackListObject("There were no errors detected in this project."));
                 }
                 setFeedbackListData(vecErrors);
                 SwingUtilities.invokeLater(finish);
@@ -1952,15 +1963,17 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
                 File f = new File(opNode.getFileName());
                 if (!f.canRead())
                 {
-                    vecErrors.add("Error!  Project Corrupted:  Unable to open file: "
-                                  + opNode.getFileName());
+                	String msg = "Error!  Project Corrupted:  Unable to open file: "
+								+ opNode.getFileName();
+                    vecErrors.add(new FeedbackListObject(msg));
                     return true;
                 }
                     
                 if (!f.canWrite())
                 {
-                    vecErrors.add("Error!  Unable to write to file: "
-                                  + opNode.getFileName());
+					String msg ="Error!  Unable to write to file: "
+								+ opNode.getFileName();
+							vecErrors.add(new FeedbackListObject(msg));
                     return true;
                 }
 
@@ -2263,9 +2276,10 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
                     boolean rc = opNode.CheckAgainstDatamap(v);
                     if (rc)
                     {
-                        vecErrors.add("WARNING:  datamap errors were found in "
-                                      + opNode.getFileName()
-                                      + "'s productions.  This may invalidate the current scan.");
+                    	String msg = "WARNING:  datamap errors were found in "
+									+ opNode.getFileName()
+									+ "'s productions.  This may invalidate the current scan.";
+                        vecErrors.add(new FeedbackListObject(msg));
                     }
 
                     numChecks++;

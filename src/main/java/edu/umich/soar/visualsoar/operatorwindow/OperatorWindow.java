@@ -767,15 +767,17 @@ public class OperatorWindow extends JTree
      * and a list to put the errors this function will check the productions
      * consistency across the datamap.
      * @see SoarProduction
-     * @see SoarWorkingMemoryModel#checkProduction(SoarIdentifierVertex, SoarProduction) */
-    public void checkProductions(OperatorNode on,
+     * @see SoarWorkingMemoryModel#checkProduction
+     */
+    public void checkProductions(OperatorNode parent,
+                                 OperatorNode child,
                                  Vector productions,
                                  java.util.List errors)
     
     {
 
         // Find the state that these productions should be checked against
-        SoarIdentifierVertex siv = on.getStateIdVertex();
+        SoarIdentifierVertex siv = parent.getStateIdVertex();
         if(siv == null)
         siv = WorkingMemory.getTopstate();
         Enumeration e = productions.elements();
@@ -783,7 +785,7 @@ public class OperatorWindow extends JTree
         while(e.hasMoreElements()) 
         {
             SoarProduction sp = (SoarProduction)e.nextElement();
-            errors.addAll(WorkingMemory.checkProduction(siv,sp));
+            errors.addAll(WorkingMemory.checkProduction(child, siv, sp));
         }
     }
 
@@ -810,7 +812,7 @@ public class OperatorWindow extends JTree
             {
                 ioe.printStackTrace();
             }
-            errors.addAll(WorkingMemory.checkProductionLog(siv,sp, w));
+            errors.addAll(WorkingMemory.checkProductionLog(on, siv,sp, w));
         }
     }
 
@@ -832,7 +834,7 @@ public class OperatorWindow extends JTree
         while(e.hasMoreElements()) 
         {
             SoarProduction sp = (SoarProduction)e.nextElement();
-            generations.addAll(WorkingMemory.checkGenerateProduction(siv,sp, current));
+            generations.addAll(WorkingMemory.checkGenerateProduction(siv, sp, current));
         }
     }
 
@@ -929,7 +931,7 @@ public class OperatorWindow extends JTree
     
     /**
      * For the currently selected node, it will check all the children of this node against the datamap
-     * @see #checkProductions(OperatorNode, Vector, java.util.List)
+     * @see #checkProductions
      * @throws Exception unable to check productions due to parse error
      * @throws Exception error reading file
      */
@@ -949,7 +951,7 @@ public class OperatorWindow extends JTree
             {
                 parsedProductions = currentNode.parseProductions();
                 if(parsedProductions != null)
-                MainFrame.getMainFrame().getOperatorWindow().checkProductions(selNode,parsedProductions,errors);    
+                MainFrame.getMainFrame().getOperatorWindow().checkProductions(selNode, currentNode, parsedProductions,errors);
             }
             catch(ParseException pe) 
             {
@@ -1057,7 +1059,7 @@ public class OperatorWindow extends JTree
         }
 
         //Verify our changes worked
-        checkProductions(parentNode, parsedProds, parseErrors);
+        checkProductions(parentNode, opNode, parsedProds, parseErrors);
 
         //Generate a report that can be posted to the feedback list
         fillFeedbackListFromErrors(opNode, vecGenerations, generations);
@@ -1077,11 +1079,11 @@ public class OperatorWindow extends JTree
      * this failed
      */
     public void generateDataMapForOneError(FeedbackListObject errToFix,
-                                             Vector vecGenerations)
+                                             Vector<FeedbackListObject> vecGenerations)
     {
         OperatorNode opNode = errToFix.getNode();
         if (opNode == null) {
-            vecGenerations.add("No operator associated with this entry.");
+            vecGenerations.add(new FeedbackListObject("No operator associated with this entry."));
             return;
         }
 
@@ -1092,7 +1094,7 @@ public class OperatorWindow extends JTree
         }
         catch(Exception e) {
             //should never happen...
-            vecGenerations.add("Unable to generate datamap entry due to parse error.");
+            vecGenerations.add(new FeedbackListObject("Unable to generate datamap entry due to parse error."));
             return;
         }
 
@@ -1143,7 +1145,6 @@ public class OperatorWindow extends JTree
                         new FeedbackListObject(opNode,
                                 Integer.parseInt(numberString),
                                 errorString,
-                                true,
                                 true,
                                 true));
             }

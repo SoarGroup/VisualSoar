@@ -193,7 +193,6 @@ public class SearchDataMapDialog extends JDialog {
    *  Initializes the search queue for a search of the datamap
    *  called when a new search dialog is created or when the user changes the
    *  desired word
-   *  @param ftn the wme from which the search is to begin
    */
   private void initializeSearch() {
     queue = new QueueAsLinkedList();

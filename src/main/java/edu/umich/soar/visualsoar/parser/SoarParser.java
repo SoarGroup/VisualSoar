@@ -10,7 +10,8 @@ import java.util.*;
 */
 public class SoarParser implements SoarParserConstants {
 
-  final public Vector VisualSoarFile() throws ParseException {Vector vec = new Vector();
+  final public Vector<SoarProduction> VisualSoarFile() throws ParseException {
+    Vector retVec = new Vector<SoarProduction>();
     SoarProduction sp;
     label_1:
     while (true) {
@@ -21,7 +22,7 @@ public class SoarParser implements SoarParserConstants {
       }
       if (jj_2_2(3)) {
         sp = soarProduction();
-vec.add(sp);
+        retVec.add(sp);
       } else if (jj_2_3(3)) {
         jj_consume_token(SOARCMD);
       } else {
@@ -30,7 +31,7 @@ vec.add(sp);
       }
     }
     jj_consume_token(0);
-{if ("" != null) return vec;}
+{if ("" != null) return retVec;}
     throw new Error("Missing return statement in function");
 }
 

@@ -10,8 +10,8 @@ import java.beans.*;
  * Dialog which takes input for the creation of a new 
  * SoarIdentifierVertex in the data map
  * @author Jon Bauman
- * @see SoarIdentifierVertex
- * @see DataMapTree
+ * @see edu.umich.soar.visualsoar.graph.SoarIdentifierVertex
+ * @see edu.umich.soar.visualsoar.datamap.DataMapTree
  */
 public class IdentifierDialog extends JDialog {
 

@@ -2,39 +2,21 @@ package edu.umich.soar.visualsoar.datamap;
 
 import java.util.*;
 import java.awt.datatransfer.*;
-import java.io.IOException;
 
 import edu.umich.soar.visualsoar.graph.SoarVertex;
 
 /**
- * This allows verticies to be copied in a shallow manner
+ * This allows vertices to be copied in a shallow manner
+ *
  * @author Jon Bauman
  */
   
-public class CopyVertexVector extends Vector implements Transferable {
+public class CopyVertexVector extends Vector<CopyVertex> implements Transferable {
 	public static final DataFlavor[] 	flavors = 
-		{ new DataFlavor(Vector.class, 
-			"Visual Soar Vertex Type and Name") };
-	private static final List 			flavorList = 
-		Arrays.asList(flavors);
-
-	public class CopyVertex {
-		private String		name;
-		private	SoarVertex	vertex;
-
-		public CopyVertex(String inName, SoarVertex inVertex) {
-			name = inName;
-			vertex = inVertex;
-		}
-		
-		public String getName() {
-			return name;
-		}
-		
-		public SoarVertex getVertex() {
-			return vertex;
-		}
-	}
+		{
+			new DataFlavor(Vector.class, "Visual Soar Vertex Type and Name")
+		};
+	private static final List<DataFlavor> flavorList = Arrays.asList(flavors);
 
 	public CopyVertexVector(int capacity) {
 		super(capacity);
@@ -45,16 +27,17 @@ public class CopyVertexVector extends Vector implements Transferable {
 	}
 	
 	public String getName(int index) {
-		CopyVertex v = (CopyVertex)get(index);
-		return v.getName();
+		CopyVertex v = get(index);
+		return v.name;
 	}
 
 	public SoarVertex getVertex(int index) {
-		CopyVertex v = (CopyVertex)get(index);
-		return v.getVertex();
+		CopyVertex v = get(index);
+		return v.vertex;
 	}
 
-	public synchronized Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException, IOException {
+	public synchronized Object getTransferData(DataFlavor flavor)
+			throws UnsupportedFlavorException {
 		if (flavor.equals(flavors[0])) {
 			return this;
 		}

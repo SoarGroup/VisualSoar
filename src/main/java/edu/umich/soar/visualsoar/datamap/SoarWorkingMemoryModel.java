@@ -1,28 +1,19 @@
 package edu.umich.soar.visualsoar.datamap;
 
-import edu.umich.soar.visualsoar.graph.DirectedGraph;
-import edu.umich.soar.visualsoar.graph.EnumerationVertex;
-import edu.umich.soar.visualsoar.graph.FloatRangeVertex;
-import edu.umich.soar.visualsoar.graph.IntegerRangeVertex;
-import edu.umich.soar.visualsoar.graph.NamedEdge;
-import edu.umich.soar.visualsoar.graph.OrderedDirectedGraphAsAdjacencyLists;
-import edu.umich.soar.visualsoar.graph.SoarIdentifierVertex;
-import edu.umich.soar.visualsoar.graph.SoarVertex;
-import edu.umich.soar.visualsoar.graph.StringVertex;
-import edu.umich.soar.visualsoar.graph.Vertex;
+import edu.umich.soar.visualsoar.graph.*;
 import edu.umich.soar.visualsoar.misc.FeedbackListObject;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorNode;
-import edu.umich.soar.visualsoar.parser.Pair;
 import edu.umich.soar.visualsoar.parser.SoarProduction;
 import edu.umich.soar.visualsoar.parser.Triple;
 import edu.umich.soar.visualsoar.parser.TriplesExtractor;
 import edu.umich.soar.visualsoar.util.EnumerationIteratorWrapper;
 
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.Writer;
 import java.util.*;
-import java.io.*;
-import javax.swing.*;
 
- /**
+/**
   * This is a model of Soar's Working Memory represented by a directed graph
   * structure
   * @author Brad Jones
@@ -201,14 +192,9 @@ public class SoarWorkingMemoryModel
      * Returns an enumeration of all the edges that are emanating/leaving from a particular vertex.
      * @see NamedEdge
      */
-    public Enumeration emanatingEdges(Vertex v) 
+    public Enumeration<Edge> emanatingEdges(Vertex v)
     {
         return rep.emanatingEdges(v);
-    }
-
-    public Enumeration getIncidentEdges(Vertex v) 
-    {
-        return rep.incidentEdges(v);
     }
 
 /////////////////
@@ -590,10 +576,10 @@ public class SoarWorkingMemoryModel
      * @see DefaultCheckerErrorHandler
      * @see DataMapChecker#check
      */
-    public List checkProduction(SoarIdentifierVertex sv, SoarProduction sp) 
+    public List checkProduction(OperatorNode current, SoarIdentifierVertex sv, SoarProduction sp)
     {
         TriplesExtractor triplesExtractor = new TriplesExtractor(sp);
-        DefaultCheckerErrorHandler dceh = new DefaultCheckerErrorHandler(sp.getName(),sp.getStartLine());
+        DefaultCheckerErrorHandler dceh = new DefaultCheckerErrorHandler(current, sp.getName(),sp.getStartLine());
         DataMapChecker.check(this,sv,triplesExtractor,dceh);
         return dceh.getErrors();
     }
@@ -609,7 +595,7 @@ public class SoarWorkingMemoryModel
      * @see DefaultCheckerErrorHandler
      * @see DataMapChecker#check
      */
-    public List checkProductionLog(SoarIdentifierVertex sv, SoarProduction sp, FileWriter fw) 
+    public List checkProductionLog(OperatorNode current, SoarIdentifierVertex sv, SoarProduction sp, FileWriter fw)
     {
         TriplesExtractor triplesExtractor = new TriplesExtractor(sp);
         try 
@@ -621,7 +607,7 @@ public class SoarWorkingMemoryModel
         {
             ioe.printStackTrace();
         }
-        DefaultCheckerErrorHandler dceh = new DefaultCheckerErrorHandler(sp.getName(),sp.getStartLine());
+        DefaultCheckerErrorHandler dceh = new DefaultCheckerErrorHandler(current, sp.getName(),sp.getStartLine());
         DataMapChecker.checkLog(this,sv,triplesExtractor,dceh, fw);
         return dceh.getErrors();
     }
@@ -640,7 +626,7 @@ public class SoarWorkingMemoryModel
     public List checkGenerateProduction(SoarIdentifierVertex sv, SoarProduction sp, OperatorNode current)
     {
         TriplesExtractor triplesExtractor = new TriplesExtractor(sp);
-        DefaultCheckerErrorHandler dceh = new DefaultCheckerErrorHandler(sp.getName(), sp.getStartLine());
+        DefaultCheckerErrorHandler dceh = new DefaultCheckerErrorHandler(current, sp.getName(), sp.getStartLine());
         DataMapChecker.complete(this,sv,triplesExtractor, dceh, current);
         return dceh.getErrors();
     }
@@ -661,7 +647,7 @@ public class SoarWorkingMemoryModel
     {
         //Find the triple associated with this error
         TriplesExtractor triplesExtractor = new TriplesExtractor(sp);
-        DefaultCheckerErrorHandler dceh = new DefaultCheckerErrorHandler(sp.getName(), sp.getStartLine());
+        DefaultCheckerErrorHandler dceh = new DefaultCheckerErrorHandler(current, sp.getName(), sp.getStartLine());
         Enumeration e = new EnumerationIteratorWrapper(triplesExtractor.triples());
         while(e.hasMoreElements()) {
             Triple currentTriple = (Triple) e.nextElement();

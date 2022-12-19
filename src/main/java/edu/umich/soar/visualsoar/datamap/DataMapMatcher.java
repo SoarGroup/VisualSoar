@@ -843,11 +843,11 @@ public class DataMapMatcher
      *
      * @see pmphelper
      */
-    public static Vector pathMatchesProduction(TreePath thePath,
+    public static Vector<Triple> pathMatchesProduction(TreePath thePath,
                                                SoarProduction sp)
     {
         
-        Vector vecEdges = new Vector();
+        Vector<NamedEdge> vecEdges = new Vector<>();
         for (int i = 0; i < thePath.getPathCount(); i++) 
         {
             FakeTreeNode ftn = (FakeTreeNode)thePath.getPathComponent(i);
@@ -859,7 +859,7 @@ public class DataMapMatcher
         }//for
 
         TriplesExtractor te = new TriplesExtractor(sp);
-        Vector vecMatches = new Vector();
+        Vector<Triple> vecMatches = new Vector<>();
         
         pmpHelper(vecEdges, 0, te, new Vector(), null, null, vecMatches);
 

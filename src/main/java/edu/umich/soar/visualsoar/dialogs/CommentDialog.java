@@ -10,8 +10,8 @@ import java.beans.*;
  * Dialog which takes input for the creation of a comment field on an edge
  * in the datamap.
  * @author Brian Harleton
- * @see DataMapTree
- * @see NamedEdge
+ * @see edu.umich.soar.visualsoar.datamap.DataMapTree
+ * @see edu.umich.soar.visualsoar.graph.NamedEdge
  */
 public class CommentDialog extends JDialog {
 

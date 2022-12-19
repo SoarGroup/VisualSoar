@@ -1,11 +1,20 @@
 package edu.umich.soar.visualsoar.datamap;
 
+import javax.swing.*;
+import javax.swing.tree.TreeModel;
+import javax.swing.tree.TreeNode;
+import javax.swing.tree.TreePath;
+import javax.swing.tree.TreeSelectionModel;
+import java.awt.*;
+import java.awt.datatransfer.*;
+import java.awt.dnd.*;
+import java.awt.event.*;
+import java.io.IOException;
+import java.util.Enumeration;
+import java.util.Vector;
+
 import edu.umich.soar.visualsoar.MainFrame;
-import edu.umich.soar.visualsoar.dialogs.CommentDialog;
-import edu.umich.soar.visualsoar.dialogs.EnumerationDialog;
-import edu.umich.soar.visualsoar.dialogs.IdentifierDialog;
-import edu.umich.soar.visualsoar.dialogs.NumberDialog;
-import edu.umich.soar.visualsoar.dialogs.SearchDataMapDialog;
+import edu.umich.soar.visualsoar.dialogs.*;
 import edu.umich.soar.visualsoar.graph.Edge;
 import edu.umich.soar.visualsoar.graph.NamedEdge;
 import edu.umich.soar.visualsoar.graph.SoarIdentifierVertex;
@@ -18,14 +27,6 @@ import edu.umich.soar.visualsoar.parser.SoarProduction;
 import edu.umich.soar.visualsoar.parser.TokenMgrError;
 import edu.umich.soar.visualsoar.parser.Triple;
 import edu.umich.soar.visualsoar.util.QueueAsLinkedList;
-import javax.swing.*;
-import javax.swing.tree.*;
-import java.awt.*;
-import java.awt.dnd.*;
-import java.awt.datatransfer.*;
-import java.awt.event.*;
-import java.io.*;
-import java.util.*;
 
 /**
  * class DataMapTree
@@ -46,15 +47,13 @@ import java.util.*;
  * @author Brad Jones
  * @author Andrew Nuxoll
  */
-
-public class DataMapTree extends JTree implements ClipboardOwner 
+public class DataMapTree extends JTree implements ClipboardOwner
 {
 
 	////////////////////////////////////////
 	// DataMembers
 	////////////////////////////////////////
 	public static Clipboard clipboard = new Clipboard("Datamap Clipboard");
-	public static NamedEdge cutEdge;
 	private static DataMapTree s_DataMapTree;
 
 	//public Action cutAction = new CutAction();  //removed because too dangerous
@@ -65,43 +64,49 @@ public class DataMapTree extends JTree implements ClipboardOwner
 	public Action validateDataMapAction = new ValidateDataMapAction();
 	public Action removeInvalidAction = new RemoveInvalidAction();
 
-	private SoarWorkingMemoryModel swmm;
-	private static JPopupMenu contextMenu = new JPopupMenu();
-	private static JMenuItem AddIdentifierItem = new JMenuItem("Add Identifier...");
-	private static JMenuItem AddEnumerationItem = new JMenuItem("Add Enumeration...");
-	private static JMenuItem AddIntegerItem = new JMenuItem("Add Integer...");
-	private static JMenuItem AddFloatItem = new JMenuItem("Add Float...");
-	private static JMenuItem AddStringItem = new JMenuItem("Add String...");
+	/** Reference to the DragGestureListener for Drag and Drop operations, may be deleted in the future. */
+	DragGestureListener dgListener = new DMTDragGestureListener();
 
-	private static JMenuItem CopyItem = new JMenuItem("Copy");
-	private static JMenuItem PasteItem = new JMenuItem("Paste");
-	private static JMenuItem LinkItem = new JMenuItem("Paste as Link");
+	private final SoarWorkingMemoryModel swmm;
+	private static final JPopupMenu contextMenu = new JPopupMenu();
+	private static final JMenuItem AddIdentifierItem = new JMenuItem("Add Identifier...");
+	private static final JMenuItem AddEnumerationItem = new JMenuItem("Add Enumeration...");
+	private static final JMenuItem AddIntegerItem = new JMenuItem("Add Integer...");
+	private static final JMenuItem AddFloatItem = new JMenuItem("Add Float...");
+	private static final JMenuItem AddStringItem = new JMenuItem("Add String...");
 
-	private static JMenuItem SearchForItem = new JMenuItem("Search For...");
-	private static JMenuItem FindUsingProdsItem = new JMenuItem("Find Productions that Create or Test this WME");
-	private static JMenuItem FindTestingProdsItem = new JMenuItem("Find Productions that Test this WME");
-	private static JMenuItem FindCreatingProdsItem = new JMenuItem("Find Productions that Create this WME");
+	private static final JMenuItem CopyItem = new JMenuItem("Copy");
+	private static final JMenuItem PasteItem = new JMenuItem("Paste");
+	private static final JMenuItem LinkItem = new JMenuItem("Paste as Link");
 
-	private static JMenuItem RemoveAttributeItem = new JMenuItem("Delete Attribute...");
-	private static JMenuItem RenameAttributeItem = new JMenuItem("Rename Attribute...");
-	private static JMenuItem EditValueItem = new JMenuItem("Edit Value(s)...");
+	private static final JMenuItem SearchForItem = new JMenuItem("Search For...");
+	private static final JMenuItem FindUsingProdsItem = new JMenuItem("Find Productions that Create or Test this WME");
+	private static final JMenuItem FindTestingProdsItem = new JMenuItem("Find Productions that Test this WME");
+	private static final JMenuItem FindCreatingProdsItem = new JMenuItem("Find Productions that Create this WME");
 
-	private static JMenuItem EditCommentItem = new JMenuItem("Add/Edit Comment...");
-	private static JMenuItem RemoveCommentItem = new JMenuItem("Remove Comment");
+	private static final JMenuItem RemoveAttributeItem = new JMenuItem("Delete Attribute...");
+	private static final JMenuItem RenameAttributeItem = new JMenuItem("Rename Attribute...");
+	private static final JMenuItem EditValueItem = new JMenuItem("Edit Value(s)...");
 
-	private static JMenuItem ValidateEntryItem = new JMenuItem("Validate Entry");
-	private static JMenuItem ValidateAllItem = new JMenuItem("Validate All");
+	private static final JMenuItem EditCommentItem = new JMenuItem("Add/Edit Comment...");
+	private static final JMenuItem RemoveCommentItem = new JMenuItem("Remove Comment");
 
-	private static JMenu ChangeTypeSubMenu = new JMenu("Change Datamap Type...");
-	private static JMenuItem ChangeToIdentifierItem = new JMenuItem("to Identifier");
-	private static JMenuItem ChangeToEnumerationItem = new JMenuItem("to Enumeration");
-	private static JMenuItem ChangeToIntegerItem = new JMenuItem("to Integer");
-	private static JMenuItem ChangeToFloatItem = new JMenuItem("to Float");
-	private static JMenuItem ChangeToStringItem = new JMenuItem("to String");
+	private static final JMenuItem ValidateEntryItem = new JMenuItem("Validate Entry");
+	private static final JMenuItem ValidateAllItem = new JMenuItem("Validate All");
+
+	private static final JMenu ChangeTypeSubMenu = new JMenu("Change Datamap Type...");
+	private static final JMenuItem ChangeToIdentifierItem = new JMenuItem("to Identifier");
+	private static final JMenuItem ChangeToEnumerationItem = new JMenuItem("to Enumeration");
+	private static final JMenuItem ChangeToIntegerItem = new JMenuItem("to Integer");
+	private static final JMenuItem ChangeToFloatItem = new JMenuItem("to Float");
+	private static final JMenuItem ChangeToStringItem = new JMenuItem("to String");
 
 	public static TreePath OriginalSelectionPath;
 
-	static 
+	/////////////////////////////////////////////////////////////////////
+	//This block constructs the context menu
+	/////////////////////////////////////////////////////////////////////
+	static
 	{
 
 		contextMenu.add(AddIdentifierItem);
@@ -387,16 +392,6 @@ public class DataMapTree extends JTree implements ClipboardOwner
 	}//static
 
 
-	/** Reference to the DragGestureListener for Drag and Drop operations, may be deleted in future. */
-	DragGestureListener dgListener = new DMTDragGestureListener();
-
-	/** Reference to the DropTargetListener for Drag and Drop operations, may be deleted in future. */
-	DropTargetListener dtListener = new DMTDropTargetListener();
-
-	/** Reference to the DropTarget for Drag and Drop operations, may be deleted in future. */
-	private DropTarget dropTarget = new DropTarget(this,DnDConstants.ACTION_LINK | DnDConstants.ACTION_COPY_OR_MOVE,dtListener,true);
-
-
 	/**
 	 * The lone constructor. Creating new DataMaps and reading in saved DataMaps
 	 * are the same operation, so there is only one constructor. This constructor
@@ -405,7 +400,7 @@ public class DataMapTree extends JTree implements ClipboardOwner
 	 * @param model the model which specifies the contents of the tree.
 	 *
 	 */
-	 public DataMapTree(TreeModel model, SoarWorkingMemoryModel _swmm) 
+	public DataMapTree(TreeModel model, SoarWorkingMemoryModel _swmm)
 	{
 		 super(model);
 		 swmm = _swmm;
@@ -413,7 +408,7 @@ public class DataMapTree extends JTree implements ClipboardOwner
 
 		 getSelectionModel().setSelectionMode(TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION);
 
-		 DragSource.getDefaultDragSource().createDefaultDragGestureRecognizer(this,DnDConstants.ACTION_LINK | DnDConstants.ACTION_COPY_OR_MOVE,dgListener);
+		 DragSource.getDefaultDragSource().createDefaultDragGestureRecognizer(this,DnDConstants.ACTION_LINK | DnDConstants.ACTION_COPY_OR_MOVE, dgListener);
 		 setAutoscrolls(true);
 
 		 registerKeyboardAction(
@@ -441,11 +436,13 @@ public class DataMapTree extends JTree implements ClipboardOwner
 		 registerKeyboardAction(
 				 new ActionListener() 
 				 {
-					 public void actionPerformed(ActionEvent e) 
-					 {
-						 SoarVertex theVertex = ((FakeTreeNode)getSelectionPath().getLastPathComponent()).getEnumeratingVertex();
-						 if (theVertex.isEditable()) 
-						 {
+					 public void actionPerformed(ActionEvent e) {
+						 TreePath path = getSelectionPath();
+						 if (path == null) return;
+						 FakeTreeNode ftn = ((FakeTreeNode) path.getLastPathComponent());
+						 if (ftn == null) return;
+						 SoarVertex theVertex = ftn.getEnumeratingVertex();
+						 if (theVertex.isEditable()) {
 							 editValue();
 						 }
 					 }
@@ -461,7 +458,10 @@ public class DataMapTree extends JTree implements ClipboardOwner
 			 {
 				 if (e.getClickCount() == 2) 
 				 {
-					 FakeTreeNode ftn = (FakeTreeNode)getSelectionPath().getLastPathComponent();
+					 TreePath path = getSelectionPath();
+					 if (path == null) return;
+					 FakeTreeNode ftn = ((FakeTreeNode) path.getLastPathComponent());
+					 if (ftn == null) return;
 					 NamedEdge ne = ftn.getEdge();
 					 if(ne.isGenerated() && (ne.getNode() != null)) 
 					 {
@@ -492,14 +492,12 @@ public class DataMapTree extends JTree implements ClipboardOwner
 	}     //  end of DataMapTree constructor
 
 
+	/**
+	 * static accessor for the datamap tree.
+	 */
 	 public static DataMapTree getDataMapTree() 
 	 {
 		 return s_DataMapTree;
-	 }
-
-	 public void setDataMapCursor(Cursor c) 
-	 {
-		 this.setCursor(c);
 	 }
 
 	 /**
@@ -508,79 +506,62 @@ public class DataMapTree extends JTree implements ClipboardOwner
 	  * @param x the x coordinate of the screen
 	  * @param y the y coordinate of the screen
 	  */
-
-	 public void suggestShowContextMenu(int x, int y) 
+	 public void suggestShowContextMenu(int x, int y)
 	 {
-		 TreePath path =
-			 getPathForLocation(x, y);
-		 if (path != null) 
+		 TreePath path = getPathForLocation(x, y);
+		 if (path == null) return;
+		 setSelectionPath(path);
+		 FakeTreeNode ftn = ((FakeTreeNode) path.getLastPathComponent());
+		 if (ftn == null) return;
+		 SoarVertex theVertex = ftn.getEnumeratingVertex();
+		 NamedEdge ne = ftn.getEdge();
+
+		 ChangeTypeSubMenu.setEnabled(ftn.getChildCount() == 0);
+
+		 if (theVertex.allowsEmanatingEdges())
 		 {
-			 setSelectionPath(path);
-			 SoarVertex theVertex = ((FakeTreeNode)getSelectionPath().getLastPathComponent()).getEnumeratingVertex();
-			 FakeTreeNode ftn = (FakeTreeNode)getSelectionPath().getLastPathComponent();
-			 NamedEdge ne = ftn.getEdge();
+			 AddIdentifierItem.setEnabled(true);
+			 AddEnumerationItem.setEnabled(true);
+			 AddIntegerItem.setEnabled(true);
+			 AddFloatItem.setEnabled(true);
+			 AddStringItem.setEnabled(true);
+		 }
+		 else
+		 {
+			 // can't add any edges
+			 AddIdentifierItem.setEnabled(false);
+			 AddEnumerationItem.setEnabled(false);
+			 AddIntegerItem.setEnabled(false);
+			 AddFloatItem.setEnabled(false);
+			 AddStringItem.setEnabled(false);
+		 }
 
-			 if(ftn.getChildCount() != 0) 
-			 {
-				 ChangeTypeSubMenu.setEnabled(false);
-			 }
-			 else 
-			 {
-				 ChangeTypeSubMenu.setEnabled(true);
-			 }
+		 // uneditable item
+		 EditValueItem.setEnabled(theVertex.isEditable());
 
-			 if (theVertex.allowsEmanatingEdges()) 
+		 if (ne != null)
+		 {
+			 if (ne.isGenerated())
 			 {
-				 AddIdentifierItem.setEnabled(true);
-				 AddEnumerationItem.setEnabled(true);
-				 AddIntegerItem.setEnabled(true);
-				 AddFloatItem.setEnabled(true);
-				 AddStringItem.setEnabled(true);
+				 ValidateEntryItem.setEnabled(true);
+				 ValidateAllItem.setEnabled(true);
 			 }
 			 else
-			 {
-				 // can't add any edges
-				 AddIdentifierItem.setEnabled(false);
-				 AddEnumerationItem.setEnabled(false);
-				 AddIntegerItem.setEnabled(false);
-				 AddFloatItem.setEnabled(false);
-				 AddStringItem.setEnabled(false);
-			 }
-
-			 if (theVertex.isEditable()) 
-			 {
-				 EditValueItem.setEnabled(true);
-			 }
-			 else
-			 {
-				 // uneditable item
-				 EditValueItem.setEnabled(false);
-			 }
-
-			 if (ne != null) 
-			 {
-				 if (ne.isGenerated()) 
-				 {
-					 ValidateEntryItem.setEnabled(true);
-					 ValidateAllItem.setEnabled(true);
-				 }
-				 else 
-				 {
-					 ValidateEntryItem.setEnabled(false);
-					 ValidateAllItem.setEnabled(false);
-				 }
-			 }   // end of if has a named edge
-			 else 
 			 {
 				 ValidateEntryItem.setEnabled(false);
 				 ValidateAllItem.setEnabled(false);
 			 }
+		 }   // end of if has a named edge
+		 else
+		 {
+			 ValidateEntryItem.setEnabled(false);
+			 ValidateAllItem.setEnabled(false);
+		 }
 
-			 contextMenu.show(this,x,y);
-		 }   // end of if path isn't null
+		 contextMenu.show(this,x,y);
+	 }//suggestShowContextMenu
 
-
-	 }
+	//TODO:  All the addXXX methods below are very similar.  Could they be combined?
 
 	 /**
 	  * Add a Soar Identifier Attribute to the dataMap
@@ -596,18 +577,20 @@ public class DataMapTree extends JTree implements ClipboardOwner
 		 {
 			 String attribute = theDialog.getText();
 
-			 TreePath thePath = getSelectionPath();
-			 FakeTreeNode fake = ((FakeTreeNode)thePath.getLastPathComponent());
-			 SoarVertex v0 = fake.getEnumeratingVertex();
+			 TreePath path = getSelectionPath();
+			 if (path == null) return;
+			 FakeTreeNode ftn = ((FakeTreeNode) path.getLastPathComponent());
+			 if (ftn == null) return;
+			 SoarVertex v0 = ftn.getEnumeratingVertex();
 			 SoarVertex v1 = swmm.createNewSoarId();
 			 swmm.addTriple(v0,attribute,v1);
-			 if (fake.getChildCount() != 0) 
+			 if (ftn.getChildCount() != 0)
 			 {
-				 expandPath(thePath);
+				 expandPath(path);
 			 }
 			 else 
 			 {
-				 System.err.println("I am barren");
+				 System.err.println("I am barren");  //should never happen
 			 }
 		 }
 	 }
@@ -625,20 +608,22 @@ public class DataMapTree extends JTree implements ClipboardOwner
 		 if (theDialog.wasApproved()) 
 		 {
 			 String attribute = theDialog.getText();
-			 Vector enumVal = theDialog.getVector();
+			 Vector<String> enumVal = theDialog.getVector();
 
-			 TreePath thePath = getSelectionPath();
-			 FakeTreeNode fake = ((FakeTreeNode)thePath.getLastPathComponent());
-			 SoarVertex v0 = fake.getEnumeratingVertex();
-			 SoarVertex v1 = swmm.createNewEnumeration(enumVal);
-			 swmm.addTriple(v0,attribute,v1);
-			 if (fake.getChildCount() != 0) 
+			 TreePath path = getSelectionPath();
+			 if (path == null) return;
+			 FakeTreeNode ftn = ((FakeTreeNode) path.getLastPathComponent());
+			 if (ftn == null) return;
+			 SoarVertex parent = ftn.getEnumeratingVertex();
+			 SoarVertex child = swmm.createNewEnumeration(enumVal);
+			 swmm.addTriple(parent,attribute,child);
+			 if (ftn.getChildCount() != 0)
 			 {
-				 expandPath(thePath);
+				 expandPath(path);
 			 }
 			 else 
 			 {
-				 System.err.println("I am barren");
+				 System.err.println("I am barren"); //should never happen
 			 }
 		 }
 	 }
@@ -658,26 +643,28 @@ public class DataMapTree extends JTree implements ClipboardOwner
 			 String attribute = theDialog.getText();
 			 Number low = theDialog.getLow(), high = theDialog.getHigh();
 
-			 TreePath thePath = getSelectionPath();
-			 FakeTreeNode fake = ((FakeTreeNode)thePath.getLastPathComponent()); 
-			 SoarVertex v0 = fake.getEnumeratingVertex();
-			 SoarVertex v1 = null;
+			 TreePath path = getSelectionPath();
+			 if (path == null) return;
+			 FakeTreeNode ftn = ((FakeTreeNode) path.getLastPathComponent());
+			 if (ftn == null) return;
+			 SoarVertex parent = ftn.getEnumeratingVertex();
+			 SoarVertex child;
 			 if ((low.intValue() == Integer.MIN_VALUE) && (high.intValue() == Integer.MAX_VALUE)) 
 			 {
-				 v1 = swmm.createNewInteger();
+				 child = swmm.createNewInteger();
 			 }
 			 else 
 			 {
-				 v1 = swmm.createNewIntegerRange(low.intValue(),high.intValue());
+				 child = swmm.createNewIntegerRange(low.intValue(),high.intValue());
 			 }
-			 swmm.addTriple(v0,attribute,v1);
-			 if (fake.getChildCount() != 0) 
+			 swmm.addTriple(parent,attribute,child);
+			 if (ftn.getChildCount() != 0)
 			 {
-				 expandPath(thePath);
+				 expandPath(path);
 			 }
 			 else 
 			 {
-				 System.err.println("I am barren");
+				 System.err.println("I am barren");  //should never happen
 			 }
 		 }
 	 }
@@ -697,26 +684,28 @@ public class DataMapTree extends JTree implements ClipboardOwner
 			 String attribute = theDialog.getText();
 			 Number low = theDialog.getLow(), high = theDialog.getHigh();
 
-			 TreePath thePath = getSelectionPath();
-			 FakeTreeNode fake = ((FakeTreeNode)thePath.getLastPathComponent()); 
-			 SoarVertex v0 = fake.getEnumeratingVertex();
-			 SoarVertex v1 = null;
+			 TreePath path = getSelectionPath();
+			 if (path == null) return;
+			 FakeTreeNode ftn = ((FakeTreeNode) path.getLastPathComponent());
+			 if (ftn == null) return;
+			 SoarVertex parent = ftn.getEnumeratingVertex();
+			 SoarVertex child;
 			 if ((low.floatValue() == Float.NEGATIVE_INFINITY) && (high.floatValue() == Float.POSITIVE_INFINITY)) 
 			 {
-				 v1 = swmm.createNewFloat();
+				 child = swmm.createNewFloat();
 			 }
 			 else 
 			 {
-				 v1 = swmm.createNewFloatRange(low.floatValue(),high.floatValue());
+				 child = swmm.createNewFloatRange(low.floatValue(),high.floatValue());
 			 }
-			 swmm.addTriple(v0,attribute,v1);
-			 if (fake.getChildCount() != 0) 
+			 swmm.addTriple(parent,attribute,child);
+			 if (ftn.getChildCount() != 0)
 			 {
-				 expandPath(thePath);
+				 expandPath(path);
 			 }
 			 else 
 			 {
-				 System.err.println("I am barren");
+				 System.err.println("I am barren");  //should never happen
 			 }
 		 }
 	 }
@@ -735,18 +724,20 @@ public class DataMapTree extends JTree implements ClipboardOwner
 		 {
 			 String attribute = theDialog.getText();
 
-			 TreePath thePath = getSelectionPath();
-			 FakeTreeNode fake = ((FakeTreeNode)thePath.getLastPathComponent()); 
-			 SoarVertex v0 = fake.getEnumeratingVertex();
-			 SoarVertex v1 = swmm.createNewString();
-			 swmm.addTriple(v0,attribute,v1);
-			 if (fake.getChildCount() != 0) 
+			 TreePath path = getSelectionPath();
+			 if (path == null) return;
+			 FakeTreeNode ftn = ((FakeTreeNode) path.getLastPathComponent());
+			 if (ftn == null) return;
+			 SoarVertex parent = ftn.getEnumeratingVertex();
+			 SoarVertex child = swmm.createNewString();
+			 swmm.addTriple(parent,attribute,child);
+			 if (ftn.getChildCount() != 0)
 			 {
-				 expandPath(thePath);
+				 expandPath(path);
 			 }
 			 else 
 			 {
-				 System.err.println("I am barren");
+				 System.err.println("I am barren");  //should never happen
 			 }
 		 }
 	 }
@@ -791,15 +782,18 @@ public class DataMapTree extends JTree implements ClipboardOwner
 	  */
 	 public void findProds(boolean bTest, boolean bCreate)
 	 {
-		 TreePath thePath = getSelectionPath();
-		 Vector vecErrors = new Vector();
+		 TreePath path = getSelectionPath();
+		 if (path == null) return;
+		 //Must use 'Object' because this vector will contain both Strings and
+		 //FeedbackListObjects
+		 Vector<FeedbackListObject> vecErrors = new Vector<>();
 
 		 OperatorWindow operatorWindow = MainFrame.getMainFrame().getOperatorWindow();
-		 Enumeration bfe = operatorWindow.breadthFirstEnumeration();
+		 Enumeration<TreeNode> bfe = operatorWindow.breadthFirstEnumeration();
 		 while(bfe.hasMoreElements())
 		 {
 			 OperatorNode opNode = (OperatorNode)bfe.nextElement();
-			 Vector parsedProds = null;
+			 Vector<SoarProduction> parsedProds = null;
 			 try
 			 {
 				 parsedProds = opNode.parseProductions();
@@ -812,30 +806,32 @@ public class DataMapTree extends JTree implements ClipboardOwner
 				 i = lineNum.indexOf(',');
 				 lineNum = "(" + lineNum.substring(0, i) + "): ";
 				 String errString = opNode.getFileName() + lineNum + "Unable to search productions due to parse error";
-				 vecErrors.add(errString);
+
+				 //extract line number
+				 int line;
+				 try { line = Integer.parseInt(lineNum); }
+				 catch(NumberFormatException nfe) { line = 0; }
+
+				 vecErrors.add(new FeedbackListObject(opNode, line, errString));
 			 }
-			 catch(TokenMgrError tme) 
+			 catch(TokenMgrError | IOException tme)
 			 {
 				 tme.printStackTrace();
-			 }
-			 catch(IOException ioe) 
-			 {
-				 ioe.printStackTrace();
 			 }
 
 			 if (parsedProds == null)  continue;
 
 
-			 Enumeration enumProds = parsedProds.elements();
+			 Enumeration<SoarProduction> enumProds = parsedProds.elements();
 			 while(enumProds.hasMoreElements()) 
 			 {
-				 SoarProduction sp = (SoarProduction)enumProds.nextElement();
-				 Vector vecMatches =
-					 DataMapMatcher.pathMatchesProduction(thePath, sp);
-				 Enumeration enumMatches = vecMatches.elements();
+				 SoarProduction sp = enumProds.nextElement();
+				 Vector<Triple> vecMatches =
+					 DataMapMatcher.pathMatchesProduction(path, sp);
+				 Enumeration<Triple> enumMatches = vecMatches.elements();
 				 while(enumMatches.hasMoreElements())
 				 {
-					 Triple trip = (Triple)enumMatches.nextElement();
+					 Triple trip = enumMatches.nextElement();
 
 					 //Make sure the caller has requested this match
 					 if ( ((bTest) && (trip.isCondition()))
@@ -851,7 +847,7 @@ public class DataMapTree extends JTree implements ClipboardOwner
 
 		 if (vecErrors.size() == 0)
 		 {
-			 vecErrors.add("No matches found.");
+			 vecErrors.add(new FeedbackListObject("No matches found."));
 		 }
 
 		 MainFrame.getMainFrame().setFeedbackListData(vecErrors);
@@ -871,44 +867,28 @@ public class DataMapTree extends JTree implements ClipboardOwner
 		 FakeTreeNode    ftn;
 		 NamedEdge       ne;
 		 String componentName;
-		 int             numIncident = 0;
 		 SoarVertex v1;
 
-
-		 for (int i = 0; i < paths.length; i++) 
-		 {
-			 numIncident = 0;
-
-			 ftn = (FakeTreeNode)paths[i].getLastPathComponent();
+		 if (paths == null) return;
+		 for (TreePath path : paths) {
+			 ftn = (FakeTreeNode) path.getLastPathComponent();
 			 ne = ftn.getEdge();
 			 componentName = ne.getName();
 
-			 if (ne != null) 
-			 {
-				 swmm.removeTriple((SoarVertex)ne.V0(),ne.getName(),(SoarVertex)ne.V1());
-				 if(type == 1) 
-				 {
-					 v1 = swmm.createNewEnumeration("nil");
-				 }
-				 else if(type == 2) 
-				 {
-					 v1 = swmm.createNewInteger();
-				 }
-				 else if(type == 3) 
-				 {
-					 v1 = swmm.createNewFloat();
-				 }
-				 else if(type == 4) 
-				 {
-					 v1 = swmm.createNewString();
-				 }
-				 else 
-				 {
-					 v1 = swmm.createNewSoarId();
-				 }
-
-				 swmm.addTriple((SoarVertex)ne.V0(),componentName,v1);
+			 swmm.removeTriple((SoarVertex) ne.V0(), ne.getName(), (SoarVertex) ne.V1());
+			 if (type == 1) {
+				 v1 = swmm.createNewEnumeration("nil");
+			 } else if (type == 2) {
+				 v1 = swmm.createNewInteger();
+			 } else if (type == 3) {
+				 v1 = swmm.createNewFloat();
+			 } else if (type == 4) {
+				 v1 = swmm.createNewString();
+			 } else {
+				 v1 = swmm.createNewSoarId();
 			 }
+
+			 swmm.addTriple((SoarVertex) ne.V0(), componentName, v1);
 		 }
 	 }   // end of changeTypeTo()
 
@@ -917,36 +897,26 @@ public class DataMapTree extends JTree implements ClipboardOwner
 	  */
 	 public void removeEdge() 
 	 {
-		 TreePath[]      paths = getSelectionPaths();
-		 FakeTreeNode    ftn;
-		 NamedEdge       ne;
-		 Enumeration     edges;
-		 Edge            currEdge;
-		 String          incidentEdges;
-		 int             numIncident = 0;
+		 TreePath[]        paths = getSelectionPaths();
+		 FakeTreeNode      ftn;
+		 NamedEdge         ne;
 
-		 for (int i = 0; i < paths.length; i++) 
-		 {
-			 numIncident = 0;
-
-			 ftn = (FakeTreeNode)paths[i].getLastPathComponent();
+		 if (paths == null) return;
+		 for (TreePath path : paths) {
+			 ftn = (FakeTreeNode) path.getLastPathComponent();
 			 ne = ftn.getEdge();
 
-			 if (ne != null) 
-			 {
+			 if (ne != null) {
 				 switch (JOptionPane.showConfirmDialog(this, "Do you really want to delete the attribute named \"" +
-						 ne.getName() +"\"?", "Confirm Delete",
-						 JOptionPane.YES_NO_CANCEL_OPTION)) 
-						 {
-						 case JOptionPane.YES_OPTION:
-							 swmm.removeTriple((SoarVertex)ne.V0(),ne.getName(),(SoarVertex)ne.V1());
-							 break;
-						 case JOptionPane.CANCEL_OPTION:
-							 return;
-						 }
-			 }
-			 else 
-			 {
+								 ne.getName() + "\"?", "Confirm Delete",
+						 JOptionPane.YES_NO_CANCEL_OPTION)) {
+					 case JOptionPane.YES_OPTION:
+						 swmm.removeTriple((SoarVertex) ne.V0(), ne.getName(), (SoarVertex) ne.V1());
+						 break;
+					 case JOptionPane.CANCEL_OPTION:
+						 return;
+				 }
+			 } else {
 				 JOptionPane.showMessageDialog(this, "This is not an attribute", "Cannot remove", JOptionPane.ERROR_MESSAGE);
 			 }
 		 }
@@ -959,12 +929,14 @@ public class DataMapTree extends JTree implements ClipboardOwner
 
 	 /**
 	  * Attempts to rename an attribute on the datamap
-	  * @IdentifierDialog
 	  */
 	 public void renameEdge() 
 	 {
 		 // Get what the user clicked on
-		 FakeTreeNode ftn = (FakeTreeNode)getSelectionPath().getLastPathComponent();
+		 TreePath path = getSelectionPath();
+		 if (path == null) return;
+		 FakeTreeNode ftn = ((FakeTreeNode) path.getLastPathComponent());
+		 if (ftn == null) return;
 
 		 // Get the edge associated with what the user clicked on
 		 NamedEdge ne = ftn.getEdge();
@@ -985,102 +957,57 @@ public class DataMapTree extends JTree implements ClipboardOwner
 
 	 /**
 	  *  Selects (highlights and centers) the requested edge within the DataMapTree.
-	  *  @param node the string name of the edge to be highlighted
-	  *  @return true if success, false if could not find edge
+	  *  @param ftn the string name of the edge to be highlighted
 	  */
-	 public boolean highlightEdge(FakeTreeNode node) 
+	 public void highlightEdge(FakeTreeNode ftn)
 	 {
-		 if(node != null) 
+		 if(ftn != null)
 		 {
-			 TreePath path = new TreePath(node.getTreePath().toArray());
+			 TreePath path = new TreePath(ftn.getTreePath().toArray());
 			 scrollPathToVisible(path);
 			 setSelectionPath(path);
-
-			 return true;
 		 }
 		 else  
 		 {
 			 JOptionPane.showMessageDialog(null, "Could not find a matching wme in the datamap");
-			 return false;
 		 }
 	 }
 
-
-	 /*  I think this operation is too dangerous. It isn't undoable, so it would be better to
-    only allow copying, then deleting.
-
-    private void cut() 
-{
-    copy();
-
-    FakeTreeNode ftn = (FakeTreeNode)getSelectionPath().getLastPathComponent();
-    NamedEdge ne = ftn.getEdge();
-    if (ne != null) 
-{
-    swmm.removeTriple((SoarVertex)ne.V0(),ne.getName(),(SoarVertex)ne.V1());
-    }
-    }
-	  */
 	 /**
 	  * Copies a piece of the datamap to the clipboard
 	  */
 	 private void copy() 
 	 {
-		 clipboard.setContents(getCopyVerticies(), this);
+		 clipboard.setContents(getCopyVertices(), this);
 	 }
 	 
-	 private CopyVertexVector getCopyVerticies() {
+	 private CopyVertexVector getCopyVertices() {
 		 TreePath[]          paths = getSelectionPaths();
 		 FakeTreeNode        ftn;
-		 NamedEdge           e;
-		 SoarVertex          v;
+		 NamedEdge           edge;
+		 SoarVertex          vertex;
 		 String              name;
-		 CopyVertexVector    copyVerticies = new CopyVertexVector(paths.length);
+		 if (paths == null) return null;
+		 CopyVertexVector    copyVertices = new CopyVertexVector(paths.length);
 
-		 if (paths == null) 
-		 {
-			 return null;
+		 for (TreePath path : paths) {
+			 ftn = (FakeTreeNode) path.getLastPathComponent();
+			 vertex = ftn.getEnumeratingVertex();
+			 edge = ftn.getEdge();
+			 name = edge.getName();
+
+			 copyVertices.add(name, vertex);
 		 }
-
-		 for (int i = 0; i < paths.length; i++) 
-		 {
-			 ftn = (FakeTreeNode)paths[i].getLastPathComponent();
-			 v = ftn.getEnumeratingVertex();
-			 e = ftn.getEdge();
-			 name = e.getName(); 
-
-			 copyVerticies.add(name, v);
-		 }
-		 return copyVerticies;
+		 return copyVertices;
 	 }
-	 
-	 private void pasteCopyVertices(CopyVertexVector data) {
-		 TreePath          path = getSelectionPath();
-		 FakeTreeNode        ftn;
 
-		 if (data == null) return;
-		 if (path == null) 
-		 {
-			 return;
-		 }
-
-		 ftn = (FakeTreeNode)path.getLastPathComponent();
-		 for (int j = 0; j < data.size(); j++) 
-		 {
-			 SoarVertex  parent = ftn.getEnumeratingVertex();
-			 SoarVertex  child = swmm.createVertexCopy((SoarVertex)data.getVertex(j));
-			 swmm.addTriple(parent, (String)data.getName(j), child);
-		 }
-	 }
-	 
-	 /**
+	/**
 	  * Paste a portion of the datamap from the clipboard
 	  */
 	 private void paste() 
 	 {
 		 TreePath[]          paths = getSelectionPaths();
 		 FakeTreeNode        ftn;
-		 FakeTreeNode        fakeParent;
 		 Transferable        transferable;
 		 DataFlavor          dataFlavor;
 		 CopyVertexVector    data;
@@ -1097,28 +1024,21 @@ public class DataMapTree extends JTree implements ClipboardOwner
 		 {
 			 data = (CopyVertexVector)transferable.getTransferData(dataFlavor);
 
-		 } catch(UnsupportedFlavorException ufe) 
+		 } catch(UnsupportedFlavorException | IOException ufe)
 		 {
 			 ufe.printStackTrace();
-			 return;
-		 } catch(IOException ioe) 
-		 {
-			 ioe.printStackTrace();
 			 return;
 		 }
 
 
 		 //Copy the data to the destination
-		 for (int i = 0; i < paths.length; i++) 
-		 {
-			 ftn = (FakeTreeNode)paths[i].getLastPathComponent();
-			 if(transferable.isDataFlavorSupported(dataFlavor)) 
-			 {
-				 for (int j = 0; j < data.size(); j++) 
-				 {
-					 SoarVertex  parent = ftn.getEnumeratingVertex();
-					 SoarVertex  child = swmm.createVertexCopy((SoarVertex)data.getVertex(j));
-					 swmm.addTriple(parent, (String)data.getName(j), child);
+		 for (TreePath path : paths) {
+			 ftn = (FakeTreeNode) path.getLastPathComponent();
+			 if (transferable.isDataFlavorSupported(dataFlavor)) {
+				 for (int j = 0; j < data.size(); j++) {
+					 SoarVertex parent = ftn.getEnumeratingVertex();
+					 SoarVertex child = swmm.createVertexCopy(data.getVertex(j));
+					 swmm.addTriple(parent, data.getName(j), child);
 				 }
 			 }
 		 }
@@ -1131,7 +1051,6 @@ public class DataMapTree extends JTree implements ClipboardOwner
 	{
 		TreePath[]          paths = getSelectionPaths();
 		FakeTreeNode        ftn;
-		FakeTreeNode        fakeParent;
 		Transferable        transferable;
 		DataFlavor          dataFlavor;
 		CopyVertexVector    data;
@@ -1149,41 +1068,26 @@ public class DataMapTree extends JTree implements ClipboardOwner
 		{
 			data = (CopyVertexVector)transferable.getTransferData(dataFlavor);
 
-		} catch(UnsupportedFlavorException ufe)
+		} catch(UnsupportedFlavorException | IOException ufe)
 		{
 			ufe.printStackTrace();
-			return;
-		} catch(IOException ioe)
-		{
-			ioe.printStackTrace();
 			return;
 		}
 
 
 		//Copy the data to the destination
-		for (int i = 0; i < paths.length; i++)
-		{
-			ftn = (FakeTreeNode)paths[i].getLastPathComponent();
-			if(transferable.isDataFlavorSupported(dataFlavor))
-			{
+		for (TreePath path : paths) {
+			ftn = (FakeTreeNode) path.getLastPathComponent();
+			if (transferable.isDataFlavorSupported(dataFlavor)) {
 				//Note:  only the first item in the clipboard is linked
 				//       Perhaps we should allow multiple links at once?
 				//       Easy enough to do this:  wrap the code below in
 				//       a for-loop and replace the '0' below with loop var
-				SoarVertex  parent = ftn.getEnumeratingVertex();
-				SoarVertex child = (SoarVertex)data.getVertex(0);
-				swmm.addTriple(parent,data.getName(0),child);
+				SoarVertex parent = ftn.getEnumeratingVertex();
+				SoarVertex child = data.getVertex(0);
+				swmm.addTriple(parent, data.getName(0), child);
 			}
 		}
-
-		//===============
-
-		//Get the thing we're dropping
-//		SoarVertex dataVertex =
-//				swmm.getVertexForId(((Integer)data.get(0)).intValue());
-
-//		//Perform the drop
-//
 	}//link
 
 
@@ -1193,7 +1097,10 @@ public class DataMapTree extends JTree implements ClipboardOwner
 	  */
 	 public void editValue() 
 	 {
-		 FakeTreeNode ftn = (FakeTreeNode)getSelectionPath().getLastPathComponent();
+		 TreePath path = getSelectionPath();
+		 if (path == null) return;
+		 FakeTreeNode ftn = ((FakeTreeNode) path.getLastPathComponent());
+		 if (ftn == null) return;
 		 NamedEdge ne = ftn.getEdge();
 		 if (ne == null) 
 		 {
@@ -1216,11 +1123,15 @@ public class DataMapTree extends JTree implements ClipboardOwner
 	  */
 	 public void editComment() 
 	 {
-		 FakeTreeNode ftn = (FakeTreeNode)getSelectionPath().getLastPathComponent();
+		 TreePath path = getSelectionPath();
+		 if (path == null) return;
+		 FakeTreeNode ftn = ((FakeTreeNode) path.getLastPathComponent());
+		 if (ftn == null) return;
 		 NamedEdge ne = ftn.getEdge();
 		 if(ne == null) 
 		 {
 			 JOptionPane.showMessageDialog(this, "This is not an edge", "Cannot Edit Value", JOptionPane.ERROR_MESSAGE);
+			 return;
 		 }
 
 		 CommentDialog theDialog = new CommentDialog(MainFrame.getMainFrame(), ne.getComment() );
@@ -1242,44 +1153,49 @@ public class DataMapTree extends JTree implements ClipboardOwner
 	  */
 	 public void removeComment() 
 	 {
-		 FakeTreeNode ftn = (FakeTreeNode)getSelectionPath().getLastPathComponent();
+		 TreePath path = getSelectionPath();
+		 if (path == null) return;
+		 FakeTreeNode ftn = ((FakeTreeNode) path.getLastPathComponent());
+		 if (ftn == null) return;
 		 NamedEdge ne = ftn.getEdge();
 		 if(ne == null) 
 		 {
 			 JOptionPane.showMessageDialog(this, "This is not an edge", "Cannot Edit Value", JOptionPane.ERROR_MESSAGE);
-		 }
-		 else 
-		 {
-			 switch (JOptionPane.showConfirmDialog(this, "Do you really want to delete this comment?", "Confirm Delete",
-					 JOptionPane.YES_NO_CANCEL_OPTION)) 
-					 {
-					 case JOptionPane.YES_OPTION:
-						 swmm.notifyListenersOfRemove(ne);
-						 ne.setComment("");
-						 swmm.notifyListenersOfAdd(ne);
-						 break;
-					 case JOptionPane.CANCEL_OPTION:
-						 return;
-					 }
+			 return;
 		 }
 
-	 }
+		 int ret = JOptionPane.showConfirmDialog(
+		 		this,
+				 "Do you really want to delete this comment?",
+				 "Confirm Delete",
+				 JOptionPane.YES_NO_CANCEL_OPTION);
+		 if (ret == JOptionPane.YES_OPTION) {
+			 swmm.notifyListenersOfRemove(ne);
+			 ne.setComment("");
+			 swmm.notifyListenersOfAdd(ne);
+		 }
+
+
+	 }//removeComment
 
 	 /**
 	  *  This function validates the selected node of the datamap,
 	  *  meaning that it makes a single node generated by the datamap
-	  *  generater a valid node and restores its original color.
+	  *  generator a valid node and restores its original color.
 	  */
 	 public void validateEntry() 
 	 {
-		 TreePath thePath = getSelectionPath();
-		 FakeTreeNode ftn = (FakeTreeNode)thePath.getLastPathComponent();
+		 TreePath path = getSelectionPath();
+		 if (path == null) return;
+		 FakeTreeNode ftn = ((FakeTreeNode) path.getLastPathComponent());
+		 if (ftn == null) return;
 		 NamedEdge ne = ftn.getEdge();
 		 ne.validate();
 		 swmm.notifyListenersOfRemove(ne);
 		 swmm.notifyListenersOfAdd(ne);
-		 if (ftn.getChildCount() != 0)
-			 expandPath(thePath);
+		 if (ftn.getChildCount() != 0) {
+			 expandPath(path);
+		 }
 	 } // end of validateEntry()
 
 
@@ -1295,8 +1211,11 @@ public class DataMapTree extends JTree implements ClipboardOwner
 		 boolean[] visitedVertices = new boolean[numberOfVertices];
 		 for(int i = 0; i < numberOfVertices; i++)
 			 visitedVertices[i] = false;
-		 TreePath thePath = getSelectionPath();
-		 FakeTreeNode ftn = (FakeTreeNode)thePath.getLastPathComponent();
+
+		 TreePath path = getSelectionPath();
+		 if (path == null) return;
+		 FakeTreeNode ftn = ((FakeTreeNode) path.getLastPathComponent());
+		 if (ftn == null) return;
 		 NamedEdge ne = ftn.getEdge();
 		 queue.enqueue(ne.V1());
 		 ne.validate();
@@ -1309,7 +1228,7 @@ public class DataMapTree extends JTree implements ClipboardOwner
 			 visitedVertices[w.getValue()] = true;
 			 if(w.allowsEmanatingEdges()) 
 			 {
-				 Enumeration edges = swmm.emanatingEdges(w);
+				 Enumeration<Edge> edges = swmm.emanatingEdges(w);
 				 while(edges.hasMoreElements()) 
 				 {
 					 NamedEdge theEdge = (NamedEdge)edges.nextElement();
@@ -1347,7 +1266,7 @@ public class DataMapTree extends JTree implements ClipboardOwner
 				 visitedVertices[w.getValue()] = true;
 				 if(w.allowsEmanatingEdges()) 
 				 {
-					 Enumeration edges = swmm.emanatingEdges(w);
+					 Enumeration<Edge> edges = swmm.emanatingEdges(w);
 					 while(edges.hasMoreElements()) 
 					 {
 						 NamedEdge theEdge = (NamedEdge)edges.nextElement();
@@ -1389,7 +1308,7 @@ public class DataMapTree extends JTree implements ClipboardOwner
 				 visitedVertices[w.getValue()] = true;
 				 if(w.allowsEmanatingEdges()) 
 				 {
-					 Enumeration edges = swmm.emanatingEdges(w);
+					 Enumeration<Edge> edges = swmm.emanatingEdges(w);
 					 while(edges.hasMoreElements()) 
 					 {
 						 NamedEdge ne = (NamedEdge)edges.nextElement();
@@ -1416,17 +1335,17 @@ public class DataMapTree extends JTree implements ClipboardOwner
 
 
 
+	//TODO:  All the searchXXX methods below are very similar.  Could they be combined?
 
 
-	 /**
+	/**
 	  *  Searches the entire dataMap looking for any edges that were not tested
 	  *  by a production and that are not in the output link.
 	  *  Returns feedback list information
 	  */
-	 public Vector searchTestDataMap(SoarIdentifierVertex in_siv, String dataMapName) 
+	 public Vector<FeedbackListObject> searchTestDataMap(SoarIdentifierVertex in_siv, String dataMapName)
 	 {
-		 Vector errors = new Vector();
-		 SoarIdentifierVertex siv = in_siv;
+		 Vector<FeedbackListObject> errors = new Vector<>();
 		 edu.umich.soar.visualsoar.util.Queue queue = new QueueAsLinkedList();
 		 int numberOfVertices = swmm.getNumberOfVertices();
 		 boolean[] visitedVertices = new boolean[numberOfVertices];
@@ -1444,7 +1363,7 @@ public class DataMapTree extends JTree implements ClipboardOwner
 				 visitedVertices[w.getValue()] = true;
 				 if(w.allowsEmanatingEdges()) 
 				 {
-					 Enumeration edges = swmm.emanatingEdges(w);
+					 Enumeration<Edge> edges = swmm.emanatingEdges(w);
 					 while(edges.hasMoreElements()) 
 					 {
 						 NamedEdge theEdge = (NamedEdge)edges.nextElement();
@@ -1456,7 +1375,7 @@ public class DataMapTree extends JTree implements ClipboardOwner
 								 && !edgeName.equals("impasse") && !edgeName.equals("superstate") && !edgeName.equals("io") && !edgeName.equals("attribute")
 								 && !edgeName.equals("choices") && !edgeName.equals("type") && !edgeName.equals("quiescence")) 
 						 {
-							 errors.add(new FeedbackListObject(theEdge, siv,  dataMapName, ", was never tested in the productions of this agent."));
+							 errors.add(new FeedbackListObject(theEdge, in_siv,  dataMapName, ", was never tested in the productions of this agent."));
 							 theEdge.setErrorNoted();
 						 }
 
@@ -1478,10 +1397,9 @@ public class DataMapTree extends JTree implements ClipboardOwner
 	  *  by a production and that are not in the input link.
 	  *  Returns feedback list information
 	  */
-	 public Vector searchCreateDataMap(SoarIdentifierVertex in_siv, String dataMapName) 
+	 public Vector<FeedbackListObject> searchCreateDataMap(SoarIdentifierVertex in_siv, String dataMapName)
 	 {
-		 Vector errors = new Vector();
-		 SoarIdentifierVertex siv = in_siv;
+		 Vector<FeedbackListObject> errors = new Vector<>();
 		 edu.umich.soar.visualsoar.util.Queue queue = new QueueAsLinkedList();
 		 int numberOfVertices = swmm.getNumberOfVertices();
 		 boolean[] visitedVertices = new boolean[numberOfVertices];
@@ -1499,7 +1417,7 @@ public class DataMapTree extends JTree implements ClipboardOwner
 				 visitedVertices[w.getValue()] = true;
 				 if(w.allowsEmanatingEdges()) 
 				 {
-					 Enumeration edges = swmm.emanatingEdges(w);
+					 Enumeration<Edge> edges = swmm.emanatingEdges(w);
 					 while(edges.hasMoreElements()) 
 					 {
 						 NamedEdge theEdge = (NamedEdge)edges.nextElement();
@@ -1511,7 +1429,7 @@ public class DataMapTree extends JTree implements ClipboardOwner
 								 && !edgeName.equals("impasse") && !edgeName.equals("superstate") && !edgeName.equals("io") && !edgeName.equals("attribute")
 								 && !edgeName.equals("choices") && !edgeName.equals("type") && !edgeName.equals("quiescence")) 
 						 {
-							 errors.add(new FeedbackListObject(theEdge, siv,  dataMapName, ", was never created by the productions of this agent."));
+							 errors.add(new FeedbackListObject(theEdge, in_siv,  dataMapName, ", was never created by the productions of this agent."));
 							 theEdge.setErrorNoted();
 						 }
 
@@ -1533,10 +1451,9 @@ public class DataMapTree extends JTree implements ClipboardOwner
 	  *  by a production and that are not in the input link.
 	  *  Returns feedback list information
 	  */
-	 public Vector searchTestNoCreateDataMap(SoarIdentifierVertex in_siv, String dataMapName) 
+	 public Vector<FeedbackListObject> searchTestNoCreateDataMap(SoarIdentifierVertex in_siv, String dataMapName)
 	 {
-		 Vector errors = new Vector();
-		 SoarIdentifierVertex siv = in_siv;
+		 Vector<FeedbackListObject> errors = new Vector<>();
 		 edu.umich.soar.visualsoar.util.Queue queue = new QueueAsLinkedList();
 		 int numberOfVertices = swmm.getNumberOfVertices();
 		 boolean[] visitedVertices = new boolean[numberOfVertices];
@@ -1554,7 +1471,7 @@ public class DataMapTree extends JTree implements ClipboardOwner
 				 visitedVertices[w.getValue()] = true;
 				 if(w.allowsEmanatingEdges()) 
 				 {
-					 Enumeration edges = swmm.emanatingEdges(w);
+					 Enumeration<Edge> edges = swmm.emanatingEdges(w);
 					 while(edges.hasMoreElements()) 
 					 {
 						 NamedEdge theEdge = (NamedEdge)edges.nextElement();
@@ -1566,7 +1483,7 @@ public class DataMapTree extends JTree implements ClipboardOwner
 								 && !edgeName.equals("impasse") && !edgeName.equals("superstate") && !edgeName.equals("io") && !edgeName.equals("attribute")
 								 && !edgeName.equals("choices") && !edgeName.equals("type") && !edgeName.equals("quiescence")) 
 						 {
-							 errors.add(new FeedbackListObject(theEdge, siv,  dataMapName, ", was tested but never created by the productions of this agent."));
+							 errors.add(new FeedbackListObject(theEdge, in_siv,  dataMapName, ", was tested but never created by the productions of this agent."));
 							 theEdge.setErrorNoted();
 						 }
 
@@ -1589,10 +1506,9 @@ public class DataMapTree extends JTree implements ClipboardOwner
 	  *  by a production and that are not in the input link.
 	  *  Returns feedback list information
 	  */
-	 public Vector searchCreateNoTestDataMap(SoarIdentifierVertex in_siv, String dataMapName) 
+	 public Vector<FeedbackListObject> searchCreateNoTestDataMap(SoarIdentifierVertex in_siv, String dataMapName)
 	 {
-		 Vector errors = new Vector();
-		 SoarIdentifierVertex siv = in_siv;
+		 Vector<FeedbackListObject> errors = new Vector<>();
 		 edu.umich.soar.visualsoar.util.Queue queue = new QueueAsLinkedList();
 		 int numberOfVertices = swmm.getNumberOfVertices();
 		 boolean[] visitedVertices = new boolean[numberOfVertices];
@@ -1610,7 +1526,7 @@ public class DataMapTree extends JTree implements ClipboardOwner
 				 visitedVertices[w.getValue()] = true;
 				 if(w.allowsEmanatingEdges()) 
 				 {
-					 Enumeration edges = swmm.emanatingEdges(w);
+					 Enumeration<Edge> edges = swmm.emanatingEdges(w);
 					 while(edges.hasMoreElements()) 
 					 {
 						 NamedEdge theEdge = (NamedEdge)edges.nextElement();
@@ -1622,7 +1538,7 @@ public class DataMapTree extends JTree implements ClipboardOwner
 								 && !edgeName.equals("impasse") && !edgeName.equals("superstate") && !edgeName.equals("io") && !edgeName.equals("attribute")
 								 && !edgeName.equals("choices") && !edgeName.equals("type") && !edgeName.equals("quiescence")) 
 						 {
-							 errors.add(new FeedbackListObject(theEdge, siv,  dataMapName, ", was tested but never created by the productions of this agent."));
+							 errors.add(new FeedbackListObject(theEdge, in_siv,  dataMapName, ", was tested but never created by the productions of this agent."));
 							 theEdge.setErrorNoted();
 						 }
 
@@ -1644,10 +1560,9 @@ public class DataMapTree extends JTree implements ClipboardOwner
 	  *  by a production and that are not in the input link.
 	  *  Returns feedback list information
 	  */
-	 public Vector searchNoTestNoCreateDataMap(SoarIdentifierVertex in_siv, String dataMapName) 
+	 public Vector<FeedbackListObject> searchNoTestNoCreateDataMap(SoarIdentifierVertex in_siv, String dataMapName)
 	 {
-		 Vector errors = new Vector();
-		 SoarIdentifierVertex siv = in_siv;
+		 Vector<FeedbackListObject> errors = new Vector<>();
 		 edu.umich.soar.visualsoar.util.Queue queue = new QueueAsLinkedList();
 		 int numberOfVertices = swmm.getNumberOfVertices();
 		 boolean[] visitedVertices = new boolean[numberOfVertices];
@@ -1665,7 +1580,7 @@ public class DataMapTree extends JTree implements ClipboardOwner
 				 visitedVertices[w.getValue()] = true;
 				 if(w.allowsEmanatingEdges()) 
 				 {
-					 Enumeration edges = swmm.emanatingEdges(w);
+					 Enumeration<Edge> edges = swmm.emanatingEdges(w);
 					 while(edges.hasMoreElements()) 
 					 {
 						 NamedEdge theEdge = (NamedEdge)edges.nextElement();
@@ -1677,7 +1592,7 @@ public class DataMapTree extends JTree implements ClipboardOwner
 								 && !edgeName.equals("impasse") && !edgeName.equals("superstate") && !edgeName.equals("io") && !edgeName.equals("attribute")
 								 && !edgeName.equals("choices") && !edgeName.equals("type") && !edgeName.equals("quiescence")) 
 						 {
-							 errors.add(new FeedbackListObject(theEdge, siv,  dataMapName, ", was tested but never created by the productions of this agent."));
+							 errors.add(new FeedbackListObject(theEdge, in_siv,  dataMapName, ", was tested but never created by the productions of this agent."));
 							 theEdge.setErrorNoted();
 						 }
 
@@ -1695,20 +1610,6 @@ public class DataMapTree extends JTree implements ClipboardOwner
 	 }     // end of searchNoTestNoCreateDataMap()
 
 
-
-	 /**
-	  *  Selects (highlights and centers) the requested edge within the datamap.
-	  *  @param desiredEdge the string name of the edge
-	  *  @param options a list of booleans representing what type of wme's to look for
-	  *  @return the FakeTreeNode that contains the desired edge, null if could not fin
-	  */
-	 public FakeTreeNode findEdge(String desiredEdge, Boolean options[]) 
-	 {
-		 return null;
-
-	 }
-
-
 	 /**
 	  *  Selects (highlights and centers) the requested edge within the datamap.
 	  *  @param desiredEdge the requested NamedEdge to select
@@ -1721,7 +1622,7 @@ public class DataMapTree extends JTree implements ClipboardOwner
 		 int numberOfVertices = swmm.getNumberOfVertices();
 		 boolean[] visitedVertices = new boolean[numberOfVertices];
 		 boolean edgeNotFound = true;
-		 int children = 0;
+		 int children;
 		 for(int i = 0; i < numberOfVertices; i++)
 			 visitedVertices[i] = false;
 
@@ -1786,11 +1687,9 @@ public class DataMapTree extends JTree implements ClipboardOwner
 	 public void displayGeneratedNodes()
 	 {
 		 edu.umich.soar.visualsoar.util.Queue queue = new QueueAsLinkedList();
-		 FakeTreeNode foundftn = null;
 		 int numberOfVertices = swmm.getNumberOfVertices();
 		 boolean[] visitedVertices = new boolean[numberOfVertices];
-		 boolean edgeNotFound = true;
-		 int children = 0;
+		 int children;
 		 for(int i = 0; i < numberOfVertices; i++)
 			 visitedVertices[i] = false;
 
@@ -1799,7 +1698,7 @@ public class DataMapTree extends JTree implements ClipboardOwner
 			 FakeTreeNode root = (FakeTreeNode)getModel().getRoot();
 			 queue.enqueue(root);
 
-			 while((!queue.isEmpty())  && edgeNotFound) 
+			 while(!queue.isEmpty())
 			 {
 				 FakeTreeNode ftn = (FakeTreeNode)queue.dequeue();
 				 int rootValue = ftn.getEnumeratingVertex().getValue();
@@ -1863,9 +1762,7 @@ public class DataMapTree extends JTree implements ClipboardOwner
 
 			 if (getSelectionCount() > 1) 
 			 {
-				 Vector v = new Vector(1);
-				 v.add("Only one item may be dragged at a time");
-				 MainFrame.getMainFrame().setFeedbackListData(v);
+				 MainFrame.getMainFrame().setFeedbackListData("Only one item may be dragged at a time");
 				 return;
 			 }
 
@@ -1893,203 +1790,7 @@ public class DataMapTree extends JTree implements ClipboardOwner
 		 }   
 	 }
 
-	/**
-	 * class DMTDropTargetListener
-	 *
-	 *
-	 */
-	class DMTDropTargetListener implements DropTargetListener
-	 {
-		 public void dragEnter(DropTargetDragEvent dtde) {
-		 }
-		 public void dragExit(DropTargetEvent dte) 
-		 {
-			 // reset cursor back to normal
-			 Cursor defaultCursor = new Cursor(Cursor.DEFAULT_CURSOR);
-			 DataMapTree.getDataMapTree().setCursor(defaultCursor);
-		 }
-
-		 public void dragOver(DropTargetDragEvent dtde) 
-		 {
-
-			 int action = dtde.getDropAction();
-			 Point loc = dtde.getLocation();
-			 int x = (int)loc.getX(), y = (int)loc.getY();
-			 TreePath path = getPathForLocation(x, y);
-			 if (path != null) 
-			 {   
-				 clearSelection();
-				 setSelectionPath(path);
-				 if(isDropOK(x,y,action)) 
-				 {
-					 if(action == DnDConstants.ACTION_LINK) 
-					 {
-						 Cursor cursor = DragSource.DefaultLinkDrop;
-						 DataMapTree.getDataMapTree().setCursor(cursor);
-						 dtde.acceptDrag(DnDConstants.ACTION_LINK);
-					 }
-					 else if(action == DnDConstants.ACTION_COPY) 
-					 {
-						 Cursor cursor = DragSource.DefaultCopyDrop;
-						 DataMapTree.getDataMapTree().setCursor(cursor);
-						 dtde.acceptDrag(DnDConstants.ACTION_COPY);
-					 }
-					 else 
-					 {
-						 Cursor cursor = DragSource.DefaultMoveDrop;
-						 DataMapTree.getDataMapTree().setCursor(cursor);
-						 dtde.acceptDrag(DnDConstants.ACTION_MOVE);
-					 }
-				 }   // if drop ok
-				 else 
-				 {
-					 Cursor cursor;
-					 if(action == DnDConstants.ACTION_LINK) 
-					 {
-						 cursor = DragSource.DefaultLinkNoDrop;
-					 }
-					 else if(action == DnDConstants.ACTION_COPY) 
-					 {
-						 cursor = DragSource.DefaultCopyNoDrop;
-					 }
-					 else 
-					 {
-						 cursor = DragSource.DefaultMoveNoDrop;
-					 }
-					 DataMapTree.getDataMapTree().setCursor(cursor);
-					 dtde.rejectDrag();
-				 }
-			 }   // if path ok
-			 else 
-			 {
-				 Cursor cursor = DragSource.DefaultCopyNoDrop;
-				 DataMapTree.getDataMapTree().setCursor(cursor);
-				 dtde.rejectDrag();
-			 }
-		 }
-
-		 public void dropActionChanged(DropTargetDragEvent dtde) {
-		 }
-
-		 /**
-		  * drop
-		  *
-		  * Gets called when the user releases the mouse in a drag-and-drop
-		  * operation in a datamap window.
-		  *
-		  */
-		 public void drop(DropTargetDropEvent e) 
-		 {
-		 	//Verify that drop is acceptable
-			 Point loc = e.getLocation();
-			 int x = (int)loc.getX(), y = (int)loc.getY();
-
-			 //action will be one of:  copy, move or link
-			 int action = e.getDropAction();
-			 if (isDropOK(x, y, action)) 
-			 {
-				 e.acceptDrop(action);
-			 }
-			 else 
-			 {
-				 e.rejectDrop();
-				 return;
-			 }
-
-			 // reset cursor back to normal
-			 Cursor defaultCursor = new Cursor(Cursor.DEFAULT_CURSOR);
-			 DataMapTree.getDataMapTree().setCursor(defaultCursor);
-
-
-			 if (action == DnDConstants.ACTION_COPY) {
-				 System.out.println("dndcopy!");
-				 TreePath currentPath = getPathForLocation(x, y);
-				 setSelectionPath(OriginalSelectionPath);
-				 CopyVertexVector copyVerticies = getCopyVerticies();
-				 setSelectionPath(currentPath);
-				 pasteCopyVertices(copyVerticies);
-			 } else {  //action is either MOVE or LINK
-
-				 //Extract the WME data from the event
-				 DataFlavor[] flavors = e.getCurrentDataFlavors();
-				 DataFlavor chosen = flavors[0];
-				 Vector data = null;
-				 try
-				 {
-					 data = (Vector)e.getTransferable().getTransferData(chosen);
-				 }
-				 catch(Throwable t)
-				 {
-					 t.printStackTrace();
-					 e.dropComplete(false);
-					 return;
-				 }
-
-				 //Get the target for the drop
-				 TreePath path = getPathForLocation(x, y);
-				 SoarVertex vertex = ((FakeTreeNode)path.getLastPathComponent()).getEnumeratingVertex();
-
-				 //Get the thing we're dropping
-				 SoarVertex dataVertex =
-						 swmm.getVertexForId(((Integer)data.get(0)).intValue());
-
-				 //If we are moving a node, we have to first make sure that we're
-				 //not creating a loop.
-				 if ((action & DnDConstants.ACTION_MOVE) != 0)
-				 {
-					 for(int i = 0; i < path.getPathCount(); i++)
-					 {
-						 SoarVertex v = ((FakeTreeNode)path.getPath()[i]).getEnumeratingVertex();
-						 if (dataVertex.equals(v))
-						 {
-							 e.rejectDrop();
-							 return;
-						 }
-					 }
-				 }
-
-				 //Perform the drop
-				 swmm.addTriple(vertex,(String)data.get(1),dataVertex);
-				 if(action == DnDConstants.ACTION_MOVE)
-				 {
-					 NamedEdge ne = (NamedEdge)data.get(2);
-					 swmm.removeTriple((SoarVertex)ne.V0(),ne.getName(),(SoarVertex)ne.V1());
-				 }
-
-			 }
-			 e.dropComplete(true);
-
-		 }
-
-		 /**
-		  * helper method for {@link #dragOver} and {@link #drop} to
-		  * determine if a given coordinate is a valid drop destination
-		  */
-		 boolean isDropOK(int x, int y, int action) 
-		 {
-			 TreePath path = getPathForLocation(x, y);
-			 if (path == null) {
-				 return false;
-			 }
-			 if (path.equals(OriginalSelectionPath)) {
-				 return false;
-			 }
-
-			 if (action == DnDConstants.ACTION_LINK || action == DnDConstants.ACTION_MOVE || action == DnDConstants.ACTION_COPY) 
-			 {
-				 FakeTreeNode ftn = (FakeTreeNode)path.getLastPathComponent();
-				 if (ftn.isLeaf())
-				 {
-					 return false;
-				 }
-				 return true;
-			 }
-			 return false;
-
-		 }
-	 }//isDropOK
-
-	 class DMTDragSourceListener implements DragSourceListener 
+	static class DMTDragSourceListener implements DragSourceListener
 	 {
 
 		 public void dragEnter(DragSourceDragEvent e) 
@@ -2137,17 +1838,6 @@ public class DataMapTree extends JTree implements ClipboardOwner
 
 		 }
 	 }
-
-	 /*  Too Dangerous, see cut()
-
-    class CutAction extends AbstractAction
-{
-    public void actionPerformed(ActionEvent e)
-{
-    cut();
-    }
-    }
-	  */
 
 	 class CopyAction extends AbstractAction
 	 {

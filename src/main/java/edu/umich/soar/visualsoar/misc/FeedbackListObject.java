@@ -4,6 +4,7 @@ import edu.umich.soar.visualsoar.datamap.DataMap;
 import edu.umich.soar.visualsoar.datamap.SoarWorkingMemoryModel;
 import edu.umich.soar.visualsoar.graph.NamedEdge;
 import edu.umich.soar.visualsoar.graph.SoarIdentifierVertex;
+import edu.umich.soar.visualsoar.operatorwindow.FileNode;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorNode;
 
 
@@ -23,11 +24,10 @@ public class FeedbackListObject
     private String message;
     private boolean msgEnough = false;
     private boolean d_isError = false;
-    private boolean d_isGenerated = false;
     private String assocString = null;
 
     // feedback list members that are used for accessing datamap info
-    //   - there probably should be a whole sub class for these types
+    //   - there probably should be a whole subclass for these types
     private boolean dataMapObject = false;
     private NamedEdge edge;
     private SoarIdentifierVertex siv;
@@ -36,9 +36,6 @@ public class FeedbackListObject
 ///////////////////////////////////////////////////////////////////
 // Constructors
 ///////////////////////////////////////////////////////////////////
-    // deny default construction
-    private FeedbackListObject() {}
-
     /**
      * Create the List Object with the given parameters
      */
@@ -81,17 +78,6 @@ public class FeedbackListObject
         d_isError = isError;
     }
 
-    public FeedbackListObject(OperatorNode in_node,
-                              int in_ln,
-                              String msg,
-                              boolean _msgEnough,
-                              boolean isError,
-                              boolean isGenerated) 
-    {
-        this(in_node,in_ln,msg,_msgEnough);
-        d_isGenerated = isGenerated;
-    }
-
     public FeedbackListObject(NamedEdge in_edge,
                               SoarIdentifierVertex in_siv,
                               String inDataMapName,
@@ -104,6 +90,12 @@ public class FeedbackListObject
         dataMapObject = true;
 
     }
+
+    //For simple messages there may be no associated node
+    public FeedbackListObject(String msg) {
+        this(null, 0, msg, true);
+
+    }
     
 ///////////////////////////////////////////////////////////////////
 // Methods
@@ -112,12 +104,8 @@ public class FeedbackListObject
     {
         return d_isError;
     }
+    public boolean hasNode() { return node != null; }
 
-    public boolean isGenerated() 
-    {
-        return d_isGenerated;
-    }
-    
     /**
      * returns the filename of the file for which the node of this
      * list object is associated
@@ -136,7 +124,11 @@ public class FeedbackListObject
     {
         return node;
     }
-    
+
+    /** sets the node with a new value */
+    public void setNode(OperatorNode newNode) { this.node = newNode;    }
+
+
     /**
      * returns the line number for which this object is associated
      * @return an int that is positive
@@ -146,19 +138,6 @@ public class FeedbackListObject
         return lineNumber;
     }
 
-    /**
-   *  returns the SoarIdentifierVertex that denotes the datamap that
-   *  this feedbackListObject refers too.
-   */
-    public SoarIdentifierVertex getSiv() 
-    {
-        if(isDataMapObject())
-        return siv;
-        else
-        return null;
-    }
-
-    
     /**
      * returns the message for this object
      * @return a string that is additional information for the user

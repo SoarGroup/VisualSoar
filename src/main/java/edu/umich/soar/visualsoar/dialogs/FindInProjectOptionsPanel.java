@@ -10,7 +10,6 @@ import javax.swing.border.*;
  * search wrapping.
  * @author Andrew Nuxoll
  * @see FindInProjectDialog
- * @see FindReplaceInProjectDialog
  */
 class FindInProjectOptionsPanel extends JPanel
 {

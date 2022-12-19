@@ -30,7 +30,7 @@ public abstract class Graph {
 			return;
 		visitor.preVisit(vertex);
 		visited[vertex.getValue()] = true;
-		Enumeration e = emanatingEdges(vertex);
+		Enumeration<Edge> e = emanatingEdges(vertex);
 		while(e.hasMoreElements()) {
 			Edge edge = (Edge)e.nextElement();
 			Vertex to = edge.mate(vertex);
@@ -96,7 +96,7 @@ public abstract class Graph {
 	public abstract Enumeration vertices();
 	public abstract Enumeration edges();
 	public abstract Enumeration incidentEdges(Vertex v);
-	public abstract Enumeration emanatingEdges(Vertex v);
+	public abstract Enumeration<Edge> emanatingEdges(Vertex v);
 	
 	public void depthFirstTraversal(PrePostVisitor visitor, Vertex start) {
 		boolean[] visited = new boolean[numberOfVertices];
@@ -116,7 +116,7 @@ public abstract class Graph {
 		while(!queue.isEmpty() && !visitor.isDone()) {
 			Vertex vertex = (Vertex)queue.dequeue();
 			visitor.visit(vertex);
-			Enumeration e = emanatingEdges(vertex);
+			Enumeration<Edge> e = emanatingEdges(vertex);
 			while(e.hasMoreElements()) {
 				Edge edge = (Edge)e.nextElement();
 				Vertex to = edge.mate(vertex);

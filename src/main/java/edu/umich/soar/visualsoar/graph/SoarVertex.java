@@ -48,7 +48,7 @@ public abstract class SoarVertex extends Vertex {
 	/**
 	 * Method returns a new copy of the same data, but with
 	 * a new id
-	 * @param the new ID to use
+	 * @param newId the new ID to use
 	 * @return the new vertex
 	 */
 	public abstract SoarVertex copy(int newId);
@@ -70,7 +70,7 @@ public abstract class SoarVertex extends Vertex {
 	 * This method writes a description of this node to the
 	 * stream pointed to by the writer
 	 * @param w the stream where this node is described to
-	 * @throws IOException if there was an error writing to the stream
+	 * @throws java.io.IOException if there was an error writing to the stream
 	 */
 	public abstract void write(java.io.Writer w) throws java.io.IOException;
 	

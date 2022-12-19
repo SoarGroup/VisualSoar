@@ -1,11 +1,9 @@
 package edu.umich.soar.visualsoar.dialogs;
 
-import java.awt.*;
-import java.awt.event.*;
-import java.util.*;
 import javax.swing.*;
-import javax.swing.text.*;
-import javax.swing.border.*;
+import javax.swing.border.CompoundBorder;
+import java.awt.event.KeyEvent;
+import java.util.Vector;
 
 /**
  * Panel that facilitates the entry of a list of strings, 
@@ -18,8 +16,8 @@ import javax.swing.border.*;
 class EnumPanel extends JPanel {
 
 	JTextField		newString = new JTextField(20);
-	Vector 			theStrings = new Vector();
-	JList 			theList = new JList(theStrings);
+	Vector<String> 			theStrings = new Vector<>();
+	JList<String> 			theList = new JList<>(theStrings);
 	JScrollPane		sp = new JScrollPane(theList);
 	
 	public EnumPanel() {
@@ -56,14 +54,14 @@ class EnumPanel extends JPanel {
 	/**
 	 * @return vector of strings entered
 	 */
-	public Vector getVector() { 
-		return (Vector)theStrings.clone();
+	public Vector<String> getVector() {
+		return new Vector<>(theStrings);
 	}
 	
 	/**
 	 * @param v vector to set the list data to
 	 */ 
-	public void setVector(Vector v) {
+	public void setVector(Vector<String> v) {
 		theStrings = v;
 		theList.setListData(theStrings);
 		clearText();

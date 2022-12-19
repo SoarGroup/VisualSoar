@@ -1,24 +1,20 @@
 package edu.umich.soar.visualsoar.operatorwindow;
+
 import edu.umich.soar.visualsoar.MainFrame;
 import edu.umich.soar.visualsoar.datamap.SoarWorkingMemoryModel;
+import edu.umich.soar.visualsoar.misc.FeedbackList;
 import edu.umich.soar.visualsoar.misc.FeedbackListObject;
-import edu.umich.soar.visualsoar.parser.ParseException;
-import edu.umich.soar.visualsoar.parser.SoarParser;
-import edu.umich.soar.visualsoar.parser.SuppParseChecks;
-import edu.umich.soar.visualsoar.parser.TokenMgrError;
+import edu.umich.soar.visualsoar.parser.*;
 import edu.umich.soar.visualsoar.ruleeditor.RuleEditor;
-import edu.umich.soar.visualsoar.util.EnumerationIteratorWrapper;
 
-import java.io.*;
-import java.awt.Component;
+import javax.swing.*;
 import javax.swing.tree.DefaultTreeModel;
-import javax.swing.JOptionPane;
-import javax.swing.tree.TreePath;
+import java.awt.*;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
-import java.awt.*;
+import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -35,16 +31,13 @@ public class FileNode extends OperatorNode implements java.io.Serializable
     /**
      * a string that is the path to the file which is associated with this file
      */
-    protected String fileAssociation = null;
+    protected String fileAssociation;
 
     /**
      * a reference to the rule editor, null if there isn't one
      */
     protected RuleEditor ruleEditor = null;
-    
-    protected String fullTransferFileName = null;
-    protected TreePath transferTreePath = null;
-    
+
 ///////////////////////////////////////////////////////////////////
 // Constructors
 ///////////////////////////////////////////////////////////////////
@@ -70,7 +63,7 @@ public class FileNode extends OperatorNode implements java.io.Serializable
     /**
      * This is the function that gets called when you want to add a file to this
      * node
-     * @param operatorWindow
+     * @param operatorWindow pane associated with 'this'
      * @param newFileName the name of the new operator to add
      */
     public void addFile(OperatorWindow operatorWindow, String newFileName) throws IOException 
@@ -89,42 +82,6 @@ public class FileNode extends OperatorNode implements java.io.Serializable
         sourceChildren();
     }
 
-
-
-    public void setTransferFullPath() 
-    {
-        fullTransferFileName = getFileName();
-        transferTreePath = new TreePath(getPath());
-    }
-    
-    public javax.swing.tree.TreePath getTransferTreePath() 
-    {
-        return transferTreePath;
-    }
-    
-    public void moveAssociations() 
-    {
-        File file = new File(fullTransferFileName);
-        file.renameTo(new File(getFileName()));
-    }
-    
-    /**
-     * This is a helper function that renames the file for which this node is
-     * associated to it's new file name, and also notifies the rule editor if
-     * there is one of the change
-     * @param newFileName a String that represents the new file path
-     */
-    protected void renameFile(String newFileName) 
-    {
-        File file = new File(fileAssociation);
-        if (file.renameTo(new File(newFileName))) 
-        {
-            fileAssociation = newFileName; 
-            if (ruleEditor != null)
-            ruleEditor.fileRenamed(newFileName);
-        }
-    }
-    
     /**
      * This resets the rule editor to null for this node
      */
@@ -140,24 +97,10 @@ public class FileNode extends OperatorNode implements java.io.Serializable
 
     public RuleEditor getRuleEditor() { return this.ruleEditor; }
 
-    
-    /**
-     * An ancestor has been renamed so we must update our file association
-     * @param oldFilePath the ancestor's old File path
-     * @param newFilePath the ancestor's new File path
-     */
-    public void notifyChildrenOfRename(String oldFilePath, String newFilePath) 
-    {
-        int uniqueToThisNode = oldFilePath.length();
-        String newFileName = newFilePath + fileAssociation.substring(uniqueToThisNode,fileAssociation.length());
-        fileAssociation = newFileName;
-        if (ruleEditor != null)
-        ruleEditor.fileRenamed(newFileName);
-    }
-    
+
     /**
      * The user wants to rename this node
-     * @param operatorWindow
+     * @param operatorWindow  the pane associated with 'this'
      * @param newName the new name that the user wants this node to be called
      */
     public void rename(OperatorWindow operatorWindow,
@@ -236,7 +179,7 @@ public class FileNode extends OperatorNode implements java.io.Serializable
                 s = lnr.readLine();
             }           
             w.write("" + lines + "\n");
-            w.write(sw.toString() + "\n");
+            w.write(sw + "\n");
         }
         else 
         {
@@ -312,7 +255,7 @@ public class FileNode extends OperatorNode implements java.io.Serializable
      * productions 
      */
     
-    public Vector parseProductions() throws ParseException, java.io.IOException 
+    public Vector<SoarProduction> parseProductions() throws ParseException, java.io.IOException
     {
         if(name.startsWith("_")) return null;
 
@@ -322,7 +265,7 @@ public class FileNode extends OperatorNode implements java.io.Serializable
 
             java.io.Reader r = new java.io.FileReader(getFileName());
             SoarParser aParser = new SoarParser(r);
-            Vector v = aParser.VisualSoarFile();
+            Vector<SoarProduction> v = aParser.VisualSoarFile();
             r.close();
             return v;
         }
@@ -337,67 +280,56 @@ public class FileNode extends OperatorNode implements java.io.Serializable
      * This will check the productions in this file node for datamap errors.
      * if a rule editor is open for the file it just forwards the call to the 
      * open rule editor, else it opens the file and attempts to parse the
-     * productions 
+     * productions
+     *
+     * @param vecErrors  any errors found are <em>added</em> to this vector
      */
-    public boolean CheckAgainstDatamap(Vector vecErrors) throws IOException
+    public boolean CheckAgainstDatamap(Vector<FeedbackListObject> vecErrors) throws IOException
     {
-        Vector parsedProds = new Vector();
-        boolean anyErrors = false;
-        java.util.List errors = new LinkedList();
-        
+        Vector<SoarProduction> parsedProds = new Vector<>();
+
+        //First:  is the code syntactically correct?
         try
         {
             parsedProds = parseProductions();
         }
         catch(ParseException pe)
         {
-            anyErrors = true;
+            //TODO:  awkward that this parsing is happening.  Better to make
+            //       FeedbackListObject throwable?
             String parseError = pe.toString();
             int i = parseError.lastIndexOf("line ");
             String lineNum = parseError.substring(i + 5);
             i = lineNum.indexOf(',');
             lineNum = "(" + lineNum.substring(0, i) + "): ";
             String errString = getFileName() + lineNum + "Unable to check productions due to parse error";
-            errors.add(errString);
+            int line;
+            try { line = Integer.parseInt(lineNum); }
+            catch(NumberFormatException nfe) { line = 0; }
+            vecErrors.add(new FeedbackListObject(errString));
+            vecErrors.add(new FeedbackListObject(this, line, parseError, true, true));
+
+
+            return true;
         }
         catch(TokenMgrError tme) 
         {
             tme.printStackTrace();
         }
 
-        if (parsedProds!= null)
-        {
+        //Now check for datamap issues
+        if ((parsedProds != null) && (parsedProds.size() > 0)) {
+            //Use a temp vector so that vecErrors doesn't get cleared
+            //TODO:  is temp vector really needed?
+            Vector<FeedbackListObject> tmpErrors = new Vector<>();
             OperatorWindow ow = MainFrame.getMainFrame().getOperatorWindow();
-            ow.checkProductions((OperatorNode)getParent(), parsedProds, errors);
+            ow.checkProductions((OperatorNode) getParent(), this, parsedProds, tmpErrors);
+            if (tmpErrors.size() > 0) {
+                vecErrors.addAll(tmpErrors);
+            }
         }
-        
-        if (!errors.isEmpty())
-        {
-            anyErrors = true;
-            Enumeration e = new EnumerationIteratorWrapper(errors.iterator());
-            while(e.hasMoreElements()) 
-            {
-                try 
-                {
-                    String errorString = e.nextElement().toString();
-                    String numberString = errorString.substring(errorString.indexOf("(")+1,errorString.indexOf(")"));
-                    if(errorString.endsWith("Unable to check productions due to parse error"))
-                    {
-                        vecErrors.add(
-                            new FeedbackListObject(this,Integer.parseInt(numberString),errorString,true,true));
-                    }
-                    else
-                    {
-                        vecErrors.add(
-                            new FeedbackListObject(this,Integer.parseInt(numberString),errorString,true));
-                    }
-                }
-                catch(NumberFormatException nfe)
-                { /* should never happen*/ }
-            }//while
-        }//if
 
-        return anyErrors;
+        return (vecErrors.size() > 0);
 
         
     }//CheckAgainstDatamap
@@ -430,8 +362,7 @@ public class FileNode extends OperatorNode implements java.io.Serializable
      * Each production name in the list is appended with the line number
      * in parens after it.
      *
-     * @author Andrew Nuxoll
-     * @version 29 Sep 2022
+     * @author Andrew Nuxoll (29 Sep 2022)
      * */
     public Vector<String> getProdNames() {
         //These files won't have productions

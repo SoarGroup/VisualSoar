@@ -10,18 +10,18 @@ import javax.swing.*;
  * Dialog which takes input for the creation of an EnumerationVertex 
  * in the data map.
  * @author Jon Bauman
- * @see EnumerationVertex
- * @see DataMapTree
+ * @see edu.umich.soar.visualsoar.graph.EnumerationVertex
+ * @see edu.umich.soar.visualsoar.datamap.DataMapTree
  */
 public class EnumerationDialog extends JDialog 
 {
+    public static int NAME = 0;
+    public static int ENUMERATION = 1;
 
-    static int NAME = 0;
-    static int ENUMERATION = 1;
-    boolean    approved = false;
-    Vector     theStrings = null;
-    String     nameText = null;
-    Action     enterAction = new EnterAction();
+    boolean        approved = false;
+    Vector<String> theStrings = null;
+    String         nameText = null;
+    Action         enterAction = new EnterAction();
      
     /**
      * which entry field will recieve focus. Valid values are
@@ -161,20 +161,9 @@ public class EnumerationDialog extends JDialog
         
     }
 
-    public Vector getVector() 
-    {
-        return theStrings;
-    }
-    
-    public String getText() 
-    {
-        return nameText;
-    }
-    
-    public boolean wasApproved() 
-    {
-        return approved;
-    }
+    public Vector<String> getVector() { return theStrings; }
+    public String getText() { return nameText; }
+    public boolean wasApproved() { return approved; }
     
     class EnterAction extends AbstractAction 
     {
