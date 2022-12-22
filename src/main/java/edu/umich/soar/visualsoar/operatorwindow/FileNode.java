@@ -2,7 +2,6 @@ package edu.umich.soar.visualsoar.operatorwindow;
 
 import edu.umich.soar.visualsoar.MainFrame;
 import edu.umich.soar.visualsoar.datamap.SoarWorkingMemoryModel;
-import edu.umich.soar.visualsoar.misc.FeedbackList;
 import edu.umich.soar.visualsoar.misc.FeedbackListObject;
 import edu.umich.soar.visualsoar.parser.*;
 import edu.umich.soar.visualsoar.ruleeditor.RuleEditor;
@@ -71,7 +70,7 @@ public class FileNode extends OperatorNode implements java.io.Serializable
         File file = new File(getFullPathName() + File.separator + newFileName + ".soar");
 
         // Check to make sure file does not exist
-        if (! okayToCreateReplace(file)) 
+        if (checkCreateReplace(file))
         {
             return;
         }
@@ -110,7 +109,7 @@ public class FileNode extends OperatorNode implements java.io.Serializable
         File oldFile = new File(getFileName());
         File newFile = new File(oldFile.getParent() + File.separator + newName + ".soar");
 
-        if (! okayToCreate(newFile)) 
+        if (creationConflict(newFile))
         {
             throw new IOException("Bad file name");
         }
@@ -295,21 +294,8 @@ public class FileNode extends OperatorNode implements java.io.Serializable
         }
         catch(ParseException pe)
         {
-            //TODO:  awkward that this parsing is happening.  Better to make
-            //       FeedbackListObject throwable?
-            String parseError = pe.toString();
-            int i = parseError.lastIndexOf("line ");
-            String lineNum = parseError.substring(i + 5);
-            i = lineNum.indexOf(',');
-            lineNum = "(" + lineNum.substring(0, i) + "): ";
-            String errString = getFileName() + lineNum + "Unable to check productions due to parse error";
-            int line;
-            try { line = Integer.parseInt(lineNum); }
-            catch(NumberFormatException nfe) { line = 0; }
-            vecErrors.add(new FeedbackListObject(errString));
-            vecErrors.add(new FeedbackListObject(this, line, parseError, true, true));
-
-
+            vecErrors.add(new FeedbackListObject("Unable to check productions due to parse error"));
+            vecErrors.add(this.parseParseException(pe));
             return true;
         }
         catch(TokenMgrError tme) 
@@ -336,11 +322,11 @@ public class FileNode extends OperatorNode implements java.io.Serializable
 
     /**
      * retrieves the text of this FileNode.  If the file is open, the text
-     * is retrieved from the associated RuleEditor.  Otherwise it is
+     * is retrieved from the associated RuleEditor.  Otherwise, it is
      * retrieved from the file.
      */
     public String getText() {
-        String text = null;
+        String text;
         if (ruleEditor != null) {
             text = ruleEditor.getAllText();
         } else {
@@ -350,7 +336,7 @@ public class FileNode extends OperatorNode implements java.io.Serializable
                 text = new String(bytes);
             } catch (IOException e) {
                 //quiet fail.  The null return value
-                return text;
+                return null;
             }
         }//else
 
@@ -366,7 +352,7 @@ public class FileNode extends OperatorNode implements java.io.Serializable
      * */
     public Vector<String> getProdNames() {
         //These files won't have productions
-        Vector<String> result = new Vector<String>();
+        Vector<String> result = new Vector<>();
         if(getFileName().startsWith("_")) return result;
 
         //Get the text of the file
@@ -436,7 +422,7 @@ public class FileNode extends OperatorNode implements java.io.Serializable
     }//getLineNumForString
     
     /**
-     * This opens/shows a rule editor with this nodes associated file
+     * This opens/shows a rule editor with this node's associated file
      * @param pw the MainFrame 
      */
     public void openRules(MainFrame pw) 
@@ -470,7 +456,7 @@ public class FileNode extends OperatorNode implements java.io.Serializable
     }
     
     /**
-     * This opens/shows a rule editor with this nodes associated file
+     * This opens/shows a rule editor with this node's associated file
      * and places the caret on the given line number
      * @param pw the Project window
      * @param line the line number to place the caret on
@@ -482,7 +468,7 @@ public class FileNode extends OperatorNode implements java.io.Serializable
     }
     
     /**
-     * This opens/shows a rule editor with this nodes associated file
+     * This opens/shows a rule editor with this node's associated file
      * and displays a substring of the file starting on a given line
      * @param pw the Project window
      * @param line the line number to place the caret on
@@ -520,23 +506,18 @@ public class FileNode extends OperatorNode implements java.io.Serializable
         w.write("source " + fileAssociation + LINE);
     }
     
-    public boolean needsToSourceChildren() 
-    {
-        return false;
-    }
-    
     public void sourceChildren() throws IOException {}
     public void sourceRecursive() throws IOException {}
 
     public void searchTestDataMap(SoarWorkingMemoryModel swmm,
-                                  Vector errors) {}
+                                  Vector<FeedbackListObject> errors) {}
     public void searchCreateDataMap(SoarWorkingMemoryModel swmm,
-                                    Vector errors) {}
+                                    Vector<FeedbackListObject> errors) {}
     public void searchTestNoCreateDataMap(SoarWorkingMemoryModel swmm,
-                                          Vector errors) {}
+                                          Vector<FeedbackListObject> errors) {}
     public void searchCreateNoTestDataMap(SoarWorkingMemoryModel swmm,
-                                          Vector errors) {}
+                                          Vector<FeedbackListObject> errors) {}
     public void searchNoTestNoCreateDataMap(SoarWorkingMemoryModel swmm,
-                                            Vector errors) {}
+                                            Vector<FeedbackListObject> errors) {}
 
 }

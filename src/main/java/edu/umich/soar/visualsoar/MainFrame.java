@@ -2407,8 +2407,8 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 			int value, min, max;
 			 
 
-			java.util.List errors = new LinkedList();
-            java.util.List generations = new LinkedList();
+			Vector<FeedbackListObject> errors = new Vector<>();
+			Vector<FeedbackListObject> generations = new Vector<>();
             int repCount = 0;
 			Enumeration bfe = operatorWindow.breadthFirstEnumeration();
 			OperatorNode current;

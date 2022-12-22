@@ -28,8 +28,6 @@ import javax.swing.event.*;
 import java.beans.*;
 import javax.swing.undo.*;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 //QUESTION: Why aren't we importing edu.umich.visualsoar.parser.*??
 //ANSWER:   It creates compile ambiguities between parser.Action and
@@ -539,7 +537,7 @@ public class RuleEditor extends CustomInternalFrame
     {
         OperatorNode node = (OperatorNode)associatedNode.getParent();
 
-        while(!node.hasDataMap())
+        while(node.noDataMap())
         {
             node = (OperatorNode)node.getParent();
         }

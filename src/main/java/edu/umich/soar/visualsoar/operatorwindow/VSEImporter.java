@@ -5,7 +5,6 @@ import edu.umich.soar.visualsoar.datamap.SoarWorkingMemoryAppender;
 import edu.umich.soar.visualsoar.datamap.SoarWorkingMemoryModel;
 import edu.umich.soar.visualsoar.util.ReaderUtils;
 import java.io.*;
-import javax.swing.tree.DefaultTreeModel;
 import javax.swing.JOptionPane;
 import java.util.*;
 
@@ -97,7 +96,7 @@ class VSEImporter {
 			else if (type.equals("FILE")) {
 				String name = ReaderUtils.getWord(r);
 				if(nodeId == 0) {
-					if(!parent.okayToCreate(new File(name+".soar"))) {
+					if(parent.creationConflict(new File(name + ".soar"))) {
 						return;
 					}
 				}

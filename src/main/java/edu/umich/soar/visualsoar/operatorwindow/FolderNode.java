@@ -87,22 +87,21 @@ public class FolderNode extends OperatorNode implements java.io.Serializable
      * @param operatorWindow
      * @param newFileName the name of the new operator to add
      */
-    public OperatorNode addFileOperator(OperatorWindow operatorWindow, SoarWorkingMemoryModel swmm, String newFileName) throws IOException 
+    public void addFileOperator(OperatorWindow operatorWindow, SoarWorkingMemoryModel swmm, String newFileName) throws IOException
     {
 
         File file = new File(getFullPathName() + File.separator + newFileName + ".soar");
         FileOperatorNode fon = null;
 
-        if(!okayToCreateReplace(file)) 
+        if(checkCreateReplace(file))
         {
 
-            return null;
+            return;
         }
         //FileNode fn = operatorWindow.createFileNode(newFileName,file.getName());
         fon = operatorWindow.createFileOperatorNode(newFileName, file.getName());
         operatorWindow.addChild(this,fon);
         sourceChildren();
-        return this;
     }
 
     /**
@@ -119,7 +118,7 @@ public class FolderNode extends OperatorNode implements java.io.Serializable
         File rules = new File(getFullPathName() + File.separator + newOperatorName + ".soar");
         OperatorNode on = null;
 
-        if (! okayToCreate(rules)) 
+        if (creationConflict(rules))
         {
 
             return this;
@@ -149,7 +148,7 @@ public class FolderNode extends OperatorNode implements java.io.Serializable
         File rules = new File(getFullPathName() + File.separator + newOperatorName + ".soar");
         SoarOperatorNode ion = null;
 
-        if (! okayToCreate(rules)) 
+        if (creationConflict(rules))
         {
 
             return this;

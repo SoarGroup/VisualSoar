@@ -2,16 +2,13 @@ package edu.umich.soar.visualsoar.parser;
 
 public final class AttributeTest {
 	// Data Members
-	private Test d_test;
+	private final Test d_test;
 	
-	// Constructors
+	// Constructor
 	public AttributeTest(Test test) {
 		d_test = test;
 	}
-	
-	// NOT IMPLEMENTED
-	private AttributeTest() {}
-	
+
 	// Accessors
 	public Test getTest() {
 		return d_test;

@@ -80,7 +80,7 @@ public class DataMapMatcher
             }
         }
         return varMap;
-    }
+    }//matches
 
 
     /**
@@ -483,7 +483,7 @@ public class DataMapMatcher
                         // If attribute is not found, add it
                         if(notFound) 
                         {
-                            Vector v1Vector = new Vector();
+                            Vector<String> v1Vector = new Vector<>();
                             v1Vector.add(currentTriple.getValue().getString());
                             SoarVertex v1 = dataMap.createNewEnumeration(v1Vector);
                             dataMap.addTriple(currentSV, currentTriple.getAttribute().getString(), v1, true, current, currentTriple.getLine());
@@ -497,7 +497,7 @@ public class DataMapMatcher
                             if(attributeEdge.V1() instanceof SoarIdentifierVertex) 
                             {
                                 dataMap.removeTriple((SoarVertex)attributeEdge.V0(), currentTriple.getAttribute().getString(), (SoarVertex)attributeEdge.V1());
-                                Vector v1Vector = new Vector();
+                                Vector<String> v1Vector = new Vector<>();
                                 v1Vector.add(currentTriple.getValue().getString());
                                 SoarVertex v1 = dataMap.createNewEnumeration(v1Vector);
                                 dataMap.addTriple(currentSV, currentTriple.getAttribute().getString(), v1, true, current, currentTriple.getLine());

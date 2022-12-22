@@ -16,7 +16,7 @@ public final class ConditionSide {
 		d_conditions.add(condition);
 	}
 	
-	public final Iterator getConditions() {
+	public final Iterator<Condition> getConditions() {
 		return d_conditions.iterator();
 	}
 }

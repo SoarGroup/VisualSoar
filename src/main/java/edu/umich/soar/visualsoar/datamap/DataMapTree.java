@@ -1,5 +1,19 @@
 package edu.umich.soar.visualsoar.datamap;
 
+import edu.umich.soar.visualsoar.MainFrame;
+import edu.umich.soar.visualsoar.dialogs.*;
+import edu.umich.soar.visualsoar.graph.NamedEdge;
+import edu.umich.soar.visualsoar.graph.SoarIdentifierVertex;
+import edu.umich.soar.visualsoar.graph.SoarVertex;
+import edu.umich.soar.visualsoar.misc.FeedbackListObject;
+import edu.umich.soar.visualsoar.operatorwindow.OperatorNode;
+import edu.umich.soar.visualsoar.operatorwindow.OperatorWindow;
+import edu.umich.soar.visualsoar.parser.ParseException;
+import edu.umich.soar.visualsoar.parser.SoarProduction;
+import edu.umich.soar.visualsoar.parser.TokenMgrError;
+import edu.umich.soar.visualsoar.parser.Triple;
+import edu.umich.soar.visualsoar.util.QueueAsLinkedList;
+
 import javax.swing.*;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreeNode;
@@ -12,21 +26,6 @@ import java.awt.event.*;
 import java.io.IOException;
 import java.util.Enumeration;
 import java.util.Vector;
-
-import edu.umich.soar.visualsoar.MainFrame;
-import edu.umich.soar.visualsoar.dialogs.*;
-import edu.umich.soar.visualsoar.graph.Edge;
-import edu.umich.soar.visualsoar.graph.NamedEdge;
-import edu.umich.soar.visualsoar.graph.SoarIdentifierVertex;
-import edu.umich.soar.visualsoar.graph.SoarVertex;
-import edu.umich.soar.visualsoar.misc.FeedbackListObject;
-import edu.umich.soar.visualsoar.operatorwindow.OperatorNode;
-import edu.umich.soar.visualsoar.operatorwindow.OperatorWindow;
-import edu.umich.soar.visualsoar.parser.ParseException;
-import edu.umich.soar.visualsoar.parser.SoarProduction;
-import edu.umich.soar.visualsoar.parser.TokenMgrError;
-import edu.umich.soar.visualsoar.parser.Triple;
-import edu.umich.soar.visualsoar.util.QueueAsLinkedList;
 
 /**
  * class DataMapTree
@@ -800,19 +799,8 @@ public class DataMapTree extends JTree implements ClipboardOwner
 			 }
 			 catch(ParseException pe)
 			 {
-				 String parseError = pe.toString();
-				 int i = parseError.lastIndexOf("line ");
-				 String lineNum = parseError.substring(i + 5);
-				 i = lineNum.indexOf(',');
-				 lineNum = "(" + lineNum.substring(0, i) + "): ";
-				 String errString = opNode.getFileName() + lineNum + "Unable to search productions due to parse error";
-
-				 //extract line number
-				 int line;
-				 try { line = Integer.parseInt(lineNum); }
-				 catch(NumberFormatException nfe) { line = 0; }
-
-				 vecErrors.add(new FeedbackListObject(opNode, line, errString));
+				 vecErrors.add(new FeedbackListObject("Unable to search productions due to parse error"));
+				 vecErrors.add(opNode.parseParseException(pe));
 			 }
 			 catch(TokenMgrError | IOException tme)
 			 {
@@ -1228,10 +1216,10 @@ public class DataMapTree extends JTree implements ClipboardOwner
 			 visitedVertices[w.getValue()] = true;
 			 if(w.allowsEmanatingEdges()) 
 			 {
-				 Enumeration<Edge> edges = swmm.emanatingEdges(w);
+				 Enumeration<NamedEdge> edges = swmm.emanatingEdges(w);
 				 while(edges.hasMoreElements()) 
 				 {
-					 NamedEdge theEdge = (NamedEdge)edges.nextElement();
+					 NamedEdge theEdge = edges.nextElement();
 					 theEdge.validate();
 					 if(! visitedVertices[theEdge.V1().getValue()]) 
 					 {
@@ -1266,10 +1254,10 @@ public class DataMapTree extends JTree implements ClipboardOwner
 				 visitedVertices[w.getValue()] = true;
 				 if(w.allowsEmanatingEdges()) 
 				 {
-					 Enumeration<Edge> edges = swmm.emanatingEdges(w);
+					 Enumeration<NamedEdge> edges = swmm.emanatingEdges(w);
 					 while(edges.hasMoreElements()) 
 					 {
-						 NamedEdge theEdge = (NamedEdge)edges.nextElement();
+						 NamedEdge theEdge = edges.nextElement();
 						 theEdge.validate();
 						 swmm.notifyListenersOfRemove(theEdge);
 						 swmm.notifyListenersOfAdd(theEdge);
@@ -1308,10 +1296,10 @@ public class DataMapTree extends JTree implements ClipboardOwner
 				 visitedVertices[w.getValue()] = true;
 				 if(w.allowsEmanatingEdges()) 
 				 {
-					 Enumeration<Edge> edges = swmm.emanatingEdges(w);
+					 Enumeration<NamedEdge> edges = swmm.emanatingEdges(w);
 					 while(edges.hasMoreElements()) 
 					 {
-						 NamedEdge ne = (NamedEdge)edges.nextElement();
+						 NamedEdge ne = edges.nextElement();
 						 if(ne.isGenerated()) 
 						 {
 							 swmm.removeTriple((SoarVertex)ne.V0(),ne.getName(),(SoarVertex)ne.V1());
@@ -1363,10 +1351,10 @@ public class DataMapTree extends JTree implements ClipboardOwner
 				 visitedVertices[w.getValue()] = true;
 				 if(w.allowsEmanatingEdges()) 
 				 {
-					 Enumeration<Edge> edges = swmm.emanatingEdges(w);
+					 Enumeration<NamedEdge> edges = swmm.emanatingEdges(w);
 					 while(edges.hasMoreElements()) 
 					 {
-						 NamedEdge theEdge = (NamedEdge)edges.nextElement();
+						 NamedEdge theEdge = edges.nextElement();
 						 String edgeName = theEdge.getName();
 
 						 // if the edge isn't tested and not the output-link, add to error list
@@ -1417,10 +1405,10 @@ public class DataMapTree extends JTree implements ClipboardOwner
 				 visitedVertices[w.getValue()] = true;
 				 if(w.allowsEmanatingEdges()) 
 				 {
-					 Enumeration<Edge> edges = swmm.emanatingEdges(w);
+					 Enumeration<NamedEdge> edges = swmm.emanatingEdges(w);
 					 while(edges.hasMoreElements()) 
 					 {
-						 NamedEdge theEdge = (NamedEdge)edges.nextElement();
+						 NamedEdge theEdge = edges.nextElement();
 						 String edgeName = theEdge.getName();
 
 						 // if the edge isn't created and not the input-link, add to error list
@@ -1471,10 +1459,10 @@ public class DataMapTree extends JTree implements ClipboardOwner
 				 visitedVertices[w.getValue()] = true;
 				 if(w.allowsEmanatingEdges()) 
 				 {
-					 Enumeration<Edge> edges = swmm.emanatingEdges(w);
+					 Enumeration<NamedEdge> edges = swmm.emanatingEdges(w);
 					 while(edges.hasMoreElements()) 
 					 {
-						 NamedEdge theEdge = (NamedEdge)edges.nextElement();
+						 NamedEdge theEdge = edges.nextElement();
 						 String edgeName = theEdge.getName();
 
 						 // if the edge isn't created and not the input-link, add to error list
@@ -1526,10 +1514,10 @@ public class DataMapTree extends JTree implements ClipboardOwner
 				 visitedVertices[w.getValue()] = true;
 				 if(w.allowsEmanatingEdges()) 
 				 {
-					 Enumeration<Edge> edges = swmm.emanatingEdges(w);
+					 Enumeration<NamedEdge> edges = swmm.emanatingEdges(w);
 					 while(edges.hasMoreElements()) 
 					 {
-						 NamedEdge theEdge = (NamedEdge)edges.nextElement();
+						 NamedEdge theEdge = edges.nextElement();
 						 String edgeName = theEdge.getName();
 
 						 // if the edge is created, not tested, add to error list
@@ -1580,10 +1568,10 @@ public class DataMapTree extends JTree implements ClipboardOwner
 				 visitedVertices[w.getValue()] = true;
 				 if(w.allowsEmanatingEdges()) 
 				 {
-					 Enumeration<Edge> edges = swmm.emanatingEdges(w);
+					 Enumeration<NamedEdge> edges = swmm.emanatingEdges(w);
 					 while(edges.hasMoreElements()) 
 					 {
-						 NamedEdge theEdge = (NamedEdge)edges.nextElement();
+						 NamedEdge theEdge = edges.nextElement();
 						 String edgeName = theEdge.getName();
 
 						 // if the edge isn't created and not the input-link, add to error list

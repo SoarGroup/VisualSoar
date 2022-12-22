@@ -11,6 +11,7 @@ import edu.umich.soar.visualsoar.parser.TokenMgrError;
 
 import java.awt.datatransfer.*;
 import javax.swing.*;
+import javax.swing.tree.TreeNode;
 import java.awt.event.*;
 import java.awt.Component;
 import java.util.*;
@@ -19,7 +20,16 @@ import java.io.*;
 
 /**
  * This is the basis class for which all operator nodes are
- * derived
+ * derived. Known sub-classes:
+ * @see FolderNode
+ * @see OperatorRootNode (via FolderNode)
+ * @see FileNode
+ * @see LinkNode (via FileNode)
+ * @see SoarOperatorNode  (via FileNode)
+ * @see OperatorOperatorNode (via SoaorOperatorNode)
+ * @see ImpasseOperatorNode (via SoarOperatorNode)
+ * @see FileOperatorNode (via SoarOperatorNode)
+ *
  * @author Brad Jones
  * @version 0.5a 5 Aug 1999
  */
@@ -178,8 +188,8 @@ public abstract class OperatorNode extends VSTreeNode implements java.io.Seriali
 		generateDataMapItem.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ae)
             {
-                java.util.List parseErrors = new LinkedList();
-                Vector vecGenerations = new Vector();
+                Vector<FeedbackListObject> parseErrors = new Vector<>();
+                Vector<FeedbackListObject> vecGenerations = new Vector<>();
 
                 //Generate the new entries
 				OperatorWindow ow = (OperatorWindow)contextMenu.getInvoker();
@@ -241,30 +251,46 @@ public abstract class OperatorNode extends VSTreeNode implements java.io.Seriali
   /**
    * @return whether an openDataMap() call on this node will work
    */
-	public boolean hasDataMap()
+	public boolean noDataMap()
     {
-		return false;
+		return true;
 	}
 
+	/**
+	 * getLineNumFromErr
+	 *
+	 * helper for the exception parsers (below) that extracts the
+	 * line number from an error string
+	 */
+	private static int getLineNumFromErr(String errMsg) {
+		int i = errMsg.lastIndexOf("line ");
+		String lineNumStr = errMsg.substring(i + 5);
+		i = lineNumStr.indexOf(',');
+		return Integer.parseInt(lineNumStr.substring(0, i));
+	}
 
     /**
      * Given a parse exception discovered in this node, this function converts
      * it into a FeedbackListObject that can be placed in the feedback window.
+	 *
+	 * @param node the OperatorNode that contains the parse error
      * @param pe the ParseException to parse
      * @return the generated FeedbackListObject
      */
-    public FeedbackListObject parseParseException(ParseException pe)
+    public static FeedbackListObject parseParseException(OperatorNode node, ParseException pe)
     {
         String parseError = pe.toString();
-        int i = parseError.lastIndexOf("line ");
-        String lineNumStr = parseError.substring(i + 5);
-        i = lineNumStr.indexOf(',');
-        int lineNum = Integer.parseInt(lineNumStr.substring(0, i));
-        lineNumStr = "(" + lineNumStr.substring(0, i) + "): ";
-        String errString = getFileName() + lineNumStr + pe.toString();
+        int lineNum = getLineNumFromErr(parseError);
+        String lineNumStr = "(" + lineNum + "): ";
+        String errString = node.getFileName() + lineNumStr + parseError;
 
-        return new FeedbackListObject(this, lineNum, errString);
+        return new FeedbackListObject(node, lineNum, errString, true, true);
     }
+
+    /** non-static version of the above that uses 'this' for the opNode */
+	public FeedbackListObject parseParseException(ParseException pe) {
+		return parseParseException(this, pe);
+	}
 
     /**
      * Given a lexical error discovered in this node, this function converts
@@ -277,14 +303,11 @@ public abstract class OperatorNode extends VSTreeNode implements java.io.Seriali
         String parseError = tme.toString();
 
         //Extract the line number
-        int i = parseError.lastIndexOf("line ");
-        String lineNumStr = parseError.substring(i + 5);
-        i = lineNumStr.indexOf(',');
-        int lineNum = Integer.parseInt(lineNumStr.substring(0, i));
-        lineNumStr = "(" + lineNumStr.substring(0, i) + "): ";
+		int lineNum = getLineNumFromErr(parseError);
+        String lineNumStr = "(" + lineNum + "): ";
 
         //Extract the offending characters
-        i = parseError.lastIndexOf("Encountered: \"");
+        int i = parseError.lastIndexOf("Encountered: \"");
         String tokenString = parseError.substring(i + 14);
         i = tokenString.indexOf('\"');
         tokenString = tokenString.substring(0, i);
@@ -310,19 +333,12 @@ public abstract class OperatorNode extends VSTreeNode implements java.io.Seriali
         return false;           // no datamap errors found
     }
     
-		
-	public boolean isDragOk(int action) {
-		return false;
-	}
-
-
-
 	public DataFlavor isDropOk(int action,DataFlavor[] dataFlavor) {
 		return null;
 	}
 
 	public Vector<String> getProdNames() {
-		return new Vector<String>();
+		return new Vector<>();
 	}
 
 	public int getLineNumForString(String target) { return 0; }
@@ -344,27 +360,27 @@ public abstract class OperatorNode extends VSTreeNode implements java.io.Seriali
 	 * @return a String that is a unique name
 	 */
 	public String getUniqueName() {
-		String uniqueName = "";
+		StringBuilder uniqueName = new StringBuilder();
 		javax.swing.tree.TreeNode[] path = getPath();
 		
 		for (int i = 1; i < path.length; i++) {
-			uniqueName = uniqueName + path[i].toString();
+			uniqueName.append(path[i].toString());
 			int atPos = uniqueName.indexOf("@");
 			if(atPos != -1)
-				uniqueName = uniqueName.substring(0,atPos-1);
+				uniqueName = new StringBuilder(uniqueName.substring(0, atPos - 1));
 			if ((i + 1) < path.length) 
-				uniqueName = uniqueName + File.separator;
+				uniqueName.append(File.separator);
 		}
 		
-		return uniqueName;
+		return uniqueName.toString();
 	}
 
 	/**
 	 * This is an abstract method that must be implemented by
 	 * every concrete subclass, this method enables and disables
-	 * methods on the context menu depending on whether or not
+	 * methods on the context menu depending on whether
 	 * the node clicked upon supports that operation
-	 * @param c the component that owns the menu 
+	 *
 	 * @param c the owner of the context menu, should be the OperatorWindow
 	 * @param x the horizontal position on the screen where the context menu should
 	 * be displayed
@@ -382,22 +398,19 @@ public abstract class OperatorNode extends VSTreeNode implements java.io.Seriali
 	}
 
 	/**
-   * Recoursively Deletes the operator and  any children it may have
-   */
+     * Recursively Deletes the operator and  any children it may have
+     */
 	static void recursiveDelete(File theFile) {
 		File[] children = theFile.listFiles();
-		File aChild;
-		
-		if ((children == null) || (children.length == 0)) {
-			theFile.delete();
-		}
-		else {
-			for (int i = 0; i < children.length; i++) {
-				recursiveDelete(children[i]);
+
+		//Recursive case:
+		if ((children != null) && (children.length > 0)) {
+			for (File child : children) {
+				recursiveDelete(child);
 			}
-			
-			theFile.delete();
 		}
+
+		theFile.delete();
 	}
 	
 	protected void renameToDeleted(File oldFile) {
@@ -416,25 +429,18 @@ public abstract class OperatorNode extends VSTreeNode implements java.io.Seriali
 		oldFile.renameTo(newFile);
 	}
 		
-	/**
-	 * This method is called by subclasses when they want to add files or folders
-	 * This performs a check for conflicts and prompts the user appropriately
-	 * @return true if the file or folder can be created, otherwise return false
-	 */
-	 
-	public boolean okayToCreate(File newFile) { 
-		return okayToCreate(newFile, false);
-	} 
-
 
   /**
-   * This method is called when operator window is requested to add a file.
+   * checkCreateReplace
+   *
+   * is called when operator window is requested to add a file.
    * Method checks to see if a file with that name already exists.  If so,
    * allows the user to use the existing file or create a new file.
+   *
    * @return true if the file can be created, otherwise return false
    */
 
-  public boolean okayToCreateReplace(File newFile) throws IOException{
+  public boolean checkCreateReplace(File newFile) throws IOException{
     String nodeName = newFile.getName();
 		int endPos = nodeName.indexOf('.');
     if (endPos != -1) {
@@ -447,28 +453,31 @@ public abstract class OperatorNode extends VSTreeNode implements java.io.Seriali
 
       switch (faeDialog.wasApproved()) {
         case 0:     // Cancel add file command
-          return false;
-        case 1:     // Use Existing file
           return true;
+        case 1:     // Use Existing file
+          return false;
         case 2:     // Replace with new file
           newFile.delete(); // eliminate old file
           newFile.createNewFile();
-          return true;
+          return false;
       }
     }
     newFile.createNewFile();
-    return true;
+    return false;
   }
 
   /**
-   * Similar to okayToCreate, but does necessary checks for a high level operator
+   * This method is called by subclasses when they want to add files or folders
+   * This performs a check for conflicts and prompts the user appropriately
+   *
+   * @return true if the file or folder can not be created, otherwise return false
    */
-	public boolean okayToCreate(File newFile, boolean creatingHLOp) {
+	public boolean creationConflict(File newFile, boolean creatingHLOp) {
 		String temp;
 		String nodeName = newFile.getName();
 		int endPos = nodeName.indexOf('.');
-		java.util.Enumeration kids;
-		
+		Enumeration<? extends TreeNode> kids;
+
 		if (! creatingHLOp) {
 			// check that no conflicting nodes already exist
 			if (endPos != -1) {
@@ -477,7 +486,7 @@ public abstract class OperatorNode extends VSTreeNode implements java.io.Seriali
 			if (newFile.getParentFile().getName().equals(toString())) { // this is a new, check against children
 				kids = children();
 			}
-			else { // this is a rename, check against sibs
+			else { // this is a rename operation, check against siblings
 				kids = getParent().children();
 			}
 			while (kids.hasMoreElements()) {
@@ -495,15 +504,16 @@ public abstract class OperatorNode extends VSTreeNode implements java.io.Seriali
 		if (newFile.exists()) {
 		
 			if (newFile.isDirectory()) {
-				
-				if (newFile.listFiles().length == 0) { // empty folder
+
+				File[] deleteThese = newFile.listFiles();
+				if ((deleteThese != null) && (deleteThese.length == 0)) { // empty folder
 					newFile.delete(); // to eliminate rename conflicts
 				}
 				else {
 					JOptionPane.showMessageDialog(MainFrame.getMainFrame(), 
-						"A non-empty folder \n\"" + newFile.toString() + "\"\n already exists", 
+						"A non-empty folder \n\"" + newFile + "\"\n already exists",
 						"Folder Conflict", JOptionPane.ERROR_MESSAGE);
-					return false;
+					return true;
 				}
 			}
 			else if (newFile.length() == 0) { // empty file
@@ -517,24 +527,30 @@ public abstract class OperatorNode extends VSTreeNode implements java.io.Seriali
 				switch (result) {
 					case JOptionPane.OK_OPTION:
 						newFile.delete();
-						return true;
+						return false;
 					case JOptionPane.CANCEL_OPTION:
 					case JOptionPane.CLOSED_OPTION:
-						return false;
+						return true;
 				}
 			}
 		}
 		
-		return true;
-	}		
-	
+		return false;
+	}
+
+	/**
+	 * convenience overload for the above
+	 */
+	public boolean creationConflict(File newFile) {
+		return creationConflict(newFile, false);
+	}
 
 	/**
 	 * If the node supports this operation it should be overloaded in the subclass
 	 * if this function gets called it means that the node did not properly overload
 	 * the function, so the user just told the program to do something that it cannot
 	 * all this function does is print out an error message to that effect
-	 * @param operatorWindow
+	 *
 	 * @param newOperatorName the name of the new operator to add
 	 */
 	public OperatorNode addSuboperator(OperatorWindow operatorWindow, SoarWorkingMemoryModel swmm, String newOperatorName) throws IOException {
@@ -547,7 +563,7 @@ public abstract class OperatorNode extends VSTreeNode implements java.io.Seriali
 	 * if this function gets called it means that the node did not properly overload
 	 * the function, so the user just told the program to do something that it cannot
 	 * all this function does is print out an error message to that effect
-	 * @param operatorWindow
+	 *
 	 * @param newOperatorName the name of the new operator to add
 	 */
   public OperatorNode addImpasseOperator(OperatorWindow operatorWindow, SoarWorkingMemoryModel swmm, String newOperatorName) throws IOException {
@@ -561,9 +577,8 @@ public abstract class OperatorNode extends VSTreeNode implements java.io.Seriali
 	 * the function, so the user just told the program to do something that it cannot
 	 * all this function does is print out an error message to that effect
 	 */
-	public OperatorNode addFileOperator(OperatorWindow operatorWindow, SoarWorkingMemoryModel swmm, String newFileName) throws IOException {
+	public void addFileOperator(OperatorWindow operatorWindow, SoarWorkingMemoryModel swmm, String newFileName) throws IOException {
 		System.err.println("addFileOperator: This should never get called");
-    return null;
 	}
 
   /**
@@ -591,13 +606,6 @@ public abstract class OperatorNode extends VSTreeNode implements java.io.Seriali
 	public void notifyDeletionOfChild(OperatorWindow operatorWindow,OperatorNode child) {
 	}
 	
-	/**
-	 * An ancestor has been renamed
-	 * @param oldFilePath the ancestor's old File path
-	 * @param newFilePath the ancestor's new File path
-	 */
-	public void notifyRenameOfAncestor(String oldFilePath, String newFilePath) {}
-		
 	/**
 	 * If the node supports this operation it should be overloaded in the subclass
 	 * if this function gets called it means that the node did not properly overload
@@ -638,17 +646,11 @@ public abstract class OperatorNode extends VSTreeNode implements java.io.Seriali
     public void openRulesToString(MainFrame pw, int line, String assocString) {}
 	
 	/**
-	 * This is the default implementation of what
-	 * a node should do when the associated rule editor is cleared - nothing
-	 */
-	public void clearRuleEditor() {}
-		
-	/**
 	 * If the node supports this operation it should be overloaded in the subclass
 	 * if this function gets called it means that the node did not properly overload
 	 * the function, so the user just told the program to do something that it cannot
 	 * all this function does is print out an error message to that effect
-	 * @param operatorWindow
+	 *
 	 * @param newName the new name that the user wants this node to be called
 	 */
 	public void rename(OperatorWindow operatorWindow, String newName) throws IOException {
@@ -662,17 +664,18 @@ public abstract class OperatorNode extends VSTreeNode implements java.io.Seriali
 	protected abstract String getFullPathName();
 
 	/**
-   * Exports the operator and sub operators to a .vse file
-   * @fileName the .vse file that is being written too
-   */
+     * Exports the operator and sub operators to a .vse file
+	 *
+     * @param fileName the .vse file that is being written too
+     */
 	public void export(File fileName) throws IOException {
 		Writer w = new FileWriter(fileName);
 		
 		int childCount = 0;
 		boolean linkNodeFound = false;
-		Enumeration e = preorderEnumeration();
-		while(e.hasMoreElements()) {
-			OperatorNode node = (OperatorNode)e.nextElement();
+		Enumeration<TreeNode> nodes = preorderEnumeration();
+		while(nodes.hasMoreElements()) {
+			OperatorNode node = (OperatorNode)nodes.nextElement();
 			if(node instanceof LinkNode)
 				linkNodeFound = true;
 			++childCount;
@@ -695,42 +698,43 @@ public abstract class OperatorNode extends VSTreeNode implements java.io.Seriali
 		// given a pointer you can lookup the id for the that node
 		// this is used for parent id lookup
 		Hashtable<OperatorNode, Integer> ht = new Hashtable<>();
-		Integer nodeID = 0;
+		int nodeID = 0;
 		
-		// Doing this enumeration guarentees that we will never reach a
+		// Doing this enumeration guarantees that we will never reach a
 		// child without first processing its parent
-		e = preorderEnumeration();
+		nodes = preorderEnumeration();
 
-		OperatorNode node = (OperatorNode)e.nextElement();
+		OperatorNode node = (OperatorNode)nodes.nextElement();
 		ht.put(node, nodeID);
 
 		// special case for the root node
 		// write out tree specific stuff
 		w.write("-1" + TAB);
 		
-		// tell the node to write it self
+		// tell the node to write itself
 		node.exportDesc(w);
 		
 		// terminate the line
 		w.write("\n");
 
-		while(e.hasMoreElements()) {
-			nodeID = nodeID.intValue() + 1;
-			node = (OperatorNode)e.nextElement();
+		while(nodes.hasMoreElements()) {
+			nodeID++;
+			node = (OperatorNode)nodes.nextElement();
 			ht.put(node, nodeID);
 			
 			// Again the same technique write out the tree information, then the node specific stuff, then
 			// terminate the line
-			w.write(ht.get(node.getParent()) + TAB);
+			OperatorNode parent = (OperatorNode) node.getParent();
+			w.write(ht.get(parent) + TAB);
 			node.exportDesc(w);
 			w.write("\n");
 		}
 		
 		w.write("RULES\n");
-		e = preorderEnumeration();
-		while(e.hasMoreElements()) {
-			node = (OperatorNode)e.nextElement();
-			node.exportFile(w,((Integer)ht.get(node)).intValue());
+		nodes = preorderEnumeration();
+		while(nodes.hasMoreElements()) {
+			node = (OperatorNode)nodes.nextElement();
+			node.exportFile(w, ht.get(node));
 		}
 		
 		exportDataMap(w);
@@ -752,11 +756,11 @@ public abstract class OperatorNode extends VSTreeNode implements java.io.Seriali
 	public void importFunc(Reader r,OperatorWindow operatorWindow,SoarWorkingMemoryModel swmm) throws IOException, NumberFormatException {}
 	
 	public abstract void copyStructures(File folderToWriteTo) throws IOException;
-  public abstract void searchTestDataMap(SoarWorkingMemoryModel swmm,  Vector errors);
-  public abstract void searchCreateDataMap(SoarWorkingMemoryModel swmm, Vector errors);
-  public abstract void searchTestNoCreateDataMap(SoarWorkingMemoryModel swmm, Vector errors);
-  public abstract void searchCreateNoTestDataMap(SoarWorkingMemoryModel swmm, Vector errors);
-  public abstract void searchNoTestNoCreateDataMap(SoarWorkingMemoryModel swmm, Vector errors);
+  public abstract void searchTestDataMap(SoarWorkingMemoryModel swmm,  Vector<FeedbackListObject> errors);
+  public abstract void searchCreateDataMap(SoarWorkingMemoryModel swmm, Vector<FeedbackListObject> errors);
+  public abstract void searchTestNoCreateDataMap(SoarWorkingMemoryModel swmm, Vector<FeedbackListObject> errors);
+  public abstract void searchCreateNoTestDataMap(SoarWorkingMemoryModel swmm, Vector<FeedbackListObject> errors);
+  public abstract void searchNoTestNoCreateDataMap(SoarWorkingMemoryModel swmm, Vector<FeedbackListObject> errors);
 
 	public abstract void source(Writer w) throws IOException;
 	public abstract void sourceChildren() throws IOException;

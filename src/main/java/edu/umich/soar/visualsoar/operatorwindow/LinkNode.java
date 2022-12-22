@@ -8,6 +8,15 @@ import java.io.*;
 import java.util.Enumeration;
 import java.util.Map;
 
+/**
+ * class LinkNode
+ *
+ * represents a node in the operator hierarchy pane that is linked as
+ * a child of this one.  Links can be created via drag and drop.
+ *
+ * NOTE:  At some point in the past, LinkNodes were disabled (not accessible
+ * via the UI).  They remain in that state as of Dec 2022.
+ */
 public class LinkNode extends FileNode {
 	SoarOperatorNode linkedToNode;
 	int linkedToNodeId;

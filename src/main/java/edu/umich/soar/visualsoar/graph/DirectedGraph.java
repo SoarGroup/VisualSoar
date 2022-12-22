@@ -1,11 +1,13 @@
 package edu.umich.soar.visualsoar.graph;
+
 import edu.umich.soar.visualsoar.datamap.SoarWorkingMemoryModel;
 import edu.umich.soar.visualsoar.util.CountingVisitor;
-import edu.umich.soar.visualsoar.util.PreOrder;
 import edu.umich.soar.visualsoar.util.QueueAsLinkedList;
 import edu.umich.soar.visualsoar.util.Visitor;
-import java.util.*;
-import javax.swing.*;
+
+import java.util.Enumeration;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * This class is a graph class that provides an interface for different kinds of graphs
@@ -13,20 +15,8 @@ import javax.swing.*;
  * @author Brad Jones
  */
 public abstract class DirectedGraph extends Graph {
-///////////////////////////////////////////////////////////////////
-// Methods
-///////////////////////////////////////////////////////////////////
-	public boolean isConnected() {
-		for(int v = 0; v < numberOfVertices; ++v) {
-			CountingVisitor visitor = new CountingVisitor();
-			depthFirstTraversal(new PreOrder(visitor), selectVertex(v));
-			if (visitor.count() != numberOfVertices)
-				return false;
-		}
-		return true;
-	}
-	
-	public boolean isCyclic() {
+
+    public boolean isCyclic() {
 		CountingVisitor visitor = new CountingVisitor();
 		topologicalOrderTraversal(visitor);
 		return (visitor.count() != numberOfVertices);
@@ -50,7 +40,7 @@ public abstract class DirectedGraph extends Graph {
 		while (!queue.isEmpty() && !visitor.isDone()) {
 			Vertex vertex = (Vertex)queue.dequeue();
 			visitor.visit(vertex);
-			Enumeration<Edge> q = emanatingEdges(vertex);
+			Enumeration<NamedEdge> q = emanatingEdges(vertex);
 			while(q.hasMoreElements()) {
 				Edge edge = q.nextElement();
 				Vertex to = edge.V1();
@@ -145,6 +135,6 @@ public abstract class DirectedGraph extends Graph {
 	 * and adds them to a list of holes so that they can be recycled for later
 	 * use
 	 */
-	 public abstract void reduce(List listOfStartVertices);
+	 public abstract void reduce(List<Vertex> listOfStartVertices);
 	 public abstract void resolve();
 }

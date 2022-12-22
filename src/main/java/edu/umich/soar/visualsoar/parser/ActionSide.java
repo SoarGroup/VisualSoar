@@ -4,7 +4,7 @@ import java.util.*;
 
 public class ActionSide {
 	// Data Members
-	private List d_actions = new LinkedList();
+	private final List<Action> d_actions = new LinkedList<>();
 	
 	// Constructors
 	public ActionSide() {}
@@ -14,7 +14,7 @@ public class ActionSide {
 		d_actions.add(action);
 	}
 	
-	public final Iterator getActions() {
+	public final Iterator<Action> getActions() {
 		return d_actions.iterator();
 	}	
 }

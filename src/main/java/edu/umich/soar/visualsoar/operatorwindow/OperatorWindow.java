@@ -955,15 +955,8 @@ public class OperatorWindow extends JTree
             }
             catch(ParseException pe) 
             {
-                String errString;
-                String parseError = pe.toString();
-                int i = parseError.lastIndexOf("line ");
-                String lineNum = parseError.substring(i + 5);
-                i = lineNum.indexOf(',');
-                lineNum = "(" + lineNum.substring(0, i) + "): ";
-                errString = currentNode.getFileName() + lineNum + "Unable to check productions due to parse error";
-                System.out.println(errString);
-                errors.add(errString);
+                errors.add(new FeedbackListObject("Unable to check productions due to parse error"));
+                errors.add(currentNode.parseParseException(pe));
             }
             catch(IOException ioe) 
             {
@@ -1002,8 +995,8 @@ public class OperatorWindow extends JTree
    *                       list of FeedbackListObjects for easy reporting
    */
 	public void generateDataMap(OperatorNode opNode,
-                                java.util.List parseErrors,
-                                Vector vecGenerations)
+                                Vector<FeedbackListObject> parseErrors,
+                                Vector<FeedbackListObject> vecGenerations)
     {
         if (opNode == null)
         {
@@ -1012,34 +1005,23 @@ public class OperatorWindow extends JTree
         }
 
         //Parse all the productions in the file
-        Vector parsedProds = null;
+        Vector<SoarProduction> parsedProds = null;
         try 
         {
             parsedProds = opNode.parseProductions();
         }
         catch(ParseException pe) 
         {
-            String errString;
-            String parseError = pe.toString();
-            int i = parseError.lastIndexOf("line ");
-            String lineNum = parseError.substring(i + 5);
-            i = lineNum.indexOf(',');
-            lineNum = "(" + lineNum.substring(0, i) + "): ";
-            errString = opNode.getFileName() + lineNum + "Unable to generate datamap due to parse error";
-            parseErrors.add(errString);
+            parseErrors.add(new FeedbackListObject("Unable to generate datamap due to parse error"));
+            parseErrors.add(opNode.parseParseException(pe));
         }
-        catch(TokenMgrError tme) 
+        catch(TokenMgrError | IOException tme)
         {
             tme.printStackTrace();
         }
-        catch(IOException ioe) 
-        {
-            ioe.printStackTrace();
-        }
 
         //Do not continue if there were parse errors
-        if (parsedProds == null)  
-        {
+        if (parsedProds == null) {
             return;
         }
 
@@ -1079,7 +1061,7 @@ public class OperatorWindow extends JTree
      * this failed
      */
     public void generateDataMapForOneError(FeedbackListObject errToFix,
-                                             Vector<FeedbackListObject> vecGenerations)
+                                           Vector<FeedbackListObject> vecGenerations)
     {
         OperatorNode opNode = errToFix.getNode();
         if (opNode == null) {

@@ -1,20 +1,15 @@
 package edu.umich.soar.visualsoar.operatorwindow;
 
-import edu.umich.soar.visualsoar.MainFrame;
 import edu.umich.soar.visualsoar.datamap.DataMap;
 import edu.umich.soar.visualsoar.datamap.SoarWorkingMemoryModel;
 import edu.umich.soar.visualsoar.graph.EnumerationVertex;
 import edu.umich.soar.visualsoar.graph.NamedEdge;
 import edu.umich.soar.visualsoar.graph.SoarIdentifierVertex;
 import edu.umich.soar.visualsoar.graph.SoarVertex;
-import edu.umich.soar.visualsoar.parser.ParseException;
-import edu.umich.soar.visualsoar.ruleeditor.RuleEditor;
-import javax.swing.tree.*;
+
 import java.io.*;
 import java.awt.Component;
-import java.awt.datatransfer.DataFlavor;
 import java.util.*;
-import javax.swing.JOptionPane;
 
 
 /**
@@ -173,7 +168,7 @@ class OperatorOperatorNode extends SoarOperatorNode {
          */
         //Find the correct datamap
         OperatorNode node = (OperatorNode)getParent();
-        while(!node.hasDataMap())
+        while(node.noDataMap())
         {
             node = (OperatorNode)node.getParent();
         }

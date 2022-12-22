@@ -4,9 +4,9 @@ import java.util.*;
 
 public final class ConditionForOneIdentifier {
 	// Data Members
-	private boolean d_hasState;
-	private Pair d_variable;
-	private List d_attributeValueTests = new LinkedList();
+	private final boolean d_hasState;
+	private final Pair d_variable;
+	private final List<AttributeValueTest> d_attributeValueTests = new LinkedList<>();
 	
 	// Constructor
 	public ConditionForOneIdentifier(boolean hasState,Pair variable) {
@@ -15,19 +15,19 @@ public final class ConditionForOneIdentifier {
 	}
 		
 	// Accessor
-	public final boolean hasState() {
+	public boolean hasState() {
 		return d_hasState;
 	}
 	
-	public final Pair getVariable() {
+	public Pair getVariable() {
 		return d_variable;
 	}
 	
-	public final void add(AttributeValueTest avt) {
+	public void add(AttributeValueTest avt) {
 		d_attributeValueTests.add(avt);
 	}
 	
-	public final Iterator getAttributeValueTests() {
+	public Iterator<AttributeValueTest> getAttributeValueTests() {
 		return d_attributeValueTests.iterator();
 	}
 }

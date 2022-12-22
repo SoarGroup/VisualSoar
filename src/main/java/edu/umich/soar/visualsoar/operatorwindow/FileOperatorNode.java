@@ -1,16 +1,11 @@
 package edu.umich.soar.visualsoar.operatorwindow;
 
-import edu.umich.soar.visualsoar.MainFrame;
 import edu.umich.soar.visualsoar.datamap.SoarWorkingMemoryModel;
 import edu.umich.soar.visualsoar.graph.SoarIdentifierVertex;
-import edu.umich.soar.visualsoar.parser.ParseException;
-import edu.umich.soar.visualsoar.ruleeditor.RuleEditor;
-import javax.swing.tree.*;
+
 import java.io.*;
 import java.awt.Component;
-import java.awt.datatransfer.DataFlavor;
 import java.util.*;
-import javax.swing.JOptionPane;
 
 
 /**
@@ -116,7 +111,7 @@ public class FileOperatorNode extends SoarOperatorNode {
         
         // Create the Folder
         File folder = new File(parent.getFullPathName() + File.separator + name);
-        if (!okayToCreate(folder, true))
+        if (creationConflict(folder, true))
         return;
         if (!folder.mkdir()) throw new IOException();
 

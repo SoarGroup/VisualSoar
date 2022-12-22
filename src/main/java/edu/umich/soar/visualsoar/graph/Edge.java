@@ -3,6 +3,11 @@ package edu.umich.soar.visualsoar.graph;
 /**
  * This class represents an edge in a graph
  * it is based on Object-Oriented Design patterns in C++, later converted to Java
+ *
+ * TODO:  Why does this class exist?  The only sub-class is NamedEdge and
+ * this class is never used directly.
+ *
+ * @see NamedEdge
  * @author Brad Jones
  */
 

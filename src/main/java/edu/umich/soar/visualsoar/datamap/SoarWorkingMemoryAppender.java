@@ -18,7 +18,7 @@ public class SoarWorkingMemoryAppender {
 				}
 				else if (type.equals("ENUMERATION")) {
 					int enumerationSize = ReaderUtils.getInteger(fr);
-					Vector v = new Vector();
+					Vector<String> v = new Vector<>();
 					for(int j = 0; j < enumerationSize; ++j) 
 						v.add(ReaderUtils.getWord(fr));
 					vertexToAdd = swmm.createNewEnumeration(v);

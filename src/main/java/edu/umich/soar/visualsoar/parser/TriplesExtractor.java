@@ -1,10 +1,9 @@
 package edu.umich.soar.visualsoar.parser;
+
 import java.util.*;
 
-import edu.umich.soar.visualsoar.util.QueueAsLinkedList;
-
 /**
- * This class extracts triples from the passed in soar production
+ * This class extracts triples from a given Soar production
  * it ignores the condition/action side information it also ignores
  * any relation besides equals, it is not sensitive to negations
  * @author Brad Jones
@@ -15,16 +14,12 @@ public class TriplesExtractor {
 // Data Members
 /////////////////////////////////////////////////////////////////////////////
 	private int d_currentUnnamedVar = 0;
-	private List d_triples = new LinkedList();
-	private SoarProduction d_soarProduction;
-	private Set d_variables = new TreeSet();
-	private Set d_stateVariables = new TreeSet();
+	private final Vector<Triple> d_triples = new Vector<>();
+	private final SoarProduction d_soarProduction;
+	private final Set<Pair> d_variables = new TreeSet<>();
+	private final Set<Pair> d_stateVariables = new TreeSet<>();
 	private TripleFactory d_tripleFactory;
-	private Map d_boundMap;
-	
-// Not Implemented
-	private TriplesExtractor() {}
-	
+
 /////////////////////////////////////////////////////////////////////////////
 // Constructors
 /////////////////////////////////////////////////////////////////////////////
@@ -47,16 +42,12 @@ public class TriplesExtractor {
 /////////////////////////////////////////////////////////////////////////////
 // Accessors
 /////////////////////////////////////////////////////////////////////////////
-	public Iterator triples() {
+	public Iterator<Triple> triples() {
 		return d_triples.iterator();
 	}
 	
-	public Iterator variables() {
+	public Iterator<Pair> variables() {
 		return d_variables.iterator();
-	}
-	
-	public Iterator stateVariables() {
-		return d_stateVariables.iterator();
 	}
 	
 	public int getStateVariableCount() {
@@ -64,136 +55,64 @@ public class TriplesExtractor {
 	}
 	
 	public Pair stateVariable() {
-		Iterator i = d_stateVariables.iterator();
+		Iterator<Pair> i = d_stateVariables.iterator();
 		if(i.hasNext())
-			return (Pair)i.next();
+			return i.next();
 		else
 			return null;
-		
-	}
-	
-	public int getProductionStartLine() {
-		return d_soarProduction.getStartLine();
-	}
-	
-	public String getProductionName() {
-		return d_soarProduction.getName();
-	}
-	
-	public boolean isBound(String variable) {
-		if(d_boundMap == null) {
-			d_boundMap = new TreeMap();
-			for(Iterator i = variables(); i.hasNext();) {
-				Pair p = (Pair)i.next();
-				String varName = p.getString();
-				for(Iterator j = triples(); j.hasNext();) {
-					CoverageTriple ct = (CoverageTriple)j.next();
-					if(varName.equals(ct.getVariable().getString())  || 
-					   varName.equals(ct.getAttribute().getString()) || 
-					   varName.equals(ct.getValue().getString())) {
-						if(ct.isChecking()) {
-							d_boundMap.put(varName,Boolean.TRUE);
-						}
-						else {
-							if(d_boundMap.get(varName) == null) {
-								d_boundMap.put(varName,Boolean.FALSE);
-							}
-						}
-					}
-				}
-			}
-		}
-		return ((Boolean)d_boundMap.get(variable)).booleanValue();
-	}
-	
-	
-/////////////////////////////////////////////////////////////////////////////
-// Manipulators
-/////////////////////////////////////////////////////////////////////////////	
-	public void sortTriples(List errors) {
-		if(d_stateVariables.size() != 1) {
-			errors.add(d_soarProduction.getName() + "(" + d_soarProduction.getStartLine() + "): " 
-					   + "productions with only one state variable can be checked.");
-			d_triples = new LinkedList();
-			d_variables.clear();
-			d_stateVariables.clear();
-			return;
-		}
-		List sorted = new LinkedList();
-		edu.umich.soar.visualsoar.util.Queue variables = new QueueAsLinkedList();
-		variables.enqueue(d_stateVariables.iterator().next());
-		while(!variables.isEmpty()) {
-			String currentVar = (String)variables.dequeue();
-			Iterator i = d_triples.iterator();
-			while(i.hasNext()) {
-				Triple t = (Triple)i.next();
-				if (t.getVariable().equals(currentVar)) {
-					sorted.add(t);
-					i.remove(); 	
-					if (TripleUtils.isVariable(t.getValue().getString()))
-						variables.enqueue(t.getValue());
-				}
-			}
-		}
-		
-		if (!d_triples.isEmpty()) {
-			errors.add(d_soarProduction.getName() + "(" + d_soarProduction.getStartLine() 
-						+ "): variable(s) not connected to state");
-		}
-		d_triples = sorted;
 	}
 	
 	// Implementation Functions
 	private void extractTriples() {
 		// Extract Triples from the condition side
-		Iterator i = d_soarProduction.getConditionSide().getConditions();
-		while(i.hasNext())
-			d_triples.addAll(extractTriples(((Condition)i.next()).getPositiveCondition()) );
+		Iterator<Condition> condIter = d_soarProduction.getConditionSide().getConditions();
+		while(condIter.hasNext())
+			d_triples.addAll(extractTriples(condIter.next().getPositiveCondition()) );
 			
 		// Extract Triples from the action side
-		i = d_soarProduction.getActionSide().getActions();
-		while(i.hasNext()) {
-			Action a = (Action)i.next();
+		Iterator<Action> actIter = d_soarProduction.getActionSide().getActions();
+		while(actIter.hasNext()) {
+			Action a = actIter.next();
 			if(a.isVarAttrValMake()) 
 				d_triples.addAll(extractTriples(a.getVarAttrValMake()));
 		}		
-	}
+	}//extractTriples
 	
-	private List extractTriples(PositiveCondition pc) {
+	private List<Triple> extractTriples(PositiveCondition pc) {
 		// If the this positive condition is a conjunctions then extract
 		// all the positive conditions out of it and recursively
 		// interpret those
 		if(pc.isConjunction()) {
-			List triples = new LinkedList();
-			Iterator i = pc.getConjunction();
+			List<Triple> triples = new LinkedList<>();
+			Iterator<Condition> i = pc.getConjunction();
 			while(i.hasNext()) 
-				triples.addAll(extractTriples(((Condition)i.next()).getPositiveCondition()));
+				triples.addAll(extractTriples((i.next()).getPositiveCondition()));
 			return triples;
 		}
 		else {
 		// Just extract the condition for one identifier
 			return extractTriples(pc.getConditionForOneIdentifier());
 		}
-	}
+	}//extractTriples
 	
-	private List extractTriples(ConditionForOneIdentifier cfoi) {
+	private List<Triple> extractTriples(ConditionForOneIdentifier cfoi) {
 		// This function is long and complicated so I'll explain it the best
 		// that I can
-		List triples = new LinkedList();
+		List<Triple> triples = new LinkedList<>();
 		// Get all the attribute Value tests
-		Iterator i = cfoi.getAttributeValueTests();
+		Iterator<AttributeValueTest> attrValTestIter = cfoi.getAttributeValueTests();
 		boolean hasState = cfoi.hasState();
 		
 		// For all the attribute value tests
-		while(i.hasNext()) {
+		while(attrValTestIter.hasNext()) {
 			Pair variable = cfoi.getVariable();
-			List attributes = null;
-			AttributeValueTest avt = (AttributeValueTest)i.next();
+			List<Pair> attributes = null;
+			AttributeValueTest avt = attrValTestIter.next();
 			
 			// Get the attribute chain
-			Iterator k = avt.getAttributeTests();
-			while(k.hasNext()) {
-				AttributeTest at = (AttributeTest)k.next();
+			Iterator<AttributeTest> attrTestIter = avt.getAttributeTests();
+			while(attrTestIter.hasNext()) {
+				AttributeTest at = attrTestIter.next();
 				
 				// First time switch
 				if(attributes == null) {
@@ -203,11 +122,11 @@ public class TriplesExtractor {
 				
 				// Ok, they are doing the '.' thing so create a variable
 				// value and march on down the line
-					List newAttributes = extract(at.getTest());
+					List<Pair> newAttributes = extract(at.getTest());
 					Pair newVariable = getNextUnnamedVar();
-					Iterator j = attributes.iterator();
-					while(j.hasNext()) {
-						Pair attr = (Pair)j.next();
+					Iterator<Pair> attrIter = attributes.iterator();
+					while(attrIter.hasNext()) {
+						Pair attr = attrIter.next();
 						triples.add(d_tripleFactory.createTriple(variable,attr,newVariable,hasState,true, true));
 					}
 					attributes = newAttributes;
@@ -225,10 +144,10 @@ public class TriplesExtractor {
 			}
 			
 			// Ok get all the values that we are checking
-			List values = null;
-			Iterator j = avt.getValueTests();
-			while(j.hasNext()) {
-				ValueTest vt = (ValueTest)j.next();
+			List<Pair> values = null;
+			Iterator<ValueTest> valTestIter = avt.getValueTests();
+			while(valTestIter.hasNext()) {
+				ValueTest vt = valTestIter.next();
 				if(values == null)
 					values = extract(vt.getTest());
 				else
@@ -244,12 +163,12 @@ public class TriplesExtractor {
 			
 			// Put the attributes and variables together with the 
 			// variables into triples
-			k = attributes.iterator();
-			while(k.hasNext()) {
-				Pair attr = (Pair)k.next();
-				j = values.iterator();
-				while(j.hasNext()) {
-					Pair val = (Pair)j.next();
+			Iterator<Pair> attrIter = attributes.iterator();
+			while(attrIter.hasNext()) {
+				Pair attr = attrIter.next();
+				Iterator<Pair> valIter = values.iterator();
+				while(valIter.hasNext()) {
+					Pair val = (Pair)valIter.next();
 					triples.add(d_tripleFactory.createTriple(variable,attr,val,hasState,true, true));
 				}
 			}
@@ -257,12 +176,12 @@ public class TriplesExtractor {
 		return triples;	
 	}
 	
-	private List extract(Test t) {
+	private List<Pair> extract(Test t) {
 		if(t.isConjunctiveTest()) {
-			List strings = new LinkedList();
-			Iterator i = t.getConjunctiveTest().getSimpleTests();
+			List<Pair> strings = new LinkedList<>();
+			Iterator<SimpleTest> i = t.getConjunctiveTest().getSimpleTests();
 			while(i.hasNext()) {
-				strings.addAll(extract((SimpleTest)i.next()));
+				strings.addAll(extract(i.next()));
 			}
 			return strings;
 		}
@@ -270,12 +189,12 @@ public class TriplesExtractor {
 			return extract(t.getSimpleTest());
 	}
 	
-	private List extract(SimpleTest simpleTest) {
+	private List<Pair> extract(SimpleTest simpleTest) {
 		if(simpleTest.isDisjunctionTest()) {
-			List strings = new LinkedList();
-			Iterator i = simpleTest.getDisjunctionTest().getConstants();
+			List<Pair> strings = new LinkedList<>();
+			Iterator<Constant> i = simpleTest.getDisjunctionTest().getConstants();
 			while(i.hasNext()) {
-				Constant c = (Constant)i.next();
+				Constant c = i.next();
 				strings.add(c.toPair());
 			}
 			return strings;
@@ -291,7 +210,7 @@ public class TriplesExtractor {
 		}
 	}
 	
-	private List extractTriples(VarAttrValMake vavm) {
+	private List<Triple> extractTriples(VarAttrValMake vavm) {
 		List triples = new LinkedList();
 		Iterator i = vavm.getAttributeValueMakes();
 		while(i.hasNext()) {

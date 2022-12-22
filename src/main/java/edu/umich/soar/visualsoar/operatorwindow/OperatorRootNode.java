@@ -52,9 +52,9 @@ public class OperatorRootNode extends FolderNode implements java.io.Serializable
   /**
    * @return whether an openDataMap() call on this node will work
    */
-	public boolean hasDataMap()
+	public boolean noDataMap()
     {
-		return true;
+		return false;
 	}
     
 	/**

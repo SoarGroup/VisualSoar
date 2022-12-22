@@ -25,9 +25,9 @@ public class SoarWorkingMemoryModel
 // Data Members
 //////////////////////////////////////////////////////////
     // A Directed Graph that is supposed to represent WM    
-    private DirectedGraph rep = new OrderedDirectedGraphAsAdjacencyLists();
-    private LinkedList listeners = new LinkedList();
-    private Map properties = new TreeMap();
+    private final DirectedGraph rep = new OrderedDirectedGraphAsAdjacencyLists();
+    private final Vector<WorkingMemoryListener> listeners = new Vector<>();
+    private final TreeMap<String, SoarVertex> properties = new TreeMap<>();
 
 /////////////////////////////////////////////////////////
 // Constructors
@@ -73,27 +73,11 @@ public class SoarWorkingMemoryModel
         properties.put(name,sv);
     }
     
-    public void changeProperty(String name,SoarVertex value) 
+    public SoarVertex getProperty(String name)
     {
-        properties.remove(name);
-        properties.put(name,value);
+        return properties.get(name);
     }
-    
-    public SoarVertex getProperty(String name) 
-    {
-        return (SoarVertex)properties.get(name);
-    }
-    
-    public void removeProperty(String name) 
-    {
-        properties.remove(name);
-    }
-    
-    public Set getEntrySet() 
-    {
-        return properties.entrySet();
-    }
-    
+
     /**
      * This sets the topstate, this should only be called by trusted
      * members
@@ -122,15 +106,7 @@ public class SoarWorkingMemoryModel
     {
         listeners.add(l);
     }
-    
-    /**
-     * removes a listener from working memory, to make it stop receiving working memory events
-     */
-    public void removeWorkingMemoryListener(WorkingMemoryListener l) 
-    {
-        listeners.remove(l);
-    }
-    
+
     /**
      * Adds a triple to working memory
      */
@@ -192,13 +168,13 @@ public class SoarWorkingMemoryModel
      * Returns an enumeration of all the edges that are emanating/leaving from a particular vertex.
      * @see NamedEdge
      */
-    public Enumeration<Edge> emanatingEdges(Vertex v)
+    public Enumeration<NamedEdge> emanatingEdges(Vertex v)
     {
         return rep.emanatingEdges(v);
     }
 
 /////////////////
-    public Enumeration getEdges() 
+    public Enumeration<NamedEdge> getEdges()
     {
         return rep.edges();
     }
@@ -214,15 +190,6 @@ public class SoarWorkingMemoryModel
     }
 
     /**
-     * Returns the total number of edges contained in working memory
-     * @see NamedEdge
-     */
-    public int numberOfEdges() 
-    {
-        return rep.numberOfEdges();
-    }
-    
-    /**
      * This is only needed by the reader, in the future this will only be package accessible
      * regular users should go through the factory create methods
      */
@@ -231,7 +198,7 @@ public class SoarWorkingMemoryModel
         rep.addVertex(v);
     }
     
-    public void reduce(List startVertices) 
+    public void reduce(List<Vertex> startVertices)
     {
         rep.reduce(startVertices);
     }
@@ -260,13 +227,13 @@ public class SoarWorkingMemoryModel
     /**
      * Create a new EnumerationVertex with a vector of strings that
      * represent possible values for that enumeration
-     * @param s the vector of strings that represent values
+     * @param vec the vector of strings that represent values
      * @see EnumerationVertex
      */
-    public EnumerationVertex createNewEnumeration(java.util.Vector s) 
+    public EnumerationVertex createNewEnumeration(Vector<String> vec)
     {
         int id = getNextVertexId();
-        EnumerationVertex e = new EnumerationVertex(id,s);
+        EnumerationVertex e = new EnumerationVertex(id,vec);
         rep.addVertex(e);
         return e;
     }
@@ -372,7 +339,9 @@ public class SoarWorkingMemoryModel
         SoarVertex type_state = createNewEnumeration("state");
         SoarVertex nameVertex = createNewEnumeration(name);
         addTriple(s,"type",type_state);
-        SoarVertex op = createNewSoarId();
+
+        //TODO: I don't think this line of code is needed so I removed to see what would break
+        //createNewSoarId();
         if(superstate != null)
         addTriple(s,"superstate",superstate);
         addTriple(s,"name",nameVertex);
@@ -401,7 +370,7 @@ public class SoarWorkingMemoryModel
         addTriple(s, "quiescence", qui);
 
         //^impasse
-        Vector impVec = new Vector();
+        Vector<String> impVec = new Vector<>();
         impVec.add("tie");
         impVec.add("conflict");
         impVec.add("constraint-failure");
@@ -410,7 +379,7 @@ public class SoarWorkingMemoryModel
         addTriple(s, "impasse", impasse);
 
         //^choices
-        Vector choiceVec = new Vector();
+        Vector<String> choiceVec = new Vector<>();
         choiceVec.add("multiple");
         choiceVec.add("constraint-failure");
         choiceVec.add("none");
@@ -426,8 +395,7 @@ public class SoarWorkingMemoryModel
      * decided not tomove the existing standard WMEs to it so as to minimize
      * my impact on the source code.  Perhaps I'm being too careful.
      *
-     * @author :AMN:
-     * @version Dec 2022
+     * @author :AMN:  Dec 2022
      */
     private void addNewStandardWMEs(SoarVertex s) {
         //^reward-link
@@ -468,10 +436,7 @@ public class SoarWorkingMemoryModel
      */
     protected void notifyListenersOfAdd(NamedEdge ne) 
     {
-        Iterator i = listeners.iterator();
-        while(i.hasNext()) 
-        {
-            WorkingMemoryListener wml = (WorkingMemoryListener)i.next();
+        for (WorkingMemoryListener wml : listeners) {
             wml.WMEAdded(new WorkingMemoryEvent(ne));
         }
     }
@@ -482,10 +447,7 @@ public class SoarWorkingMemoryModel
      */
     protected void notifyListenersOfRemove(NamedEdge ne) 
     {
-        Iterator i = listeners.iterator();
-        while(i.hasNext()) 
-        {
-            WorkingMemoryListener wml = (WorkingMemoryListener)i.next();
+        for(WorkingMemoryListener wml : this.listeners) {
             wml.WMERemoved(new WorkingMemoryEvent(ne));
         }
     }
@@ -506,7 +468,7 @@ public class SoarWorkingMemoryModel
         graphWriter.write("" + rep.numberOfVertices() + '\n');
 
         // Write out all the vertices
-        Enumeration v = rep.vertices();
+        Enumeration<Vertex> v = rep.vertices();
         while(v.hasMoreElements()) 
         {
             SoarVertex vertex = (SoarVertex)v.nextElement();
@@ -517,10 +479,10 @@ public class SoarWorkingMemoryModel
         // Write out the number of edges
         graphWriter.write("" + rep.numberOfEdges() + '\n');
         // Write out all the edges
-        Enumeration e = rep.edges();
+        Enumeration<NamedEdge> e = rep.edges();
         while(e.hasMoreElements()) 
         {
-            NamedEdge edge = (NamedEdge)e.nextElement();
+            NamedEdge edge = e.nextElement();
             edge.write(graphWriter);
         }
     }
@@ -534,10 +496,10 @@ public class SoarWorkingMemoryModel
     public void writeComments(Writer commentWriter) throws IOException 
     {
         // Write out all the edge comments
-        Enumeration e = rep.edges();
+        Enumeration<NamedEdge> e = rep.edges();
         while(e.hasMoreElements()) 
         {
-            NamedEdge edge = (NamedEdge)e.nextElement();
+            NamedEdge edge = e.nextElement();
             if(edge.isGenerated()) 
             {
                 commentWriter.write("1 " + edge.getComment()  + '\n');
@@ -623,7 +585,7 @@ public class SoarWorkingMemoryModel
      * @see DefaultCheckerErrorHandler
      * @see DataMapChecker#complete
      */
-    public List checkGenerateProduction(SoarIdentifierVertex sv, SoarProduction sp, OperatorNode current)
+    public Vector<FeedbackListObject> checkGenerateProduction(SoarIdentifierVertex sv, SoarProduction sp, OperatorNode current)
     {
         TriplesExtractor triplesExtractor = new TriplesExtractor(sp);
         DefaultCheckerErrorHandler dceh = new DefaultCheckerErrorHandler(current, sp.getName(), sp.getStartLine());
@@ -640,10 +602,10 @@ public class SoarWorkingMemoryModel
      * @author Andrew Nuxoll
      * @version 27 Nov 2022
      */
-    public List checkGenerateSingleEntry(SoarIdentifierVertex sv,
-                                         SoarProduction sp,
-                                         OperatorNode current,
-                                         FeedbackListObject errToFix)
+    public Vector<FeedbackListObject> checkGenerateSingleEntry(SoarIdentifierVertex sv,
+                                                               SoarProduction sp,
+                                                               OperatorNode current,
+                                                               FeedbackListObject errToFix)
     {
         //Find the triple associated with this error
         TriplesExtractor triplesExtractor = new TriplesExtractor(sp);

@@ -6,17 +6,17 @@ import java.util.Iterator;
 
 public final class DisjunctionTest {
 	// Data Members
-	private List d_constants = new LinkedList();
+	private final List<Constant> d_constants = new LinkedList<>();
 	
 	// Constructors
 	public DisjunctionTest() {}
 	
 	// Accessors
-	public final void add(Constant constant) {
+	public void add(Constant constant) {
 		d_constants.add(constant);
 	}
 	
-	public final Iterator getConstants() {
+	public Iterator<Constant> getConstants() {
 		return d_constants.iterator();
 	}
 }

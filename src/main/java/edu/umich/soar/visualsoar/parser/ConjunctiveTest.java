@@ -6,17 +6,17 @@ import java.util.LinkedList;
 
 public final class ConjunctiveTest {
 	// Data Members
-	private List d_simpleTests = new LinkedList();
+	private final List<SimpleTest> d_simpleTests = new LinkedList<>();
 	
 	// Constructors
 	public ConjunctiveTest() {}
 	
 	// Methods
-	public final void add(SimpleTest simpleTest) {
+	public void add(SimpleTest simpleTest) {
 		d_simpleTests.add(simpleTest);
 	}
 	
-	public final Iterator getSimpleTests() {
+	public Iterator<SimpleTest> getSimpleTests() {
 		return d_simpleTests.iterator();
 	}
 }

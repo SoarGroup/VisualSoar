@@ -9,6 +9,7 @@ import java.util.*;
 /**
  * This class is an implementation of the DirectedGraph class, using Adjacency Lists
  * it is based on Object-Oriented Design patterns in C++, later converted to Java
+ *
  * @author Brad Jones
  */
 
@@ -16,7 +17,7 @@ public class DirectedGraphAsAdjacencyLists extends DirectedGraph {
 //////////////////////////////////////////////////////////
 // Data Members
 //////////////////////////////////////////////////////////
-	protected Vector vertices = new Vector();
+	protected Vector<Vertex> vertices = new Vector<>();
 	protected Vector adjacencyLists = new Vector();
 
 /////////////////////////////////////////////////////////
@@ -53,11 +54,11 @@ public class DirectedGraphAsAdjacencyLists extends DirectedGraph {
 		--numberOfEdges;
 	}
 	
-	public Edge selectEdge(int v0, int v1) {
-		LinkedList emanatingEdges = (LinkedList)adjacencyLists.get(v0);
+	public NamedEdge selectEdge(int v0, int v1) {
+		LinkedList<NamedEdge> emanatingEdges = (LinkedList<NamedEdge>)adjacencyLists.get(v0);
 		Iterator i = emanatingEdges.iterator();
 		while(i.hasNext()) {
-			Edge edge = (Edge)i.next();
+			NamedEdge edge = (NamedEdge)i.next();
 			if (edge.V1().getValue() == v1)
 				return edge;
 		}
@@ -76,17 +77,17 @@ public class DirectedGraphAsAdjacencyLists extends DirectedGraph {
 	}
 	
 	public Enumeration vertices() {
-		return vertices.elements();
+		return this.vertices.elements();
 	}
 	
-	public Enumeration edges() {
+	public Enumeration<NamedEdge> edges() {
 		LinkedList allEdges = new LinkedList();
 		for(int i = 0; i < numberOfVertices; ++i) 
 			allEdges.addAll(((LinkedList)(LinkedList)adjacencyLists.get(i)));
 		return new EnumerationIteratorWrapper(allEdges.iterator());			
 	}
 	
-	public Enumeration emanatingEdges(Vertex v) {
+	public Enumeration<NamedEdge> emanatingEdges(Vertex v) {
 		LinkedList emanatingEdges = (LinkedList)adjacencyLists.get(v.getValue());
 		Iterator i = emanatingEdges.iterator();
 		return new EnumerationIteratorWrapper(i);
@@ -103,7 +104,7 @@ public class DirectedGraphAsAdjacencyLists extends DirectedGraph {
 		return new EnumerationIteratorWrapper(incidentEdges.iterator());
 	}		
 	
-	public void reduce(List listOfStartVertices) {
+	public void reduce(List<Vertex> listOfStartVertices) {
 		// This code finds all the unvisited nodes
 		boolean[] visited = new boolean[numberOfVertices()];
 		for(int i = 0; i < visited.length; ++i)

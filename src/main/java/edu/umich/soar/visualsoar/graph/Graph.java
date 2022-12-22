@@ -1,20 +1,14 @@
 package edu.umich.soar.visualsoar.graph;
-import java.util.Enumeration;
 
-import edu.umich.soar.visualsoar.util.CountingVisitor;
-import edu.umich.soar.visualsoar.util.PreOrder;
 import edu.umich.soar.visualsoar.util.PrePostVisitor;
-import edu.umich.soar.visualsoar.util.Queue;
-import edu.umich.soar.visualsoar.util.QueueAsLinkedList;
-import edu.umich.soar.visualsoar.util.Visitor;
+
+import java.util.Enumeration;
 
 /**
  * This class is a graph class that provides an interface for different kinds of graphs
  * it is based on Object-Oriented Design patterns in C++, later converted to Java
  * @author Brad Jones
  */
-
-
 public abstract class Graph {
 ///////////////////////////////////////////////////////////////////
 // Data Members
@@ -30,9 +24,9 @@ public abstract class Graph {
 			return;
 		visitor.preVisit(vertex);
 		visited[vertex.getValue()] = true;
-		Enumeration<Edge> e = emanatingEdges(vertex);
+		Enumeration<NamedEdge> e = emanatingEdges(vertex);
 		while(e.hasMoreElements()) {
-			Edge edge = (Edge)e.nextElement();
+			NamedEdge edge = e.nextElement();
 			Vertex to = edge.mate(vertex);
 			if (!visited[to.getValue()]) 
 				depthFirstTraversal(visitor,to,visited);
@@ -71,60 +65,17 @@ public abstract class Graph {
 	 * if the edge exists in the graph it returns that edge
 	 * otherwise it returns null
 	 */
-	public abstract Edge selectEdge(int v0, int v1);
+	public abstract NamedEdge selectEdge(int v0, int v1);
 	
-	/**
-	 * If you have two vertices, tests whether there is an
-	 * edge between them, if there is return true otherwise
-	 * false
-	 */
-	public abstract boolean isEdge(int v0, int v1);
-	public boolean isConnected() {
-		CountingVisitor visitor = new CountingVisitor();
-		depthFirstTraversal(new PreOrder(visitor),selectVertex(0));
-		return (visitor.count() == numberOfVertices);
-	}
-	
-	/**
-	 * Tests the graph for cycles
-	 * returns true if there is a cycle, false otherwise
-	 */
-	public boolean isCyclic() {
-		return true;
-	}
-	
-	public abstract Enumeration vertices();
-	public abstract Enumeration edges();
-	public abstract Enumeration incidentEdges(Vertex v);
-	public abstract Enumeration<Edge> emanatingEdges(Vertex v);
+	public abstract Enumeration<Vertex> vertices();
+	public abstract Enumeration<NamedEdge> edges();
+	public abstract Enumeration<NamedEdge> emanatingEdges(Vertex v);
 	
 	public void depthFirstTraversal(PrePostVisitor visitor, Vertex start) {
 		boolean[] visited = new boolean[numberOfVertices];
 		for(int i = 0; i < numberOfVertices; ++i)
 			visited[i] = false;
 		depthFirstTraversal(visitor,start,visited);
-	} 
-	
-	public void breadthFirstTraversal(Visitor visitor, Vertex start) {
-		boolean[] enqueued = new boolean[numberOfVertices];
-		for(int i = 0; i < numberOfVertices; ++i) 
-			enqueued[i] = false;
-		Queue queue = new QueueAsLinkedList();
-		
-		enqueued[start.getValue()] = true;
-		queue.enqueue(start);
-		while(!queue.isEmpty() && !visitor.isDone()) {
-			Vertex vertex = (Vertex)queue.dequeue();
-			visitor.visit(vertex);
-			Enumeration<Edge> e = emanatingEdges(vertex);
-			while(e.hasMoreElements()) {
-				Edge edge = (Edge)e.nextElement();
-				Vertex to = edge.mate(vertex);
-				if (!enqueued[to.getValue()]) {
-					enqueued[to.getValue()] = true;
-					queue.enqueue(to);
-				}
-			}
-		}
 	}
+
 }

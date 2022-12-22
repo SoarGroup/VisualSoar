@@ -1,16 +1,22 @@
 package edu.umich.soar.visualsoar.operatorwindow;
+
 import edu.umich.soar.visualsoar.MainFrame;
 import edu.umich.soar.visualsoar.datamap.DataMap;
 import edu.umich.soar.visualsoar.datamap.SoarWorkingMemoryModel;
 import edu.umich.soar.visualsoar.graph.NamedEdge;
 import edu.umich.soar.visualsoar.graph.SoarIdentifierVertex;
 import edu.umich.soar.visualsoar.graph.SoarVertex;
-import javax.swing.tree.*;
-import java.io.*;
-import java.awt.Component;
+import edu.umich.soar.visualsoar.misc.FeedbackListObject;
+
+import javax.swing.*;
+import javax.swing.tree.DefaultTreeModel;
+import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
-import java.util.*;
-import javax.swing.JOptionPane;
+import java.io.*;
+import java.util.Arrays;
+import java.util.Enumeration;
+import java.util.List;
+import java.util.Vector;
 
 public class SoarOperatorNode extends FileNode
 {
@@ -19,22 +25,23 @@ public class SoarOperatorNode extends FileNode
     // DataMembers
     /////////////////////////////////////////
 
-    // this member tells us whether or not this Operator is highlevel or not
+    // this member tells us whether this Operator is high-level or not
     protected boolean isHighLevel = false;
 
-    // if this SoarOperatorNode is highlevel then this is a string representing
+    // if this SoarOperatorNode is high-level then this is a string representing
     // just the folder name, else it is null
-    protected String folderName;
+    protected String folderName = null;
 
-    // if this SoarOperatorNode is highlevel then this is the Associated state
+    // if this SoarOperatorNode is high-level then this is the Associated state
     // in the datamap, else it is null
     protected SoarIdentifierVertex dataMapId;
 
     // this is the number associated with the dataMapId, if the dataMapId is
-    // null, then this is left unintialized, or 0
+    // null, then this is left uninitialized, or 0
     protected int dataMapIdNumber;
 
-    private List linkNodes = new LinkedList();
+    //Linked child nodes of this one
+    private final Vector<LinkNode> linkNodes = new Vector<>();
 
     /////////////////////////////////////////
     // Constructors
@@ -44,22 +51,12 @@ public class SoarOperatorNode extends FileNode
      */
     public SoarOperatorNode(String inName,int inId,String inFileName) 
     {
-
-        super(inName,inId,inFileName);
+       super(inName,inId,inFileName);
     }
 
-    /**
-     * this creates a highlevel operator with the given name, file, folder and
-     * dataMapId
-     */
-    public SoarOperatorNode(String inName,int inId,String inFileName,String inFolderName,SoarIdentifierVertex inDataMapId) 
+    public boolean isHighLevel()
     {
-
-        this(inName,inId,inFileName);
-        folderName = inFolderName;
-        dataMapId = inDataMapId;
-        dataMapIdNumber = inDataMapId.getValue();
-        isHighLevel = true;
+        return isHighLevel;
     }
 
     /**
@@ -73,10 +70,8 @@ public class SoarOperatorNode extends FileNode
      */
     public void showContextMenu(Component c, int x, int y) 
     {
-
         if(isHighLevel) 
         {
-
             addSuboperatorItem.setEnabled(true);
             addFileItem.setEnabled(true);
             openRulesItem.setEnabled(true);
@@ -89,7 +84,6 @@ public class SoarOperatorNode extends FileNode
         }
         else 
         {
-
             addSuboperatorItem.setEnabled(true);
             addFileItem.setEnabled(true);
             openRulesItem.setEnabled(true);
@@ -132,7 +126,7 @@ public class SoarOperatorNode extends FileNode
         // Create the Folder
         File folder = new File(((OperatorNode)getParent()).getFullPathName() + File.separator + name);
 
-        if (!okayToCreate(folder, true))
+        if (creationConflict(folder, true))
         return;
 
         if (!folder.mkdir())
@@ -150,7 +144,7 @@ public class SoarOperatorNode extends FileNode
         dataMapId = swmm.createNewStateId(((OperatorNode)getParent()).getStateIdVertex(),name);
         dataMapIdNumber = dataMapId.getValue();
 
-        // Make this node highlevel
+        // Make this node high-level
         isHighLevel = true;
 
         //Add the elaborations node and folder
@@ -168,26 +162,15 @@ public class SoarOperatorNode extends FileNode
         VSEImporter.read(r,this,operatorWindow,swmm,VSEImporter.HLOPERATOR | VSEImporter.OPERATOR);
     }
     
-    public boolean isDragOk(int action) 
-    {
-
-        if(isHighLevel && action == java.awt.dnd.DnDConstants.ACTION_LINK)
-        return true;
-        else
-        return false;
-    }
-    
-    public DataFlavor isDropOk(int action,DataFlavor[] dataFlavors) 
+    public DataFlavor isDropOk(int action,DataFlavor[] dataFlavors)
     {
 
         if(    (action == java.awt.dnd.DnDConstants.ACTION_LINK)
             || (action == java.awt.dnd.DnDConstants.ACTION_MOVE) )
         {
-
-            List flavorList = Arrays.asList(dataFlavors);
+            List<DataFlavor> flavorList = Arrays.asList(dataFlavors);
             if(flavorList.contains(TransferableOperatorNodeLink.flavors[0])) 
             {
-
                 return TransferableOperatorNodeLink.flavors[0]; 
             }
         }
@@ -199,12 +182,10 @@ public class SoarOperatorNode extends FileNode
 
         if(isHighLevel) 
         {
-
             w.write("IMPORT_TYPE " + VSEImporter.HLOPERATOR + "\n");
         }
         else 
         {
-
             w.write("IMPORT_TYPE " + VSEImporter.OPERATOR + "\n");
         }
     }
@@ -248,42 +229,12 @@ public class SoarOperatorNode extends FileNode
     /**
    * @return whether an openDataMap() call on this node will work
    */
-	public boolean hasDataMap()
+	public boolean noDataMap()
     {
-		return isHighLevel;
+		return !isHighLevel;
 	}
 
-
-    
-    /**
-     * This is a helper function that renames the folder for which this node is
-     * associated to it's new folder name, and also notifies the children of
-     * this node that there has been a change
-     * @param newFolderName a String that represents the new folder path
-     */
-    protected void renameFolder(String newFolderName) 
-    {
-
-        File folder = new File(folderName);
-        if (folder.renameTo(new File(newFolderName))) 
-        {
-
-            folderName = newFolderName;
-            System.out.println("Folder renamed to: " + newFolderName + " from " + folder.getPath());
-            // Notify the children of the change
-            java.util.Enumeration e = breadthFirstEnumeration();
-            // skip the first one
-            if (e.hasMoreElements())
-            e.nextElement();
-            while(e.hasMoreElements()) 
-            {
-
-                OperatorNode childNode = (OperatorNode)e.nextElement();
-            }
-        }
-    }
-    
-    public void restoreId(SoarWorkingMemoryModel swmm) 
+    public void restoreId(SoarWorkingMemoryModel swmm)
     {
 
         dataMapId = (SoarIdentifierVertex)swmm.getVertexForId(dataMapIdNumber);
@@ -291,158 +242,85 @@ public class SoarOperatorNode extends FileNode
     
     /**
      * The user wants to rename this node
-     * @param operatorWindow
+     *
      * @param newName the new name that the user wants this node to be called
      */
         
     public void rename(OperatorWindow operatorWindow,
                        String newName) throws IOException 
     {
+        //Check for filename conflict
+        File oldFile = new File(getFileName());
+        File newFile = new File(oldFile.getParent() + File.separator + newName + ".soar");
+        if (creationConflict(newFile))
+        {
+            throw new IOException();
+        }
 
-        DefaultTreeModel model = (DefaultTreeModel)operatorWindow.getModel();
+        //Rename the file
+        if (!oldFile.renameTo(newFile))
+        {
+            //Caller must catch this and report fail to user
+            throw new IOException();
+        }
+
+        //For high-level operators, the folder must also be renamed
         if(isHighLevel) 
         {
-
-            boolean success = true;
-            
-            // Rename File
-            File oldFile = new File(getFileName());
-            File oldFolder = new File(getFolderName());     
-            
-            File newFile = new File(oldFile.getParent() + File.separator + newName + ".soar");
+            // Check for folder name conflict
+            File oldFolder = new File(getFolderName());
             File newFolder = new File(oldFolder.getParent() + File.separator + newName);
-            
-            
-            if ((! okayToCreate(newFolder)) || (! okayToCreate(newFile))) 
+            if ((creationConflict(newFolder)) || (creationConflict(newFile)))
             {
-
-                return;
-            }
-            
-            if (oldFile.renameTo(newFile)) 
-            {
-
-                fileAssociation = newFile.getName();
-                if (ruleEditor != null)
-                ruleEditor.fileRenamed(newFile.getPath());
-            }   
-            else { 
                 throw new IOException();
             }
-                    
-            if (success) 
+
+            // Rename Folder
+            if (!oldFolder.renameTo(newFolder))
             {
-
-                // Rename Folder
-                //%%%Remove the println calls from this
-                if (!oldFolder.renameTo(newFolder)) 
-                {
-
-                    success = false;
-                    System.out.println("Folder Rename Failed!, HighLevelOperatorNode.rename");
-                    if (!newFile.renameTo(oldFile)) 
-                    {
-
-                        System.out.println("Foobar, the File was phreaking renamed, folder rename wasn't successful, tried to rename the file back, but wouldn't let me");
-                        System.exit(-1);
-                    }
-                    else 
-                    {
-
-                        fileAssociation = newFile.getName();
-                        if (ruleEditor != null)
-                        ruleEditor.fileRenamed(newFile.getPath());
-                    }
-                }
-                else 
-                folderName = newFolder.getName(); 
+                //If folder rename failed change file back to old name
+                //(This should never fail since we just renamed it...)
+                newFile.renameTo(oldFile);
+                throw new IOException();
             }
-            if (success)
-            name = newName;
-            // Notify the tree model
-            model.nodeChanged(this);    
+
+            folderName = newFolder.getName();
+        }//if HL operator
+
+        //Update state to reflect the successful rename
+        this.name = newName;
+        fileAssociation = newFile.getName();
+        if (ruleEditor != null) {
+            ruleEditor.fileRenamed(newFile.getPath());
         }
-        else 
-        {
+        DefaultTreeModel model = (DefaultTreeModel)operatorWindow.getModel();
+        model.nodeChanged(this);
 
-            File oldFile = new File(getFileName());
-            File newFile = new File(oldFile.getParent() + File.separator + newName + ".soar");
-            
-            if (! okayToCreate(newFile)) 
-            {
-
-                return;
-            }
-            String oldName = name;
-            if (!oldFile.renameTo(newFile)) 
-            throw new IOException();
-            else 
-            {
-
-                name = newName;
-                fileAssociation = newFile.getName();
-                if (ruleEditor != null)
-                ruleEditor.fileRenamed(newFile.getPath());
-            }   
-            model.nodeChanged(this);
-        }
-        
-    }
-
-    /**
-     * Given a Writer this writes out a description of the high level operator
-     * node that can be read back in later
-     * @param w the writer 
-     * @throws IOException if there is an error writing to the writer
-     */
-/*
-  public void write(Writer w) throws IOException 
-  {
-
-  if(isHighLevel) 
-  {
-
-  w.write("HLOPERATOR " + name + " " + fileAssociation + " " + folderName + " " + dataMapId.getValue() + " " + id);
-  }
-  else 
-  {
-
-  w.write("OPERATOR " + name  + " " + fileAssociation + " " + id);
-  }
-  }
-*/
-
-
+    }//rename
 
     /**
      * This is the function that gets called when you want to add a suboperator to this node
-     * @param operatorWindow
+     *
      * @param newOperatorName the name of the new operator to add
      */
     public OperatorNode addSuboperator(OperatorWindow operatorWindow,
                                        SoarWorkingMemoryModel swmm,
                                        String newOperatorName) throws IOException 
     {
-
-        if(!isHighLevel)
-        firstTimeAdd(operatorWindow,swmm);
+        if(!isHighLevel) firstTimeAdd(operatorWindow, swmm);
         
         File rules = new File(getFullPathName() + File.separator + newOperatorName + ".soar");
-        OperatorNode on = null; 
-
-        if (! okayToCreate(rules)) 
+        if (creationConflict(rules))
         {
-
             return this;
         }
         
         if (! rules.createNewFile()) 
         {
-
             throw new IOException();
         }
 
-        on = operatorWindow.createSoarOperatorNode(newOperatorName,
+        OperatorNode on = operatorWindow.createSoarOperatorNode(newOperatorName,
                                                    rules.getName());
         operatorWindow.addChild(this,on);
         
@@ -454,57 +332,47 @@ public class SoarOperatorNode extends FileNode
         notifyLinksOfUpdate(operatorWindow);
         sourceChildren();
         return this;
-    }
+    }//addSuboperator
 
     /**
      * This is the function that gets called when you want to add a sub Impasse Operator to this node
-     * @param operatorWindow
+     *
      * @param newOperatorName the name of the new operator to add
      */
     public OperatorNode addImpasseOperator(OperatorWindow operatorWindow,
                                            SoarWorkingMemoryModel swmm,
                                            String newOperatorName) throws IOException 
     {
-
-        if(!isHighLevel)
-        firstTimeAdd(operatorWindow,swmm);
+        if(!isHighLevel) firstTimeAdd(operatorWindow, swmm);
 
         File rules = new File(getFullPathName() + File.separator + newOperatorName + ".soar");
-        SoarOperatorNode ion = null;
-
-        if (! okayToCreate(rules)) 
+        if (creationConflict(rules))
         {
-
             return this;
         }
 
         if (! rules.createNewFile()) 
         {
-
             throw new IOException();
         }
 
-        ion = operatorWindow.createImpasseOperatorNode(newOperatorName,
+        SoarOperatorNode ion = operatorWindow.createImpasseOperatorNode(newOperatorName,
                                                        rules.getName());
         operatorWindow.addChild(this,ion);
         sourceChildren();
 
         
         //Automatically create an elaborations file.  Impasses do not have files
-        //associated with them directly so we have to add an elaborations file
+        //associated with them directly so, we have to add an elaborations file
         //to the impasse (making it a high level operator) immediately.  I'm not
         //sure if this is the best place for this code design-wise.  But it does
-        //work so I'm leaving it here for the time being.  -:AMN: 20 Oct 03
+        //work so, I'm leaving it here for the time being.  -:AMN: 20 Oct 03
         try
-        
         {
-
             ion.firstTimeAdd(operatorWindow, swmm);
         }
         catch(IOException ioe)
-        
         {
-
             JOptionPane.showMessageDialog(
                 MainFrame.getMainFrame(),
                 "IOException adding elaborations file to impasse.",
@@ -513,73 +381,62 @@ public class SoarOperatorNode extends FileNode
         }
 
         return this;
-    }
+    }//addImpasseOperator
 
     /**
      * This is the function that gets called when you want to add a sub file
      * operator to this node
-     * @param operatorWindow
+     *
      * @param newFileName the name of the new operator to add
      */
-    public OperatorNode addFileOperator(OperatorWindow operatorWindow, SoarWorkingMemoryModel swmm, String newFileName) throws IOException 
+    public void addFileOperator(OperatorWindow operatorWindow, SoarWorkingMemoryModel swmm, String newFileName) throws IOException
     {
-
-        if(!isHighLevel)
-        firstTimeAdd(operatorWindow,swmm);
+        if(!isHighLevel) firstTimeAdd(operatorWindow,swmm);
 
         File file = new File(getFullPathName() + File.separator + newFileName + ".soar");
-        FileOperatorNode fon = null;
+        if(checkCreateReplace(file)) return;
 
-        if(!okayToCreateReplace(file)) 
-        {
-
-            return null;
-        }
-        fon = operatorWindow.createFileOperatorNode(newFileName, file.getName());
+        FileOperatorNode fon = operatorWindow.createFileOperatorNode(newFileName, file.getName());
         operatorWindow.addChild(this,fon);
         sourceChildren();
-        return this;
-    }
+    }//addFileOperator
 
-    
+
+    /**
+     * Add a linked sub-operator (typically as a result of a drag-and-drop)
+     */
     public void addLink(OperatorWindow operatorWindow,LinkNode linkNode) 
     {
         try
         {
-            if(!isHighLevel)
-            firstTimeAdd(operatorWindow,operatorWindow.getDatamap());
+            if(!isHighLevel) firstTimeAdd(operatorWindow,operatorWindow.getDatamap());
+
             operatorWindow.addChild(this,linkNode);
             File rules = new File(linkNode.getFileName());
             rules.createNewFile();
             sourceChildren();
         }
-        catch(IOException ioe) {}
-    }
+        catch(IOException ioe) { /* quietly fail... */ }
+    }//addLink
     
     /**
      * Removes the selected operator from the tree if it is allowed
-     * @param operatorWindow
-     */ 
+     *
+     */
     public void delete(OperatorWindow operatorWindow) 
     {
         if(isHighLevel)
         {
-
             if(!linkNodes.isEmpty()) 
             {
-
                 int selOption =
                     JOptionPane.showConfirmDialog(MainFrame.getMainFrame(),
                                                   "This Operator has links, which will be deleted do you want to continue?",
                                                   "Link Deletion Confirmation",
                                                   JOptionPane.YES_NO_OPTION);
                 if(selOption == JOptionPane.NO_OPTION) return;
-                List linkNodesCopy = (List)((LinkedList)linkNodes).clone();
-                Iterator i = linkNodesCopy.iterator();
-                while(i.hasNext()) 
-                {
-
-                    LinkNode linkNodeToDelete = (LinkNode)i.next();
+                while(!linkNodes.isEmpty()) {
+                    LinkNode linkNodeToDelete = linkNodes.get(0);
                     linkNodeToDelete.delete(operatorWindow);
                 }
             }
@@ -590,22 +447,21 @@ public class SoarOperatorNode extends FileNode
             parent.notifyDeletionOfChild(operatorWindow,this);
             
         }
-        else 
+        else //not a HL operator
         {
-
             renameToDeleted(new File(getFileName()));
             OperatorNode parent = (OperatorNode)getParent();
             operatorWindow.removeNode(this);
             parent.notifyDeletionOfChild(operatorWindow,this);
         }
-    }   
+    }   //delete
     
     
     
     /**
      * A child has been deleted from this node, so check if this node has
      * become a low-level operator now
-     * @param operatorWindow
+     *
      */
     public void notifyDeletionOfChild(OperatorWindow operatorWindow,
                                       OperatorNode child) 
@@ -613,28 +469,19 @@ public class SoarOperatorNode extends FileNode
 
         if (getChildCount() == 0) 
         {
-
-            DefaultTreeModel model = (DefaultTreeModel)operatorWindow.getModel();
             renameToDeleted(new File(getFolderName()));
-            OperatorNode parent = (OperatorNode)getParent();
-            int index = model.getIndexOfChild(parent,this); 
             isHighLevel = false;
             folderName = null;
             dataMapId = null;
             
             if(!linkNodes.isEmpty()) 
             {
-
                 JOptionPane.showMessageDialog(MainFrame.getMainFrame(),
                                               "This node is no longer high-level, links will be deleted.",
                                               "Link deletions",
                                               JOptionPane.INFORMATION_MESSAGE);
-                List linkNodesCopy = (List)((LinkedList)linkNodes).clone();
-                Iterator i = linkNodesCopy.iterator();
-                while(i.hasNext()) 
-                {
-
-                    LinkNode linkNodeToDelete = (LinkNode)i.next();
+                while(!linkNodes.isEmpty()) {
+                    LinkNode linkNodeToDelete = linkNodes.get(0);
                     linkNodeToDelete.delete(operatorWindow);
                 }
             }
@@ -642,37 +489,32 @@ public class SoarOperatorNode extends FileNode
         notifyLinksOfUpdate(operatorWindow);
         try 
         {
-
             sourceChildren();
         }
-        catch(IOException ioe) {}
+        catch(IOException ioe) { /* TODO: something other than quiet fail */ }
     }
 
     /**
      * This opens/shows a dataMap with this nodes associated Data Map File
-     * @param pw the MainFrame 
      */
-    public void openDataMap(SoarWorkingMemoryModel swmm,MainFrame pw) 
+    public void openDataMap(SoarWorkingMemoryModel swmm, MainFrame pw)
     {
 
         DataMap dataMap;
-        SoarIdentifierVertex dataMapParent =
-            new SoarIdentifierVertex(dataMapId.getValue());
 
-        // Check to see if Operator uses topstate datamap.
+
+        // Check to see if Operator uses top-state datamap.
         if(dataMapIdNumber != 0) 
         {
 
-            // If File Operator, get the datamap of the first OperatorOperatornode above it
+            // If File Operator, get the datamap of the first OperatorOperatorNode above it
             if(this instanceof FileOperatorNode) 
             {
-
                 OperatorNode parent = (OperatorNode)this.getParent();
-                dataMapParent = parent.getStateIdVertex();
+                SoarIdentifierVertex dataMapParent = parent.getStateIdVertex();
                 while(    (( parent.getStateIdVertex()).getValue() != 0)
                        && (!(parent instanceof OperatorOperatorNode)) ) 
                 {
-
                     parent = (OperatorNode)parent.getParent();
                     dataMapParent = parent.getStateIdVertex();
                 }   
@@ -682,7 +524,6 @@ public class SoarOperatorNode extends FileNode
             }
             else 
             {
-
                 dataMap = new DataMap(swmm,dataMapId,toString());
                 pw.addDataMap(dataMap);
                 pw.getDesktopPane().dmAddDataMap(dataMapId.getValue(), dataMap);
@@ -690,7 +531,6 @@ public class SoarOperatorNode extends FileNode
         }
         else 
         {
-
             dataMap = new DataMap(swmm, swmm.getTopstate(),toString());
             pw.addDataMap(dataMap);
             pw.getDesktopPane().dmAddDataMap(swmm.getTopstate().getValue(),
@@ -705,23 +545,20 @@ public class SoarOperatorNode extends FileNode
 
         return dataMapId;
     }
-    
+
+    /**
+     * exportDataMap
+     *
+     * writes current datamap content to a given Writer object
+     */
     public void exportDataMap(Writer w) throws IOException 
     {
-
         w.write("DATAMAP\n");
         MainFrame.getMainFrame().getOperatorWindow().getDatamap().write(w);
     }
     
-    public boolean isHighLevel() 
+    public void registerLink(LinkNode inLinkNode)
     {
-
-        return isHighLevel;
-    }
-    
-    public void registerLink(LinkNode inLinkNode) 
-    {
-
         linkNodes.add(inLinkNode);
     }
     
@@ -733,13 +570,8 @@ public class SoarOperatorNode extends FileNode
     
     void notifyLinksOfUpdate(OperatorWindow operatorWindow) 
     {
-
         DefaultTreeModel model = (DefaultTreeModel)operatorWindow.getModel();
-        Iterator i = linkNodes.iterator();
-        while(i.hasNext()) 
-        {
-
-            LinkNode nodeToUpdate = (LinkNode)i.next();
+        for(LinkNode nodeToUpdate : this.linkNodes) {
             model.nodeStructureChanged(nodeToUpdate);
         }
     }
@@ -747,87 +579,74 @@ public class SoarOperatorNode extends FileNode
     
     public void copyStructures(File folderToWriteTo) throws IOException 
     {
-
         super.copyStructures(folderToWriteTo);
         
         if(isHighLevel) 
         {
-
             File copyOfFolder = new File(folderToWriteTo.getPath() + File.separator + folderName);
             copyOfFolder.mkdir();
             for(int i = 0; i < getChildCount(); ++i) 
             {
-
                 ((OperatorNode)getChildAt(i)).copyStructures(copyOfFolder);
             }       
         }
     }
-    
-    public boolean move(OperatorWindow operatorWindow,OperatorNode newParent) 
+
+    /**
+     * move
+     *
+     * moves this operator to a new position in the operator tree
+     */
+    public boolean move(OperatorWindow operatorWindow, OperatorNode newParent)
     {
-
-        if(    (newParent instanceof SoarOperatorNode)
-           && !((SoarOperatorNode)newParent).isHighLevel() ) 
+        //move the node to its new parent
+        if(  (newParent instanceof SoarOperatorNode)
+                && !((SoarOperatorNode)newParent).isHighLevel() )
         {
-
             try 
             {
-
                 ((SoarOperatorNode)newParent).firstTimeAdd(operatorWindow,
                                                            operatorWindow.getDatamap());
             }
             catch(IOException ioe) 
             {
-
                 System.out.println("Move failed, because firstTimeAdd on parent failed");
                 return true;
             }
-        }   
-        if(!newParent.okayToCreate(new File(newParent.getFolderName() + File.separator + fileAssociation))) 
-        {
+        }
 
+        //check for name conflict (why don't we do this first??)
+        if(newParent.creationConflict(new File(newParent.getFolderName() + File.separator + fileAssociation)))
+        {
             return true;
         }
 
+        //If moving a high-level operator its folder also needs to be renamed
         if(isHighLevel) 
         {
-
             // Rename Folder
             File oldFolder = new File(getFolderName());
             File newFolder = new File(newParent.getFolderName() + File.separator + folderName);
             oldFolder.renameTo(newFolder);
             
-            // Adjust Superstate Link
+            // Remove old superstate links
             SoarWorkingMemoryModel swmm = operatorWindow.getDatamap();
-            java.util.List list = new LinkedList();
-            Enumeration e = swmm.emanatingEdges(dataMapId);
-            while(e.hasMoreElements()) 
+            Enumeration<NamedEdge> emanEnum = swmm.emanatingEdges(dataMapId);
+            while(emanEnum.hasMoreElements())
             {
-
-                NamedEdge ne = (NamedEdge)e.nextElement();
-                list.add(ne);
-            }
-            Iterator i = list.iterator();
-            while(i.hasNext()) 
-            {
-
-                NamedEdge ne = (NamedEdge)i.next();
-                if(ne.getName().equals("superstate")) 
-                {
-
+                NamedEdge ne = emanEnum.nextElement();
+                if(ne.getName().equals("superstate")) {
                     swmm.removeTriple((SoarVertex)ne.V0(),
-                                      ne.getName(),
-                                      (SoarVertex)ne.V1());
+                            ne.getName(),
+                            (SoarVertex)ne.V1());
                 }
             }
-            
-            // Add new superstate link
+
+            // Add new ^superstate link
             SoarVertex soarVertex = newParent.getStateIdVertex();
-            if(soarVertex == null)
-            soarVertex = swmm.getTopstate();
-            
+            if(soarVertex == null) soarVertex = swmm.getTopstate();
             swmm.addTriple(dataMapId,"superstate",soarVertex);
-        }
+        }//if HL operator
         
         // Rename File
         File oldFile = new File(getFileName());
@@ -849,11 +668,9 @@ public class SoarOperatorNode extends FileNode
     
     public void source(Writer w) throws IOException 
     {
-
         super.source(w);
         if(isHighLevel) 
         {
-
             String LINE = System.getProperty("line.separator");
             w.write("pushd "  + folderName + LINE + 
                     "source " + folderName + "_source.soar" + LINE + 
@@ -866,12 +683,10 @@ public class SoarOperatorNode extends FileNode
 
         if(isHighLevel) 
         {
-
             Writer w = new FileWriter(getFullPathName() + File.separator + folderName + "_source.soar");
             int childCount = getChildCount();
             for(int i = 0; i < childCount; ++i) 
             {
-
                 OperatorNode child = (OperatorNode)getChildAt(i);
                 child.source(w);
             }
@@ -884,12 +699,10 @@ public class SoarOperatorNode extends FileNode
 
         if(isHighLevel) 
         {
-
             sourceChildren();
             int childCount = getChildCount();
             for(int i = 0; i < childCount; ++i) 
             {
-
                 OperatorNode child = (OperatorNode)getChildAt(i);
                 child.sourceRecursive();
             }
@@ -897,13 +710,13 @@ public class SoarOperatorNode extends FileNode
     }
 
     public void searchTestDataMap(SoarWorkingMemoryModel swmm,
-                                  Vector errors) {}
+                                  Vector<FeedbackListObject> errors) {}
     public void searchCreateDataMap(SoarWorkingMemoryModel swmm,
-                                    Vector errors) {}
+                                    Vector<FeedbackListObject> errors) {}
     public void searchTestNoCreateDataMap(SoarWorkingMemoryModel swmm,
-                                          Vector errors) {}
+                                          Vector<FeedbackListObject> errors) {}
     public void searchCreateNoTestDataMap(SoarWorkingMemoryModel swmm,
-                                          Vector errors) {}
+                                          Vector<FeedbackListObject> errors) {}
     public void searchNoTestNoCreateDataMap(SoarWorkingMemoryModel swmm,
-                                            Vector errors) {}  
+                                            Vector<FeedbackListObject> errors) {}
 }
