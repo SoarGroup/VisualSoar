@@ -8,24 +8,22 @@ import edu.umich.soar.visualsoar.dialogs.FindInProjectDialog;
 import edu.umich.soar.visualsoar.dialogs.NameDialog;
 import edu.umich.soar.visualsoar.dialogs.ReplaceInProjectDialog;
 import edu.umich.soar.visualsoar.graph.SoarIdentifierVertex;
-import edu.umich.soar.visualsoar.graph.Vertex;
+import edu.umich.soar.visualsoar.graph.SoarVertex;
 import edu.umich.soar.visualsoar.misc.FeedbackListObject;
 import edu.umich.soar.visualsoar.parser.ParseException;
 import edu.umich.soar.visualsoar.parser.SoarProduction;
 import edu.umich.soar.visualsoar.parser.TokenMgrError;
-import edu.umich.soar.visualsoar.util.EnumerationIteratorWrapper;
 import edu.umich.soar.visualsoar.util.ReaderUtils;
-import edu.umich.soar.visualsoar.util.Visitor;
+
 import javax.swing.*;
-import javax.swing.tree.*;
 import javax.swing.filechooser.FileFilter;
-import java.awt.*;
+import javax.swing.tree.*;
+import java.awt.datatransfer.Transferable;
 import java.awt.dnd.*;
-import java.awt.datatransfer.*;
 import java.awt.event.*;
 import java.io.*;
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
-import java.util.List;
 
 /**
  * A class to implement the behavior of the operator window
@@ -34,7 +32,8 @@ import java.util.List;
  * @version 0.5a 4 Aug 1999
  * @version 4.0 15 Jun 2002
  */
-public class OperatorWindow extends JTree 
+@SuppressWarnings("unused")
+public class OperatorWindow extends JTree
 {
     int nextId = 1;
 ///////////////////////////////////////////////////////////////////////////
@@ -44,23 +43,12 @@ public class OperatorWindow extends JTree
      * @serial a reference to the DragGestureListener for Drag and Drop operations, may be deleted in future
      */
     DragGestureListener dgListener = new OWDragGestureListener();
-    
-    /**
-     * @serial a reference to the DropTargetListener for Drag and Drop operations, may be deleted in future
-     */
-    DropTargetListener dtListener = new OWDropTargetListener();
-    
-    /**
-     * @serial a reference to the DropTarget for Drag and Drop operations, may be deleted in future
-     */
-    private DropTarget dropTarget = new DropTarget(this,DnDConstants.ACTION_MOVE | DnDConstants.ACTION_LINK,dtListener,true);
-            
+
     /**
      * @serial a reference to the project file
      */
     private SoarWorkingMemoryModel WorkingMemory;
-    private BackupThread backupThread;
-    private boolean closed = false;
+    private final boolean closed = false;
     private static OperatorWindow s_OperatorWindow;
 
 
@@ -88,7 +76,7 @@ public class OperatorWindow extends JTree
                                      {
                                          suggestShowContextMenu(e.getX(), e.getY());
                                      }
-                                     if ((e.getClickCount() == 2 && ((e.getModifiersEx() & e.BUTTON1_DOWN_MASK) == e.BUTTON1_DOWN_MASK)))
+                                     if ((e.getClickCount() == 2 && ((e.getModifiersEx() & InputEvent.BUTTON1_DOWN_MASK) == InputEvent.BUTTON1_DOWN_MASK)))
                                      {
                                          openRules();                    
                                      }
@@ -128,16 +116,16 @@ public class OperatorWindow extends JTree
                                    public void actionPerformed(ActionEvent e) 
                                        {
                                            TreePath tp = getSelectionPath();
-                                           OperatorNode selNode = (OperatorNode) tp.getLastPathComponent();
-                                           selNode.openRules(MainFrame.getMainFrame());
-                                            
+                                           if (tp != null) {
+                                               OperatorNode selNode = (OperatorNode) tp.getLastPathComponent();
+                                               selNode.openRules(MainFrame.getMainFrame());
+                                           }
                                        }
                                },
                                    KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0),
                                    WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-        
-        backupThread = new BackupThread();
-        backupThread.start();
+
+        new BackupThread().start();
     }
 
     /**
@@ -166,7 +154,7 @@ public class OperatorWindow extends JTree
      * @see SoarWorkingMemoryModel
      * @see OperatorWindow#openHierarchy(File)
      */
-    public OperatorWindow(File in_file) throws NumberFormatException, IOException, FileNotFoundException 
+    public OperatorWindow(File in_file) throws NumberFormatException, IOException
     {
         this();
         s_OperatorWindow = this;
@@ -177,11 +165,6 @@ public class OperatorWindow extends JTree
     public static OperatorWindow getOperatorWindow() 
     {
         return s_OperatorWindow;
-    }
-
-    public void setDataMapCursor(Cursor c) 
-    {
-        this.setCursor(c);
     }
 
 
@@ -236,21 +219,7 @@ public class OperatorWindow extends JTree
     }
 
     /**
-     * Creates a high level Impassse Operator Node in the operator window
-     * @param inName name of node
-     * @param inFileName name of created rule editor file, same as inName
-     * @param inFolderName name of created folder, same as inName
-     * @param inDataMapId SoarIdentifierVertex corresponding to node's datamap
-     * @see ImpasseOperatorNode
-     * @see SoarIdentifierVertex
-     */
-    public ImpasseOperatorNode createImpasseOperatorNode(String inName,String inFileName,String inFolderName,SoarIdentifierVertex inDataMapId) 
-    {
-        return new ImpasseOperatorNode(inName, getNextId(), inFileName, inFolderName, inDataMapId);
-    }
-
-    /**
-     * Creates a high level Impassse Operator Node in the operator window
+     * Creates a high level Impasse Operator Node in the operator window
      * @param inName name of node
      * @param inFileName name of created rule editor file, same as inName
      * @param inFolderName name of created folder, same as inName
@@ -316,20 +285,6 @@ public class OperatorWindow extends JTree
      * @param inName name of the node
      * @param inFileName name of created rule editor file, same as inName
      * @param inFolderName name of created folder, same as inName
-     * @param inDataMapId SoarIdentifierVertex corresponding to node's datamap
-     * @see OperatorOperatorNode
-     * @see SoarIdentifierVertex
-     */
-    public OperatorOperatorNode createSoarOperatorNode(String inName,String inFileName,String inFolderName,SoarIdentifierVertex inDataMapId) 
-    {
-        return new OperatorOperatorNode(inName,getNextId(),inFileName,inFolderName,inDataMapId);
-    }
-
-    /**
-     * Creates a high level Soar Operator Node in the operator window
-     * @param inName name of the node
-     * @param inFileName name of created rule editor file, same as inName
-     * @param inFolderName name of created folder, same as inName
      * @param inDataMapIdNumber integer corresponding to node's datamap
      * @see OperatorOperatorNode
      */
@@ -367,15 +322,6 @@ public class OperatorWindow extends JTree
      * LinkNodes not used in this version of Visual Soar
      * @see LinkNode
      */
-    public LinkNode createLinkNode(SoarOperatorNode inSoarOperatorNode) 
-    {
-        return new LinkNode(getNextId(),inSoarOperatorNode);
-    }
-
-    /**
-     * LinkNodes not used in this version of Visual Soar
-     * @see LinkNode
-     */
     public LinkNode createLinkNode(String inName,String inFileName,int inHighLevelId) 
     {
         return new LinkNode(inName,getNextId(),inFileName,inHighLevelId);
@@ -392,21 +338,13 @@ public class OperatorWindow extends JTree
     }
 
     /**
-     * Returns the next Id used for keeping track of each operator's datamap
+     * Returns the next id used for keeping track of each operator's datamap
      */
     final public int getNextId() 
     {
         return nextId++;
     }
 
-    /**
-     *  Returns the value of the last DataMap Id
-     */
-    public int getLastDataMapId() 
-    {
-        return nextId;
-    }
-    
     /**
      * Returns the number of children associated with the root node / project node.
      */
@@ -421,7 +359,8 @@ public class OperatorWindow extends JTree
      * Method inserts an Operator Node into the Operator Hierarchy tree in
      * alphabetical order preferenced in order of [FileOperators], [SoarOperators],
      * and [ImpasseOperators].
-     * @param parent parent operator of operator to be inserted
+     *
+     * @param parent operator of operator to be inserted
      * @param child operator to be inserted into tree
      * @see DefaultTreeModel#insertNodeInto(MutableTreeNode, MutableTreeNode, int)
      */
@@ -432,15 +371,15 @@ public class OperatorWindow extends JTree
     
         for(int i = 0; i < parent.getChildCount() && !found; ++i) 
         {
-            String s = child.toString();
-            String sl = s.toLowerCase();
+            String childName = child.toString();
+            String sl = childName.toLowerCase();
             String childString = (parent.getChildAt(i)).toString();
 
             // Check for duplicate
-            if(s.compareTo(parent.getChildAt(i).toString()) == 0) 
+            if(childName.compareTo(parent.getChildAt(i).toString()) == 0)
             {
                 JOptionPane.showMessageDialog(MainFrame.getMainFrame(),
-                                              "Node conflict for " + s,
+                                              "Node conflict for " + childName,
                                               "Node Conflict",
                                               JOptionPane.ERROR_MESSAGE);
                 return;
@@ -460,7 +399,7 @@ public class OperatorWindow extends JTree
                 // Adding a SoarOperatorNode
                 else if(child instanceof OperatorOperatorNode ) 
                 {
-                    if( ( (parent.getChildAt(i) instanceof OperatorOperatorNode) && (sl.compareTo( childString.toLowerCase() ) <= 0)) || (child instanceof ImpasseOperatorNode)   ) 
+                    if(parent.getChildAt(i) instanceof OperatorOperatorNode && sl.compareTo(childString.toLowerCase()) <= 0)
                     {
                         found = true;
                         ((DefaultTreeModel)getModel()).insertNodeInto(child,parent,i);
@@ -469,7 +408,7 @@ public class OperatorWindow extends JTree
                 // Adding a File
                 else 
                 {
-                    if( (parent.getChildAt(i) instanceof OperatorOperatorNode ) || (child instanceof ImpasseOperatorNode) ||   (sl.compareTo( childString.toLowerCase()) <= 0)) 
+                    if( (parent.getChildAt(i) instanceof OperatorOperatorNode ) || (sl.compareTo( childString.toLowerCase()) <= 0))
                     {
                         found = true;
                         ((DefaultTreeModel)getModel()).insertNodeInto(child,parent,i);
@@ -477,8 +416,9 @@ public class OperatorWindow extends JTree
                 }
             }
         }   // go through all the children until find the proper spot for the new child
-        if (!found)
-        ((DefaultTreeModel)getModel()).insertNodeInto(child, parent, parent.getChildCount());
+        if (!found) {
+            ((DefaultTreeModel)getModel()).insertNodeInto(child, parent, parent.getChildCount());
+        }
     }   // end of addChild()
 
 
@@ -516,8 +456,6 @@ public class OperatorWindow extends JTree
     /**
      * This prompts the user for a name for the suboperator, if the user returns a valid name then
      * it inserts a new node into the tree
-     * @throws Exception invalid name given
-     * @throws Exception I/O error
      */
     public void addSuboperator() 
     {
@@ -531,8 +469,11 @@ public class OperatorWindow extends JTree
             s = theDialog.getText();
 
             TreePath tp = getSelectionPath();
+            if (tp == null) {
+                return; //should never happen
+            }
             OperatorNode parent = (OperatorNode)tp.getLastPathComponent();
-            
+
             try 
             {
                 parent = parent.addSuboperator(this,WorkingMemory,s);
@@ -564,14 +505,19 @@ public class OperatorWindow extends JTree
     public void export() 
     {
         TreePath tp = getSelectionPath();
+        if (tp == null) {
+            return; //should never happen
+        }
         OperatorNode node = (OperatorNode)tp.getLastPathComponent();
         try 
         {
             String projectFolder = (new File(((OperatorRootNode)getModel().getRoot()).getProjectFile())).getParent();
-            node.export(new File(projectFolder + File.separator + node.toString() + ".vse"));
-            Vector v = new Vector();
-            v.add("Export Complete");
-            MainFrame.getMainFrame().setFeedbackListData(v);
+            node.export(new File(projectFolder + File.separator + node + ".vse"));
+
+            //Let the user know it was successful
+            Vector<FeedbackListObject> feedbackMsgs = new Vector<>();
+            feedbackMsgs.add(new FeedbackListObject("Export Complete"));
+            MainFrame.getMainFrame().setFeedbackListData(feedbackMsgs);
         }
         catch(IOException ioe) 
         {
@@ -579,7 +525,7 @@ public class OperatorWindow extends JTree
                                           "Error Writing File to Disk",
                                           "I/O Error",JOptionPane.ERROR_MESSAGE);
         }
-    }
+    }//export
 
     /*
      * Imports a .vse file into the operator hierarchy at the currently selected point
@@ -590,6 +536,9 @@ public class OperatorWindow extends JTree
     public void importFunc() 
     {
         TreePath tp = getSelectionPath();
+        if (tp == null) {
+            return; //should never happen
+        }
         OperatorNode node = (OperatorNode)tp.getLastPathComponent();
         try 
         {
@@ -612,10 +561,12 @@ public class OperatorWindow extends JTree
             {
                 Reader r = new FileReader(file);
                 node.importFunc(new FileReader(file),this,WorkingMemory);
-                Vector v = new Vector();
-                v.add("Import Complete");
-                MainFrame.getMainFrame().setFeedbackListData(v);
                 r.close();
+
+                //Inform user of success
+                Vector<FeedbackListObject> v = new Vector<>();
+                v.add(new FeedbackListObject("Import Complete"));
+                MainFrame.getMainFrame().setFeedbackListData(v);
             }
             
             
@@ -637,13 +588,14 @@ public class OperatorWindow extends JTree
     /**
      * Renames the selected node
      * @see NameDialog
-     * @throws Exception invalid name
-     * @throws Exception I/O error
      */
     public void rename() 
     {
         String s;
         TreePath tp = getSelectionPath();
+        if (tp == null) {
+            return; //should never happen
+        }
         OperatorNode node = (OperatorNode)tp.getLastPathComponent();
         
         NameDialog nd = new NameDialog(MainFrame.getMainFrame());
@@ -651,7 +603,7 @@ public class OperatorWindow extends JTree
         if (nd.wasApproved()) 
         {
             s = nd.getText();
-            DefaultTreeModel model = (DefaultTreeModel)getModel();
+            getModel();  //unnecessary?
             
             try
             
@@ -690,8 +642,6 @@ public class OperatorWindow extends JTree
     
     /**
      * Adds a file object underneath the currently selected node after prompting for the name
-     * @throws Exception Invalid name
-     * @throws Exception i/o error
      */
     public void addFile() 
     {
@@ -703,8 +653,11 @@ public class OperatorWindow extends JTree
         if (theDialog.wasApproved())  
         {
             s = theDialog.getText();
-            DefaultTreeModel model = (DefaultTreeModel)getModel();
+            getModel();  //unnecessary?
             TreePath tp = getSelectionPath();
+            if (tp == null) {
+                return; //should never happen
+            }
             OperatorNode parent = (OperatorNode) tp.getLastPathComponent();
 
             try 
@@ -736,6 +689,9 @@ public class OperatorWindow extends JTree
     public void addImpasse(String s) 
     {
         TreePath tp = getSelectionPath();
+        if (tp == null) {
+            return; //should never happen
+        }
         OperatorNode parent = (OperatorNode) tp.getLastPathComponent();
 
         try 
@@ -771,74 +727,24 @@ public class OperatorWindow extends JTree
      */
     public void checkProductions(OperatorNode parent,
                                  OperatorNode child,
-                                 Vector productions,
-                                 java.util.List errors)
+                                 Vector<SoarProduction> productions,
+                                 List<FeedbackListObject> errors)
     
     {
 
         // Find the state that these productions should be checked against
         SoarIdentifierVertex siv = parent.getStateIdVertex();
-        if(siv == null)
-        siv = WorkingMemory.getTopstate();
-        Enumeration e = productions.elements();
+        if(siv == null) {
+            siv = WorkingMemory.getTopstate();
+        }
+        Enumeration<SoarProduction> prodEnum = productions.elements();
 
-        while(e.hasMoreElements()) 
+        while(prodEnum.hasMoreElements())
         {
-            SoarProduction sp = (SoarProduction)e.nextElement();
+            SoarProduction sp = prodEnum.nextElement();
             errors.addAll(WorkingMemory.checkProduction(child, siv, sp));
         }
     }
-
-    /**
-     * Similar to checkProductions(), but writes to a log file
-     */
-    public void checkProductionsLog(OperatorNode on,Vector productions, java.util.List errors, FileWriter w) 
-    {
-        // Find the state that these productions should be checked against
-        SoarIdentifierVertex siv = on.getStateIdVertex();
-        if(siv == null)
-        siv = WorkingMemory.getTopstate();
-        Enumeration e = productions.elements();
-
-        while(e.hasMoreElements()) 
-        {
-            SoarProduction sp = (SoarProduction)e.nextElement();
-            try 
-            {
-                w.write("Checking the production " + sp.getName());
-                w.write('\n');
-            }
-            catch(IOException ioe) 
-            {
-                ioe.printStackTrace();
-            }
-            errors.addAll(WorkingMemory.checkProductionLog(on, siv,sp, w));
-        }
-    }
-
-    /**
-     * Given the associated Operator Node, and a vector of parsed soar productions
-     * this function will check the productions consistency across the datamap
-     * and fill in missing portions of the datamap as needed.
-     * @see SoarProduction
-     * @see SoarWorkingMemoryModel#checkGenerateProduction(SoarIdentifierVertex, SoarProduction, OperatorNode)
-     */
-    public void generateProductions(OperatorNode on,Vector productions, java.util.List generations, OperatorNode current) 
-    {
-        // Find the state that these productions should be checked against
-        SoarIdentifierVertex siv = on.getStateIdVertex();
-        if(siv == null)
-        siv = WorkingMemory.getTopstate();
-        Enumeration e = productions.elements();
-
-        while(e.hasMoreElements()) 
-        {
-            SoarProduction sp = (SoarProduction)e.nextElement();
-            generations.addAll(WorkingMemory.checkGenerateProduction(siv, sp, current));
-        }
-    }
-
-
 
     /**
      * Asks the MainFrame class to open a rule editor with the associated file of the node
@@ -846,6 +752,9 @@ public class OperatorWindow extends JTree
     public void openRules() 
     {
         TreePath tp = getSelectionPath();
+        if (tp == null) {
+            return; //should never happen
+        }
         OperatorNode selNode = (OperatorNode)tp.getLastPathComponent();
         selNode.openRules(MainFrame.getMainFrame());
     }
@@ -856,6 +765,9 @@ public class OperatorWindow extends JTree
     public void openDataMap() 
     {
         TreePath tp = getSelectionPath();
+        if (tp == null) {
+            return; //should never happen
+        }
         OperatorNode selNode = (OperatorNode) tp.getLastPathComponent();
         selNode.openDataMap(WorkingMemory, MainFrame.getMainFrame());
     }
@@ -868,6 +780,9 @@ public class OperatorWindow extends JTree
     
     {
         TreePath tp = getSelectionPath();
+        if (tp == null) {
+            return; //should never happen
+        }
         OperatorNode selNode = (OperatorNode) tp.getLastPathComponent();
         FindInProjectDialog theDialog =
             new FindInProjectDialog(MainFrame.getMainFrame(),
@@ -884,6 +799,9 @@ public class OperatorWindow extends JTree
     
     {
         TreePath tp = getSelectionPath();
+        if (tp == null) {
+            return; //should never happen
+        }
         OperatorNode selNode = (OperatorNode) tp.getLastPathComponent();
         ReplaceInProjectDialog theDialog =
             new ReplaceInProjectDialog(MainFrame.getMainFrame(),
@@ -908,20 +826,25 @@ public class OperatorWindow extends JTree
     public void delete() 
     {
         TreePath tp = getSelectionPath();
+        if (tp == null) {
+            return; //should never happen
+        }
         OperatorNode selNode = (OperatorNode) tp.getLastPathComponent();
-        DefaultTreeModel model = (DefaultTreeModel)getModel();
+        getModel(); //unnecessary?
         
-        if ((selNode instanceof FileNode) || (selNode instanceof SoarOperatorNode)) 
+        if (selNode instanceof FileNode)
         {
-            if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this,"Are you sure you want to delete " + 
-                                                                        selNode.toString() + "?","Confirm Delete",JOptionPane.YES_NO_OPTION))
-            selNode.delete(this);
+            if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this,"Are you sure you want to delete " +
+                    selNode + "?","Confirm Delete",JOptionPane.YES_NO_OPTION)) {
+                selNode.delete(this);
+            }
         }
         else if((selNode instanceof FolderNode) && selNode.toString().equals("common")) 
         {
-            if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this,"Are you sure you want to delete " + 
-                                                                        selNode.toString() + "?","Confirm Delete",JOptionPane.YES_NO_OPTION))
-            selNode.delete(this);
+            if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this,"Are you sure you want to delete " +
+                    selNode + "?","Confirm Delete",JOptionPane.YES_NO_OPTION)) {
+                selNode.delete(this);
+            }
         }
         else 
         {
@@ -932,63 +855,51 @@ public class OperatorWindow extends JTree
     /**
      * For the currently selected node, it will check all the children of this node against the datamap
      * @see #checkProductions
-     * @throws Exception unable to check productions due to parse error
-     * @throws Exception error reading file
      */
     public void checkChildrenAgainstDataMap() 
     {
         TreePath tp = getSelectionPath();
+        if (tp == null) {
+            return; //should never happen
+        }
         OperatorNode selNode = (OperatorNode)tp.getLastPathComponent();
-        java.util.List errors = new LinkedList();
-        Vector vecErrors = new Vector();
-        Vector parsedProductions;
-        Enumeration e = selNode.children();
-        while(e.hasMoreElements()) 
+        Vector<FeedbackListObject> vecErrors = new Vector<>();
+        Vector<SoarProduction> parsedProductions;
+        Enumeration<TreeNode> prodEnum = selNode.children();
+        while(prodEnum.hasMoreElements())
         {
-            errors.clear();
-            OperatorNode currentNode = (OperatorNode)e.nextElement();
+            OperatorNode currentNode = (OperatorNode)prodEnum.nextElement();
             try 
             {
                 parsedProductions = currentNode.parseProductions();
-                if(parsedProductions != null)
-                MainFrame.getMainFrame().getOperatorWindow().checkProductions(selNode, currentNode, parsedProductions,errors);
+                if(parsedProductions != null) {
+                    MainFrame.getMainFrame().getOperatorWindow().checkProductions(selNode, currentNode, parsedProductions, vecErrors);
+                }
             }
             catch(ParseException pe) 
             {
-                errors.add(new FeedbackListObject("Unable to check productions due to parse error"));
-                errors.add(currentNode.parseParseException(pe));
+                vecErrors.add(new FeedbackListObject("Unable to check productions due to parse error"));
+                vecErrors.add(currentNode.parseParseException(pe));
             }
             catch(IOException ioe) 
             {
-                errors.add(currentNode.getFileName() + "(1): "+ " Error reading file.");
+                String msg = currentNode.getFileName() + "(1): "+ " Error reading file.";
+                vecErrors.add(new FeedbackListObject(msg));
             }
-            Enumeration f = new EnumerationIteratorWrapper(errors.iterator());
-            while(f.hasMoreElements()) 
-            {
-                try 
-                {
-                    String errorString = f.nextElement().toString();
-                    String numberString = errorString.substring(errorString.indexOf("(")+1,errorString.indexOf(")"));
-                    vecErrors.add(new FeedbackListObject(currentNode,Integer.parseInt(numberString),errorString,true));
-                }
-                catch(NumberFormatException nfe) 
-                {
-                    System.out.println("Never happen");
-                }
-            }
+        }//while
+        if (vecErrors.isEmpty()) {
+            vecErrors.add(new FeedbackListObject("No errors detected in children."));
         }
-        if (vecErrors.isEmpty())
-        vecErrors.add("No errors detected in children.");
         MainFrame.getMainFrame().setFeedbackListData(vecErrors);
     }
 
   /**
    * This function compares all productions in the file associated
    * with the currently selected node to the project datamap and
-   * 'fixes' any discrepencies by adding missing entries to the
+   * 'fixes' any discrepancies by adding missing entries to the
    * datamap.  Results and errors are returned to the caller.
    *
-   * @param opNode the operator node to geneate a datamap for.  If null is
+   * @param opNode the operator node to generate a datamap for.  If null is
    *               passed in then the currently selected node will be used.
    * @param parseErrors parse errors discovered during generation
    * @param vecGenerations new datamap entries that were generated provided as a
@@ -1001,6 +912,9 @@ public class OperatorWindow extends JTree
         if (opNode == null)
         {
             TreePath tp = getSelectionPath();
+            if (tp == null) {
+                return; //should never happen
+            }
             opNode = (OperatorNode)tp.getLastPathComponent();
         }
 
@@ -1028,23 +942,20 @@ public class OperatorWindow extends JTree
         // Find the datamap that these productions should be checked against
         OperatorNode parentNode = (OperatorNode)opNode.getParent();
         SoarIdentifierVertex siv = parentNode.getStateIdVertex();
-        if(siv == null)
-        siv = WorkingMemory.getTopstate();
+        if(siv == null) {
+            siv = WorkingMemory.getTopstate();
+        }
 
         //Generate the new datamap entries
-        java.util.List generations = new LinkedList();
-        Enumeration e = parsedProds.elements();
-        while(e.hasMoreElements())
+        Enumeration<SoarProduction> prodEnum = parsedProds.elements();
+        while(prodEnum.hasMoreElements())
         {
-            SoarProduction sp = (SoarProduction)e.nextElement();
-            generations.addAll(WorkingMemory.checkGenerateProduction(siv,sp,opNode));
+            SoarProduction sp = prodEnum.nextElement();
+            vecGenerations.addAll(WorkingMemory.checkGenerateProduction(siv,sp,opNode));
         }
 
         //Verify our changes worked
         checkProductions(parentNode, opNode, parsedProds, parseErrors);
-
-        //Generate a report that can be posted to the feedback list
-        fillFeedbackListFromErrors(opNode, vecGenerations, generations);
 
     }//generateDataMap
 
@@ -1057,8 +968,6 @@ public class OperatorWindow extends JTree
      *
      * @param errToFix  error to fix (user has selected this)
      *
-     * @return null on success or an error to post in the Feedback pane if
-     * this failed
      */
     public void generateDataMapForOneError(FeedbackListObject errToFix,
                                            Vector<FeedbackListObject> vecGenerations)
@@ -1070,7 +979,7 @@ public class OperatorWindow extends JTree
         }
 
         //Parse all the productions in the file
-        Vector parsedProds = null;
+        Vector<SoarProduction> parsedProds;
         try {
             parsedProds = opNode.parseProductions();
         }
@@ -1083,16 +992,18 @@ public class OperatorWindow extends JTree
         // Find the datamap that these productions should be checked against
         OperatorNode parentNode = (OperatorNode)opNode.getParent();
         SoarIdentifierVertex siv = parentNode.getStateIdVertex();
-        if(siv == null)
+        if(siv == null) {
             siv = WorkingMemory.getTopstate();
+        }
 
         //Generate the new datamap entries
-        Enumeration e = parsedProds.elements();
-        while(e.hasMoreElements()) {
-            SoarProduction sp = (SoarProduction)e.nextElement();
+        Enumeration<SoarProduction> prodEnum = parsedProds.elements();
+        while(prodEnum.hasMoreElements()) {
+            SoarProduction sp = prodEnum.nextElement();
             //we only care about the production that caused the error
             if (errToFix.getMessage().startsWith(sp.getName())) {
-                List errs = WorkingMemory.checkGenerateSingleEntry(siv,sp,opNode,errToFix);
+                Vector<FeedbackListObject> errs =
+                        WorkingMemory.checkGenerateSingleEntry(siv,sp,opNode,errToFix);
 
                 //The errs list should not be empty
                 if (errs.size() == 0) {
@@ -1100,7 +1011,7 @@ public class OperatorWindow extends JTree
                             "Datamap entry operation failed."));
                 }
 
-                fillFeedbackListFromErrors(opNode, vecGenerations, errs);
+                vecGenerations.addAll(errs);
                 break;
             }
         }
@@ -1108,43 +1019,12 @@ public class OperatorWindow extends JTree
     }//generateDataMap
 
 
-
-    /**
-     * genFeedbackListFromErrors
-     *
-     * Creates a list of FeedbackListObjects from a given set of parse errors
-     * and places them in a given vector.
-     */
-    private void fillFeedbackListFromErrors(OperatorNode opNode, Vector vecGenerations, List errorList) {
-        Enumeration e = new EnumerationIteratorWrapper(errorList.iterator());
-        while(e.hasMoreElements())
-        {
-            try
-            {
-                String errorString = e.nextElement().toString();
-                String numberString = errorString.substring(errorString.indexOf("(")+1,errorString.indexOf(")"));
-                vecGenerations.add(
-                        new FeedbackListObject(opNode,
-                                Integer.parseInt(numberString),
-                                errorString,
-                                true,
-                                true));
-            }
-            catch(NumberFormatException nfe)
-            {
-                System.out.println("OperatorWindow.generateDataMap: This should never happen");
-            }
-        }
-    }//genFeedbackListFromErrors
-
-
     /**
      * Opens up an existing operator hierarchy
      * @param in_file the file that describes the operator hierarchy
      * @see #openVersionFour(FileReader, String)
-     * @throws Exception Invalid version number, must be version number 1-5
      */
-    public void openHierarchy(File in_file) throws FileNotFoundException, IOException, NumberFormatException 
+    public void openHierarchy(File in_file) throws IOException, NumberFormatException
     {
         FileReader fr = new FileReader(in_file);
         String buffer = ReaderUtils.getWord(fr);
@@ -1399,10 +1279,10 @@ public class OperatorWindow extends JTree
      */
     private void restoreStateIds() 
     {
-        Enumeration e = ((OperatorRootNode)getModel().getRoot()).breadthFirstEnumeration();
-        while(e.hasMoreElements()) 
+        Enumeration<TreeNode> nodeEnum = ((OperatorRootNode)getModel().getRoot()).breadthFirstEnumeration();
+        while(nodeEnum.hasMoreElements())
         {
-            Object o = e.nextElement();
+            Object o = nodeEnum.nextElement();
             if (o instanceof SoarOperatorNode) 
             {
                 SoarOperatorNode son = (SoarOperatorNode)o;
@@ -1422,19 +1302,6 @@ public class OperatorWindow extends JTree
     {
         return ((DefaultMutableTreeNode)(treeModel.getRoot())).breadthFirstEnumeration();
     }
-    
-    /**
-     * This applys the Visitor to every object in the tree according to a breadth first 
-     * traversal
-     */
-    public void breadthFirstTraversal(Visitor v) 
-    {
-        Enumeration e = ((DefaultMutableTreeNode)(treeModel.getRoot())).breadthFirstEnumeration();
-        while(e.hasMoreElements() && !v.isDone()) 
-        {
-            v.visit(e.nextElement());
-        }
-    }
 
     /**
      * Saves project as a new project name
@@ -1453,57 +1320,15 @@ public class OperatorWindow extends JTree
         orn.renameAndBackup(this, newName, newPath);
     }
 
-    /**
-     * Saves the current hierarchy to disk - Version 5
-     * Not Currently Iimplemented in Visual Soar
-     * @param inFileName name of the file to be saved - .vsa file
-     * @param inDataMapName name of the datamapfile - .dm file
-     * @see #reduceWorkingMemory()
-     * @see TreeFileWriter#write
-     * @see SoarWorkingMemoryModel#write
-     * @see SoarWorkingMemoryModel#writeComments
-     * @throws Exception i/o exception
-     */
-
-    public void writeOutHierarchy5(File inFileName,File inDataMapName) 
-    {
-        reduceWorkingMemory();
-        try 
-        {
-            OperatorRootNode orn = (OperatorRootNode)(getModel().getRoot());
-            FileWriter fw = new FileWriter(inFileName);
-            fw.write("VERSION 5\n");
-            String dataMapRP = orn.getDataMapFile().substring(orn.getFullPathStart().length(),orn.getDataMapFile().length());
-            fw.write(dataMapRP + '\n');
-            TreeFileWriter.write5(fw,(DefaultTreeModel)getModel());
-            fw.close();
-            FileWriter graphWriter = new FileWriter(inDataMapName);
-            WorkingMemory.write(graphWriter);
-            graphWriter.close();
-
-            File commentFile = new File(inDataMapName.getParent() + File.separator + "comment.dm");
-            FileWriter commentWriter = new FileWriter(commentFile);
-            WorkingMemory.writeComments(commentWriter);
-            commentWriter.close();
-        }
-        catch (IOException ioe) 
-        {
-            System.err.println("An Exception was thrown in OperatorWindow.saveHierarchy");
-            ioe.printStackTrace();
-        }
-    }
-
-
 
     /**
      * Saves the current hierarchy to disk using Version 4 method
      * @param inFileName name of the file to be saved - .vsa file
-     * @param inDataMapName name of the datamapfile - .dm file
+     * @param inDataMapName name of the datamap file - .dm file
      * @see #reduceWorkingMemory()
      * @see TreeFileWriter#write
      * @see SoarWorkingMemoryModel#write
      * @see SoarWorkingMemoryModel#writeComments
-     * @throws Exception i/o exception
      */
     public void writeOutHierarchy(File inFileName, File inDataMapName) 
     {
@@ -1514,7 +1339,7 @@ public class OperatorWindow extends JTree
             FileWriter fw = new FileWriter(inFileName);
             fw.write("VERSION 4\n");
             // for Version 5:  fw.write("VERSION 5\n");
-            String dataMapRP = orn.getDataMapFile().substring(orn.getFullPathStart().length(),orn.getDataMapFile().length());
+            String dataMapRP = orn.getDataMapFile().substring(orn.getFullPathStart().length());
             fw.write(dataMapRP + '\n');
             TreeFileWriter.write(fw,(DefaultTreeModel)getModel());
             // for Version 5:  TreeFileWriter.write5(fw,(DefaultTreeModel)getModel());
@@ -1549,32 +1374,23 @@ public class OperatorWindow extends JTree
     }
 
     /**
-     * Saves Hierarchy and then closes it.
-     * @see #saveHierarchy
-     */
-    public void closeHierarchy() 
-    {
-        closed = true;
-        saveHierarchy();
-    }
-
-    /**
      * Attempts to reduce Working Memory by finding all vertices that are unreachable 
      * from a state and adds them to a list of holes so that they can be recycled for later use
      * @see SoarWorkingMemoryModel#reduce(java.util.List)
      */
     private void reduceWorkingMemory() 
     {
-        java.util.List l = new LinkedList();
-        Enumeration e = ((DefaultMutableTreeNode)getModel().getRoot()).breadthFirstEnumeration();
+        List<SoarVertex> vertList = new LinkedList<>();
+        Enumeration<TreeNode> e = ((DefaultMutableTreeNode)getModel().getRoot()).breadthFirstEnumeration();
         while(e.hasMoreElements()) 
         {
             OperatorNode on = (OperatorNode)e.nextElement();
-            Vertex v = on.getStateIdVertex();
-            if (v != null)
-            l.add(v);
+            SoarVertex v = on.getStateIdVertex();
+            if (v != null) {
+                vertList.add(v);
+            }
         }
-        WorkingMemory.reduce(l);
+        WorkingMemory.reduce(vertList);
     }
     
     /**
@@ -1592,8 +1408,9 @@ public class OperatorWindow extends JTree
 
             if(e.getTriggerEvent() instanceof MouseEvent) 
             {
-                if(((MouseEvent)e.getTriggerEvent()).isPopupTrigger())
-                return;
+                if(((MouseEvent)e.getTriggerEvent()).isPopupTrigger()) {
+                    return;
+                }
             }
             
             if (path == null) 
@@ -1607,11 +1424,11 @@ public class OperatorWindow extends JTree
             Transferable t = new TransferableOperatorNodeLink(selection.getId());
             if (action == DnDConstants.ACTION_LINK)  
             {
-                DragSource.getDefaultDragSource().startDrag(e,DragSource.DefaultLinkNoDrop,t,new OWDragSourceListener(selection));
+                DragSource.getDefaultDragSource().startDrag(e,DragSource.DefaultLinkNoDrop,t, new OWDragSourceListener());
             }
             else if(action == DnDConstants.ACTION_MOVE) 
             {
-                DragSource.getDefaultDragSource().startDrag(e,DragSource.DefaultMoveNoDrop,t,new OWDragSourceListener(selection));
+                DragSource.getDefaultDragSource().startDrag(e,DragSource.DefaultMoveNoDrop,t, new OWDragSourceListener());
             }
         }   
     }
@@ -1619,224 +1436,8 @@ public class OperatorWindow extends JTree
     /**
      * Class used for drag and drop operations
      */
-    class OWDropTargetListener implements DropTargetListener 
+    static class OWDragSourceListener implements DragSourceListener
     {
-        public void dragEnter(DropTargetDragEvent dtde) 
-        {
-
-        }
-
-        public void dragExit(DropTargetEvent dte) 
-        {
-            // reset cursor back to normal
-            Cursor defaultCursor = new Cursor(Cursor.DEFAULT_CURSOR);
-            OperatorWindow.getOperatorWindow().setCursor(defaultCursor);
-        }
-
-        public void dragOver(DropTargetDragEvent dtde) 
-        {
-            int action = dtde.getDropAction();
-            Point loc = dtde.getLocation();
-            int x = (int)loc.getX(), y = (int)loc.getY();
-            TreePath path = getPathForLocation(x, y);
-            if (path != null) 
-            {
-                OperatorNode node = (OperatorNode)path.getLastPathComponent();
-                if(isDropOK(x,y,action)) 
-                {
-                    if(action == DnDConstants.ACTION_COPY) 
-                    {
-                        clearSelection();
-                        setSelectionPath(path);
-                        Cursor cursor = DragSource.DefaultCopyDrop;
-                        OperatorWindow.getOperatorWindow().setCursor(cursor);
-
-                        dtde.acceptDrag(action);
-                    }
-                    else if(action == DnDConstants.ACTION_MOVE) 
-                    {
-                        clearSelection();
-                        setSelectionPath(path);
-
-                        Cursor cursor = DragSource.DefaultMoveDrop;
-                        OperatorWindow.getOperatorWindow().setCursor(cursor);
-
-                        dtde.acceptDrag(action);
-                    }
-                    else {            // link action somehow attempted
-                        Cursor cursor = DragSource.DefaultCopyNoDrop;
-                        OperatorWindow.getOperatorWindow().setCursor(cursor);
-                        dtde.rejectDrag();
-                    }
-                } // is drop ok
-                else {      // cursor over a leaf node
-                    Cursor cursor = DragSource.DefaultCopyNoDrop;
-                    OperatorWindow.getOperatorWindow().setCursor(cursor);
-                    dtde.rejectDrag();
-                }
-            }
-            else { // Path was null
-                Cursor cursor = DragSource.DefaultCopyNoDrop;
-                OperatorWindow.getOperatorWindow().setCursor(cursor);
-                dtde.rejectDrag();
-            }
-        }
-
-        public void dropActionChanged(DropTargetDragEvent dtde) {}
-
-        // The Drag operation has terminated with a Drop on this DropTarget
-        public void drop(DropTargetDropEvent e) 
-        {
-
-            // reset cursor back to normal
-            Cursor defaultCursor = new Cursor(Cursor.DEFAULT_CURSOR);
-            OperatorWindow.getOperatorWindow().setCursor(defaultCursor);
-
-            // We don't allow drops from outside programs
-            // Unfortunately this allows drops from another copy
-            // of Visual Soar, we need to figure out how to stop that
-            if (e.isLocalTransfer() == false) 
-            {
-                e.rejectDrop();
-                return;
-            }
-            
-            // Get where they droped the object
-            Point loc = e.getLocation();
-            int x = (int)loc.getX(), y = (int)loc.getY();
-            TreePath dropPath = getPathForLocation(x,y);
-            if (dropPath == null) 
-            {
-                e.rejectDrop();
-                return;
-            }
-            OperatorNode node = (OperatorNode)dropPath.getLastPathComponent();
-            int action = e.getDropAction();
-            DataFlavor[] flavors = e.getCurrentDataFlavors();
-            DataFlavor chosen = node.isDropOk(action,flavors);
-            if(chosen == null) 
-            {
-                e.rejectDrop();
-                return;
-            }
-            e.acceptDrop(action);
-            // Get the data
-            try 
-            {
-                Object data = e.getTransferable().getTransferData(chosen);                  
-                Integer child = (Integer)data;
-                int id = child.intValue();
-                if(action == DnDConstants.ACTION_LINK) 
-                {
-                    OperatorNode linkedToNode = getNodeForId(id);
-                    if(linkedToNode == null) 
-                    {
-                        e.dropComplete(false);
-                        return;
-                    }
-                    if(linkedToNode instanceof SoarOperatorNode &&  ((SoarOperatorNode)linkedToNode).isHighLevel()) 
-                    {
-                        Set childSet = generateChildSet(linkedToNode);
-                        if(!isPathMemberInSet(dropPath.getPath(),childSet))
-                        node.addLink(OperatorWindow.this,createLinkNode((SoarOperatorNode)linkedToNode));
-                        else
-                        getToolkit().beep();
-                        e.dropComplete(true);   
-                    }
-                    else 
-                    {
-                        e.dropComplete(false);
-                    }
-                }
-                else if(action == DnDConstants.ACTION_MOVE) 
-                {
-                    OperatorNode movedNode = getNodeForId(id);
-                    if(movedNode == null) 
-                    {
-                        e.dropComplete(false);
-                        return;
-                    }
-                
-                    Set childSet = generateChildSet(movedNode);
-                    if(!isPathMemberInSet(dropPath.getPath(),childSet)) 
-                    {
-                        boolean result = movedNode.move(OperatorWindow.this,node);
-                        if(!result) 
-                        {
-                            JOptionPane.showMessageDialog(MainFrame.getMainFrame(),
-                                                          "You are not allowed to move objects of that type.",
-                                                          "Invalid Move",
-                                                          JOptionPane.ERROR_MESSAGE);
-                        }
-                    }
-                    else
-                    getToolkit().beep();
-                    e.dropComplete(true);
-                }
-            }   
-            catch(Throwable t) 
-            {
-                t.printStackTrace();
-                e.dropComplete(false);
-                return;
-            }
-        }
-        
-        private Set generateChildSet(OperatorNode node) 
-        {
-            Set returnSet = new HashSet();
-            Enumeration e = node.breadthFirstEnumeration();
-            while(e.hasMoreElements()) 
-            {
-                OperatorNode child = (OperatorNode)e.nextElement();
-                if(child instanceof LinkNode)
-                returnSet.addAll(generateChildSet(((LinkNode)child).getLinkToNode()));
-                else
-                returnSet.add(child);
-            }
-            return returnSet;
-        }           
-        
-        private boolean isPathMemberInSet(Object[] path,Set childSet) 
-        {
-            boolean found = false;
-            for(int i = 0; !found && i < path.length; ++i) 
-            {
-                if(childSet.contains(path[i]))
-                found = true;
-            }
-            return found;
-        }
-
-        private boolean isDropOK(int x, int y, int action) 
-        {
-            TreePath path = getPathForLocation(x, y);
-            if (path == null) return false;
-            if (action == DnDConstants.ACTION_LINK || action == DnDConstants.ACTION_MOVE || action == DnDConstants.ACTION_COPY) 
-            {
-                OperatorNode node = (OperatorNode)path.getLastPathComponent();
-                if (node.isLeaf())
-                return false;
-                return true;
-            }
-            return false;
-
-        }
-    }
-
-    /**
-     * Class used for drag and drop operations
-     */
-    class OWDragSourceListener implements DragSourceListener 
-    {
-        private OperatorNode node;              
-        // Constructors
-        public OWDragSourceListener(OperatorNode in_node) 
-        {
-            node = in_node;
-        }
-        private OWDragSourceListener() {}
-
         // Methods
         public void dragEnter(DragSourceDragEvent e) {}
         public void dragOver(DragSourceDragEvent e) 
@@ -1844,19 +1445,15 @@ public class OperatorWindow extends JTree
             e.getDragSourceContext().setCursor(null);
         }
         public void dragExit(DragSourceEvent e) {}
-        public void dragDropEnd(DragSourceDropEvent e) 
-        {
-            if (e.getDropSuccess() == false)
-            return; 
-        }
+        public void dragDropEnd(DragSourceDropEvent e) {}
         public void dropActionChanged(DragSourceDragEvent e) {}
     }
 
     /**
      * Constructs a DefaultTreeModel exactly the way we decided how to do it
      * Creates a root node named after the project name at the root of the tree.
-     * Children of that are an 'all' foldernode, a tcl file node called '_firstload'
-     * and an 'elaborations' foldernode.
+     * Children of that are an 'all' folder node, a tcl file node called '_firstload'
+     * and an 'elaborations' folder node.
      * Children of the elaborations folder include two file operator nodes called
      * '_all' and 'top-state'.
      * Also created is the datamap file called <project name> + '.dm'
@@ -1865,7 +1462,6 @@ public class OperatorWindow extends JTree
      * @see OperatorRootNode
      * @see FileOperatorNode
      * @see FolderNode
-     * @throws Exception io exception
      */
     private DefaultTreeModel defaultProject(String projectName,File projectFile) 
     {
@@ -1934,16 +1530,14 @@ public class OperatorWindow extends JTree
      * Searches all files in the project for the specified string and returns a
      * Vector of FindInProjectListObjects of all instances
      * @param opNode the operator subtree (which may be the whole project) to search
-     * @param stringToFind the String to Find
-     * @param matchCase
      */
     public void findInProject(OperatorNode opNode,
                               String stringToFind,
                               boolean matchCase)
     
     {
-        Enumeration bfe = opNode.breadthFirstEnumeration();
-        Vector v = new Vector();
+        Enumeration<TreeNode> bfe = opNode.breadthFirstEnumeration();
+        Vector<FeedbackListObject> vecErrs = new Vector<>();
         
         if (! matchCase) 
         {
@@ -1967,9 +1561,9 @@ public class OperatorWindow extends JTree
                         {
                             line = line.toLowerCase();
                         }                       
-                        if (line.indexOf(stringToFind) != -1) 
+                        if (line.contains(stringToFind))
                         {
-                            v.add(new FeedbackListObject(current,
+                            vecErrs.add(new FeedbackListObject(current,
                                                          lnr.getLineNumber(),
                                                          line,
                                                          stringToFind));
@@ -1989,12 +1583,12 @@ public class OperatorWindow extends JTree
             }
         }
 
-        if (v.isEmpty()) 
+        if (vecErrs.isEmpty())
         {
-            v.add(stringToFind + " not found in project");
+            vecErrs.add(new FeedbackListObject(stringToFind + " not found in project"));
         }
         
-        MainFrame.getMainFrame().setFeedbackListData(v);                
+        MainFrame.getMainFrame().setFeedbackListData(vecErrs);
     }
 
 
@@ -2007,7 +1601,7 @@ public class OperatorWindow extends JTree
     {
         TreeModel model = getModel();
         VSTreeNode root = (VSTreeNode)model.getRoot();
-        Enumeration bfe = root.breadthFirstEnumeration();
+        Enumeration<TreeNode> bfe = root.breadthFirstEnumeration();
         
         if (! matchCase) 
         {
@@ -2031,7 +1625,7 @@ public class OperatorWindow extends JTree
                         {
                             line = line.toLowerCase();
                         }                       
-                        if (line.indexOf(stringToFind) != -1)
+                        if (line.contains(stringToFind))
                         
                         {
                             // Open the rule
@@ -2064,7 +1658,7 @@ public class OperatorWindow extends JTree
     {
         TreeModel model = getModel();
         VSTreeNode root = (VSTreeNode)model.getRoot();
-        Enumeration bfe = root.breadthFirstEnumeration();
+        Enumeration<TreeNode> bfe = root.breadthFirstEnumeration();
         while(bfe.hasMoreElements()) 
         {
             OperatorNode current = (OperatorNode)bfe.nextElement(); 
@@ -2085,13 +1679,13 @@ public class OperatorWindow extends JTree
 
     /**
      * Reads a Version One .vsa project file and interprets it to create a Visual
-     * Soar project from the the file.
+     * Soar project from the file.
      * @param r the Reader of the .vsa project file
      * @see #makeNodeVersionOne(Reader)
      */
-    private void readVersionOne(Reader r) throws IOException, FileNotFoundException, NumberFormatException 
+    private void readVersionOne(Reader r) throws IOException, NumberFormatException
     {
-        // This hash table has keys of Id's and a pointer as a value
+        // This hash table has keys of ids and a pointer as a value
         // it is used for parent lookup
         Hashtable<Integer, VSTreeNode> ht = new Hashtable<>();
         
@@ -2117,8 +1711,6 @@ public class OperatorWindow extends JTree
             
             // read in the node
             OperatorNode node = makeNodeVersionOne(r);
-            String s = node.toString();
-
             addChild(parent,node);
 
             // add that node to the hash table
@@ -2130,21 +1722,20 @@ public class OperatorWindow extends JTree
 
     /**
      * Reads a Version Five .vsa project file and interprets it to create a Visual
-     * Soar project from the the file.
-     * This version reads the unique Id's which are strings consisting of concatenation
+     * Soar project from the file.
+     * This version reads the unique ids which are strings consisting of concatenation
      * of parent names as a value.  This method ensures that every id is unique.
      * @param r the Reader of the .vsa project file
      * @see #makeNodeVersionFive(HashMap, java.util.List,Reader, SoarIdentifierVertex)
      */
-    private void readVersionFive(Reader r) throws IOException, FileNotFoundException, NumberFormatException 
+    private void readVersionFive(Reader r) throws IOException, NumberFormatException
     {
-        // This hash table has keys of Id's which are strings consisting of concatenation of parent names and a pointer as a value
-        // it is used for parent lookup
-
-
+        // This hash table has keys of ids which are strings consisting of
+        // concatenation of parent names and a pointer as a value.
+        // It is used for parent lookup
         Hashtable<Integer, VSTreeNode> ht = new Hashtable<>();
-        java.util.List linkNodesToRestore = new LinkedList();
-        HashMap persistentIdLookup = new HashMap();
+        List<VSTreeNode> linkNodesToRestore = new LinkedList<>();
+        HashMap<Integer, VSTreeNode> persistentIdLookup = new HashMap<>();
         // Special Case Root Node
         // tree specific stuff
         int rootId = ReaderUtils.getInteger(r);
@@ -2185,10 +1776,8 @@ public class OperatorWindow extends JTree
             }
             else 
             {
-                Iterator i = linkNodesToRestore.iterator();
-                while(i.hasNext()) 
-                {
-                    LinkNode linkNodeToRestore = (LinkNode)i.next();
+                for (VSTreeNode vsTreeNode : linkNodesToRestore) {
+                    LinkNode linkNodeToRestore = (LinkNode) vsTreeNode;
                     linkNodeToRestore.restore(persistentIdLookup);
                 }
                 setModel(new DefaultTreeModel(root));
@@ -2199,17 +1788,17 @@ public class OperatorWindow extends JTree
 
     /**
      * Reads a Version Four .vsa project file and interprets it to create a Visual
-     * Soar project from the the file.
+     * Soar project from the file.
      * @param r the Reader of the .vsa project file
      * @see #makeNodeVersionFour(HashMap,java.util.List, Reader)
      */
-    private void readVersionFour(Reader r) throws IOException, FileNotFoundException, NumberFormatException 
+    private void readVersionFour(Reader r) throws IOException, NumberFormatException
     {
-        // This hash table has keys of Id's and a pointer as a value
+        // This hash table has keys of ids and a pointer as a value
         // it is used for parent lookup
         Hashtable<Integer, VSTreeNode> ht = new Hashtable<>();
-        java.util.List linkNodesToRestore = new LinkedList();
-        HashMap persistentIdLookup = new HashMap();
+        List<VSTreeNode> linkNodesToRestore = new LinkedList<>();
+        HashMap<Integer, VSTreeNode> persistentIdLookup = new HashMap<>();
 
         // Special Case Root Node
         // tree specific stuff
@@ -2243,10 +1832,8 @@ public class OperatorWindow extends JTree
             }
             else 
             {
-                Iterator i = linkNodesToRestore.iterator();
-                while(i.hasNext()) 
-                {
-                    LinkNode linkNodeToRestore = (LinkNode)i.next();
+                for (VSTreeNode vsTreeNode : linkNodesToRestore) {
+                    LinkNode linkNodeToRestore = (LinkNode) vsTreeNode;
                     linkNodeToRestore.restore(persistentIdLookup);
                 }
                 setModel(new DefaultTreeModel(root));
@@ -2257,17 +1844,17 @@ public class OperatorWindow extends JTree
 
     /**
      * Reads a Version Three .vsa project file and interprets it to create a Visual
-     * Soar project from the the file.
+     * Soar project from the file.
      * @param r the Reader of the .vsa project file
      * @see #makeNodeVersionThree(HashMap,java.util.List, Reader)
      */
-    private void readVersionThree(Reader r) throws IOException, FileNotFoundException, NumberFormatException 
+    private void readVersionThree(Reader r) throws IOException, NumberFormatException
     {
-        // This hash table has keys of Id's and a pointer as a value
+        // This hash table has keys of ids and a pointer as a value
         // it is used for parent lookup
         Hashtable<Integer, VSTreeNode> ht = new Hashtable<>();
-        java.util.List linkNodesToRestore = new LinkedList();
-        HashMap persistentIdLookup = new HashMap();
+        List<VSTreeNode> linkNodesToRestore = new LinkedList<>();
+        HashMap<Integer, VSTreeNode> persistentIdLookup = new HashMap<>();
 
         // Special Case Root Node
         // tree specific stuff
@@ -2302,10 +1889,8 @@ public class OperatorWindow extends JTree
             }
             else 
             {
-                Iterator i = linkNodesToRestore.iterator();
-                while(i.hasNext()) 
-                {
-                    LinkNode linkNodeToRestore = (LinkNode)i.next();
+                for (VSTreeNode vsTreeNode : linkNodesToRestore) {
+                    LinkNode linkNodeToRestore = (LinkNode) vsTreeNode;
                     linkNodeToRestore.restore(persistentIdLookup);
                 }
                 setModel(new DefaultTreeModel(root));
@@ -2316,17 +1901,17 @@ public class OperatorWindow extends JTree
 
     /**
      * Reads a Version Two .vsa project file and interprets it to create a Visual
-     * Soar project from the the file.
+     * Soar project from the file.
      * @param r the Reader of the .vsa project file
      * @see #makeNodeVersionTwo(HashMap,java.util.List, Reader)
      */
-    private void readVersionTwo(Reader r) throws IOException, FileNotFoundException, NumberFormatException 
+    private void readVersionTwo(Reader r) throws IOException, NumberFormatException
     {
-        // This hash table has keys of Id's and a pointer as a value
+        // This hash table has keys of ids and a pointer as a value
         // it is used for parent lookup
         Hashtable<Integer, VSTreeNode> ht = new Hashtable<>();
-        java.util.List linkNodesToRestore = new LinkedList();
-        HashMap persistentIdLookup = new HashMap();
+        List<VSTreeNode> linkNodesToRestore = new LinkedList<>();
+        HashMap<Integer, VSTreeNode> persistentIdLookup = new HashMap<>();
         
         // Special Case Root Node
         // tree specific stuff
@@ -2356,11 +1941,9 @@ public class OperatorWindow extends JTree
             // add that node to the hash table
             ht.put(nodeId,node);
         }
-        Iterator i = linkNodesToRestore.iterator();
-        while(i.hasNext()) 
-        {
-            LinkNode linkNodeToRestore = (LinkNode)i.next();
-            linkNodeToRestore.restore(persistentIdLookup); 
+        for (VSTreeNode vsTreeNode : linkNodesToRestore) {
+            LinkNode linkNodeToRestore = (LinkNode) vsTreeNode;
+            linkNodeToRestore.restore(persistentIdLookup);
         }
         setModel(new DefaultTreeModel(root));   
     }
@@ -2376,9 +1959,9 @@ public class OperatorWindow extends JTree
      * @see OperatorNode
      * @see #readVersionFive(Reader)
      */
-    private OperatorNode makeNodeVersionFive(HashMap linkedToMap,java.util.List linkNodesToRestore,Reader r, SoarIdentifierVertex parentDataMap) throws IOException, NumberFormatException 
+    private OperatorNode makeNodeVersionFive(HashMap<Integer, VSTreeNode> linkedToMap, List<VSTreeNode> linkNodesToRestore,Reader r, SoarIdentifierVertex parentDataMap) throws IOException, NumberFormatException
     {
-        OperatorNode retVal = null;
+        OperatorNode retVal;
         String type = ReaderUtils.getWord(r);
 
         if(type.equals("HLOPERATOR")) 
@@ -2424,11 +2007,13 @@ public class OperatorWindow extends JTree
             retVal = createLinkNode(ReaderUtils.getWord(r),ReaderUtils.getWord(r),ReaderUtils.getInteger(r));
             linkNodesToRestore.add(retVal);
         }
-        else
-        throw new IOException("Parse Error");
+        else {
+            throw new IOException("Parse Error");
+        }
         
-        if(retVal != null)
-        linkedToMap.put(ReaderUtils.getInteger(r),retVal);
+        if(retVal != null) {
+            linkedToMap.put(ReaderUtils.getInteger(r),retVal);
+        }
         return retVal;
     }
 
@@ -2441,9 +2026,9 @@ public class OperatorWindow extends JTree
      * @see OperatorNode
      * @see #readVersionFour(Reader)
      */
-    private OperatorNode makeNodeVersionFour(HashMap linkedToMap,java.util.List linkNodesToRestore,Reader r) throws IOException, NumberFormatException 
+    private OperatorNode makeNodeVersionFour(HashMap<Integer, VSTreeNode> linkedToMap, List<VSTreeNode> linkNodesToRestore,Reader r) throws IOException, NumberFormatException
     {
-        OperatorNode retVal = null;
+        OperatorNode retVal;
         String type = ReaderUtils.getWord(r);
 
         if(type.equals("HLOPERATOR")) 
@@ -2487,11 +2072,13 @@ public class OperatorWindow extends JTree
             retVal = createLinkNode(ReaderUtils.getWord(r),ReaderUtils.getWord(r),ReaderUtils.getInteger(r));
             linkNodesToRestore.add(retVal);
         }
-        else
-        throw new IOException("Parse Error");
+        else {
+            throw new IOException("Parse Error");
+        }
         
-        if(retVal != null)
-        linkedToMap.put(ReaderUtils.getInteger(r),retVal);
+        if(retVal != null) {
+            linkedToMap.put(ReaderUtils.getInteger(r),retVal);
+        }
         return retVal;
     }
 
@@ -2504,9 +2091,9 @@ public class OperatorWindow extends JTree
      * @see OperatorNode
      * @see #readVersionThree(Reader)
      */
-    private OperatorNode makeNodeVersionThree(HashMap linkedToMap,java.util.List linkNodesToRestore,Reader r) throws IOException, NumberFormatException 
+    private OperatorNode makeNodeVersionThree(HashMap<Integer, VSTreeNode> linkedToMap, List<VSTreeNode> linkNodesToRestore,Reader r) throws IOException, NumberFormatException
     {
-        OperatorNode retVal = null;
+        OperatorNode retVal;
         String type = ReaderUtils.getWord(r);
         if(type.equals("HLOPERATOR")) 
         {
@@ -2533,11 +2120,13 @@ public class OperatorWindow extends JTree
             retVal = createLinkNode(ReaderUtils.getWord(r),ReaderUtils.getWord(r),ReaderUtils.getInteger(r));
             linkNodesToRestore.add(retVal);
         }
-        else
-        throw new IOException("Parse Error");
+        else {
+            throw new IOException("Parse Error");
+        }
         
-        if(retVal != null)
-        linkedToMap.put(ReaderUtils.getInteger(r),retVal);
+        if(retVal != null) {
+            linkedToMap.put(ReaderUtils.getInteger(r),retVal);
+        }
         return retVal;
     }
 
@@ -2550,9 +2139,9 @@ public class OperatorWindow extends JTree
      * @see OperatorNode
      * @see #readVersionTwo(Reader)
      */
-    private OperatorNode makeNodeVersionTwo(HashMap linkedToMap,java.util.List linkNodesToRestore,Reader r) throws IOException, NumberFormatException 
+    private OperatorNode makeNodeVersionTwo(HashMap<Integer, VSTreeNode> linkedToMap, List<VSTreeNode> linkNodesToRestore,Reader r) throws IOException, NumberFormatException
     {
-        OperatorNode retVal = null;
+        OperatorNode retVal;
         String type = ReaderUtils.getWord(r);
         if(type.equals("HLOPERATOR")) 
         {
@@ -2579,11 +2168,13 @@ public class OperatorWindow extends JTree
             retVal = createLinkNode(ReaderUtils.getWord(r),ReaderUtils.getWord(r),ReaderUtils.getInteger(r));
             linkNodesToRestore.add(retVal);
         }
-        else
-        throw new IOException("Parse Error");
+        else {
+            throw new IOException("Parse Error");
+        }
         
-        if(retVal != null)
-        linkedToMap.put(ReaderUtils.getInteger(r),retVal);
+        if(retVal != null) {
+            linkedToMap.put(ReaderUtils.getInteger(r),retVal);
+        }
         return retVal;
     }
 
@@ -2597,46 +2188,50 @@ public class OperatorWindow extends JTree
     private OperatorNode makeNodeVersionOne(Reader r) throws IOException, NumberFormatException 
     {
         String type = ReaderUtils.getWord(r);
-        if (type.equals("HLOPERATOR"))
-        return createSoarOperatorNode(ReaderUtils.getWord(r),ReaderUtils.getWord(r),ReaderUtils.getWord(r),ReaderUtils.getInteger(r));
-        else if (type.equals("OPERATOR"))  
-        return createSoarOperatorNode(ReaderUtils.getWord(r),ReaderUtils.getWord(r));
-        else if (type.equals("FOLDER")) 
-        return createFolderNode(ReaderUtils.getWord(r),ReaderUtils.getWord(r));
-        else if (type.equals("FILE")) 
-        return createFileNode(ReaderUtils.getWord(r),ReaderUtils.getWord(r));
-        else if (type.equals("ROOT")) 
-        return createOperatorRootNode(ReaderUtils.getWord(r),ReaderUtils.getWord(r));
-        else
-        throw new IOException("Parse Error");
+        if (type.equals("HLOPERATOR")) {
+            return createSoarOperatorNode(ReaderUtils.getWord(r),ReaderUtils.getWord(r),ReaderUtils.getWord(r),ReaderUtils.getInteger(r));
+        } else if (type.equals("OPERATOR")) {
+            return createSoarOperatorNode(ReaderUtils.getWord(r),ReaderUtils.getWord(r));
+        } else if (type.equals("FOLDER")) {
+            return createFolderNode(ReaderUtils.getWord(r),ReaderUtils.getWord(r));
+        } else if (type.equals("FILE")) {
+            return createFileNode(ReaderUtils.getWord(r),ReaderUtils.getWord(r));
+        } else if (type.equals("ROOT")) {
+            return createOperatorRootNode(ReaderUtils.getWord(r),ReaderUtils.getWord(r));
+        } else {
+            throw new IOException("Parse Error");
+        }
     }
 
 
     private static boolean treePathSubset(TreePath set, TreePath subset) 
     {
         
-        if (subset.getPathCount() > set.getPathCount())
-        return false;
+        if (subset.getPathCount() > set.getPathCount()) {
+            return false;
+        }
             
         boolean difference = false;
         for (int i = 0; i < subset.getPathCount() && !difference; ++i) 
         {
             String stringSet = set.getPathComponent(i).toString();
             String stringSubset = subset.getPathComponent(i).toString();
-            if (!stringSet.equals(stringSubset))
-            difference = true;
+            if (!stringSet.equals(stringSubset)) {
+                difference = true;
+            }
         }
         return !difference;
     }
     
     private OperatorNode getNodeForId(int id) 
     {
-        Enumeration e = ((OperatorNode)getModel().getRoot()).breadthFirstEnumeration();
-        while(e.hasMoreElements()) 
+        Enumeration<TreeNode> nodeEnum = ((OperatorNode)getModel().getRoot()).breadthFirstEnumeration();
+        while(nodeEnum.hasMoreElements())
         {
-            OperatorNode operatorNode = (OperatorNode)e.nextElement();
-            if(operatorNode.getId() == id)
-            return operatorNode;
+            OperatorNode operatorNode = (OperatorNode)nodeEnum.nextElement();
+            if(operatorNode.getId() == id) {
+                return operatorNode;
+            }
         }
         return null;
     }
@@ -2732,22 +2327,15 @@ public class OperatorWindow extends JTree
 
         public void run() 
         {
-            try 
+            while(!closed)
             {
-                while(!closed) 
-                {
-                    // 3 minutes
-                    sleep(60000*3);
+                try {
+                    sleep(60000 * 3);  // 3 minutes
                     SwingUtilities.invokeAndWait(writeOutControl);
                 }
+                catch(InterruptedException | InvocationTargetException ie) { /* don't care */ }
             }
-            catch(InterruptedException ie) 
-            {
-            }
-            catch(java.lang.reflect.InvocationTargetException ite) 
-            {
+        }//run
+    }//end of BackupThread class
 
-            }
-        }
-    }
 }   // end of OperatorWindow class

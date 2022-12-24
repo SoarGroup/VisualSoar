@@ -5,11 +5,12 @@ import edu.umich.soar.visualsoar.operatorwindow.OperatorNode;
 import edu.umich.soar.visualsoar.parser.Triple;
 import edu.umich.soar.visualsoar.parser.TripleUtils;
 import edu.umich.soar.visualsoar.util.QueueAsLinkedList;
-import javax.swing.JOptionPane;
-import java.util.*;
+
+import java.util.Enumeration;
 
 /**
- * This represents an attribute in Working Memomry
+ * This represents an attribute in Working Memory
+ *
  * @author Brad Jones
  * @version 0.5a Oct 1999
  */
@@ -22,7 +23,7 @@ public class NamedEdge extends Edge
     /**
      * The name of this named edge
      */
-    protected String name = "";
+    protected String name;
          
     /**
      * Comments user attributes to this edge on the datamap
@@ -44,7 +45,7 @@ public class NamedEdge extends Edge
     private int lineNumber = 0;
 
     /**
-     *  Status of NamedEdge as to whether NamedEdge is tested or created by a production
+     *  Status of NamedEdge as follows:
      *  0 = Never tested or created by project's productions
      *  1 = Tested by a rule  (condition)
      *  2 = Created by a rule (action)
@@ -68,7 +69,7 @@ public class NamedEdge extends Edge
      * @param _name the name that you want to name the string, note
      * if you change this string you also change the name of the node
      */
-    public NamedEdge(Vertex v0, Vertex v1, String _name) 
+    public NamedEdge(SoarVertex v0, SoarVertex v1, String _name)
     {
         super(v0,v1);
         name = _name;
@@ -94,8 +95,6 @@ public class NamedEdge extends Edge
      * This method changes the name of the node from whatever it was
      * to the parameter passed, note changes to s will change the
      * name of the node
-     * @param s what you want to rename the node to
-     * @return the name of this node
      */
     public void rename(String s) 
     {
@@ -128,34 +127,29 @@ public class NamedEdge extends Edge
     /**
      * an edge is equal to another object if and only if
      * the other object is an edge, not null and the starting
-     * ending vertexs are equal and the names are the same
+     * ending vertexes are equal and the names are the same
      * @param o the object that you want to test equality
      * @return whether the test was true or false like just described
      */
     public boolean equals(Object o) 
     {
-        if (o instanceof NamedEdge && o != null) 
+        if (o instanceof NamedEdge)
         {
             NamedEdge anotherEdge = (NamedEdge)o;
-            if(v0.getValue() == anotherEdge.V0().getValue() &&
-               v1.getValue() == anotherEdge.V1().getValue() &&
-               name.equals(anotherEdge.getName())) 
-            {
-                return true;
-            }
-            else
-            return false;
+            return v0.getValue() == anotherEdge.V0().getValue() &&
+                    v1.getValue() == anotherEdge.V1().getValue() &&
+                    name.equals(anotherEdge.getName());
         }
-        else
-        return this == o;
-    }
+
+        return false;
+    }//equals
     
     /**
-     * satisfies tests whether or not this edge could be used to
-     * satisfy the constraint passed in, if so, it returns true
-     * else false
+     * satisfies tests whether this edge could be used to satisfy the
+     * constraint passed in, if so, it returns true else false
+     *
      * @param triple the constraint to test satisfaction to
-     * @return whether or not this NamedEdge can satisfy that constraint
+     * @return true if this NamedEdge can satisfy that constraint
      */
     public boolean satisfies(Triple triple) 
     {
@@ -164,7 +158,7 @@ public class NamedEdge extends Edge
         return false;
         if (TripleUtils.isVariable(triple.getValue().getString()))
         return true;
-        SoarVertex sv = (SoarVertex)V1();
+        SoarVertex sv = V1();
         return sv.isValid(triple.getValue().getString());
     }
 
@@ -172,10 +166,7 @@ public class NamedEdge extends Edge
 
     public boolean hasComment() 
     {
-        if (comment.equals(""))
-        return false;
-        else
-        return true;
+        return !comment.equals("");
     }
 
     public void setComment(String newComment) 
@@ -225,7 +216,7 @@ public class NamedEdge extends Edge
 
     /**
      *  Sets the errorNoted variable of this edge as true, meaning that it has already
-     *  been reported to the feedback list as non tested/created
+     *  been reported to the feedback list as non-tested/created
      */
     public void setErrorNoted() 
     {
@@ -233,8 +224,8 @@ public class NamedEdge extends Edge
     }
 
     /**
-     *  resets the errorNoted variable of this edge as false, meaning that is have never
-     *  been reported by the feedback list as non tested/created.
+     *  resets the errorNoted variable of this edge, meaning that it
+     *  has never been reported by the feedback list as non-tested/created.
      */
     public void resetErrorNoted() 
     {
@@ -256,14 +247,7 @@ public class NamedEdge extends Edge
      */
     public boolean isCreated() 
     {
-        if((testedStatus == 2) || (testedStatus == 3)) 
-        {
-            return true;
-        }
-        else 
-        {
-            return false;
-        }
+        return (testedStatus == 2) || (testedStatus == 3);
     }
 
     /**
@@ -271,14 +255,7 @@ public class NamedEdge extends Edge
      */
     public boolean isCreatedNoTest() 
     {
-        if(testedStatus == 2) 
-        {
-            return true;
-        }
-        else 
-        {
-            return false;
-        }
+        return testedStatus == 2;
     }
   
     /**
@@ -286,14 +263,7 @@ public class NamedEdge extends Edge
      */
     public boolean isTestedNoCreate() 
     {
-        if(testedStatus == 1) 
-        {
-            return true;
-        }
-        else 
-        {
-            return false;
-        }
+        return testedStatus == 1;
     }
 
     /**
@@ -302,14 +272,7 @@ public class NamedEdge extends Edge
      */
     public boolean isTested() 
     {
-        if((testedStatus == 1) || (testedStatus == 3)) 
-        {
-            return true;
-        }
-        else 
-        {
-            return false;
-        }
+        return (testedStatus == 1) || (testedStatus == 3);
     }
 
     /**
@@ -318,30 +281,7 @@ public class NamedEdge extends Edge
      */
     public boolean notMentioned() 
     {
-        if(testedStatus == 0) 
-        {
-            return true;
-        }
-        else 
-        {
-            return false;
-        }
-    }
-
-    /**
-     *  Sets the value of testedStatus
-     *  @param value the requested value to change testedStatus to
-     *  @return false if value not 0-3
-     */
-    public boolean setTestedStatus(int value) 
-    {
-        if ((value >= 0) && (value < 5)) 
-        {
-            testedStatus = value;
-            return true;
-        }
-        else
-        return false;
+        return testedStatus == 0;
     }
 
     /**
@@ -388,14 +328,12 @@ public class NamedEdge extends Edge
 
 
     /**
-     *  Initializes/Sets all of the edges on the output link as tested.
-     *  @return false if this edge is not the output-link
+     *  Initializes/Sets all edges on the output link as tested.
      */
-    public boolean setOutputLinkTested(SoarWorkingMemoryModel swmm) 
+    public void setOutputLinkTested(SoarWorkingMemoryModel swmm)
     {
         // make sure this is the output-link
-        if(!getName().equals("output-link"))
-        return false;
+        if(!getName().equals("output-link"))  return;
         edu.umich.soar.visualsoar.util.Queue queue = new QueueAsLinkedList();
         int numberOfVertices = swmm.getNumberOfVertices();
         boolean[] visitedVertices = new boolean[numberOfVertices];
@@ -411,10 +349,10 @@ public class NamedEdge extends Edge
             visitedVertices[w.getValue()] = true;
             if(w.allowsEmanatingEdges()) 
             {
-                Enumeration edges = swmm.emanatingEdges(w);
+                Enumeration<NamedEdge> edges = swmm.emanatingEdges(w);
                 while(edges.hasMoreElements()) 
                 {
-                    NamedEdge theEdge = (NamedEdge)edges.nextElement();
+                    NamedEdge theEdge = edges.nextElement();
                     theEdge.tested();
                     theEdge.setErrorNoted();
                     if(! visitedVertices[theEdge.V1().getValue()]) 
@@ -422,56 +360,14 @@ public class NamedEdge extends Edge
                         visitedVertices[w.getValue()] = true;
                         queue.enqueue(theEdge.V1());
                     }   // if haven't visited this vertex, add to the queue
-                } // while looking at all of the edges of the vertex
+                } // while looking at all the edges of the vertex
             }
         }   // while queue is not empty, examine each vertex in it
-        return true;
+
     } // end of setOutputLinkTested()
 
-    /**
-     *  Initializes/Sets all of the edges on the input link as created.
-     *  @return false if this edge is not the input-link
-     */
-    public boolean setInputLinkCreated(SoarWorkingMemoryModel swmm) 
-    {
-        // make sure this is the output-link
-        if(!getName().equals("input-link"))
-        return false;
-        edu.umich.soar.visualsoar.util.Queue queue = new QueueAsLinkedList();
-        int numberOfVertices = swmm.getNumberOfVertices();
-        boolean[] visitedVertices = new boolean[numberOfVertices];
-        for(int i = 0; i < numberOfVertices; i++)
-        visitedVertices[i] = false;
-        queue.enqueue(this.V1());
-        this.created();
-        setErrorNoted();
 
-        while(!queue.isEmpty()) 
-        {
-            SoarVertex w = (SoarVertex)queue.dequeue();
-            visitedVertices[w.getValue()] = true;
-            if(w.allowsEmanatingEdges()) 
-            {
-                Enumeration edges = swmm.emanatingEdges(w);
-                while(edges.hasMoreElements()) 
-                {
-                    NamedEdge theEdge = (NamedEdge)edges.nextElement();
-                    theEdge.created();
-                    theEdge.setErrorNoted();
-                    if(! visitedVertices[theEdge.V1().getValue()]) 
-                    {
-                        visitedVertices[w.getValue()] = true;
-                        queue.enqueue(theEdge.V1());
-                    }   // if haven't visited this vertex, add to the queue
-                } // while looking at all of the edges of the vertex
-            }
-        }   // while queue is not empty, examine each vertex in it
-        return true;
-    } // end of setInputLinkCreated()
-
-
-
-    public OperatorNode getNode() 
+    public OperatorNode getNode()
     {
         return node;
     }

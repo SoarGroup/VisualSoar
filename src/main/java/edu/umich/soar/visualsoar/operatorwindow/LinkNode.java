@@ -1,10 +1,12 @@
 package edu.umich.soar.visualsoar.operatorwindow;
 
-import java.awt.*;
-
 import edu.umich.soar.visualsoar.datamap.SoarWorkingMemoryModel;
-import javax.swing.tree.*;
-import java.io.*;
+
+import javax.swing.tree.TreeNode;
+import java.awt.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.Writer;
 import java.util.Enumeration;
 import java.util.Map;
 
@@ -15,7 +17,8 @@ import java.util.Map;
  * a child of this one.  Links can be created via drag and drop.
  *
  * NOTE:  At some point in the past, LinkNodes were disabled (not accessible
- * via the UI).  They remain in that state as of Dec 2022.
+ * via the UI).  Older .vsa files (version 5 or before) may still contain them.
+ * So, the code remains here to support it. -:AMN: Dec 2022
  */
 public class LinkNode extends FileNode {
 	SoarOperatorNode linkedToNode;
@@ -26,21 +29,11 @@ public class LinkNode extends FileNode {
 		linkedToNodeId = inLinkToNodeId;
 	}
 
-	public LinkNode(int inId,SoarOperatorNode inHighLevelOperator) {
-		super(inHighLevelOperator.toString(),inId,inHighLevelOperator.toString() + ".soar");
-		linkedToNode = inHighLevelOperator;
+	public void restore(Map<Integer, VSTreeNode> persistentIds) {
+		linkedToNode = (SoarOperatorNode)persistentIds.get(linkedToNodeId);
 		linkedToNode.registerLink(this);
 	}
-	
-	public void restore(Map persistentIds) {
-		linkedToNode = (SoarOperatorNode)persistentIds.get(new Integer(linkedToNodeId));
-		linkedToNode.registerLink(this);
-	}
-	
-	public final SoarOperatorNode getLinkToNode() {
-		return linkedToNode;
-	}
-	
+
 	public String getFolderName() {
 		return linkedToNode.getFolderName();
 	}
@@ -61,7 +54,7 @@ public class LinkNode extends FileNode {
 		return linkedToNode.isLeaf();
 	}
 	
-	public Enumeration children() {
+	public Enumeration<TreeNode> children() {
 		return EMPTY_ENUMERATION;
 	}
 	

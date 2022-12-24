@@ -3,27 +3,27 @@ import java.util.*;
 
 public final class AttributeValueMake {
 	// Data Members
-	private List d_valueMakes = new LinkedList();
-	private List d_rhsValues = new LinkedList();
+	private final List<ValueMake> d_valueMakes = new LinkedList<>();
+	private final List<RHSValue> d_rhsValues = new LinkedList<>();
 	
 	// Constructors
 	public AttributeValueMake() {}
 	
 	
 	// Accessors
-	public final void add(RHSValue rhsv) {
-		d_rhsValues.add(rhsv);
+	public void add(RHSValue rhsValue) {
+		d_rhsValues.add(rhsValue);
 	}
 	
-	public final void add(ValueMake vm) {
+	public void add(ValueMake vm) {
 		d_valueMakes.add(vm);
 	}
 	
-	public final Iterator getRHSValues() {
+	public Iterator<RHSValue> getRHSValues() {
 		return d_rhsValues.iterator();
 	}
 	
-	public final Iterator getValueMakes() {
+	public Iterator<ValueMake> getValueMakes() {
 		return d_valueMakes.iterator();
 	}
 	

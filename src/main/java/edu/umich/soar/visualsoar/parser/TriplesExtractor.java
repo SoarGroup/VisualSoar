@@ -79,7 +79,7 @@ public class TriplesExtractor {
 	}//extractTriples
 	
 	private List<Triple> extractTriples(PositiveCondition pc) {
-		// If the this positive condition is a conjunctions then extract
+		// If this positive condition is a conjunctions then extract
 		// all the positive conditions out of it and recursively
 		// interpret those
 		if(pc.isConjunction()) {
@@ -94,10 +94,10 @@ public class TriplesExtractor {
 			return extractTriples(pc.getConditionForOneIdentifier());
 		}
 	}//extractTriples
-	
+
+	/** This function is long and complicated so, I'll explain it the best
+	 that I can */
 	private List<Triple> extractTriples(ConditionForOneIdentifier cfoi) {
-		// This function is long and complicated so I'll explain it the best
-		// that I can
 		List<Triple> triples = new LinkedList<>();
 		// Get all the attribute Value tests
 		Iterator<AttributeValueTest> attrValTestIter = cfoi.getAttributeValueTests();
@@ -124,10 +124,8 @@ public class TriplesExtractor {
 				// value and march on down the line
 					List<Pair> newAttributes = extract(at.getTest());
 					Pair newVariable = getNextUnnamedVar();
-					Iterator<Pair> attrIter = attributes.iterator();
-					while(attrIter.hasNext()) {
-						Pair attr = attrIter.next();
-						triples.add(d_tripleFactory.createTriple(variable,attr,newVariable,hasState,true, true));
+					for (Pair attr : attributes) {
+						triples.add(d_tripleFactory.createTriple(variable, attr, newVariable, hasState, true, true));
 					}
 					attributes = newAttributes;
 					variable = newVariable;
@@ -139,7 +137,7 @@ public class TriplesExtractor {
 			// in its place, (my understanding is that this is exactly what
 			// soar does)
 			if(attributes == null) {
-				attributes = new LinkedList();
+				attributes = new LinkedList<>();
 				attributes.add(getNextUnnamedVar());
 			}
 			
@@ -157,19 +155,15 @@ public class TriplesExtractor {
 			// In case they didn't check for any values, put a variable in
 			// there, my understanding is that soar does the exact same thing
 			if(values == null) {
-				values = new LinkedList();
+				values = new LinkedList<>();
 				values.add(getNextUnnamedVar());
 			}
 			
 			// Put the attributes and variables together with the 
 			// variables into triples
-			Iterator<Pair> attrIter = attributes.iterator();
-			while(attrIter.hasNext()) {
-				Pair attr = attrIter.next();
-				Iterator<Pair> valIter = values.iterator();
-				while(valIter.hasNext()) {
-					Pair val = (Pair)valIter.next();
-					triples.add(d_tripleFactory.createTriple(variable,attr,val,hasState,true, true));
+			for (Pair attr : attributes) {
+				for (Pair val : values) {
+					triples.add(d_tripleFactory.createTriple(variable, attr, val, hasState, true, true));
 				}
 			}
 		}
@@ -201,7 +195,7 @@ public class TriplesExtractor {
 		}
 		else {
 			SingleTest st = simpleTest.getRelationalTest().getSingleTest();
-			List strings = new LinkedList();
+			List<Pair> strings = new LinkedList<>();
 			if(st.isConstant())
 				strings.add(st.getConstant().toPair());
 			else
@@ -211,27 +205,27 @@ public class TriplesExtractor {
 	}
 	
 	private List<Triple> extractTriples(VarAttrValMake vavm) {
-		List triples = new LinkedList();
-		Iterator i = vavm.getAttributeValueMakes();
+		List<Triple> triples = new LinkedList<>();
+		Iterator<AttributeValueMake> i = vavm.getAttributeValueMakes();
 		while(i.hasNext()) {
 			Pair variable = vavm.getVariable();
 			Pair attributeMakes = null;
-			AttributeValueMake avm = (AttributeValueMake)i.next();
-			Iterator j = avm.getRHSValues();
-			while(j.hasNext()) {
+			AttributeValueMake avm = i.next();
+			Iterator<RHSValue> rhsValueIterator = avm.getRHSValues();
+			while(rhsValueIterator.hasNext()) {
 				if(attributeMakes == null)
-					attributeMakes = extract((RHSValue)j.next());
+					attributeMakes = extract(rhsValueIterator.next());
 				else {
-					Pair newAttributeMakes = extract((RHSValue)j.next());
+					Pair newAttributeMakes = extract(rhsValueIterator.next());
 					Pair newVariable = getNextUnnamedVar();
 					triples.add(d_tripleFactory.createTriple(variable,attributeMakes,newVariable,false,false, false));
 					attributeMakes = newAttributeMakes;
 					variable = newVariable;
 				}
 			}
-			j = avm.getValueMakes();
-			while(j.hasNext()) {
-				ValueMake vm = (ValueMake)j.next();
+			Iterator<ValueMake> valueMakeIterator = avm.getValueMakes();
+			while(rhsValueIterator.hasNext()) {
+				ValueMake vm = valueMakeIterator.next();
 				Pair value = extract(vm.getRHSValue());
 				triples.add(d_tripleFactory.createTriple(variable,attributeMakes,value,false,false, false));
 			}
@@ -252,22 +246,18 @@ public class TriplesExtractor {
 	}
 	
 	private void extractVariables() {
-		Iterator i = d_triples.iterator();
-		while(i.hasNext()) {
-			Triple t = (Triple)i.next();
+		for (Triple t : d_triples) {
 			d_variables.add(t.getVariable());
-			if(TripleUtils.isVariable(t.getAttribute().getString()))
+			if (TripleUtils.isVariable(t.getAttribute().getString()))
 				d_variables.add(t.getAttribute());
-			if(TripleUtils.isVariable(t.getValue().getString()))
+			if (TripleUtils.isVariable(t.getValue().getString()))
 				d_variables.add(t.getValue());
 		}
 	}
 	
 	private void extractStateVariables() {
-		Iterator i = d_triples.iterator();
-		while(i.hasNext()) {
-			Triple t = (Triple)i.next();
-			if(t.hasState())
+		for (Triple t : d_triples) {
+			if (t.hasState())
 				d_stateVariables.add(t.getVariable());
 		}
 	}

@@ -17,134 +17,108 @@ public class DirectedGraphAsAdjacencyLists extends DirectedGraph {
 //////////////////////////////////////////////////////////
 // Data Members
 //////////////////////////////////////////////////////////
-	protected Vector<Vertex> vertices = new Vector<>();
-	protected Vector adjacencyLists = new Vector();
+	protected Vector<SoarVertex> vertices = new Vector<>();
+	protected Vector<Vector<NamedEdge>> adjacencyLists = new Vector<>();
 
 /////////////////////////////////////////////////////////
 // Methods
 /////////////////////////////////////////////////////////	
-	public void addVertex(Vertex v) {
+	public void addVertex(SoarVertex v) {
 		if (v.getValue() == numberOfVertices) {
 			vertices.add(v);
-			adjacencyLists.add(new LinkedList());		
+			adjacencyLists.add(new Vector<NamedEdge>());
 			++numberOfVertices;
 		}
 		else {
 			vertices.set(v.getValue(),v);
-			adjacencyLists.set(v.getValue(),new LinkedList());
+			adjacencyLists.set(v.getValue(), new Vector<NamedEdge>());
 		}
 		
 	}
 	
-	public Vertex selectVertex(int id) {
-		return (Vertex)vertices.get(id);
+	public SoarVertex selectVertex(int id) {
+		return vertices.get(id);
 	}
 	
-	public void addEdge(Edge e) {
+	public void addEdge(NamedEdge e) {
 		Vertex start = e.V0();
-		LinkedList emanatingEdges = (LinkedList)adjacencyLists.get(start.getValue());
+		Vector<NamedEdge> emanatingEdges = adjacencyLists.get(start.getValue());
 		emanatingEdges.add(e);
 		++numberOfEdges;
 	}
 	
-	public void removeEdge(Edge e) {
+	public void removeEdge(NamedEdge e) {
 		Vertex start = e.V0();
-		LinkedList emanatingEdges = (LinkedList)adjacencyLists.get(start.getValue());
+		Vector<NamedEdge> emanatingEdges = adjacencyLists.get(start.getValue());
 		emanatingEdges.remove(e);
 		--numberOfEdges;
 	}
 	
 	public NamedEdge selectEdge(int v0, int v1) {
-		LinkedList<NamedEdge> emanatingEdges = (LinkedList<NamedEdge>)adjacencyLists.get(v0);
-		Iterator i = emanatingEdges.iterator();
-		while(i.hasNext()) {
-			NamedEdge edge = (NamedEdge)i.next();
+		Vector<NamedEdge> emanatingEdges = adjacencyLists.get(v0);
+		for (NamedEdge edge : emanatingEdges) {
 			if (edge.V1().getValue() == v1)
 				return edge;
 		}
 		return null;
 	}
-	
-	public boolean isEdge(int v0, int v1) {
-		LinkedList emanatingEdges = (LinkedList)adjacencyLists.get(v0);
-		Iterator i = emanatingEdges.iterator();
-		while(i.hasNext()) {
-			Edge edge = (Edge)i.next();
-			if (edge.V1().getValue() == v1)
-				return true;
-		}
-		return false;
-	}
-	
-	public Enumeration vertices() {
+
+	public Enumeration<SoarVertex> vertices() {
 		return this.vertices.elements();
 	}
 	
 	public Enumeration<NamedEdge> edges() {
-		LinkedList allEdges = new LinkedList();
-		for(int i = 0; i < numberOfVertices; ++i) 
-			allEdges.addAll(((LinkedList)(LinkedList)adjacencyLists.get(i)));
-		return new EnumerationIteratorWrapper(allEdges.iterator());			
-	}
-	
-	public Enumeration<NamedEdge> emanatingEdges(Vertex v) {
-		LinkedList emanatingEdges = (LinkedList)adjacencyLists.get(v.getValue());
-		Iterator i = emanatingEdges.iterator();
-		return new EnumerationIteratorWrapper(i);
-	}
-	
-	public Enumeration incidentEdges(Vertex v) {
-		LinkedList incidentEdges = new LinkedList();
-		Enumeration e = edges();
-		while(e.hasMoreElements()) {
-			Edge edge = (Edge)e.nextElement();
-			if (v.getValue() == edge.V1().getValue())
-				incidentEdges.add(edge);
+		Vector<NamedEdge> allEdges = new Vector<>();
+		for(int i = 0; i < numberOfVertices; ++i) {
+			allEdges.addAll(adjacencyLists.get(i));
 		}
-		return new EnumerationIteratorWrapper(incidentEdges.iterator());
-	}		
+		return allEdges.elements();
+	}
 	
-	public void reduce(List<Vertex> listOfStartVertices) {
+	public Enumeration<NamedEdge> emanatingEdges(SoarVertex v) {
+		Vector<NamedEdge> emanatingEdges = adjacencyLists.get(v.getValue());
+		return emanatingEdges.elements();
+	}
+
+	public void reduce(List<SoarVertex> listOfStartVertices) {
 		// This code finds all the unvisited nodes
 		boolean[] visited = new boolean[numberOfVertices()];
-		for(int i = 0; i < visited.length; ++i)
-			visited[i] = false;
 		Visitor doNothing = new DoNothingVisitor();
 		PrePostVisitor dnPreVisitor = new PreOrder(doNothing);
-		Enumeration e = new EnumerationIteratorWrapper(listOfStartVertices.iterator());
-		while(e.hasMoreElements()) {
-			Vertex startVertex = (Vertex)e.nextElement();
+		EnumerationIteratorWrapper vertEnum = new EnumerationIteratorWrapper(listOfStartVertices.iterator());
+		while(vertEnum.hasMoreElements()) {
+			SoarVertex startVertex = (SoarVertex)vertEnum.nextElement();
 			if(!visited[startVertex.getValue()])
-				depthFirstTraversal(dnPreVisitor, startVertex,visited);
+				depthFirstTraversal(dnPreVisitor, startVertex, visited);
 		}
 		
-		//This code maps visted nodes to new ids
-		Hashtable ht = new Hashtable();
+		//This code maps visited nodes to new ids
+		Hashtable<Integer, Integer> ht = new Hashtable<>();
 		int newNumberOfVertices = 0;
 		for(int i = 0; i < visited.length; ++i) {
 			if(visited[i]) 
-				ht.put(new Integer(i),new Integer(newNumberOfVertices++));
+				ht.put(i, newNumberOfVertices++);
 		}
 		
 		// Make up the new vertices
-		Vector newVertices = new Vector();
+		Vector<SoarVertex> newVertices = new Vector<>();
 		for(int i = 0; i < numberOfVertices(); ++i) {
-			Integer newId = (Integer)ht.get(new Integer(i));
+			Integer newId = ht.get(i);
 			if(newId != null) {
-				Vertex v = (Vertex)vertices.get(i);
-				v.setValue(newId.intValue());
-				newVertices.add(v);
+				SoarVertex vertex = vertices.get(i);
+				vertex.setValue(newId);
+				newVertices.add(vertex);
 			}
 		}
 		
 		// Make up the new edges
-		Vector newAdjacencyLists = new Vector();
+		Vector<Vector<NamedEdge>> newAdjacencyLists = new Vector<>();
 		int newNumberOfEdges = 0;
 		for(int i = 0; i < numberOfVertices; ++i) {
-			Integer newId = (Integer)ht.get(new Integer(i));
+			Integer newId = ht.get(i);
 			if(newId != null) {
 				newAdjacencyLists.add(adjacencyLists.get(i));
-				newNumberOfEdges += ((List)adjacencyLists.get(i)).size();		
+				newNumberOfEdges += adjacencyLists.get(i).size();
 			}						
 		}
 		
@@ -154,18 +128,5 @@ public class DirectedGraphAsAdjacencyLists extends DirectedGraph {
 		numberOfVertices = newNumberOfVertices;
 		numberOfEdges = newNumberOfEdges;
 	}
-	
-	public void resolve() {
-		for(int i = 0; i < adjacencyLists.size(); ++i) {
-			for(int j = 0; j < ((List)adjacencyLists.get(i)).size(); ++j) {
-				LinkedList linkedList = (LinkedList)adjacencyLists.get(i);
-				NamedEdge e = (NamedEdge)linkedList.get(j);
-				if(e.V0() != selectVertex(e.V0().getValue()) ||
-				   e.V1() != selectVertex(e.V1().getValue())) {
-				 	NamedEdge ne = new NamedEdge(selectVertex(e.V0().getValue()),selectVertex(e.V1().getValue()),e.getName());
-				 	linkedList.set(j,ne);
-				}
-			}
-		}
-	}
+
 }

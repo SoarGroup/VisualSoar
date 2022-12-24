@@ -36,61 +36,45 @@ public class DefaultMatcherErrorHandler implements MatcherErrorHandler {
 		return d_errors;
 	}
 
+	/////////////////////////////////////////////////////////
+	// Modifiers
 	//////////////////////////////////////////////////////////
-// Modifiers
-//////////////////////////////////////////////////////////
 	public void badConstraint(edu.umich.soar.visualsoar.parser.Triple triple) {
-//		String errorBegin = "" + d_productionName + "(" + triple.getLine() + "): ";
-//		d_errors.add(errorBegin + "could not match constraint " + triple + " in production");
 		String errMsg = "could not match constraint " + triple + " in production";
 		d_errors.add(new FeedbackListObject(opNode, triple.getLine(), errMsg));
 	}
 
 	public void generatedIdentifier(edu.umich.soar.visualsoar.parser.Triple triple, String element) {
-//	  String errorBegin = "" + d_productionName + "(" + triple.getLine() + "): ";
-//	  d_errors.add(errorBegin + "Added Identifier '" + element + "' to the datamap to match constraint " + triple);
 		String errMsg = "Added Identifier '" + element + "' to the datamap to match constraint " + triple;
 		d_errors.add(new FeedbackListObject(opNode, triple.getLine(), errMsg));
 	}
 
 	public void generatedInteger(edu.umich.soar.visualsoar.parser.Triple triple, String element) {
-//		String errorBegin = "" + d_productionName + "(" + triple.getLine() + "): ";
-//		d_errors.add(errorBegin + "Added Integer '" + element + "' to the datamap to match constraint " + triple);
 		String errMsg = "Added Integer '" + element + "' to the datamap to match constraint " + triple;
 		d_errors.add(new FeedbackListObject(opNode, triple.getLine(), errMsg));
 	}
 
 	public void generatedFloat(edu.umich.soar.visualsoar.parser.Triple triple, String element) {
-//		String errorBegin = "" + d_productionName + "(" + triple.getLine() + "): ";
-//		d_errors.add(errorBegin + "Added Float '" + element + "' to the datamap to match constraint " + triple);
 		String errMsg = "Added Float '" + element + "' to the datamap to match constraint " + triple;
 		d_errors.add(new FeedbackListObject(opNode, triple.getLine(), errMsg));
 	}
 
 	public void generatedEnumeration(edu.umich.soar.visualsoar.parser.Triple triple, String element) {
-//		String errorBegin = "" + d_productionName + "(" + triple.getLine() + "): ";
-//		d_errors.add(errorBegin + "Added Enumeration '" + element + "' to the datamap to match constraint " + triple);
 		String errMsg = "Added Enumeration '" + element + "' to the datamap to match constraint " + triple;
 		d_errors.add(new FeedbackListObject(opNode, triple.getLine(), errMsg));
 	}
 
 	public void generatedAddToEnumeration(edu.umich.soar.visualsoar.parser.Triple triple, String attribute, String value) {
-//		String errorBegin = "" + d_productionName + "(" + triple.getLine() + "): ";
-//		d_errors.add(errorBegin + "Added value '" + value + "' to the enumeration '" + attribute + "' to match constraint " + triple);
 		String errMsg = "Added value '" + value + "' to the enumeration '" + attribute + "' to match constraint " + triple;
 		d_errors.add(new FeedbackListObject(opNode, triple.getLine(), errMsg));
 	}
 
 	public void noStateVariable() {
-//		String errorBegin = "" + d_productionName + "(" + startLine +"): ";
-//		d_errors.add(errorBegin + "no state variable in production");
 		String errMsg = "no state variable in production";
 		d_errors.add(new FeedbackListObject(opNode, startLine, errMsg));
 	}
 
 	public void tooManyStateVariables() {
-//		String errorBegin = "" + d_productionName + "(" + startLine +"): ";
-//		d_errors.add(errorBegin + "too many state variables in production");
 		String errMsg = "too many state variables in production";
 		d_errors.add(new FeedbackListObject(opNode, startLine, errMsg));
 	}

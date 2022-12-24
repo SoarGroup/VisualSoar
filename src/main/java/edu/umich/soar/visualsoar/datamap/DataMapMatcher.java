@@ -1,19 +1,17 @@
 package edu.umich.soar.visualsoar.datamap;
+
 import edu.umich.soar.visualsoar.graph.EnumerationVertex;
 import edu.umich.soar.visualsoar.graph.NamedEdge;
 import edu.umich.soar.visualsoar.graph.SoarIdentifierVertex;
 import edu.umich.soar.visualsoar.graph.SoarVertex;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorNode;
-import edu.umich.soar.visualsoar.parser.Pair;
-import edu.umich.soar.visualsoar.parser.SoarProduction;
-import edu.umich.soar.visualsoar.parser.Triple;
-import edu.umich.soar.visualsoar.parser.TripleUtils;
-import edu.umich.soar.visualsoar.parser.TriplesExtractor;
+import edu.umich.soar.visualsoar.parser.*;
 import edu.umich.soar.visualsoar.util.EnumerationIteratorWrapper;
-import javax.swing.*;
-import javax.swing.tree.*;
+
+import javax.swing.tree.TreePath;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.*;
-import java.io.*;
 
 
 /**
@@ -34,16 +32,17 @@ public class DataMapMatcher
      * @param startVertex the state in working memory that is being examined
      * @param triplesExtractor all the triples that were in a production
      * @param meh the structure that holds the errors when they are found */
-    public static Map matches(SoarWorkingMemoryModel dataMap,
+    public static Map<String, HashSet<SoarVertex>>
+        matches(SoarWorkingMemoryModel dataMap,
                               SoarIdentifierVertex startVertex,
                               TriplesExtractor triplesExtractor,
                               MatcherErrorHandler meh) 
     {
-        Map varMap = new HashMap();
-        Iterator iter = triplesExtractor.variables();
-        while(iter.hasNext()) 
+        Map<String, HashSet<SoarVertex>> varMap = new HashMap<>();
+        Iterator<Pair> pairIter = triplesExtractor.variables();
+        while(pairIter.hasNext())
         {
-            varMap.put(((Pair)iter.next()).getString(),new HashSet());
+            varMap.put(pairIter.next().getString(),new HashSet<SoarVertex>());
         }
         
         // Take care of the first Variable
@@ -61,20 +60,20 @@ public class DataMapMatcher
         }
 
         Pair stateVar = triplesExtractor.stateVariable();
-        Set stateSet = (Set)varMap.get(stateVar.getString());
+        Set<SoarVertex> stateSet = varMap.get(stateVar.getString());
         stateSet.add(startVertex);
-        
-        Enumeration e = new EnumerationIteratorWrapper(triplesExtractor.triples());
-        while(e.hasMoreElements()) 
+
+        EnumerationIteratorWrapper tripleEnum = new EnumerationIteratorWrapper(triplesExtractor.triples());
+        while(tripleEnum.hasMoreElements())
         {
-            Triple currentTriple = (Triple)e.nextElement();
+            Triple currentTriple = (Triple)tripleEnum.nextElement();
             if ( (currentTriple.getAttribute().getString().equals("operator"))
                  && (TripleUtils.isFloat(currentTriple.getValue().getString())
                      ||  TripleUtils.isInteger(currentTriple.getValue().getString()) ) ) 
             {
                 continue;
             }
-            if (!addConstraint(dataMap,currentTriple,varMap)) 
+            if (! addConstraint(dataMap, currentTriple, varMap))
             {
                 meh.badConstraint(currentTriple);
             }
@@ -86,17 +85,18 @@ public class DataMapMatcher
     /**
      * Similar to matches(), but writes comments to a log file
      */
-    public static Map matchesLog(SoarWorkingMemoryModel dataMap,
+    public static Map<String, HashSet<SoarVertex>>
+            matchesLog(SoarWorkingMemoryModel dataMap,
                                  SoarIdentifierVertex startVertex,
                                  TriplesExtractor triplesExtractor,
                                  MatcherErrorHandler meh,
                                  FileWriter log) 
     {
-        Map varMap = new HashMap();
-        Iterator iter = triplesExtractor.variables();
+        Map<String, HashSet<SoarVertex>> varMap = new HashMap<>();
+        Iterator<Pair> iter = triplesExtractor.variables();
         while(iter.hasNext()) 
         {
-            varMap.put(((Pair)iter.next()).getString(),new HashSet());
+            varMap.put((iter.next()).getString(),new HashSet<SoarVertex>());
         }
 
         // Take care of the first Variable
@@ -114,13 +114,13 @@ public class DataMapMatcher
         }
 
         Pair stateVar = triplesExtractor.stateVariable();
-        Set stateSet = (Set)varMap.get(stateVar.getString());
+        Set<SoarVertex> stateSet = varMap.get(stateVar.getString());
         stateSet.add(startVertex);
-        
-        Enumeration e = new EnumerationIteratorWrapper(triplesExtractor.triples());
-        while(e.hasMoreElements()) 
+
+        EnumerationIteratorWrapper enumTriples = new EnumerationIteratorWrapper(triplesExtractor.triples());
+        while(enumTriples.hasMoreElements())
         {
-            Triple currentTriple = (Triple)e.nextElement();
+            Triple currentTriple = (Triple)enumTriples.nextElement();
 
             try 
             {
@@ -149,7 +149,7 @@ public class DataMapMatcher
                 {
                     try 
                     {
-                        log.write("Ignoring the triple " + currentTriple.toString());
+                        log.write("Ignoring the triple " + currentTriple);
                         log.write('\n');
                     }
                     catch(IOException ioe) 
@@ -162,7 +162,7 @@ public class DataMapMatcher
 
             try 
             {
-                log.write("Examining the triple " + currentTriple.toString());
+                log.write("Examining the triple " + currentTriple);
                 log.write('\n');
             }
             catch(IOException ioe) 
@@ -174,7 +174,7 @@ public class DataMapMatcher
             {
                 try 
                 {
-                    log.write("Could not match a constraint for the triple " + currentTriple.toString());
+                    log.write("Could not match a constraint for the triple " + currentTriple);
                     log.write('\n');
                 }
                 catch(IOException ioe) 
@@ -199,27 +199,23 @@ public class DataMapMatcher
                                 MatcherErrorHandler meh,
                                 OperatorNode current)
     {
-
-        boolean notFound = true;
-
-        Map varMap = new HashMap();
-        Iterator iter = triplesExtractor.variables();
+        Map<String, HashSet<SoarVertex>> varMap = new HashMap<>();
+        Iterator<Pair> iter = triplesExtractor.variables();
         while(iter.hasNext()) 
         {
-            varMap.put(((Pair)iter.next()).getString(),new HashSet());
+            varMap.put((iter.next()).getString(),new HashSet<SoarVertex>());
         }
 
 
         Pair stateVar = triplesExtractor.stateVariable();
-        Set stateSet = (Set)varMap.get(stateVar.getString());
+        Set<SoarVertex> stateSet = varMap.get(stateVar.getString());
         stateSet.add(startVertex);
 
 
-        Enumeration e = new EnumerationIteratorWrapper(triplesExtractor.triples());
-        while(e.hasMoreElements()) 
+        EnumerationIteratorWrapper iterEnumWrap = new EnumerationIteratorWrapper(triplesExtractor.triples());
+        while(iterEnumWrap.hasMoreElements())
         {
-            notFound = true;
-            Triple currentTriple = (Triple)e.nextElement();
+            Triple currentTriple = (Triple)iterEnumWrap.nextElement();
             if ( (currentTriple.getAttribute().getString().equals("operator"))  && (TripleUtils.isFloat(currentTriple.getValue().getString()) ||   TripleUtils.isInteger(currentTriple.getValue().getString()) ) ) 
             {
                 continue;
@@ -233,104 +229,90 @@ public class DataMapMatcher
                 if( TripleUtils.isVariable(currentTriple.getAttribute().getString()) )
                 return;
 
-                Set varSet = (Set)varMap.get(currentTriple.getVariable().getString());
+                Set<SoarVertex> varSet = varMap.get(currentTriple.getVariable().getString());
 
 
                 // for every possible start
-                Enumeration ed = new EnumerationIteratorWrapper(varSet.iterator());
+                EnumerationIteratorWrapper ed = new EnumerationIteratorWrapper(varSet.iterator());
                 while(ed.hasMoreElements()) 
                 {
-                    notFound = true;
+                    boolean notFound = true;
                     NamedEdge attributeEdge = null;
-                    Object o = ed.nextElement();
-                    SoarVertex currentSV = null;
-
+                    SoarVertex currentSV = (SoarVertex)ed.nextElement();
 
                     // If parent Vertex is not a SoarIdentifierVertex, need to
                     // create one
-                    if(!(o instanceof SoarIdentifierVertex)) 
+                    if(!(currentSV instanceof SoarIdentifierVertex))
                     {
-                        if(o instanceof SoarVertex) 
+                        SoarVertex matchingVertex =
+                            dataMap.getMatchingParent(currentSV);
+                        if(matchingVertex != null)
                         {
-
-                            SoarVertex matchingVertex =
-                                dataMap.getMatchingParent((SoarVertex)o);
-                            if(matchingVertex != null) 
-                            {
-                                currentSV = matchingVertex;
-                            }
-                            else 
-                            {
-                                java.util.List matchingVertices =
-                                    dataMap.getParents((SoarVertex)o);
-                                Iterator z = matchingVertices.iterator();
-                                String parentName = "";
-                                SoarVertex parentVertex = null;
-
-                                while(z.hasNext()) 
-                                {
-                                    Object oz = z.next();
-                                    if(oz instanceof SoarIdentifierVertex) 
-                                    {
-                                        parentVertex = (SoarVertex)oz;
-                                        // Get the name of the vertex to create
-                                        Enumeration parentEdges =
-                                            dataMap.emanatingEdges(parentVertex);
-                                        while(parentEdges.hasMoreElements()) 
-                                        {
-                                            NamedEdge parentEdge =
-                                                (NamedEdge)parentEdges.nextElement();
-                                            if(parentEdge.V1().equals((SoarVertex)o))
-                                            parentName = parentEdge.getName();
-                                        }
-                                    }
-                                }//while finding all the possible parent vertices
-
-                                if(parentName != "") 
-                                {
-                                    SoarVertex v1 = dataMap.createNewSoarId();
-                                    dataMap.addTriple(parentVertex,
-                                                      parentName,
-                                                      v1,
-                                                      true,
-                                                      current,
-                                                      currentTriple.getLine());
-                                    meh.generatedIdentifier(currentTriple,
-                                                            parentName);
-                                    currentSV = v1;
-                                }
-                            }     // end of else create a new SoarIdentifierVertex
+                            currentSV = matchingVertex;
                         }
+                        else
+                        {
+                            List<SoarVertex> matchingVertices = dataMap.getParents(currentSV);
+                            Iterator<SoarVertex> z = matchingVertices.iterator();
+                            String parentName = "";
+                            SoarVertex parentVertex = null;
+
+                            while(z.hasNext())
+                            {
+                                SoarVertex oz = z.next();
+                                if(oz instanceof SoarIdentifierVertex)
+                                {
+                                    parentVertex = oz;
+                                    // Get the name of the vertex to create
+                                    Enumeration<NamedEdge> parentEdges = dataMap.emanatingEdges(parentVertex);
+                                    while(parentEdges.hasMoreElements())
+                                    {
+                                        NamedEdge parentEdge = parentEdges.nextElement();
+                                        if(parentEdge.V1().equals(currentSV))
+                                        parentName = parentEdge.getName();
+                                    }
+                                }
+                            }//while finding all the possible parent vertices
+
+                            if(parentName.length() > 0)
+                            {
+                                SoarVertex v1 = dataMap.createNewSoarId();
+                                dataMap.addTriple(parentVertex,
+                                                  parentName,
+                                                  v1,
+                                                  true,
+                                                  current,
+                                                  currentTriple.getLine());
+                                meh.generatedIdentifier(currentTriple,
+                                                        parentName);
+                                currentSV = v1;
+                            }
+                        }     // end of else create a new SoarIdentifierVertex
                     }   // end of if parent vertex wasn't a SoarIdentifierVertex
-                    else 
-                    {
-                        currentSV = (SoarVertex)o;
-                    }
 
 
                     /*  If attribute is 'name'
-                     *    1.)  See if name is in reference to the name of a operator.
-                     *    2.)  See if that name and value already exists.
-                     *    3.)  See if there is an empty operator folder that can be used.
-                     *    4.)  If operator, name doesn't already exist and no empty folders,
-                     *          create a new operator identifier folder for the name attribute
-                     *          to be put.
+                     *    1.  See if name is in reference to the name of a operator.
+                     *    2.  See if that name and value already exists.
+                     *    3.  See if there is an empty operator folder that can be used.
+                     *    4.  If operator, name doesn't already exist and no empty folders,
+                     *         create a new operator identifier folder for the name attribute
+                     *         to be put.
                      */
                     if( currentTriple.getAttribute().getString().equals("name") && currentSV != null && (dataMap.getTopstate().getValue() != currentSV.getValue()) ) 
                     {
                         // create new identifier 'operator' at higher level
 
                         // Get the parent vertices
-                        java.util.List parentVertices =
-                            dataMap.getParents((SoarVertex)o);
-                        Iterator x = parentVertices.iterator();
+                        List<SoarVertex> parentVertices = dataMap.getParents(currentSV);
+                        Iterator<SoarVertex> x = parentVertices.iterator();
                         SoarVertex parentVertex = null;
                         while(x.hasNext()) 
                         {
-                            Object ox = x.next();
+                            SoarVertex ox = x.next();
                             if(ox instanceof SoarIdentifierVertex) 
                             {
-                                parentVertex = (SoarVertex)ox;
+                                parentVertex = ox;
                             }
                         }
                         
@@ -353,10 +335,10 @@ public class DataMapMatcher
 
                         // Check to see if this name attribute is part of an
                         // operator
-                        Enumeration fatherEdges = dataMap.emanatingEdges(parentVertex);
+                        Enumeration<NamedEdge> fatherEdges = dataMap.emanatingEdges(parentVertex);
                         while(fatherEdges.hasMoreElements() && !operatorType) 
                         {
-                            NamedEdge edge = (NamedEdge)fatherEdges.nextElement();
+                            NamedEdge edge = fatherEdges.nextElement();
 
                             if((edge.V1().getValue() == currentSV.getValue()) && edge.getName().equals("operator")) 
                             {
@@ -369,29 +351,29 @@ public class DataMapMatcher
                         if(operatorType) 
                         {
                             // Check to see if an identifier 'operator' with same name exists already
-                            Enumeration parentEdges = dataMap.emanatingEdges(parentVertex);
+                            Enumeration<NamedEdge> parentEdges = dataMap.emanatingEdges(parentVertex);
                             while(parentEdges.hasMoreElements() && !alreadyHere) 
                             {
 
-                                NamedEdge edge = (NamedEdge)parentEdges.nextElement();
+                                NamedEdge edge = parentEdges.nextElement();
                                 if(edge.getName().equals("operator")) 
                                 {
-                                    Enumeration operatorEdges = dataMap.emanatingEdges(edge.V1());
+                                    Enumeration<NamedEdge> operatorEdges = dataMap.emanatingEdges(edge.V1());
                                     emptyFolder = true;    // keeps track if there is already operator identifier with no name attached
 
                                     while(operatorEdges.hasMoreElements() && !alreadyHere) 
                                     {
-                                        NamedEdge operatorEdge = (NamedEdge)operatorEdges.nextElement();
+                                        NamedEdge operatorEdge = operatorEdges.nextElement();
                                         if(operatorEdge.getName().equals("name")) 
                                         {
                                             emptyFolder = false;
-                                            if(operatorEdge.V1() instanceof EnumerationVertex) 
+                                            if(operatorEdge.V1() instanceof EnumerationVertex)
                                             {
                                                 EnumerationVertex nameVertex = (EnumerationVertex)operatorEdge.V1();
-                                                Iterator i = nameVertex.getEnumeration();
-                                                while(i.hasNext() && !alreadyHere) 
+                                                Iterator<String> vertEnum = nameVertex.getEnumeration();
+                                                while(vertEnum.hasNext() && !alreadyHere)
                                                 {
-                                                    String ns = (String)i.next();
+                                                    String ns = vertEnum.next();
                                                     if(ns.equals(currentTriple.getValue().getString())) 
                                                     {
                                                         alreadyHere = true;
@@ -403,7 +385,7 @@ public class DataMapMatcher
                                     }
                                     // If empty operator folder found, use it
                                     if(emptyFolder)
-                                    currentSV = (SoarVertex)edge.V1();
+                                    currentSV = edge.V1();
                                 }   // end of checking operator identifier children for identical name
                             }   // while checking parent edges for soarIdentifierVertexs 'operator'
 
@@ -413,7 +395,7 @@ public class DataMapMatcher
                             /* create new identifier 'operator' at higher level if not already one
                              * with same name or an operator identifier without a name
                              */
-                            if(parentVertex != null && !alreadyHere && !emptyFolder) 
+                            if(!alreadyHere && !emptyFolder)
                             {
                                 // Create a new SoarIdentifierVertex with name 'operator'
                                 SoarVertex v1 = dataMap.createNewSoarId();
@@ -436,10 +418,10 @@ public class DataMapMatcher
                     {
                         // First check to see if somehow this was already created
                         boolean alreadyThere = false;
-                        Enumeration dEdges = dataMap.emanatingEdges(currentSV);
+                        Enumeration<NamedEdge> dEdges = dataMap.emanatingEdges(currentSV);
                         while(dEdges.hasMoreElements()) 
                         {
-                            NamedEdge dEdge = (NamedEdge)dEdges.nextElement();
+                            NamedEdge dEdge = dEdges.nextElement();
                             if(dEdge.getName().equals(currentTriple.getAttribute().getString()) && (dEdge.V1() instanceof SoarIdentifierVertex))
                             alreadyThere = true;
                         }
@@ -470,10 +452,10 @@ public class DataMapMatcher
                     {
                         // Get all the edges from the start
                         // ATTRIBUTE Search for the matching attribute
-                        Enumeration edges = dataMap.emanatingEdges(currentSV);
+                        Enumeration<NamedEdge> edges = dataMap.emanatingEdges(currentSV);
                         while(edges.hasMoreElements() && notFound) 
                         {
-                            NamedEdge currentEdge = (NamedEdge)edges.nextElement();
+                            NamedEdge currentEdge = edges.nextElement();
                             if(currentEdge.getName().equals(currentTriple.getAttribute().getString())) 
                             {
                                 notFound = false;
@@ -496,7 +478,7 @@ public class DataMapMatcher
                             // if attributeEdge is already a SoarIdentifierVertex, remove it and make it an EnumerationVertex
                             if(attributeEdge.V1() instanceof SoarIdentifierVertex) 
                             {
-                                dataMap.removeTriple((SoarVertex)attributeEdge.V0(), currentTriple.getAttribute().getString(), (SoarVertex)attributeEdge.V1());
+                                dataMap.removeTriple(attributeEdge.V0(), currentTriple.getAttribute().getString(), attributeEdge.V1());
                                 Vector<String> v1Vector = new Vector<>();
                                 v1Vector.add(currentTriple.getValue().getString());
                                 SoarVertex v1 = dataMap.createNewEnumeration(v1Vector);
@@ -507,14 +489,12 @@ public class DataMapMatcher
                             else if(attributeEdge.V1() instanceof EnumerationVertex) 
                             {
                                 boolean valueFound = false;
-                                Vector edgeStrings = new Vector();
-                                SoarVertex attributeVertex = (SoarVertex)attributeEdge.V1();
-                                Enumeration attributeEdges = dataMap.emanatingEdges(attributeVertex);
+                                SoarVertex attributeVertex = attributeEdge.V1();
+                                Enumeration<NamedEdge> attributeEdges = dataMap.emanatingEdges(attributeVertex);
                                 while(attributeEdges.hasMoreElements()) 
                                 {
-                                    NamedEdge currentEdge = (NamedEdge)attributeEdges.nextElement();
-                                    edgeStrings.add(currentEdge.getName());
-                                    if( currentEdge.getName().equals(currentTriple.getValue().getString())) 
+                                    NamedEdge currentEdge = attributeEdges.nextElement();
+                                    if( currentEdge.getName().equals(currentTriple.getValue().getString()))
                                     {
                                         valueFound = true;
                                     }
@@ -522,15 +502,14 @@ public class DataMapMatcher
 
                                 if(!valueFound) 
                                 {
-                                    edgeStrings.add(currentTriple.getValue().getString()); // add value to string list
                                     EnumerationVertex enumV = (EnumerationVertex) attributeEdge.V1();
                                     enumV.add(currentTriple.getValue().getString());
-                                    dataMap.removeTriple((SoarVertex)attributeEdge.V0(), attributeEdge.getName(), (SoarVertex)attributeEdge.V1());
-                                    dataMap.addTriple((SoarVertex)attributeEdge.V0(), attributeEdge.getName(), enumV, true, current, currentTriple.getLine());
+                                    dataMap.removeTriple(attributeEdge.V0(), attributeEdge.getName(), attributeEdge.V1());
+                                    dataMap.addTriple(attributeEdge.V0(), attributeEdge.getName(), enumV, true, current, currentTriple.getLine());
                                     meh.generatedAddToEnumeration(currentTriple, currentTriple.getAttribute().getString(), currentTriple.getValue().getString());
                                 }    // end of if value not found on enumeration, then add it
                             } // end of adding value to attribute
-                            // AttributeEdge is neither an EnumerationVertex or a SoarIdentifier, don't even try to handle this
+                            // AttributeEdge is neither an EnumerationVertex nor a SoarIdentifier, don't even try to handle this
                             else 
                             {
                                 return;
@@ -545,20 +524,19 @@ public class DataMapMatcher
     } // end of complete()
 
 
-
     private static boolean addConstraint(SoarWorkingMemoryModel dataMap,
                                          Triple triple,
-                                         Map match) 
+                                         Map<String, HashSet<SoarVertex> > match)
     {
-        Set varSet = (Set)match.get(triple.getVariable().getString());
+        Set<SoarVertex> varSet = match.get(triple.getVariable().getString());
         boolean matched = false;
         // for every possible start
-        Enumeration e = new EnumerationIteratorWrapper(varSet.iterator());
-        while(e.hasMoreElements()) 
+        EnumerationIteratorWrapper iterWrap = new EnumerationIteratorWrapper(varSet.iterator());
+        while(iterWrap.hasMoreElements())
         {
-            Object o = e.nextElement();
+            Object o = iterWrap.nextElement();
 
-            // In case they try to use a attribute variable as 
+            // In case they try to use an attribute variable as
             // soar identifier
             if(!(o instanceof SoarVertex))
             {
@@ -567,28 +545,37 @@ public class DataMapMatcher
             SoarVertex currentSV = (SoarVertex)o;
 
             // Get all the edges from the start
-            Enumeration edges = dataMap.emanatingEdges(currentSV);
+            Enumeration<NamedEdge> edges = dataMap.emanatingEdges(currentSV);
             while(edges.hasMoreElements()) 
             {
-                NamedEdge currentEdge = (NamedEdge)edges.nextElement();
+                NamedEdge currentEdge = edges.nextElement();
                 if (currentEdge.satisfies(triple)) 
                 {
                     // Used for the Datamap Searches for untested/uncreated elements
-                    if(triple.isCondition())
-                    currentEdge.tested();
-                    else
-                    currentEdge.created();
+                    if(triple.isCondition()) {
+                        currentEdge.tested();
+                    }
+                    else {
+                        currentEdge.created();
+                    }
 
-                    if (!matched)
-                    matched = true;
-                    if (TripleUtils.isVariable(triple.getAttribute().getString())) 
-                    {
-                        Set attrSet = (Set)match.get(triple.getAttribute().getString());
-                        attrSet.add(currentEdge.getName());
-                    }   
+                    if (!matched) {
+                        matched = true;
+                    }
+
+                    //TODO:  I've removed this code.  The matcher, as I understand it,
+                    //       is a list of matching SoarVertex objects (id, string, enum, float, etc)
+                    //       So, it doesn't make sense to add attributes here.  I'm likely confused
+                    //       and will have to undo this later...  -:AMN: 23 Dec 2022
+//                    if (TripleUtils.isVariable(triple.getAttribute().getString()))
+//                    {
+//                        Set attrSet = (Set)match.get(triple.getAttribute().getString());
+//
+//                        attrSet.add(currentEdge.getName());
+//                    }
                     if (TripleUtils.isVariable(triple.getValue().getString())) 
                     {
-                        Set valSet = (Set)match.get(triple.getValue().getString());
+                        Set<SoarVertex> valSet = match.get(triple.getValue().getString());
                         valSet.add(currentEdge.V1());
                     }
                 }
@@ -599,27 +586,31 @@ public class DataMapMatcher
 
 
 
-    private static boolean addConstraintLog(SoarWorkingMemoryModel dataMap,Triple triple, Map match, FileWriter log) 
+    private static boolean addConstraintLog(SoarWorkingMemoryModel dataMap,
+                                            Triple triple,
+                                            Map<String,
+                                            HashSet<SoarVertex>> match,
+                                            FileWriter log)
     {
-        Set varSet = (Set)match.get(triple.getVariable().getString());
+        Set<SoarVertex> varSet = match.get(triple.getVariable().getString());
         boolean matched = false;
         // for every possible start
-        Enumeration e = new EnumerationIteratorWrapper(varSet.iterator());
-        while(e.hasMoreElements()) 
+        EnumerationIteratorWrapper iterWrap = new EnumerationIteratorWrapper(varSet.iterator());
+        while(iterWrap.hasMoreElements())
         {
-            Object o = e.nextElement();
+            Object o = iterWrap.nextElement();
 
-            // In case they try to use a attribute variable as 
+            // In case they try to use an attribute variable as
             // soar identifier
             if(!(o instanceof SoarVertex))
             continue;
             SoarVertex currentSV = (SoarVertex)o;
             
             // Get all the edges from the start
-            Enumeration edges = dataMap.emanatingEdges(currentSV);
+            Enumeration<NamedEdge> edges = dataMap.emanatingEdges(currentSV);
             while(edges.hasMoreElements()) 
             {
-                NamedEdge currentEdge = (NamedEdge)edges.nextElement();
+                NamedEdge currentEdge = edges.nextElement();
                 if (currentEdge.satisfies(triple)) 
                 {
 
@@ -652,14 +643,18 @@ public class DataMapMatcher
 
                     if (!matched)
                     matched = true;
-                    if (TripleUtils.isVariable(triple.getAttribute().getString())) 
-                    {
-                        Set attrSet = (Set)match.get(triple.getAttribute().getString());
-                        attrSet.add(currentEdge.getName());
-                    }   
+                    //TODO:  I've removed this code.  The matcher, as I understand it,
+                    //       is a list of matching SoarVertex objects (id, string, enum, float, etc)
+                    //       So, it doesn't make sense to add attributes here.  I'm likely confused
+                    //       and will have to undo this later...  -:AMN: 23 Dec 2022
+//                    if (TripleUtils.isVariable(triple.getAttribute().getString()))
+//                    {
+//                        Set attrSet = (Set)match.get(triple.getAttribute().getString());
+//                        attrSet.add(currentEdge.getName());
+//                    }
                     if (TripleUtils.isVariable(triple.getValue().getString())) 
                     {
-                        Set valSet = (Set)match.get(triple.getValue().getString());
+                        Set<SoarVertex> valSet = match.get(triple.getValue().getString());
                         valSet.add(currentEdge.V1());
                     }
                 }
@@ -668,40 +663,24 @@ public class DataMapMatcher
         return matched;
     }
 
-    /*
-     *  Creates a SoarIdentifier Vertex with the same name at the same
-     *  place in the datamap.  If sv is already a SoarIdentifierVertex
-     *  or a new SoarIdentifierVertex cannot be created, returns null.
-     *  Otherwise, function returns created vertex
-     *  This function is called during datamap generation when a SoarIdentifier
-     *  Vertex is requested, but there already exists a non-Identifier SoarVertex
-     *  at that part of the datamap with the same name.
-     */
-    private static SoarVertex createParentIdentifier(SoarVertex sv) 
-    {
-        return null;
-    }
-
-
-    /*
+    /**
      * This function scans a list of triples for all the triples whose
      * variable (id) is a state variable.  All such triples are
      * returned in a second vector.
      *
      * @param te the triples from the production to match
      * 
-     * @see pmpHelper
+     * @see #pmpHelper
      */
-    private static Vector findStateTriples(TriplesExtractor te)
+    private static Vector<Triple> findStateTriples(TriplesExtractor te)
     {
-        Iterator iterTriples = te.triples();
-        Vector vecStateTriples = new Vector();
-        Triple trip = null;
+        Iterator<Triple> iterTriples = te.triples();
+        Vector<Triple> vecStateTriples = new Vector<>();
 
         //Find the ones that have state
         while(iterTriples.hasNext())
         {
-            trip = (Triple)iterTriples.next();
+            Triple trip = iterTriples.next();
                 
             if (trip.hasState())
             {
@@ -713,13 +692,13 @@ public class DataMapMatcher
         iterTriples = te.triples();
         while(iterTriples.hasNext())
         {
-            trip = (Triple)iterTriples.next();
+            Triple trip = iterTriples.next();
             if (vecStateTriples.contains(trip)) continue;
             
-            Enumeration enumStateTriples = vecStateTriples.elements();
+            Enumeration<Triple> enumStateTriples = vecStateTriples.elements();
             while(enumStateTriples.hasMoreElements())
             {
-                Triple trip2 = (Triple)enumStateTriples.nextElement();
+                Triple trip2 = enumStateTriples.nextElement();
                 String s1 = trip.getVariable().getString();
                 String s2 = trip2.getVariable().getString();
 
@@ -756,13 +735,13 @@ public class DataMapMatcher
      * 
      * @see pathMatchesProduction
      */
-    private static void pmpHelper(Vector vecEdges,
+    private static void pmpHelper(Vector<NamedEdge> vecEdges,
                                   int nEdgePos,
                                   TriplesExtractor te,
-                                  Vector vecUsedTriples,
-                                  Vector vecStateTriples,
+                                  Vector<Triple> vecUsedTriples,
+                                  Vector<Triple> vecStateTriples,
                                   Pair id,
-                                  Vector vecMatches)
+                                  Vector<Triple> vecMatches)
     {
         //Trivial case  %%%Is this needed?
         if (vecEdges.size() <= nEdgePos)
@@ -770,20 +749,18 @@ public class DataMapMatcher
             return;
         }
         
-        Iterator iterTriples = null;
-        Triple trip = null;
-        
+
         //Find all the triples headed by a state variable
         if (vecStateTriples == null)
         {
             vecStateTriples = findStateTriples(te);
         }//if
-        
-        iterTriples = te.triples();
-        NamedEdge ne = (NamedEdge)vecEdges.get(nEdgePos);
+
+        Iterator<Triple> iterTriples = te.triples();
+        NamedEdge ne = vecEdges.get(nEdgePos);
         while(iterTriples.hasNext())
         {
-            trip = (Triple)iterTriples.next();
+            Triple trip = iterTriples.next();
             if ( (ne.satisfies(trip))
                  && (!vecUsedTriples.contains(trip)) )
             {
@@ -819,7 +796,7 @@ public class DataMapMatcher
     
     /*
      *  Determines whether a given datamap TreePath matches a given
-     *  SoarProduction.  This function returns a vector of all the the
+     *  SoarProduction.  This function returns a vector of all the
      *  Triples that match the last node in the path for each complete
      *  match that is found.  For example, if the path is:
      *          "<s> ^foo.bar.baz.qux <q>"
@@ -828,7 +805,7 @@ public class DataMapMatcher
      *  Triples that matches the entire path.  Note that this means
      *  that this function can be fooled in unusual circumstances.  If a
      *  production looks like the following then it will generate a false match
-     *  because all the WMEs are present and they are in the right order:
+     *  because all the WMEs are present, and they are in the right order:
      *      sp {tricky
      *         (state <s> ^foo.bar <s>
      *                    ^baz.qux <qux>)
@@ -841,7 +818,7 @@ public class DataMapMatcher
      * @param thePath the path to match
      * @param SoarProduction the production to match
      *
-     * @see pmphelper
+     * @see #pmpHelper
      */
     public static Vector<Triple> pathMatchesProduction(TreePath thePath,
                                                SoarProduction sp)
@@ -861,7 +838,7 @@ public class DataMapMatcher
         TriplesExtractor te = new TriplesExtractor(sp);
         Vector<Triple> vecMatches = new Vector<>();
         
-        pmpHelper(vecEdges, 0, te, new Vector(), null, null, vecMatches);
+        pmpHelper(vecEdges, 0, te, new Vector<Triple>(), null, null, vecMatches);
 
         return vecMatches;
         

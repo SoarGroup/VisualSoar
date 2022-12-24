@@ -3,12 +3,12 @@ package edu.umich.soar.visualsoar.datamap;
 import edu.umich.soar.visualsoar.graph.*;
 import edu.umich.soar.visualsoar.misc.FeedbackListObject;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorNode;
+import edu.umich.soar.visualsoar.operatorwindow.OperatorWindow;
 import edu.umich.soar.visualsoar.parser.SoarProduction;
 import edu.umich.soar.visualsoar.parser.Triple;
 import edu.umich.soar.visualsoar.parser.TriplesExtractor;
 import edu.umich.soar.visualsoar.util.EnumerationIteratorWrapper;
 
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.*;
@@ -25,7 +25,7 @@ public class SoarWorkingMemoryModel
 // Data Members
 //////////////////////////////////////////////////////////
     // A Directed Graph that is supposed to represent WM    
-    private final DirectedGraph rep = new OrderedDirectedGraphAsAdjacencyLists();
+    private final DirectedGraph rep = new DirectedGraphAsAdjacencyLists();
     private final Vector<WorkingMemoryListener> listeners = new Vector<>();
     private final TreeMap<String, SoarVertex> properties = new TreeMap<>();
 
@@ -36,7 +36,7 @@ public class SoarWorkingMemoryModel
     /**
      * Creates a default model of working memory
      * @param isNew only create if model is new
-     * @param name name used for the topstate
+     * @param name name used for the top-state
      * @see #addTriple(SoarVertex,String,SoarVertex)
      * @see #addProperty(String,SoarVertex)
      */
@@ -93,7 +93,7 @@ public class SoarWorkingMemoryModel
      */
     public SoarVertex getVertexForId(int i) 
     {
-        return (SoarVertex)rep.selectVertex(i);
+        return rep.selectVertex(i);
     }
     
     
@@ -168,7 +168,7 @@ public class SoarWorkingMemoryModel
      * Returns an enumeration of all the edges that are emanating/leaving from a particular vertex.
      * @see NamedEdge
      */
-    public Enumeration<NamedEdge> emanatingEdges(Vertex v)
+    public Enumeration<NamedEdge> emanatingEdges(SoarVertex v)
     {
         return rep.emanatingEdges(v);
     }
@@ -193,12 +193,12 @@ public class SoarWorkingMemoryModel
      * This is only needed by the reader, in the future this will only be package accessible
      * regular users should go through the factory create methods
      */
-    public void addVertex(Vertex v) 
+    public void addVertex(SoarVertex v)
     {
         rep.addVertex(v);
     }
     
-    public void reduce(List<Vertex> startVertices)
+    public void reduce(List<SoarVertex> startVertices)
     {
         rep.reduce(startVertices);
     }
@@ -392,7 +392,7 @@ public class SoarWorkingMemoryModel
      *
      * adds the new WMEs that are now standard on every state in Soar
      * since Visual Soar was first created.  I put this in a helper method
-     * decided not tomove the existing standard WMEs to it so as to minimize
+     * decided not to move the existing standard WMEs in order to minimize
      * my impact on the source code.  Perhaps I'm being too careful.
      *
      * @author :AMN:  Dec 2022
@@ -468,10 +468,10 @@ public class SoarWorkingMemoryModel
         graphWriter.write("" + rep.numberOfVertices() + '\n');
 
         // Write out all the vertices
-        Enumeration<Vertex> v = rep.vertices();
+        Enumeration<SoarVertex> v = rep.vertices();
         while(v.hasMoreElements()) 
         {
-            SoarVertex vertex = (SoarVertex)v.nextElement();
+            SoarVertex vertex = v.nextElement();
             if (vertex != null)
             vertex.write(graphWriter);
         }
@@ -488,7 +488,7 @@ public class SoarWorkingMemoryModel
     }
 
     /**
-     * Writes all of the edge comments to the writer to create the comment file
+     * Writes all the edge comments to the writer to create the comment file
      * and whether a datamap entry is generated or not.
      * Each line represents an entry of the datamap.  Each line contains a 1 or a 0
      * that signifies if generates or not and is followed by a comment if there is one.
@@ -517,16 +517,19 @@ public class SoarWorkingMemoryModel
      * @param variable the string that function tries to match
      * @return a List of matches, empty list if nothing found
      */
-    public List matches(SoarIdentifierVertex sv,
+    public List<SoarVertex> matches(SoarIdentifierVertex sv,
                         SoarProduction sp,
                         String variable) 
     {
         TriplesExtractor triplesExtractor = new TriplesExtractor(sp);
-        Map matchesMap = DataMapMatcher.matches(this,sv,triplesExtractor,new DoNothingMatcherErrorHandler());
-        List matches = new LinkedList();
-        Set matchesSet = (Set)matchesMap.get(variable);
-        if(matchesSet != null)
-        matches.addAll(matchesSet);
+        Map<String, HashSet<SoarVertex>> matchesMap = DataMapMatcher.matches(this,sv,triplesExtractor,new DoNothingMatcherErrorHandler());
+        List<SoarVertex> matches = new LinkedList<>();
+        if (matchesMap != null) {
+            HashSet<SoarVertex> matchesSet = matchesMap.get(variable);
+            if (matchesSet != null) {
+                matches.addAll(matchesSet);
+            }
+        }
         return matches;
     }
 
@@ -538,7 +541,7 @@ public class SoarWorkingMemoryModel
      * @see DefaultCheckerErrorHandler
      * @see DataMapChecker#check
      */
-    public List checkProduction(OperatorNode current, SoarIdentifierVertex sv, SoarProduction sp)
+    public List<FeedbackListObject> checkProduction(OperatorNode current, SoarIdentifierVertex sv, SoarProduction sp)
     {
         TriplesExtractor triplesExtractor = new TriplesExtractor(sp);
         DefaultCheckerErrorHandler dceh = new DefaultCheckerErrorHandler(current, sp.getName(),sp.getStartLine());
@@ -547,37 +550,12 @@ public class SoarWorkingMemoryModel
     }
 
 /////////////////////////////////
-    /**
-     * Used to determine if a soar production matches Working Memory
-     * This function will also generate a log file to keep track of production checking
-     * @param sv the SoarIdentifierVertex in WorkingMemory currently checking
-     * @param sp the Soar Production to check
-     * @param fw the log file that is being written too - "CheckingProductions.log"
-     * @return a list of errors
-     * @see DefaultCheckerErrorHandler
-     * @see DataMapChecker#check
-     */
-    public List checkProductionLog(OperatorNode current, SoarIdentifierVertex sv, SoarProduction sp, FileWriter fw)
-    {
-        TriplesExtractor triplesExtractor = new TriplesExtractor(sp);
-        try 
-        {
-            fw.write("Extracted the triples for the production " + sp.getName());
-            fw.write('\n');
-        }
-        catch(IOException ioe) 
-        {
-            ioe.printStackTrace();
-        }
-        DefaultCheckerErrorHandler dceh = new DefaultCheckerErrorHandler(current, sp.getName(),sp.getStartLine());
-        DataMapChecker.checkLog(this,sv,triplesExtractor,dceh, fw);
-        return dceh.getErrors();
-    }
-////////////////////////////////////////////
+    ////////////////////////////////////////////
 
     /**
-     * Used by the Generate Productions actions to look for holes in Working Memory
-     * and fix those holes.
+     * Used by the {@link OperatorWindow#generateDataMap} actions to look for
+     * holes in Working Memory and fix those holes.
+     *
      * @param sv the SoarIdentifierVertex in WorkingMemory currently checking
      * @param sp the Soar Production to check
      * @param current the node being examined
@@ -599,8 +577,7 @@ public class SoarWorkingMemoryModel
      * is similar to {@link #checkGenerateProduction} except that it repairs
      * only a single new datamap entry to address a particular error.
      *
-     * @author Andrew Nuxoll
-     * @version 27 Nov 2022
+     * @author Andrew Nuxoll (27 Nov 2022)
      */
     public Vector<FeedbackListObject> checkGenerateSingleEntry(SoarIdentifierVertex sv,
                                                                SoarProduction sp,
@@ -610,14 +587,13 @@ public class SoarWorkingMemoryModel
         //Find the triple associated with this error
         TriplesExtractor triplesExtractor = new TriplesExtractor(sp);
         DefaultCheckerErrorHandler dceh = new DefaultCheckerErrorHandler(current, sp.getName(), sp.getStartLine());
-        Enumeration e = new EnumerationIteratorWrapper(triplesExtractor.triples());
-        while(e.hasMoreElements()) {
-            Triple currentTriple = (Triple) e.nextElement();
+        EnumerationIteratorWrapper triplesEnum = new EnumerationIteratorWrapper(triplesExtractor.triples());
+        while(triplesEnum.hasMoreElements()) {
+            Triple currentTriple = (Triple) triplesEnum.nextElement();
             String tripStr = currentTriple.toString();
             if (errToFix.getMessage().contains(tripStr)) {
                 //found it!  Now repair it.
-                TriplesExtractor oneErrTE = new TriplesExtractor(sp, currentTriple);
-                DataMapChecker.complete(this,sv,triplesExtractor, dceh, current);
+                DataMapChecker.complete(this,sv, triplesExtractor, dceh, current);
                 break;
             }
         }
@@ -630,7 +606,7 @@ public class SoarWorkingMemoryModel
      * @param sv the source vertex
      * @return a list of all matching SoarVertex 's
      */
-    public List getParents(SoarVertex sv) 
+    public List<SoarVertex> getParents(SoarVertex sv)
     {
         return rep.getParentVertices(this, sv);
     }
@@ -642,11 +618,6 @@ public class SoarWorkingMemoryModel
     public SoarVertex getMatchingParent(SoarVertex sv) 
     {
         return rep.getMatchingParent(this, sv);
-    }
-
-    public void resolve() 
-    {
-        rep.resolve();
     }
 
     /**

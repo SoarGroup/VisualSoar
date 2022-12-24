@@ -15,24 +15,19 @@ public class EnumerationVertex extends SoarVertex {
 ///////////////////////////////////////////////
 // Data Members
 ///////////////////////////////////////////////
-	private TreeSet theStrings = null;
+	private Vector<String> theStrings;
 	
 ///////////////////////////////////////////////
 // Constructors
 ///////////////////////////////////////////////
-	public EnumerationVertex(int id, Vector strings) {
-		super(id);
-		theStrings = new TreeSet(strings);
-	}
-	
-	public EnumerationVertex(int id, TreeSet strings) {
+	public EnumerationVertex(int id, Vector<String> strings) {
 		super(id);
 		theStrings = strings;
 	}
 	
 	public EnumerationVertex(int id, String singleton) {
 		super(id);
-		theStrings = new TreeSet();
+		theStrings = new Vector<>();
 		theStrings.add(singleton);
 	}
 	
@@ -49,10 +44,10 @@ public class EnumerationVertex extends SoarVertex {
 
     public void remove(String s)
     {
-        Iterator iter = theStrings.iterator();
+        Iterator<String> iter = theStrings.iterator();
         while(iter.hasNext())
         {
-            String t = (String)iter.next();
+            String t = iter.next();
             if (t.equals(s))
             {
                 iter.remove();
@@ -62,23 +57,14 @@ public class EnumerationVertex extends SoarVertex {
 
     public boolean contains(String s)
     {
-        Iterator iter = theStrings.iterator();
-        while(iter.hasNext())
-        {
-            String t = (String)iter.next();
-            if (t.equals(s))
-            {
-                return true;
-            }
-        }
-        return false;
+    	return theStrings.contains(s);
     }
 
 	public boolean allowsEmanatingEdges() {
 		return false;
 	}
 	
-	public Iterator getEnumeration() {
+	public Iterator<String> getEnumeration() {
 		return theStrings.iterator();
 	}
 		
@@ -87,22 +73,20 @@ public class EnumerationVertex extends SoarVertex {
 	}
 	
 	public boolean isValid(String s) {
-		Iterator i = theStrings.iterator();
-		while(i.hasNext()) {
-			String cs = (String)i.next();
-			if(cs.compareTo(s) == 0) 
+		for (String cs : theStrings) {
+			if (cs.compareTo(s) == 0)
 				return true;
 		}
 		return false;
 	}
 	
 	public String toString() {
-		String s = ": [ ";
-		Iterator i = theStrings.iterator(); 
-		while(i.hasNext())
-			s += i.next() + " ";
-		s += "]";
-		return s;
+		StringBuilder s = new StringBuilder(": [ ");
+		for (String theString : theStrings) {
+			s.append(theString).append(" ");
+		}
+		s.append("]");
+		return s.toString();
 	}
 
 ///////////////////////////////////////////////
@@ -120,9 +104,8 @@ public class EnumerationVertex extends SoarVertex {
 	
 	public void write(java.io.Writer w) throws java.io.IOException {
 		w.write("ENUMERATION " + number + " " + theStrings.size());
-		Iterator i = theStrings.iterator();
-		while(i.hasNext()) {
-			w.write(" " + i.next().toString());
+		for (String theString : theStrings) {
+			w.write(" " + theString);
 		}
 		w.write('\n');
 	}

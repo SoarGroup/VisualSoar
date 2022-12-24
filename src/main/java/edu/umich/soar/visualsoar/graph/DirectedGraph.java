@@ -1,9 +1,7 @@
 package edu.umich.soar.visualsoar.graph;
 
 import edu.umich.soar.visualsoar.datamap.SoarWorkingMemoryModel;
-import edu.umich.soar.visualsoar.util.CountingVisitor;
 import edu.umich.soar.visualsoar.util.QueueAsLinkedList;
-import edu.umich.soar.visualsoar.util.Visitor;
 
 import java.util.Enumeration;
 import java.util.LinkedList;
@@ -16,53 +14,19 @@ import java.util.List;
  */
 public abstract class DirectedGraph extends Graph {
 
-    public boolean isCyclic() {
-		CountingVisitor visitor = new CountingVisitor();
-		topologicalOrderTraversal(visitor);
-		return (visitor.count() != numberOfVertices);
-	}
-	
-	public void topologicalOrderTraversal(Visitor visitor) {
-		int[] inDegree = new int[numberOfVertices];
-		for(int v = 0; v < numberOfVertices; ++v)
-			inDegree[v] = 0;
-		Enumeration e = edges();
-		while(e.hasMoreElements()) {
-			Edge edge = (Edge)e.nextElement();
-			++inDegree[edge.V1().getValue()];
-		}
-
-		edu.umich.soar.visualsoar.util.Queue queue = new QueueAsLinkedList();
-		for(int v = 0; v < numberOfVertices; ++v)
-			if (inDegree[v] == 0)
-				queue.enqueue(selectVertex(v));
-		
-		while (!queue.isEmpty() && !visitor.isDone()) {
-			Vertex vertex = (Vertex)queue.dequeue();
-			visitor.visit(vertex);
-			Enumeration<NamedEdge> q = emanatingEdges(vertex);
-			while(q.hasMoreElements()) {
-				Edge edge = q.nextElement();
-				Vertex to = edge.V1();
-				if (--inDegree[to.getValue()] == 0)
-					queue.enqueue(to);
-			}
-		}
-	}
-
   /**
    *  Function uses a Breadth-first traversal to search
-   *  through all of the vertices to find all vertices
+   *  through all the vertices to find all vertices
    *  that connect to the SoarVertex parameter sv.
    *  Returns an enumeration of those vertices.
    */
-  public List getParentVertices(SoarWorkingMemoryModel swmm, SoarVertex sv) {
+  public List<SoarVertex> getParentVertices(SoarWorkingMemoryModel swmm, SoarVertex sv) {
     boolean[] visitedVertices = new boolean[numberOfVertices];
     for(int i = 1; i < numberOfVertices; i++)
       visitedVertices[i] = false;
     visitedVertices[0] = true;
     edu.umich.soar.visualsoar.util.Queue queue = new QueueAsLinkedList();
-    List foundVertices = new LinkedList();
+    List<SoarVertex> foundVertices = new LinkedList<>();
     queue.enqueue(selectVertex(0));
 
     while(!queue.isEmpty()) {
@@ -70,9 +34,9 @@ public abstract class DirectedGraph extends Graph {
       visitedVertices[w.getValue()] = true;
 
       if(w.allowsEmanatingEdges()) {
-        Enumeration edges = swmm.emanatingEdges(w);
+        Enumeration<NamedEdge> edges = swmm.emanatingEdges(w);
         while(edges.hasMoreElements()) {
-          NamedEdge edge = (NamedEdge)edges.nextElement();
+          NamedEdge edge = edges.nextElement();
           if(! visitedVertices[edge.V1().getValue()]) {
             if(edge.V1().equals(sv)) {
               foundVertices.add(w);
@@ -104,17 +68,17 @@ public abstract class DirectedGraph extends Graph {
       SoarVertex w = (SoarVertex)queue.dequeue();
       visitedVertices[w.getValue()] = true;
       if(w.allowsEmanatingEdges()) {
-        Enumeration edges = swmm.emanatingEdges(w);
+        Enumeration<NamedEdge> edges = swmm.emanatingEdges(w);
         while(edges.hasMoreElements()) {
-          NamedEdge edge = (NamedEdge)edges.nextElement();
+          NamedEdge edge = edges.nextElement();
           if(! visitedVertices[edge.V1().getValue()]) {
             // Now find the edge that shares the same name, but is of type SoarIdentifierVertex
             if(edge.V1().equals(sv)) {
-              Enumeration foundEdges = swmm.emanatingEdges(w);
+              Enumeration<NamedEdge> foundEdges = swmm.emanatingEdges(w);
               while(foundEdges.hasMoreElements()) {
-                NamedEdge foundEdge = (NamedEdge)foundEdges.nextElement();
+                NamedEdge foundEdge = foundEdges.nextElement();
                 if(edge.getName().equals(foundEdge.getName()) && (foundEdge.V1() instanceof SoarIdentifierVertex)) {
-                  return ((SoarVertex)foundEdge.V1());
+                  return foundEdge.V1();
                 }
               }
             }
@@ -135,6 +99,5 @@ public abstract class DirectedGraph extends Graph {
 	 * and adds them to a list of holes so that they can be recycled for later
 	 * use
 	 */
-	 public abstract void reduce(List<Vertex> listOfStartVertices);
-	 public abstract void resolve();
+	 public abstract void reduce(List<SoarVertex> listOfStartVertices);
 }

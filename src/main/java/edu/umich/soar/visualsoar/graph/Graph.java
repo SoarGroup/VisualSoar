@@ -19,7 +19,7 @@ public abstract class Graph {
 ///////////////////////////////////////////////////////////////////
 // Methods
 ///////////////////////////////////////////////////////////////////
-	protected void depthFirstTraversal(PrePostVisitor visitor, Vertex vertex, boolean[] visited) {
+	protected void depthFirstTraversal(PrePostVisitor visitor, SoarVertex vertex, boolean[] visited) {
 		if (visitor.isDone())
 			return;
 		visitor.preVisit(vertex);
@@ -27,7 +27,7 @@ public abstract class Graph {
 		Enumeration<NamedEdge> e = emanatingEdges(vertex);
 		while(e.hasMoreElements()) {
 			NamedEdge edge = e.nextElement();
-			Vertex to = edge.mate(vertex);
+			SoarVertex to = edge.mate(vertex);
 			if (!visited[to.getValue()]) 
 				depthFirstTraversal(visitor,to,visited);
 		}
@@ -51,14 +51,14 @@ public abstract class Graph {
 	/**
 	 * Adds a vertex to the graph 
 	 */
-	public abstract void addVertex(Vertex v);
-	public abstract Vertex selectVertex(int id);
-	public Vertex get(int id) {
+	public abstract void addVertex(SoarVertex v);
+	public abstract SoarVertex selectVertex(int id);
+	public SoarVertex get(int id) {
 		return selectVertex(id);
 	}
 	
-	public abstract void addEdge(Edge e);
-	public abstract void removeEdge(Edge e);
+	public abstract void addEdge(NamedEdge e);
+	public abstract void removeEdge(NamedEdge e);
 	
 	/**
 	 * If you have two vertices, get the edge between them
@@ -67,15 +67,8 @@ public abstract class Graph {
 	 */
 	public abstract NamedEdge selectEdge(int v0, int v1);
 	
-	public abstract Enumeration<Vertex> vertices();
+	public abstract Enumeration<SoarVertex> vertices();
 	public abstract Enumeration<NamedEdge> edges();
-	public abstract Enumeration<NamedEdge> emanatingEdges(Vertex v);
-	
-	public void depthFirstTraversal(PrePostVisitor visitor, Vertex start) {
-		boolean[] visited = new boolean[numberOfVertices];
-		for(int i = 0; i < numberOfVertices; ++i)
-			visited[i] = false;
-		depthFirstTraversal(visitor,start,visited);
-	}
+	public abstract Enumeration<NamedEdge> emanatingEdges(SoarVertex v);
 
 }

@@ -21,7 +21,7 @@ public class EditEnumerationDialog extends JDialog
     EnumPanel           enumPanel = new EnumPanel();
     EnumButtonPanel     buttonPanel = new EnumButtonPanel();
     boolean             approved = false;
-    TreeSet             theStrings = null;
+    Vector<String>      theStrings = null;
     Action              enterAction = new EnterAction();
 
 
@@ -29,10 +29,10 @@ public class EditEnumerationDialog extends JDialog
      * @param owner Frame which owns the dialog
      * @param theSet a TreeSet of data to edit
      */  
-    public EditEnumerationDialog(final Frame owner, TreeSet theSet) 
+    public EditEnumerationDialog(final Frame owner, Vector<String> theSet)
     {
         super(owner, "Enter Enumeration", true);
-        enumPanel.setVector(new Vector(theSet));
+        enumPanel.setVector(new Vector<>(theSet));
         
         setResizable(false);
         Container contentPane = getContentPane();
@@ -94,7 +94,7 @@ public class EditEnumerationDialog extends JDialog
                                                {
                                                    public void actionPerformed(ActionEvent e) 
                                                        {
-                                                           theStrings = new TreeSet(enumPanel.getVector());
+                                                           theStrings = new Vector<>(enumPanel.getVector());
                 
                                                            if (theStrings.isEmpty()) 
                                                            {
@@ -119,7 +119,7 @@ public class EditEnumerationDialog extends JDialog
         
     }
 
-    public TreeSet getTreeSet() 
+    public Vector<String> getTreeSet()
     {
         return theStrings;
     }

@@ -23,23 +23,25 @@ public abstract class SoarVertex extends Vertex {
 // Accessors
 ///////////////////////////////////////////////
 	/**
-	 * This method is used to determine whether or not this
-	 * node allows children
-	 * @return whether or not this Vertex allows emanating edges
+	 * This method is used to determine whether this node allows children
+	 *
+	 * @return whether this Vertex allows emanating edges
 	 */
 	public abstract boolean allowsEmanatingEdges();
 	
 	/**
-	 * This method tells us whether or not the edit method will work
-	 * @return whether or not this node is editable
+	 * This method tells us whether the edit method will work
+	 *
+	 * @return whether this node is editable
 	 */
 	public boolean isEditable() { 
 		return false; 
 	}
 	
 	/**
-	 * This method determines whether or not a given value is valid
+	 * This method determines whether a given value is valid
 	 * for this particular node
+	 *
 	 * @param value the string we are checking the validity of
 	 * @return is the string a valid value
 	 */
