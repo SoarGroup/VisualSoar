@@ -9,8 +9,6 @@ import edu.umich.soar.visualsoar.parser.*;
 import edu.umich.soar.visualsoar.util.EnumerationIteratorWrapper;
 
 import javax.swing.tree.TreePath;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.*;
 
 
@@ -80,112 +78,6 @@ public class DataMapMatcher
         }
         return varMap;
     }//matches
-
-
-    /**
-     * Similar to matches(), but writes comments to a log file
-     */
-    public static Map<String, HashSet<SoarVertex>>
-            matchesLog(SoarWorkingMemoryModel dataMap,
-                                 SoarIdentifierVertex startVertex,
-                                 TriplesExtractor triplesExtractor,
-                                 MatcherErrorHandler meh,
-                                 FileWriter log) 
-    {
-        Map<String, HashSet<SoarVertex>> varMap = new HashMap<>();
-        Iterator<Pair> iter = triplesExtractor.variables();
-        while(iter.hasNext()) 
-        {
-            varMap.put((iter.next()).getString(),new HashSet<SoarVertex>());
-        }
-
-        // Take care of the first Variable
-        // Make sure there are the right number of state variables
-        int result = triplesExtractor.getStateVariableCount();
-        if(result == 0) 
-        {
-            meh.noStateVariable();
-            return null;
-        }
-        else if(triplesExtractor.getStateVariableCount() > 1) 
-        {
-            meh.tooManyStateVariables();
-            return null;
-        }
-
-        Pair stateVar = triplesExtractor.stateVariable();
-        Set<SoarVertex> stateSet = varMap.get(stateVar.getString());
-        stateSet.add(startVertex);
-
-        EnumerationIteratorWrapper enumTriples = new EnumerationIteratorWrapper(triplesExtractor.triples());
-        while(enumTriples.hasMoreElements())
-        {
-            Triple currentTriple = (Triple)enumTriples.nextElement();
-
-            try 
-            {
-                log.write("currentTriple's attribute is:  " + currentTriple.getAttribute().getString() );
-                log.write('\n');
-            }
-            catch(IOException ioe) 
-            {
-                ioe.printStackTrace();
-            }
-
-
-            if ( (currentTriple.getAttribute().getString()).equals("operator")) 
-            {
-                try 
-                {
-                    log.write("triple has attribute called operator");
-                    log.write('\n');
-                }
-                catch(IOException ioe) 
-                {
-                    ioe.printStackTrace();
-                }
-
-                if( TripleUtils.isFloat(currentTriple.getValue().getString()) ||   TripleUtils.isInteger(currentTriple.getValue().getString()) ) 
-                {
-                    try 
-                    {
-                        log.write("Ignoring the triple " + currentTriple);
-                        log.write('\n');
-                    }
-                    catch(IOException ioe) 
-                    {
-                        ioe.printStackTrace();
-                    }
-                    continue;
-                } // if value is integer or float
-            } // if attribute is "operator"
-
-            try 
-            {
-                log.write("Examining the triple " + currentTriple);
-                log.write('\n');
-            }
-            catch(IOException ioe) 
-            {
-                ioe.printStackTrace();
-            }
-
-            if (!addConstraintLog(dataMap,currentTriple,varMap, log)) 
-            {
-                try 
-                {
-                    log.write("Could not match a constraint for the triple " + currentTriple);
-                    log.write('\n');
-                }
-                catch(IOException ioe) 
-                {
-                    ioe.printStackTrace();
-                }
-                meh.badConstraint(currentTriple);
-            }
-        }
-        return varMap;
-    }
 
 
     /*
@@ -563,16 +455,19 @@ public class DataMapMatcher
                         matched = true;
                     }
 
-                    //TODO:  I've removed this code.  The matcher, as I understand it,
-                    //       is a list of matching SoarVertex objects (id, string, enum, float, etc)
-                    //       So, it doesn't make sense to add attributes here.  I'm likely confused
-                    //       and will have to undo this later...  -:AMN: 23 Dec 2022
-//                    if (TripleUtils.isVariable(triple.getAttribute().getString()))
-//                    {
-//                        Set attrSet = (Set)match.get(triple.getAttribute().getString());
-//
-//                        attrSet.add(currentEdge.getName());
-//                    }
+                    //TODO:  This code is confusing to me and should be revisited.
+                    // match.get() is returning a HashSet<SoarVertex> and then
+                    // the code immediately turns around and adds a String to
+                    // it!  However, that String is what's used for Soar Complete.
+                    // So, how does a SoarVertex become a String??  IntelliJ
+                    // is also confused since it's throwing a warning here.
+                    //                                     -:AMN: 23 Dec 2022
+                    if (TripleUtils.isVariable(triple.getAttribute().getString()))
+                    {
+                        Set attrSet = match.get(triple.getAttribute().getString());
+
+                        attrSet.add(currentEdge.getName());
+                    }
                     if (TripleUtils.isVariable(triple.getValue().getString())) 
                     {
                         Set<SoarVertex> valSet = match.get(triple.getValue().getString());
@@ -584,84 +479,6 @@ public class DataMapMatcher
         return matched;
     }
 
-
-
-    private static boolean addConstraintLog(SoarWorkingMemoryModel dataMap,
-                                            Triple triple,
-                                            Map<String,
-                                            HashSet<SoarVertex>> match,
-                                            FileWriter log)
-    {
-        Set<SoarVertex> varSet = match.get(triple.getVariable().getString());
-        boolean matched = false;
-        // for every possible start
-        EnumerationIteratorWrapper iterWrap = new EnumerationIteratorWrapper(varSet.iterator());
-        while(iterWrap.hasMoreElements())
-        {
-            Object o = iterWrap.nextElement();
-
-            // In case they try to use an attribute variable as
-            // soar identifier
-            if(!(o instanceof SoarVertex))
-            continue;
-            SoarVertex currentSV = (SoarVertex)o;
-            
-            // Get all the edges from the start
-            Enumeration<NamedEdge> edges = dataMap.emanatingEdges(currentSV);
-            while(edges.hasMoreElements()) 
-            {
-                NamedEdge currentEdge = edges.nextElement();
-                if (currentEdge.satisfies(triple)) 
-                {
-
-                    if(triple.isCondition()) 
-                    {
-                        currentEdge.tested();
-                        try 
-                        {
-                            log.write("edge:  " + currentEdge.getName() + "  was marked as tested! ");
-                            log.write('\n');
-                        }
-                        catch(IOException ioe) 
-                        {
-                            ioe.printStackTrace();
-                        }
-                    }
-                    else 
-                    {
-                        currentEdge.created();
-                        try 
-                        {
-                            log.write("edge:  " + currentEdge.getName() + "  was marked as created! ");
-                            log.write('\n');
-                        }
-                        catch(IOException ioe) 
-                        {
-                            ioe.printStackTrace();
-                        }
-                    }
-
-                    if (!matched)
-                    matched = true;
-                    //TODO:  I've removed this code.  The matcher, as I understand it,
-                    //       is a list of matching SoarVertex objects (id, string, enum, float, etc)
-                    //       So, it doesn't make sense to add attributes here.  I'm likely confused
-                    //       and will have to undo this later...  -:AMN: 23 Dec 2022
-//                    if (TripleUtils.isVariable(triple.getAttribute().getString()))
-//                    {
-//                        Set attrSet = (Set)match.get(triple.getAttribute().getString());
-//                        attrSet.add(currentEdge.getName());
-//                    }
-                    if (TripleUtils.isVariable(triple.getValue().getString())) 
-                    {
-                        Set<SoarVertex> valSet = match.get(triple.getValue().getString());
-                        valSet.add(currentEdge.V1());
-                    }
-                }
-            }
-        }
-        return matched;
-    }
 
     /**
      * This function scans a list of triples for all the triples whose

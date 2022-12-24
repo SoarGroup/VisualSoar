@@ -6,6 +6,7 @@ import edu.umich.soar.visualsoar.dialogs.FindDialog;
 import edu.umich.soar.visualsoar.dialogs.FindReplaceDialog;
 import edu.umich.soar.visualsoar.graph.EnumerationVertex;
 import edu.umich.soar.visualsoar.graph.SoarIdentifierVertex;
+import edu.umich.soar.visualsoar.graph.SoarVertex;
 import edu.umich.soar.visualsoar.misc.CustomInternalFrame;
 import edu.umich.soar.visualsoar.misc.FeedbackListObject;
 import edu.umich.soar.visualsoar.misc.Prefs;
@@ -27,7 +28,9 @@ import java.io.*;
 import javax.swing.event.*;
 import java.beans.*;
 import javax.swing.undo.*;
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
+import java.util.List;
 
 //QUESTION: Why aren't we importing edu.umich.visualsoar.parser.*??
 //ANSWER:   It creates compile ambiguities between parser.Action and
@@ -73,7 +76,6 @@ public class RuleEditor extends CustomInternalFrame
 	JMenuItem deleteSelectedTextItem = new JMenuItem("Delete");
     
 	JMenuItem openDataMapItem = new JMenuItem("Open Corresponding Datamap");
-	JMenuItem showDataMapEntryItem = new JMenuItem("Find Corresponding Datamap Entry");
 
 
 
@@ -104,10 +106,8 @@ public class RuleEditor extends CustomInternalFrame
 
     private final Action checkProductionsAction = new CheckProductionsAction();
     private final Action tabCompleteAction = new TabCompleteAction();
-    private final Action autoSoarCompleteAction = new AutoSoarCompleteAction();
 
 
-    
     // 3P
     // Menu item handlers for the STI operations in this window.
     private final Action sendProductionToSoarAction = new SendProductionToSoarAction();
@@ -186,6 +186,7 @@ public class RuleEditor extends CustomInternalFrame
             Keymap keymap = editorPane.getKeymap();
 
             KeyStroke dot = KeyStroke.getKeyStroke('.');
+            Action autoSoarCompleteAction = new AutoSoarCompleteAction();
             keymap.addActionForKeyStroke(dot, autoSoarCompleteAction);
 
             KeyStroke langle = KeyStroke.getKeyStroke('<');
@@ -309,8 +310,7 @@ public class RuleEditor extends CustomInternalFrame
     private void adjustKeymap() 
     {
         Keymap keymap = editorPane.getKeymap();
-        keymap.removeKeyStrokeBinding(KeyStroke.getKeyStroke(KeyEvent.VK_F,
-                                                             Event.ALT_MASK));
+        keymap.removeKeyStrokeBinding(KeyStroke.getKeyStroke("alt F"));
         editorPane.setKeymap(keymap);
 
     }
@@ -339,64 +339,6 @@ public class RuleEditor extends CustomInternalFrame
         contextMenu.add(deleteSelectedTextItem);
         
         contextMenu.addSeparator();
-        
-        showDataMapEntryItem.addActionListener(
-            new ActionListener()
-            {
-                public void actionPerformed(ActionEvent e)
-                {
-                    //Parse the current production
-                    String prodString = GetProductionStringUpToCaret();
-                    if (prodString == null)
-                    {
-                        //%%%Should report failure to user
-                        return;
-                    }
-                    SoarParser parser = new SoarParser(new StringReader(prodString));
-                    SoarProduction sp;
-                    try
-                    {
-                        sp = parser.soarProduction();
-                    }
-                    catch(ParseException pe)
-                    {
-                        //%%%Should report failure to user
-                        return;
-                    }
-
-                    //Find the last triple
-                    TriplesExtractor trips = new TriplesExtractor(sp);
-                    Iterator iter = trips.triples();
-                    Triple trip = null;
-                    while(iter.hasNext())
-                    {
-                        trip = (Triple)iter.next();
-                    }
-                    if (trip == null)
-                    {
-                        //%%%Should report failure to user
-                        return;
-                    }
-
-                    //Get the root vertex this production's datamap and state vertex
-                    SoarIdentifierVertex siv = getDataMapNode().getStateIdVertex();
-                    MainFrame mf = MainFrame.getMainFrame();
-                    SoarWorkingMemoryModel dataMap = mf.getOperatorWindow().getDatamap();
-
-                    //%%%YIKES! THIS IS NEXT PART IS HARD.  
-                    //Step 1: Find the (shortest) path in production that goes
-                    //        to the state.  See bottom of DataMapMatcher.java
-                    //        for clues.
-                    //Step 2: Find the path in the datamap that matches it.
-                    //        See SoarWorkingMemoryModel.java for clues.
-                        
-                        
-                    
-                    
-                }//actionPerformed
-            });
-        //%%%REMOVED UNTIL IMPLEMENTED
-        //contextMenu.add(showDataMapEntryItem);
 
         openDataMapItem.addActionListener(
             new ActionListener()
@@ -573,7 +515,7 @@ public class RuleEditor extends CustomInternalFrame
             }
             int start = text.indexOf(searchString);
 
-            if ((start == -1) && (wrapSearch == true)) { // search the wrapped part
+            if ((start == -1) && (wrapSearch)) { // search the wrapped part
                 text = doc.getText(0,caretPos);
                 caretPos = 0;
                 start = text.indexOf(searchString);
@@ -616,7 +558,7 @@ public class RuleEditor extends CustomInternalFrame
             }
             int start = text.lastIndexOf(searchString);
 
-            if ((start == -1) && (wrapSearch == true))
+            if ((start == -1) && (wrapSearch))
             {
                 // seach the wrapped part
                 int textlen = doc.getLength() - caretPos;
@@ -666,9 +608,9 @@ public class RuleEditor extends CustomInternalFrame
     {
         findString = find;
         replaceString = replace;
-        findForward = forward.booleanValue();
-        matchCase = caseSensitive.booleanValue();
-        wrapSearch = wrap.booleanValue();
+        findForward = forward;
+        matchCase = caseSensitive;
+        wrapSearch = wrap;
 
         if (findString != null) 
         {
@@ -746,11 +688,8 @@ public class RuleEditor extends CustomInternalFrame
             return null;
         }
 
-        // Get the production substring
-        String sProductionString=text.substring(nProductionStartPos, nProductionEndPos);
-
         // Return the string to the caller
-        return sProductionString;
+        return text.substring(nProductionStartPos, nProductionEndPos);
     }
 
     // 3P
@@ -767,7 +706,7 @@ public class RuleEditor extends CustomInternalFrame
 
         int preSpPos = text.lastIndexOf("sp ", caretPos);
         int postSpPos = text.indexOf("sp ", caretPos);
-        int nProductionStartPos = 0;
+        int nProductionStartPos;
         if( (preSpPos != -1)
             && ((postSpPos == -1)
                 || (caretPos - preSpPos < postSpPos - caretPos)) )
@@ -884,55 +823,7 @@ public class RuleEditor extends CustomInternalFrame
         return text.substring(nStartPos, nEndPos);
     }
 
-    /**
-     * Returns a string containing the production up to and including
-     * the what's under the caret.  If a production can not be found,
-     * null is returned.
-     *  */
-    public String GetProductionStringUpToCaret()
-    {
-        //Start by justifying the line
-        SoarDocument  doc = (SoarDocument)editorPane.getDocument();
-        int caretPos = editorPane.getCaretPosition();
-        caretPos = doc.autoJustify(caretPos);
-        if (caretPos > 0) 
-        {
-            editorPane.setCaretPosition(caretPos);
-        }
 
-        //Find the top of the current production
-        int pos = editorPane.getCaretPosition();
-        String text = editorPane.getText();
-        int sp_pos = text.lastIndexOf("sp ",pos);
-        if(sp_pos == -1) 
-        {
-            getToolkit().beep();
-            return null;
-        }
- 
-        //Move beyond the caret until a separator character is reached
-        while ( (text.charAt(pos) != ' ')
-                && (text.charAt(pos) != '.')
-                && (text.charAt(pos) != '\n') )
-        {
-            try
-            {
-                pos++;
-            }
-            catch(ArrayIndexOutOfBoundsException abe)
-            {
-                return null;
-            }
-        }
-
-        //Got it!
-        String prodSoFar = text.substring(sp_pos,pos);
-        prodSoFar = makeStringValidForParser(prodSoFar);
-           
-        return prodSoFar;
-    }//GetProductionStringUpToCaret
-
-    
     /**
      * Looks for the passed string in the document, if it is searching
      * forward, then it searches for and instance of the string after the caret and selects it,
@@ -1033,11 +924,7 @@ public class RuleEditor extends CustomInternalFrame
             }
         }
 
-
-
-        Vector v = new Vector();
-        v.add("Replaced " + count + " occurrences of \"" + findString + "\" with \"" + replaceString + "\"");
-        MainFrame.getMainFrame().setFeedbackListData(v);
+        MainFrame.getMainFrame().setFeedbackListData("Replaced " + count + " occurrences of \"" + findString + "\" with \"" + replaceString + "\"");
     }
 
     /**
@@ -1123,7 +1010,7 @@ public class RuleEditor extends CustomInternalFrame
         String text = editorPane.getText();
         int pound = text.lastIndexOf("#");
         int nl = text.lastIndexOf("\n");
-        if(nl < pound && pound != -1) 
+        if((pound != -1) && (nl < pound))
         {
             prod += "\n";
         }
@@ -1152,15 +1039,6 @@ public class RuleEditor extends CustomInternalFrame
     }
 
     /**
-     * Hides the caret for the editor window
-     */
-    public void hideCaret() 
-    {
-        Caret c = editorPane.getCaret();
-        c.setVisible(false);
-    }
-
-    /**
      * @return returns the file that this window is associated with
      */
     public String getFile() 
@@ -1175,14 +1053,6 @@ public class RuleEditor extends CustomInternalFrame
         SoarParser parser = new SoarParser(new StringReader(getAllText()));
 
         return parser.VisualSoarFile();
-    }
-
-    /**
-      * Recolors the syntax to reflect a color preference change
-      */
-    public void colorSyntax() 
-    {
-        editorPane.colorSyntax();
     }
 
     /**
@@ -1325,30 +1195,22 @@ public class RuleEditor extends CustomInternalFrame
         // register accel and remember thingys
         editMenu.setMnemonic('E');
         undoItem.setMnemonic(KeyEvent.VK_D);
-        undoItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z,
-                                                       Event.CTRL_MASK));
+        undoItem.setAccelerator(KeyStroke.getKeyStroke("control Z"));
         redoItem.setMnemonic(KeyEvent.VK_R);
-        redoItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z,
-                                                       Event.CTRL_MASK | Event.SHIFT_MASK));
+        redoItem.setAccelerator(KeyStroke.getKeyStroke("control shift Z"));
         cutItem.setMnemonic(KeyEvent.VK_T);
-        cutItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_X,
-                                                      Event.CTRL_MASK));
+        cutItem.setAccelerator(KeyStroke.getKeyStroke("control X"));
         copyItem.setMnemonic(KeyEvent.VK_C);
-        copyItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C,
-                                                       Event.CTRL_MASK));
+        copyItem.setAccelerator(KeyStroke.getKeyStroke("control C"));
         pasteItem.setMnemonic(KeyEvent.VK_P);
-        pasteItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_V,
-                                                        Event.CTRL_MASK));
+        pasteItem.setAccelerator(KeyStroke.getKeyStroke("control V"));
         reDrawItem.setMnemonic(KeyEvent.VK_D);
-        reDrawItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_D,
-                                                         Event.CTRL_MASK));
+        reDrawItem.setAccelerator(KeyStroke.getKeyStroke("control D"));
         reJustifyItem.setMnemonic(KeyEvent.VK_J);
-        reJustifyItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_J,
-                                                            Event.CTRL_MASK));
+        reJustifyItem.setAccelerator(KeyStroke.getKeyStroke("control J"));
 
         commentOutItem.setMnemonic(KeyEvent.VK_SLASH);
-        commentOutItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_SLASH,
-                                                             Event.CTRL_MASK));
+        commentOutItem.setAccelerator(KeyStroke.getKeyStroke("control SLASH"));
 
         menuBar.add(editMenu);
     }
@@ -1388,15 +1250,12 @@ public class RuleEditor extends CustomInternalFrame
 
         // Register accel and mnemonics
         searchMenu.setMnemonic('S');
-        findItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F,Event.CTRL_MASK));
+        findItem.setAccelerator(KeyStroke.getKeyStroke("control F"));
         findItem.setMnemonic(KeyEvent.VK_F);
-        findAgainItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_G,Event.CTRL_MASK));
-        findAndReplaceItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_R,Event.CTRL_MASK));
-        replaceItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS,Event.CTRL_MASK));
-        replaceAndFindAgainItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_H,Event.CTRL_MASK));
-
-        //findAgainItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F3,0));
-        //findAgainItem.setMnemonic(KeyEvent.VK_A);
+        findAgainItem.setAccelerator(KeyStroke.getKeyStroke("control G"));
+        findAndReplaceItem.setAccelerator(KeyStroke.getKeyStroke("control R"));
+        replaceItem.setAccelerator(KeyStroke.getKeyStroke("control EQUALS"));
+        replaceAndFindAgainItem.setAccelerator(KeyStroke.getKeyStroke("control H"));
 
         menuBar.add(searchMenu);
     }
@@ -1424,8 +1283,7 @@ public class RuleEditor extends CustomInternalFrame
         tabCompleteItem.addActionListener(tabCompleteAction);
         soarMenu.add(tabCompleteItem);
 
-        tabCompleteItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER,
-                                                              Event.CTRL_MASK));
+        tabCompleteItem.setAccelerator(KeyStroke.getKeyStroke("control ENTER"));
 
         ///////////////////////////////////////
         // Insert Template menu
@@ -1448,28 +1306,15 @@ public class RuleEditor extends CustomInternalFrame
             return;
         }
 
-        Iterator i;
-        Template t;
-
         // Add plain old templates...
-        i = parentTemplate.getChildTemplates();
+        Iterator<Template> i = parentTemplate.getChildTemplates();
         while(i.hasNext()) 
         {
-            t = (Template) i.next();
+            Template t = i.next();
             JMenuItem currentTemplateItem = new JMenuItem(t.getName());
             currentTemplateItem.addActionListener(new InsertTemplateAction(t));
             parentMenu.add(currentTemplateItem);
         }
-
-//        // Add sub template directories
-//        i = parentTemplate.getChildDirectories();
-//        while(i.hasNext()) 
-//        {
-//            t = (Template) i.next();
-//            JMenu mnu = new JMenu(t.getName());
-//            initTemplatesMenu(t, mnu);
-//            parentMenu.add(mnu);
-//        }
     }
     // 3P
     // Initializes the "Runtime" menu item and adds it to the given menubar
@@ -1572,7 +1417,12 @@ public class RuleEditor extends CustomInternalFrame
                 {
                     Reader r = new FileReader(fileChooser.getSelectedFile());
                     StringWriter w = new StringWriter();
-                    for(int rc = r.read(); rc != -1; w.write(rc), rc = r.read());
+
+                    int rc = r.read();
+                    while(rc != -1) {
+                        w.write(rc);
+                        rc = r.read();
+                    }
                     editorPane.insert(w.toString(),editorPane.getCaret().getDot());
                 }
                 catch(IOException ioe) 
@@ -1612,7 +1462,7 @@ public class RuleEditor extends CustomInternalFrame
     }
 
     /**
-     * reverts the editor's contents to it's last saved state
+     * reverts the editor's contents to its last saved state
      */
     class RevertToSavedAction extends AbstractAction 
     {
@@ -1836,34 +1686,31 @@ public class RuleEditor extends CustomInternalFrame
 
         public void actionPerformed(ActionEvent ae) 
         {
-            java.util.List errors = new LinkedList();
-            Vector v = null;
-            Vector vecErrors = new Vector();
+            List<FeedbackListObject> errors = new LinkedList<>();
+            Vector<FeedbackListObject> vecErrors = new Vector<>();
             
             try 
             {
-                v = parseProductions();
+                Vector<SoarProduction> prodVec = parseProductions();
                 MainFrame.getMainFrame().getOperatorWindow().checkProductions((OperatorNode)associatedNode.getParent(),
                                                                               associatedNode,
-                                                                              v,
+                                                                              prodVec,
                                                                               errors);
             }
-            catch(ParseException pe)
+            catch(ParseException | TokenMgrError pe)
             {
-                vecErrors.add("Could not check productions due to syntax Error: " + pe.getMessage());
+                String errMsg = "Could not check productions due to syntax Error: " + pe.getMessage();
+                vecErrors.add(new FeedbackListObject(errMsg));
             }
-            catch(TokenMgrError tme)
-            {
-                vecErrors.add("Could not check productions due to syntax Error: " + tme.getMessage());
-            }
-            
+
             if ( (errors.isEmpty()) && (vecErrors.isEmpty()) )
             {
-                vecErrors.add("No errors detected in " + getFile());
+                String msg = "No errors detected in " + getFile();
+                vecErrors.add(new FeedbackListObject(msg));
             }
             else 
             {
-                Enumeration e =
+                EnumerationIteratorWrapper e =
                     new EnumerationIteratorWrapper(errors.iterator());
                 while(e.hasMoreElements()) 
                 {
@@ -1893,11 +1740,7 @@ public class RuleEditor extends CustomInternalFrame
      */
     class InsertTemplateAction extends AbstractAction 
     {
-        private Template template;
-
-        // NOT IMPLEMENTED
-        private InsertTemplateAction() {}
-
+        private final Template template;
 
         public InsertTemplateAction(Template t) 
         {
@@ -1976,7 +1819,7 @@ public class RuleEditor extends CustomInternalFrame
                 commentText = commentText.substring(0,nl+1) + "#" + commentText.substring(nl+1);
                 nl = (nl+1) >= commentText.length() ? -1 : commentText.indexOf('\n',nl+1);
 
-                //increment selection end to accomodate added char
+                //increment selection end to accommodate added char
                 selEnd++;
             }
 
@@ -1990,8 +1833,8 @@ public class RuleEditor extends CustomInternalFrame
     }//class CommentOutAction
 
     /**
-     * This class uncomments (takes out the # in the first position for every line) from the currently selected
-     * text of the text area.
+     * This class un-comments (takes out the # in the first position for every
+     * line) from the currently selected text of the text area.
      */
     class UncommentOutAction extends AbstractAction 
     {
@@ -2103,63 +1946,25 @@ public class RuleEditor extends CustomInternalFrame
             int caret = prodSoFar.lastIndexOf("^");
             int period = prodSoFar.lastIndexOf(".");
             int space = prodSoFar.lastIndexOf(" ");
-            String userType = "";
-
 
             // Guarantee that period is more relevant than space and caret
             if(period != -1 && caret != -1 && space != -1 && period > caret && period > space) 
             {
-                userType = prodSoFar.substring(period+1);
+                String userType = prodSoFar.substring(period+1);
                 prodSoFar = prodSoFar.substring(0,period+1) + "<$$>" + end;
-                attributeComplete(pos,userType,prodSoFar);
-            }
-            else 
-            {
-            	// voigtjr: see bug 374
-                //getToolkit().beep();
+                attributeComplete(userType,prodSoFar);
             }
         } // end of actionPerformed()
 
         /**
          *  uses the soar parser to generate all the possible attributes that can follow
          */
-        private void attributeComplete(int pos,String userType,String prodSoFar) 
+        private void attributeComplete(String userType, String prodSoFar)
         {
-            try 
-            {
-                prodSoFar = makeStringValidForParser(prodSoFar);
-                SoarParser soarParser = new SoarParser(new StringReader(prodSoFar));
-                SoarProduction sp = soarParser.soarProduction();
-                OperatorNode on = getNode();
-                OperatorNode parent = (OperatorNode)on.getParent();
-                java.util.List matches;
-                SoarIdentifierVertex siv = ((OperatorNode)on.getParent()).getStateIdVertex();
-                if(siv != null) 
-                {
-                    matches = MainFrame.getMainFrame().getOperatorWindow().getDatamap().matches(siv,sp,"<$$>");
-                }
-                else 
-                {
-                    SoarWorkingMemoryModel dataMap = MainFrame.getMainFrame().getOperatorWindow().getDatamap();
-                    matches = dataMap.matches(dataMap.getTopstate(),sp,"<$$>");
-                }
-                java.util.List completeMatches = new LinkedList();
-                Iterator i = matches.iterator();
-                while(i.hasNext()) 
-                {
-                    String matched = (String)i.next();
-                    if(matched.startsWith(userType)) 
-                    {
-                        completeMatches.add(matched);
-                    }
-                }
-                display(completeMatches);
-            }
-            catch(ParseException pe) 
-            {
-                //Removed 29 Sep 2022:  I don't think JEL likes it beeping here
-                //getToolkit().beep();
-            }
+            List<String> completeMatches = getMatchingStrings(userType, prodSoFar);
+            if (completeMatches == null) return;
+            display(completeMatches);
+
         }   // end of attributeComplete()
 
         /**
@@ -2167,9 +1972,13 @@ public class RuleEditor extends CustomInternalFrame
          *  feedback list.
          *  @param  completeMatches List of Strings representing possible attributes to be displayed
          */
-        private void display(java.util.List completeMatches) 
+        private void display(List<String> completeMatches)
         {
-            MainFrame.getMainFrame().setFeedbackListData(new Vector(completeMatches));
+            Vector<FeedbackListObject> flobjMatches = new Vector<>();
+            for(String match : completeMatches) {
+                flobjMatches.add(new FeedbackListObject(match));
+            }
+            MainFrame.getMainFrame().setFeedbackListData(flobjMatches);
         }    // end of display()
 
 
@@ -2205,7 +2014,7 @@ public class RuleEditor extends CustomInternalFrame
             int caret = prodSoFar.lastIndexOf("^");
             int period = prodSoFar.lastIndexOf(".");
             int space = prodSoFar.lastIndexOf(" ");
-            String userType = "";
+            String userType;
             // The most relevant is the caret
             if((period == -1 && caret != -1 && space != -1 && caret > space)
                || (period != -1 && caret != -1 && space != -1 && period < caret && space < caret)) 
@@ -2245,7 +2054,7 @@ public class RuleEditor extends CustomInternalFrame
                 SoarProduction sp = soarParser.soarProduction();
                 OperatorNode on = getNode();
                 OperatorNode parent = (OperatorNode)on.getParent();
-                java.util.List matches;
+                List<SoarVertex> matches;
                 SoarIdentifierVertex siv = parent.getStateIdVertex();
                 if(siv != null) 
                 {
@@ -2256,20 +2065,14 @@ public class RuleEditor extends CustomInternalFrame
                     SoarWorkingMemoryModel dataMap = MainFrame.getMainFrame().getOperatorWindow().getDatamap();
                     matches = dataMap.matches(dataMap.getTopstate(),sp,"<$$>");
                 }
-                java.util.List completeMatches = new LinkedList();
-                Iterator i = matches.iterator();
-                while(i.hasNext()) 
-                {
-                    Object o = i.next();
-                    if(o instanceof EnumerationVertex) 
-                    {
-                        EnumerationVertex ev = (EnumerationVertex)o;
-                        Iterator iter = ev.getEnumeration();
-                        while(iter.hasNext()) 
-                        {
-                            String enumString = (String)iter.next();
-                            if(enumString.startsWith(userType)) 
-                            {
+                List<String> completeMatches = new LinkedList<>();
+                for (SoarVertex vertex : matches) {
+                    if (vertex instanceof EnumerationVertex) {
+                        EnumerationVertex ev = (EnumerationVertex) vertex;
+                        Iterator<String> iter = ev.getEnumeration();
+                        while (iter.hasNext()) {
+                            String enumString = iter.next();
+                            if (enumString.startsWith(userType)) {
                                 completeMatches.add(enumString);
                             }
                         }
@@ -2284,89 +2087,118 @@ public class RuleEditor extends CustomInternalFrame
         }//valueComplete
 
 
-        private void complete(int pos,String userType,java.util.List completeMatches) 
+        private void complete(int pos, String userType, List<String> completeMatches)
         {
-            if(completeMatches.size() == 0) 
-            {
-                getToolkit().beep();
+            if (completeMatches.size() == 0) {
+                return;
             }
-            else if(completeMatches.size() == 1) 
-            {
-                String matched = (String)completeMatches.get(0);
-                editorPane.insert(matched.substring(userType.length()),pos);
-            }
-            else 
-            {
-                boolean stillGood = true;
-                String addedCharacters = "";
-                String matched = (String)completeMatches.get(0);
-                int curPos = userType.length();
-                while(stillGood && curPos < matched.length()) 
-                {
-                    String newAddedCharacters = addedCharacters + matched.charAt(curPos);
-                    String potStartString = userType + newAddedCharacters;
-                    Iterator j = completeMatches.iterator();
-                    while(j.hasNext()) 
-                    {
-                        String currentString = (String)j.next();
-                        if(!currentString.startsWith(potStartString)) 
-                        {
-                            stillGood = false;
-                            break;
-                        }
-                    }
 
-                    if(stillGood) 
+            if(completeMatches.size() == 1)
+            {
+                String matched = completeMatches.get(0);
+                editorPane.insert(matched.substring(userType.length()),pos);
+                return;
+            }
+
+            //If we reach this point:  more than one match
+            boolean stillGood = true;
+            String addedCharacters = "";
+            String matched = completeMatches.get(0);
+            int curPos = userType.length();
+            while(stillGood && curPos < matched.length())
+            {
+                String newAddedCharacters = addedCharacters + matched.charAt(curPos);
+                String potStartString = userType + newAddedCharacters;
+                Iterator j = completeMatches.iterator();
+                while(j.hasNext())
+                {
+                    String currentString = (String)j.next();
+                    if(!currentString.startsWith(potStartString))
                     {
-                        addedCharacters = newAddedCharacters;
-                        ++curPos;
+                        stillGood = false;
+                        break;
                     }
                 }
-                editorPane.insert(addedCharacters,pos);
-                MainFrame.getMainFrame().setFeedbackListData(new Vector(completeMatches));
-                getToolkit().beep();
+
+                if(stillGood)
+                {
+                    addedCharacters = newAddedCharacters;
+                    ++curPos;
+                }
             }
+            editorPane.insert(addedCharacters,pos);
+
+            //report all matches to the user
+            Vector<FeedbackListObject> feedbackList = new Vector<>();
+            for(String msg : completeMatches) {
+                feedbackList.add(new FeedbackListObject(msg));
+            }
+            MainFrame.getMainFrame().setFeedbackListData(feedbackList);
+
         }//complete
 
-        private void attributeComplete(int pos,String userType,String prodSoFar) 
+        private void attributeComplete(int pos, String userType, String prodSoFar)
         {
-            try 
-            {
-                prodSoFar = makeStringValidForParser(prodSoFar);
-                SoarParser soarParser = new SoarParser(new StringReader(prodSoFar));
-                SoarProduction sp = soarParser.soarProduction();
-                OperatorNode on = getNode();
-                OperatorNode parent = (OperatorNode)on.getParent();
-                java.util.List matches;
-                SoarIdentifierVertex siv = ((OperatorNode)on.getParent()).getStateIdVertex();
-                if(siv != null) 
-                {
-                    matches = MainFrame.getMainFrame().getOperatorWindow().getDatamap().matches(siv,sp,"<$$>");
-                }
-                else 
-                {
-                    SoarWorkingMemoryModel dataMap = MainFrame.getMainFrame().getOperatorWindow().getDatamap();
-                    matches = dataMap.matches(dataMap.getTopstate(),sp,"<$$>");
-                }
-                java.util.List completeMatches = new LinkedList();
-                Iterator i = matches.iterator();
-                while(i.hasNext()) 
-                {
-                    String matched = (String)i.next();
-                    if(matched.startsWith(userType)) 
-                    {
-                        completeMatches.add(matched);
-                    }
-                }
-                complete(pos,userType,completeMatches);
-            }
-            catch(ParseException pe) 
-            {
-                getToolkit().beep();
-            }
+            List<String> completeMatches = getMatchingStrings(userType, prodSoFar);
+            if (completeMatches == null) return;
+            complete(pos,userType,completeMatches);
+
         }//attributeComplete
 
     }//class TabCompleteAction
+
+    /**
+     * getMatchingStrings
+     *
+     * is a helper method for {@link TabCompleteAction#attributeComplete}
+     * and {@link AutoSoarCompleteAction#attributeComplete}.  It retrieves
+     * the strings associated with entries in the datamap with attributes
+     * that match the user's current production.
+     *
+     * @param userType  The characters the user has typed so far in the current expression
+     * @param prodSoFar  The content of the production so far
+     * @return a list of possible completions (could be empty)
+     */
+    private List<String> getMatchingStrings(String userType, String prodSoFar) {
+        //parse the code the user has written so far
+        prodSoFar = makeStringValidForParser(prodSoFar);
+        SoarParser soarParser = new SoarParser(new StringReader(prodSoFar));
+        SoarProduction sp;
+        try {
+            sp = soarParser.soarProduction();
+        }
+        catch(ParseException pe) {
+            return null;
+        }
+
+        //Find all matching string via the datamap
+        OperatorNode on = getNode();
+        List<SoarVertex> matches;
+        SoarIdentifierVertex siv = ((OperatorNode)on.getParent()).getStateIdVertex();
+        if(siv != null) {
+            matches = MainFrame.getMainFrame().getOperatorWindow().getDatamap().matches(siv,sp,"<$$>");
+        }
+        else {
+            SoarWorkingMemoryModel dataMap = MainFrame.getMainFrame().getOperatorWindow().getDatamap();
+            matches = dataMap.matches(dataMap.getTopstate(),sp,"<$$>");
+        }
+        List<String> completeMatches = new LinkedList<>();
+        //This iterator can't be given a parameter.  See my note
+        // below and in DataMapMatcher.addConstraint() -:AMN:
+        Iterator i = matches.iterator();
+        while(i.hasNext())
+        {
+            //This cast is wacky.  Let's take what *should* be a SoarVertex
+            //and cast it to a string because String objects have been
+            //inserted into the Set<SoarVertex> in 'matches'.
+            String matched = (String)i.next();
+            if(matched.startsWith(userType))
+            {
+                completeMatches.add(matched);
+            }
+        }
+        return completeMatches;
+    }
 
     // 3P
     // Handles the "Runtime|Send Production" menu item
@@ -2396,11 +2228,9 @@ public class RuleEditor extends CustomInternalFrame
             }
 
             // Send the production to Soar
-            String sProductionName=GetProductionNameUnderCaret();
-            {
-            	String result = agent.ExecuteCommandLine(sProductionString, true) ;
-				MainFrame.getMainFrame().reportResult(result) ;
-            }
+            String result = agent.ExecuteCommandLine(sProductionString, true) ;
+            MainFrame.getMainFrame().reportResult(result) ;
+
             
         }//actionPerformed
     }//class SendProductionToSoarAction
@@ -2475,9 +2305,9 @@ public class RuleEditor extends CustomInternalFrame
             }
             
             // We want the name of the top level source file.
-            // There may be a simpler way but I'll walk up the tree of operator nodes
+            // There may be a simpler way, but I'll walk up the tree of operator nodes
             // to the top and get the file name info from there.
-            OperatorNode node = associatedNode ;
+            OperatorNode node = associatedNode;
             while (node != null && !(node instanceof OperatorRootNode))
             	node = (OperatorNode)node.getParent() ;
             
@@ -2580,7 +2410,7 @@ public class RuleEditor extends CustomInternalFrame
                             editorPane.write(fw);
                             fw.close();
                         }
-                        catch(IOException ioe) {}
+                        catch(IOException ioe) { /* ignore */ }
                         modifiedLabel.setText(modifiedLabelText);
                     }
                     else 
@@ -2603,11 +2433,9 @@ public class RuleEditor extends CustomInternalFrame
                     SwingUtilities.invokeAndWait(writeOutControl);
                 }
             }
-            catch(InterruptedException ie) 
+            catch(InterruptedException | InvocationTargetException ie)
             {
-            }
-            catch(java.lang.reflect.InvocationTargetException ite) 
-            {
+                /* ignore */
             }
         }
     }//class BackupThread
@@ -2619,7 +2447,7 @@ public class RuleEditor extends CustomInternalFrame
     /**
      * class CustomUndoableEvent
      *
-     * We need to modify the isSignifcant() method in
+     * We need to modify the isSignificant() method in
      * AbstractDocument.DefaultDocumentEvent. I don't want to subclass
      * AbstractDocument.DefaultDocumentEvent because I'd have to also subclass
      * AbstractDocument which seems like a can of works.  So, I've done a

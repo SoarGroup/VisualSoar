@@ -1,10 +1,12 @@
 package edu.umich.soar.visualsoar.datamap;
+
 import edu.umich.soar.visualsoar.graph.SoarIdentifierVertex;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorNode;
 import edu.umich.soar.visualsoar.parser.TriplesExtractor;
-import java.util.*;
-import javax.swing.*;
-import java.io.FileWriter;
+
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * This class provides some static methods to do the checking against the
@@ -37,34 +39,6 @@ public class DataMapChecker
                 Set value = (Set)varMap.get(varKey);
                 if(value.isEmpty()) 
                 ceh.variableNotMatched(varKey); 
-            }
-        }
-    }
-
-    /**
-     * Similar to check(), but writes comments to a log file
-     */
-    public static void checkLog(SoarWorkingMemoryModel dataMap,
-                                SoarIdentifierVertex startVertex,
-                                TriplesExtractor triplesExtractor,
-                                CheckerErrorHandler ceh,
-                                FileWriter fw) 
-    {
-        Map varMap = DataMapMatcher.matchesLog(dataMap,
-                                               startVertex,
-                                               triplesExtractor,
-                                               ceh,
-                                               fw);
-        if(varMap != null) 
-        {
-            Set keySet = varMap.keySet();
-            Iterator vars = keySet.iterator();
-            while(vars.hasNext()) 
-            {
-                String varKey = (String)vars.next();
-                Set value = (Set)varMap.get(varKey);
-                if(value.isEmpty())
-                ceh.variableNotMatched(varKey);
             }
         }
     }

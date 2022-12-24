@@ -515,9 +515,7 @@ public class OperatorWindow extends JTree
             node.export(new File(projectFolder + File.separator + node + ".vse"));
 
             //Let the user know it was successful
-            Vector<FeedbackListObject> feedbackMsgs = new Vector<>();
-            feedbackMsgs.add(new FeedbackListObject("Export Complete"));
-            MainFrame.getMainFrame().setFeedbackListData(feedbackMsgs);
+            MainFrame.getMainFrame().setFeedbackListData("Export Complete");
         }
         catch(IOException ioe) 
         {
@@ -564,9 +562,7 @@ public class OperatorWindow extends JTree
                 r.close();
 
                 //Inform user of success
-                Vector<FeedbackListObject> v = new Vector<>();
-                v.add(new FeedbackListObject("Import Complete"));
-                MainFrame.getMainFrame().setFeedbackListData(v);
+                MainFrame.getMainFrame().setFeedbackListData("Import Complete");
             }
             
             

@@ -216,7 +216,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 	}
 
 	/**
-	 * Method updates the FeedBack list window to contain a single message
+	 * Method updates the FeedBack list window to display a single message
 	 */
 	public void setFeedbackListData(String msg)
 	{
@@ -224,7 +224,6 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		vec.add(new FeedbackListObject(msg));
 		setFeedbackListData(vec);
 	}
-
 
 	/**
      * Gets the project TemplateManager
@@ -1053,9 +1052,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		public void actionPerformed(ActionEvent event) 
         {
 			perform();	
-			Vector<FeedbackListObject> v = new Vector<>();
-			v.add(new FeedbackListObject("DataMap and Project Saved"));
-			setFeedbackListData(v);
+			setFeedbackListData("DataMap and Project Saved");
 		}
 	}
 
@@ -1345,9 +1342,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		public void actionPerformed(ActionEvent event)
         {
 			perform();
-			Vector<FeedbackListObject> v = new Vector<>();
-			v.add(new FeedbackListObject("Export Finished"));
-			setFeedbackListData(v);
+			setFeedbackListData("Export Finished");
 		}
 	}
 	
@@ -2433,9 +2428,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		public void actionPerformed(ActionEvent e) 
         {
 			perform();
-			Vector<FeedbackListObject> v = new Vector<>();
-			v.add(new FeedbackListObject("Save Finished"));
-			setFeedbackListData(v);
+			setFeedbackListData("Save Finished");
 		}
 	}
 	
