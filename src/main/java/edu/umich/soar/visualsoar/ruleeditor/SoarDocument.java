@@ -1,15 +1,14 @@
 package edu.umich.soar.visualsoar.ruleeditor;
 
-import java.io.*;
-import java.awt.*;
-import javax.swing.text.*;
 import edu.umich.soar.visualsoar.misc.Prefs;
 import edu.umich.soar.visualsoar.misc.SyntaxColor;
-import edu.umich.soar.visualsoar.parser.SimpleCharStream;
-import edu.umich.soar.visualsoar.parser.SoarParserConstants;
-import edu.umich.soar.visualsoar.parser.SoarParserTokenManager;
-import edu.umich.soar.visualsoar.parser.Token;
-import edu.umich.soar.visualsoar.parser.TokenMgrError;
+import edu.umich.soar.visualsoar.parser.*;
+
+import javax.swing.text.*;
+import java.awt.*;
+import java.io.IOException;
+import java.io.Reader;
+import java.io.StringReader;
 
 public class SoarDocument extends DefaultStyledDocument
 {
@@ -82,23 +81,7 @@ public class SoarDocument extends DefaultStyledDocument
         }
         else
         {
-            colorSyntax(offset, str.length(), new StringReader(str));
-
-//Commented out for now.  I don't understand this code and it no longer seems
-//to work. -:AMN: 24 Nov 03
-//              Element currElem = root.getElement(root.getElementIndex(offset));
-//              Content data = getContent();
-//              String elStr = getElementString(currElem,data);
-//              if(elStr.length() > str.length())
-//              {
-//                  colorSyntax(currElem.getStartOffset(),
-//                              elStr.length(),
-//                              new StringReader(elStr));
-//              }
-//              else
-//              {
-//                  colorSyntax(offset, str.length(), new StringReader(str));
-//              }
+            colorSyntax(offset, new StringReader(str));
         }//else
 
     }//insertString()
@@ -155,20 +138,17 @@ public class SoarDocument extends DefaultStyledDocument
 
     String getElementString(Element element, Content content)
     {
-        String              theLine = null;
+        String theLine = null;
         
         try
         {
             theLine = content.getString(element.getStartOffset(),
                                         element.getEndOffset() - element.getStartOffset() - 1);
-        } catch (BadLocationException e)
+        } catch (BadLocationException | StringIndexOutOfBoundsException e)
         {
             e.printStackTrace();
         }
-        catch (StringIndexOutOfBoundsException sioobe) {
-            sioobe.printStackTrace();
-        }
-        
+
         return theLine;
     } // getElementString()
     
@@ -193,18 +173,14 @@ public class SoarDocument extends DefaultStyledDocument
         Color               theColor = colorTable[kind];
         SimpleAttributeSet  attrib = new SimpleAttributeSet();
 
-        String text = null;
+        //Check for bad location
         try
         {
-            text = getText(begPos,length);
+            getText(begPos,length);
         }
         catch(BadLocationException ble) {
             ble.printStackTrace();
         }
-
-        //TODO: DEBUG
-        //System.out.println("colorRange(): begPos=" + begPos + " length=" + length);
-
 
         StyleConstants.setForeground(attrib, theColor);
         setCharacterAttributes(begPos, length, attrib, false);
@@ -232,11 +208,8 @@ public class SoarDocument extends DefaultStyledDocument
                        int startOffset,
                        SoarParserTokenManager mgr)
     {
-        Token   nextToken;
-
         int     begin;
         int     length;
-    
         Token startToken = currToken;
         switch (currToken.kind)
         {
@@ -248,17 +221,12 @@ public class SoarDocument extends DefaultStyledDocument
                 break;
                 
             case SoarParserConstants.SP :
-                begin = startOffset + currToken.beginColumn;
-                length = 2;
-                colorRange(begin, length, currToken.kind);
-                break;
-                                    
             case SoarParserConstants.GP :
                 begin = startOffset + currToken.beginColumn;
                 length = 2;
                 colorRange(begin, length, currToken.kind);
                 break;
-                                    
+
             case SoarParserConstants.CARET : // followed by a STRING
                 begin = startOffset + currToken.beginColumn;
                 colorRange(begin, 1, SoarParserConstants.DEFAULT);
@@ -546,9 +514,9 @@ public class SoarDocument extends DefaultStyledDocument
     protected SoarParserTokenManager guessLexicalState(Reader r,
                                                        Token tok)
     {
-        SoarParserTokenManager mgr = null;
+        SoarParserTokenManager mgr;
         Token ispTok = new Token(); // Token retrieved using IN_SOAR_PRODCTION
-        Token defTok  = new Token(); // Token retrieved using DEFAULT
+
         
         //Save our position in the reader
         try
@@ -584,6 +552,7 @@ public class SoarDocument extends DefaultStyledDocument
             mgr = new SoarParserTokenManager(new SimpleCharStream(r, 0, 0));
         
             //Get a token
+            Token defTok; // Token retrieved using DEFAULT
             try
             {
                 defTok = mgr.getNextToken();
@@ -661,42 +630,21 @@ public class SoarDocument extends DefaultStyledDocument
     
     
     //Color the syntax of a specified region
-    public void colorSyntax(int caretPos, int length, Reader r)
+    public void colorSyntax(int caretPos, Reader r)
     {
-        Content     data = getContent();
-        String      modifiedString;
-        Element     currElem;
         int         startLineNum = root.getElementIndex(caretPos);
-        int         currLineNum;
-        int         startPos;
-        int         endPos;
-        int         totalLength; 
-
-        currElem = root.getElement(startLineNum);
-        startPos = currElem.getStartOffset();
-        endPos = root.getElement(root.getElementIndex(caretPos + length)).getEndOffset() - 1;
-        totalLength = endPos - startPos; 
         Token currToken = new Token();
 
         //Create a token manager with our best guess for the current lexical
         //state and get the first token. 
         SoarParserTokenManager  mgr = guessLexicalState(r, currToken);
         
-        currLineNum = startLineNum + currToken.beginLine;
-                   
-        // init all the text to black
-        //colorRange(startPos, totalLength, SoarParserConstants.DEFAULT);
-
         //To make inline comments work we need track the end position of the
         // previous token.
-        int prevLineNum = -1;
-        int prevPos = -1;
-
         while (currToken.kind != SoarParserConstants.EOF)
         {
-        
-            currLineNum = startLineNum + currToken.beginLine;
-            currElem = root.getElement(currLineNum);
+            int currLineNum = startLineNum + currToken.beginLine;
+            Element currElem = root.getElement(currLineNum);
             
             if (currToken.beginLine == 0)
             {
@@ -727,35 +675,26 @@ public class SoarDocument extends DefaultStyledDocument
     /**
      *  Justifies a chunk of text from in the rule editor.
      *  If nothing is highlighted, then justifies the entire document
-     *  @param selectionStart the position of the beginning of the highlighted text
+     * @param selectionStart the position of the beginning of the highlighted text
      *  @param selectionEnd the position of the end of the highlighted text
      */
-    public int justifyDocument(int selectionStart, int selectionEnd)
+    public void justifyDocument(int selectionStart, int selectionEnd)
     {
 
-        Content             data = getContent();
+        Content data = getContent();
 
-        String              prevLine = null;
-        String              currLine = null;
-        String              afterCaretString = null;
-        String              newCurrLine = null;
-        String              indentString = "";
+        String prevLine = null;
 
-        int         elemIndex = 0;
-        int         prevLineIndex = 0;
-        int         endIndex = 0;
-        int                 numSpaces = 0;
-        int                 currLineBegin;
-        int                 currLineEnd;
+        int currLineBegin;
+        int currLineEnd;
 
 
-        char                lastChar;
-        char[]              indentChars;
+        char lastChar;
+        char[] indentChars;
 
-        boolean             leftOfText = true;
-        boolean       firstProduction = true;
+        boolean firstProduction = true;
 
-        AbstractElement     currLineElem;
+        AbstractElement currLineElem;
 
         // check if block of text is selected or not
         if(selectionStart == selectionEnd)
@@ -767,9 +706,9 @@ public class SoarDocument extends DefaultStyledDocument
             // the first production (ie echo)
         }
 
-        elemIndex = root.getElementIndex(selectionStart);
-        prevLineIndex = elemIndex - 1;
-        endIndex = root.getElementIndex(selectionEnd);
+        int elemIndex = root.getElementIndex(selectionStart);
+        int prevLineIndex = elemIndex - 1;
+        int endIndex = root.getElementIndex(selectionEnd);
 
         // endIndex is one less if last line just a line feed
         String lastLine = getElementString(root.getElement(endIndex), data);
@@ -785,10 +724,9 @@ public class SoarDocument extends DefaultStyledDocument
             currLineElem = (AbstractElement)root.getElement(elemIndex);
             currLineBegin = currLineElem.getStartOffset();
             currLineEnd = currLineElem.getEndOffset() - 1;
-            currLine = getElementString(currLineElem, data);
-            afterCaretString = getElementString(currLineElem, data, selectionStart);
-            indentString = "";
-            numSpaces = 0;
+            String currLine = getElementString(currLineElem, data);
+            String indentString = "";
+            int numSpaces = 0;
 
             // Get last prevLine that isn't a blank line or comment
             if (elemIndex > 0)
@@ -809,7 +747,7 @@ public class SoarDocument extends DefaultStyledDocument
                     }
                 }   // end of while getting last previous line of Soar code
             }
-            newCurrLine = currLine.trim();
+            String newCurrLine = currLine.trim();
 
             if ((newCurrLine.length() != 0)
                 && ( (newCurrLine.charAt(0) == '}')
@@ -821,7 +759,6 @@ public class SoarDocument extends DefaultStyledDocument
                 {
                     firstProduction = true;
                 }
-                numSpaces = 0;
             }
             else if((newCurrLine.length() != 0)
                     && (newCurrLine.charAt(0) == '#'))
@@ -832,7 +769,6 @@ public class SoarDocument extends DefaultStyledDocument
             {
                 if(newCurrLine.startsWith("sp") || newCurrLine.startsWith("gp"))
                 {
-                    numSpaces = 0;
                     firstProduction = true;
                 }
             }
@@ -852,7 +788,6 @@ public class SoarDocument extends DefaultStyledDocument
                     String currentLine = prevLine;
                     int currentElementIndex = prevLineIndex;
                     boolean done = false;
-                    numSpaces = 0;
 
                     while(!done && currentLine != null)
                     {
@@ -933,9 +868,7 @@ public class SoarDocument extends DefaultStyledDocument
                 {
                     numSpaces = prevLine.indexOf('{');
                 }
-                else if ( ( newCurrLine.startsWith("(")
-                            && ((lastChar == ')')
-                                || (lastChar == '}')) ) )
+                else if (newCurrLine.startsWith("(") && lastChar == '}')
                 {
                     numSpaces = 3;
                 }
@@ -947,15 +880,13 @@ public class SoarDocument extends DefaultStyledDocument
                     if(caretLocation != -1)
                     {
                         // Get position past string that follows the caret (ie ^string )
-                        while( (fullPrevLine.charAt(caretLocation) != ' ')
-                               && (caretLocation < fullPrevLine.length()) )
+                        while(fullPrevLine.charAt(caretLocation) != ' ')
                         {
                             caretLocation++;
                         }
                         // look to see if string past ^string is << or { and if
                         // so, use that position
-                        while( (fullPrevLine.charAt(caretLocation) == ' ')
-                               && (caretLocation < fullPrevLine.length()) )
+                        while(fullPrevLine.charAt(caretLocation) == ' ')
                         {
                             caretLocation++;
                         }
@@ -980,11 +911,7 @@ public class SoarDocument extends DefaultStyledDocument
                         numSpaces = fullPrevLine.indexOf( (fullPrevLine.trim()).charAt(0));
                     }
                 }    // end of else if prevlineindex > 1
-                else  
-                {
-                    // First line of re
-                    numSpaces = 0;
-                }
+
                 
                 //  Does not fit a previous constraint and therefore is possibly
                 //  considered a VALUE of a wme
@@ -1025,7 +952,6 @@ public class SoarDocument extends DefaultStyledDocument
             else if ((numSpaces == 3) || (numSpaces < 0))
             {
                 indentString = "   ";
-                numSpaces = 3;
             }
             // variable indent to line up chars vertically
             else if (numSpaces > 0)
@@ -1056,42 +982,29 @@ public class SoarDocument extends DefaultStyledDocument
             }
         }     // end of while going through every line
 
-        return 0;
     } // justifyDocument()
 
     public int autoJustify(int caretPos)
     {
-        if(!edu.umich.soar.visualsoar.misc.Prefs.autoIndentingEnabled.getBoolean())
-        return -1;
-        Content             data = getContent();
+        if(!edu.umich.soar.visualsoar.misc.Prefs.autoIndentingEnabled.getBoolean()) {
+            return -1;
+        }
 
-        String              prevLine = null;
-        String              currLine = null;
-        String              afterCaretString = null;
-        String              newCurrLine = null;
-        String              indentString = "";
-        
-                    
-        int                 elemIndex = root.getElementIndex(caretPos);
-        int         prevLineIndex = elemIndex - 1;
-        int                 numSpaces = 0;
-        int                 currLineBegin;
-        int                 currLineEnd;
-        
-        
-        char                lastChar;
-        char[]              indentChars;
-        
-        boolean             leftOfText = true;
-        
-        AbstractElement     currLineElem;
+        Content data = getContent();
+        String prevLine = null;
+        String indentString = "";
+        int elemIndex = root.getElementIndex(caretPos);
+        int prevLineIndex = elemIndex - 1;
+        int numSpaces = 0;
+        char lastChar;
+        char[] indentChars;
+        boolean leftOfText = true;
 
-
-        currLineElem = (AbstractElement)root.getElement(elemIndex);
-        currLineBegin = currLineElem.getStartOffset();
-        currLineEnd = currLineElem.getEndOffset() - 1;
-        currLine = getElementString(currLineElem, data);
-        afterCaretString = getElementString(currLineElem, data, caretPos);
+        AbstractElement currLineElem = (AbstractElement)root.getElement(elemIndex);
+        int currLineBegin = currLineElem.getStartOffset();
+        int currLineEnd = currLineElem.getEndOffset() - 1;
+        String currLine = getElementString(currLineElem, data);
+        String afterCaretString = getElementString(currLineElem, data, caretPos);
 
 
         // Gets the last line of Soar code (skips blanks lines and comment lines)
@@ -1118,14 +1031,14 @@ public class SoarDocument extends DefaultStyledDocument
         {
             return -1;
         }
-        newCurrLine = currLine.trim();
+        String newCurrLine = currLine.trim();
 
         if( (newCurrLine.length() == 0) )
         {
             //Attempt to indent the appropriate number of spaces
             String trimmed = prevLine.trim();
-            if ( ((trimmed.startsWith("sp")) && (trimmed.indexOf("{") != -1))
-            	 || ((trimmed.startsWith("gp")) && (trimmed.indexOf("{") != -1))
+            if ( ((trimmed.startsWith("sp")) && (trimmed.contains("{")))
+            	 || ((trimmed.startsWith("gp")) && (trimmed.contains("{")))
                  || ((trimmed.startsWith("(")) && (trimmed.endsWith(")")))
                  || ((trimmed.startsWith("^")) && (trimmed.endsWith(")")))
                  || (trimmed.startsWith("-->")) )
@@ -1133,17 +1046,15 @@ public class SoarDocument extends DefaultStyledDocument
                 numSpaces = 3;
             }
             else if ( (trimmed.startsWith("(") || trimmed.startsWith("^"))
-                      && (trimmed.indexOf(")") == -1)
-                      && (trimmed.indexOf("^") != -1) )
+                      && (!trimmed.contains(")"))
+                      && (trimmed.contains("^")) )
             {
                 numSpaces = prevLine.indexOf("^");
             }
         }
-        else if ( (newCurrLine.length() != 0)
-                  && (newCurrLine.charAt(0) == '}')
-                  || (newCurrLine.startsWith("-->")))
+        else if (newCurrLine.charAt(0) == '}' || newCurrLine.startsWith("-->"))
         {
-            numSpaces = 0;
+            //this is deliberately empty
         }
         // already returned if prevLine == null
         else if (prevLine.trim().length() != 0)
@@ -1160,7 +1071,6 @@ public class SoarDocument extends DefaultStyledDocument
                 String currentLine = prevLine;
                 int currentElementIndex = elemIndex;
                 boolean done = false;
-                numSpaces = 0;
                 while(!done && currentLine != null)
                 {
                     int upPos = currentLine.indexOf('^');
@@ -1188,7 +1098,6 @@ public class SoarDocument extends DefaultStyledDocument
                 String currentLine = prevLine;
                 int currentElementIndex = elemIndex;
                 boolean done = false;
-                numSpaces = 0;
                 while(!done && currentLine != null)
                 {
                     int upPos = currentLine.indexOf('<');
@@ -1215,7 +1124,6 @@ public class SoarDocument extends DefaultStyledDocument
             {
                 int currentElementIndex = elemIndex - 1;
                 boolean done = false;
-                numSpaces = 0;
                 int count = 0;
                 String currentLine = prevLine;
 
@@ -1264,9 +1172,7 @@ public class SoarDocument extends DefaultStyledDocument
             {
                 numSpaces = prevLine.indexOf('{');
             }
-            else if ( ( newCurrLine.startsWith("(")
-                        && ((lastChar == ')')
-                            || (lastChar == '}')) ) )
+            else if (newCurrLine.startsWith("(") && lastChar == '}')
             {
                 numSpaces = 3;
             }
@@ -1278,14 +1184,12 @@ public class SoarDocument extends DefaultStyledDocument
                 if(caretLocation != -1)
                 {
                     // Get position past string that follows the caret (ie ^string )
-                    while( (fullPrevLine.charAt(caretLocation) != ' ')
-                           && (caretLocation < fullPrevLine.length()) )
+                    while(fullPrevLine.charAt(caretLocation) != ' ')
                     {
                         caretLocation++;
                     }
                     // look to see if string past ^string is << or { and if so, use that position
-                    while( (fullPrevLine.charAt(caretLocation) == ' ')
-                           && (caretLocation < fullPrevLine.length()) )
+                    while(fullPrevLine.charAt(caretLocation) == ' ')
                     {
                         caretLocation++;
                     }
@@ -1310,12 +1214,9 @@ public class SoarDocument extends DefaultStyledDocument
                     numSpaces = fullPrevLine.indexOf( (fullPrevLine.trim()).charAt(0));
                 }
             }    // end of else if prevlineindex > 1
-            else
-            {
-                // First line of re
-                numSpaces = 0;
-            } // Does not fit a previous constraint and therefore is possibly
-              // considered a VALUE of a wme
+
+            // Does not fit a previous constraint and therefore is possibly
+            // considered a VALUE of a wme
         }
         // else { numSpaces = 0; } , already initialized
 
@@ -1389,15 +1290,15 @@ public class SoarDocument extends DefaultStyledDocument
         // omit comments from the end of the previous line for testing
         if(!prevLine.startsWith("#"))
         {
-            if(prevLine.indexOf(";#") != -1)
+            if(prevLine.contains(";#"))
             {
                 prevLine = prevLine.substring(0, prevLine.indexOf(";#") - 1);
             }
-            else if(prevLine.indexOf("; #") != -1)
+            else if(prevLine.contains("; #"))
             {
                 prevLine = prevLine.substring(0, prevLine.indexOf("; #") - 1);
             }
-            else if(prevLine.indexOf(";  #") != -1)
+            else if(prevLine.contains(";  #"))
             {
                 prevLine = prevLine.substring(0, prevLine.indexOf(";  #") - 1);
             }

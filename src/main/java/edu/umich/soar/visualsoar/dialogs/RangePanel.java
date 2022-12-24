@@ -1,10 +1,9 @@
 package edu.umich.soar.visualsoar.dialogs;
 
-import java.awt.*;
-import java.awt.event.*;
 import javax.swing.*;
-import javax.swing.text.*;
-import javax.swing.border.*;
+import javax.swing.border.CompoundBorder;
+import java.awt.*;
+import java.awt.event.KeyEvent;
 
 /**
  * Panel containing input fields for entering a numeric range for
@@ -77,11 +76,11 @@ class RangePanel extends JPanel {
 		
 		if (type == INTEGER) {
 			if (lowText.length() == 0) {
-				return (new Integer(Integer.MIN_VALUE));
+				return (Integer.MIN_VALUE);
 			}
 			else {
 				try {
-					lowVal = new Integer(lowText);
+					lowVal = Integer.valueOf(lowText);
 					return lowVal;
 				} catch (NumberFormatException nfe) {
 					return null;
@@ -90,7 +89,7 @@ class RangePanel extends JPanel {
 		}
 		else { // type == FLOAT
 			if (lowText.length() == 0) {
-				return (new Float(Float.NEGATIVE_INFINITY));
+				return (Float.NEGATIVE_INFINITY);
 			}
 			else {
 				try {
@@ -112,11 +111,11 @@ class RangePanel extends JPanel {
 		
 		if (type == INTEGER) {
 			if (highText.length() == 0) {
-				return (new Integer(Integer.MAX_VALUE));
+				return (Integer.MAX_VALUE);
 			}
 			else {
 				try {
-					highVal = new Integer(highText);
+					highVal = Integer.valueOf(highText);
 					return highVal;
 				} catch (NumberFormatException nfe) {
 					return null;
@@ -125,7 +124,7 @@ class RangePanel extends JPanel {
 		}
 		else { // type == FLOAT
 			if (highText.length() == 0) {
-				return (new Float(Float.POSITIVE_INFINITY));
+				return (Float.POSITIVE_INFINITY);
 			}
 			else {
 				try {

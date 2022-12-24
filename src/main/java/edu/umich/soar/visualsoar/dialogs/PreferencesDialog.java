@@ -1,17 +1,19 @@
 package edu.umich.soar.visualsoar.dialogs;
- 
-import java.io.File;
-import java.awt.*;
-import java.awt.event.*;
-import javax.swing.*;
-import javax.swing.border.*;
-import java.util.*;
 
-import edu.umich.soar.visualsoar.MainFrame;
 import edu.umich.soar.visualsoar.misc.Prefs;
 import edu.umich.soar.visualsoar.misc.SyntaxColor;
 import edu.umich.soar.visualsoar.ruleeditor.SoarDocument;
-          
+
+import javax.swing.*;
+import javax.swing.border.CompoundBorder;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.util.Iterator;
+import java.util.TreeMap;
+
 /**
  * Dialog that allows preferences to be edited
  * @author Jon Bauman
@@ -159,7 +161,7 @@ public class PreferencesDialog extends JDialog {
 			theKey = (Integer)keys.next();
 			theColor = (Color)colorsToChange.get(theKey);
 			
-			temp = theKey.intValue();
+			temp = theKey;
 			colorTable[temp] = new SyntaxColor(theColor, colorTable[temp]);
 		}
 	}

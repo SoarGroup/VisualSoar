@@ -1,15 +1,14 @@
 package edu.umich.soar.visualsoar.dialogs;
 
-import java.util.TreeMap;
-import java.awt.*;
-import java.awt.event.*;
-import javax.swing.*;
-import javax.swing.text.*;
-import javax.swing.border.*;
-
 import edu.umich.soar.visualsoar.misc.Prefs;
 import edu.umich.soar.visualsoar.misc.SyntaxColor;
-import edu.umich.soar.visualsoar.ruleeditor.SoarDocument;
+
+import javax.swing.*;
+import javax.swing.border.CompoundBorder;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.TreeMap;
 
 /**
  * Panel containing editing facilities for selecting custom colors
@@ -35,7 +34,7 @@ class SyntaxColorsPanel extends JPanel {
 	/**
 	 * Map of the colors to be changed
 	 */
-	TreeMap			colorsToChange = new TreeMap();
+	TreeMap<Integer, Color> colorsToChange = new TreeMap<>();
 
 	/**
 	 * The syntax colors
@@ -65,26 +64,26 @@ class SyntaxColorsPanel extends JPanel {
 			if (name == null) {
 				continue;
 			}
-			else {
-				numButtons++;
-			
-				swatches[i] = new JButton(name);
-				swatches[i].setForeground(oldColors[i]);
-				buttonPanel.add(swatches[i]);
-				
-				swatches[i].addActionListener(new ActionListener() {
-				
-					public void actionPerformed(ActionEvent e) {
-						Color c = JColorChooser.showDialog(SyntaxColorsPanel.this, 
-											"Select Color", null);
-						if (c != null) {
-							colorToChange(e.getActionCommand(), c);
-							((JButton)e.getSource()).setForeground(c);
-						}
+
+			numButtons++;
+
+			swatches[i] = new JButton(name);
+			swatches[i].setForeground(oldColors[i]);
+			buttonPanel.add(swatches[i]);
+
+			swatches[i].addActionListener(new ActionListener() {
+
+				public void actionPerformed(ActionEvent e) {
+					Color c = JColorChooser.showDialog(SyntaxColorsPanel.this,
+										"Select Color", null);
+					if (c != null) {
+						colorToChange(e.getActionCommand(), c);
+						((JButton)e.getSource()).setForeground(c);
 					}
-				});
-			}
-		}
+				}
+			});
+
+		}//for
 		
 		layout.setRows(numButtons / 2);
 		buttonPanel.setLayout(layout);
@@ -104,7 +103,7 @@ class SyntaxColorsPanel extends JPanel {
 		
 		for (int i = 0; i < colorTable.length; i++) {
 			if ((colorTable[i] != null) && (colorTable[i].equals(name))) {
-				colorsToChange.put(new Integer(i), c);
+				colorsToChange.put(i, c);
 				break;				
 			}
 		}

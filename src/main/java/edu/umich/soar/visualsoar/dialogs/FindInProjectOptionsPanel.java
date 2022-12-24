@@ -1,8 +1,7 @@
 package edu.umich.soar.visualsoar.dialogs;
 
-import java.awt.*;
 import javax.swing.*;
-import javax.swing.border.*;
+import java.awt.*;
 
 /**
  * Panel that contains the buttons for different find options for
@@ -27,7 +26,7 @@ class FindInProjectOptionsPanel extends JPanel
      */     
     public Boolean getMatchCase()
     {
-        return new Boolean(matchCase.isSelected());
+        return matchCase.isSelected();
     }
     
 }//class FindInProjectOptionsPanel

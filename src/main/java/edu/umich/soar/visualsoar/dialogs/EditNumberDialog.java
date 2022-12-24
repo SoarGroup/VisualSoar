@@ -18,7 +18,7 @@ public class EditNumberDialog extends JDialog {
 	static int 			FLOAT = 4;
 	
 	/**
-	 * which entry field will recieve focus. Valid values are
+	 * which entry field will receive focus. Valid values are
 	 * EditNumberDialog.LOW and EditNumberDialog.HIGH
 	 */
 	int 				focusTarget = LOW;
@@ -28,7 +28,7 @@ public class EditNumberDialog extends JDialog {
 	 * to edit. Valid values are EditNumberDialog.INTEGER and
 	 * EditNumberDialog.FLOAT
 	 */
-	int 				dialogType = INTEGER;
+	int 				dialogType;
 	
 	boolean 			approved = false;
 	
@@ -36,7 +36,7 @@ public class EditNumberDialog extends JDialog {
 	Number 				high = null;
 
 	/**
-	 * Panel which contians the range entry fields
+	 * Panel which contains the range entry fields
 	 */
 	RangePanel 			rangePanel;
 	
@@ -126,7 +126,6 @@ public class EditNumberDialog extends JDialog {
 					JOptionPane.showMessageDialog(EditNumberDialog.this, 
 						"The left field must be less than the right field", 
 						"Invalid Range", JOptionPane.ERROR_MESSAGE);
-					rangeIsValid = false;
 					focusTarget = LOW;
 				}
 				else {

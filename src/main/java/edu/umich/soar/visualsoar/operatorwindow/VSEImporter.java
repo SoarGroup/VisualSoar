@@ -36,22 +36,21 @@ class VSEImporter {
 		
 		int numberOfNodes = ReaderUtils.getInteger(r);
 		int currentNode = 0;
-		LinkedList hlOperators = new LinkedList();
+		LinkedList<OperatorNode> hlOperators = new LinkedList<>();
 		
-		// This hash table has keys of Id's and a pointer as a value
+		// This hash table has keys of ids and a pointer as a value
 		// it is used for parent lookup
-		Hashtable ht = new Hashtable();	
+		Hashtable<Integer, OperatorNode> ht = new Hashtable<>();
 		
-		ht.put(new Integer(-1),on);
+		ht.put(-1,on);
 		// Read in all the other nodes
 		do {
 			// again read in the tree specific stuff
-			int nodeId = new Integer(currentNode).intValue();
 			int parentId = ReaderUtils.getInteger(r);
-			OperatorNode node = null;
+			OperatorNode node;
 			
 			// get the parent
-			OperatorNode parent = (OperatorNode)ht.get(new Integer(parentId));
+			OperatorNode parent = ht.get(parentId);
 
 			String type = ReaderUtils.getWord(r);
 			if (type.equals("HLOPERATOR")) {
@@ -95,7 +94,7 @@ class VSEImporter {
       }
 			else if (type.equals("FILE")) {
 				String name = ReaderUtils.getWord(r);
-				if(nodeId == 0) {
+				if(currentNode == 0) {
 					if(parent.creationConflict(new File(name + ".soar"))) {
 						return;
 					}
@@ -124,7 +123,7 @@ class VSEImporter {
 			else 
 				throw new IOException("Parse Error");
 			// add that node to the hash table
-			ht.put(new Integer(nodeId),node);
+			ht.put(currentNode,node);
 		} while(numberOfNodes > ++currentNode);
 		
 		/////////////////////////////////////////////////
@@ -137,7 +136,7 @@ class VSEImporter {
 		int currentLineNumber;
 		while(ruleFile.equals("RULE_FILE")) {
 			currentLineNumber = 0;
-			OperatorNode node = (OperatorNode)ht.get(new Integer(ReaderUtils.getInteger(r)));
+			OperatorNode node = ht.get(ReaderUtils.getInteger(r));
 			FileWriter w = new FileWriter(node.getFileName());
 			int numberOfLines = ReaderUtils.getInteger(r);
 			while(currentLineNumber++ < numberOfLines) {

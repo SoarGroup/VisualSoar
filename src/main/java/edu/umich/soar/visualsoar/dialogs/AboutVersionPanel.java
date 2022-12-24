@@ -1,14 +1,10 @@
 package edu.umich.soar.visualsoar.dialogs;
- 
-import java.io.*;
-import java.awt.*;
-import java.awt.event.*;
+
 import javax.swing.*;
-import javax.swing.text.*;
-import javax.swing.border.*;
+import javax.swing.border.EmptyBorder;
 
 /**
- * Panel that displays the Version number of Visual Soar for the about dialog
+ * Panel that displays the Version number of Visual Soar for the 'About' dialog
  * @author Brian Harleton
  * @see AboutDialog
  */

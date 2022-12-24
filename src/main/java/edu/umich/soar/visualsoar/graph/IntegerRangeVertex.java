@@ -47,8 +47,8 @@ public class IntegerRangeVertex extends SoarVertex {
 	
 	public boolean edit(Frame owner) {
 		EditNumberDialog theDialog = new EditNumberDialog(owner,"Integer");
-		theDialog.setLow(new Integer(low));
-		theDialog.setHigh(new Integer(high));
+		theDialog.setLow(low);
+		theDialog.setHigh(high);
 		theDialog.setVisible(true);
 		
 		if (theDialog.wasApproved()) {

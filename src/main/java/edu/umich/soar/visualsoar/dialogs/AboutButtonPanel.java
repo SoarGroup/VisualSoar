@@ -1,12 +1,10 @@
 package edu.umich.soar.visualsoar.dialogs;
 
-import java.awt.*;
-import java.awt.event.*;
 import javax.swing.*;
-import javax.swing.text.*;
+import java.awt.*;
 
 /**
- * Panel that contains the button for the about dialog
+ * Panel that contains the button for the 'About' dialog
  * @author Jon Bauman
  * @see AboutDialog
  */

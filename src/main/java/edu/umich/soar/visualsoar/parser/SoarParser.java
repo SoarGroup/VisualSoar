@@ -8,6 +8,7 @@ import java.util.*;
 	I used the Java Compiler Compiler to make the lexer and parser
 	the homepage is http://www.metamata.com
 */
+@SuppressWarnings("ALL")
 public class SoarParser implements SoarParserConstants {
 
   final public Vector<SoarProduction> VisualSoarFile() throws ParseException {
