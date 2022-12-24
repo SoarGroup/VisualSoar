@@ -863,7 +863,7 @@ public class DataMapTree extends JTree implements ClipboardOwner
 			 ne = ftn.getEdge();
 			 componentName = ne.getName();
 
-			 swmm.removeTriple((SoarVertex) ne.V0(), ne.getName(), (SoarVertex) ne.V1());
+			 swmm.removeTriple(ne.V0(), ne.getName(), ne.V1());
 			 if (type == 1) {
 				 v1 = swmm.createNewEnumeration("nil");
 			 } else if (type == 2) {
@@ -876,7 +876,7 @@ public class DataMapTree extends JTree implements ClipboardOwner
 				 v1 = swmm.createNewSoarId();
 			 }
 
-			 swmm.addTriple((SoarVertex) ne.V0(), componentName, v1);
+			 swmm.addTriple(ne.V0(), componentName, v1);
 		 }
 	 }   // end of changeTypeTo()
 
@@ -899,7 +899,7 @@ public class DataMapTree extends JTree implements ClipboardOwner
 								 ne.getName() + "\"?", "Confirm Delete",
 						 JOptionPane.YES_NO_CANCEL_OPTION)) {
 					 case JOptionPane.YES_OPTION:
-						 swmm.removeTriple((SoarVertex) ne.V0(), ne.getName(), (SoarVertex) ne.V1());
+						 swmm.removeTriple(ne.V0(), ne.getName(), ne.V1());
 						 break;
 					 case JOptionPane.CANCEL_OPTION:
 						 return;
@@ -938,8 +938,8 @@ public class DataMapTree extends JTree implements ClipboardOwner
 		 if(namedDialog.wasApproved()) 
 		 {
 			 String newAttributeName = namedDialog.getText();
-			 swmm.removeTriple((SoarVertex)ne.V0(),ne.getName(),(SoarVertex)ne.V1());
-			 swmm.addTriple((SoarVertex)ne.V0(),newAttributeName,(SoarVertex)ne.V1());   
+			 swmm.removeTriple(ne.V0(),ne.getName(), ne.V1());
+			 swmm.addTriple(ne.V0(),newAttributeName, ne.V1());
 		 }
 	 }
 
@@ -1095,10 +1095,10 @@ public class DataMapTree extends JTree implements ClipboardOwner
 			 JOptionPane.showMessageDialog(this, "This is not an edge", "Cannot Edit Value", JOptionPane.ERROR_MESSAGE);
 			 return;
 		 }
-		 if (((SoarVertex)ne.V1()).edit(MainFrame.getMainFrame())) 
+		 if (ne.V1().edit(MainFrame.getMainFrame()))
 		 {
-			 swmm.removeTriple((SoarVertex)ne.V0(),ne.getName(),(SoarVertex)ne.V1());
-			 swmm.addTriple((SoarVertex)ne.V0(),ne.getName(),(SoarVertex)ne.V1());
+			 swmm.removeTriple(ne.V0(),ne.getName(), ne.V1());
+			 swmm.addTriple(ne.V0(),ne.getName(), ne.V1());
 		 }
 	 }
 
@@ -1302,7 +1302,7 @@ public class DataMapTree extends JTree implements ClipboardOwner
 						 NamedEdge ne = edges.nextElement();
 						 if(ne.isGenerated()) 
 						 {
-							 swmm.removeTriple((SoarVertex)ne.V0(),ne.getName(),(SoarVertex)ne.V1());
+							 swmm.removeTriple(ne.V0(),ne.getName(), ne.V1());
 							 edges = swmm.emanatingEdges(w);
 						 }
 						 else 

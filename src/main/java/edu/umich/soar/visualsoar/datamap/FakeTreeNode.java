@@ -27,16 +27,16 @@ public class FakeTreeNode
     private String representation;
     
     // the vertex from which emanating edges are considered children
-    private SoarVertex enumeratingVertex;
+    private final SoarVertex enumeratingVertex;
     
     // a reference to the graph structure so we can extract the information as needed
-    private SoarWorkingMemoryModel swmm;
+    private final SoarWorkingMemoryModel swmm;
     
     // the parent of this node, can be null
     private FakeTreeNode parent;
     
     // the children for this node
-    private Vector children = new Vector();
+    private final Vector children = new Vector();
     
     // the associated edge for this node, can be null
     private NamedEdge theEdge = null;
@@ -55,7 +55,7 @@ public class FakeTreeNode
     {
 
         representation = ne.toString();
-        enumeratingVertex = (SoarVertex)ne.V1();
+        enumeratingVertex = ne.V1();
         swmm = in_swmm;
         theEdge = ne;
 
@@ -78,7 +78,7 @@ public class FakeTreeNode
             {
                 EnumerationVertex ev = (EnumerationVertex) edge.V1();
                 if(ev != null)
-                representation = "operator " + ev.toString();
+                representation = "operator " + ev;
             }
 
         }   // end of if the current node is an operator node

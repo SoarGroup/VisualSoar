@@ -192,14 +192,14 @@ class OperatorOperatorNode extends SoarOperatorNode {
             if (ne.getName().equals("operator"))
             {
                 //Search this operator for the old name
-                SoarVertex svOper = (SoarVertex)ne.V1();
+                SoarVertex svOper = ne.V1();
                 Enumeration enumName = swmm.emanatingEdges(svOper);
                 while(enumName.hasMoreElements())
                 {
                     ne = (NamedEdge)enumName.nextElement();
                     if (ne.getName().equals("name"))
                     {
-                        SoarVertex svName = (SoarVertex)ne.V1();
+                        SoarVertex svName = ne.V1();
                         if (svName instanceof EnumerationVertex)
                         {
                             EnumerationVertex evName = (EnumerationVertex)svName;

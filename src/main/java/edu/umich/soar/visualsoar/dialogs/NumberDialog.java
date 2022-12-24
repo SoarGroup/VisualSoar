@@ -163,10 +163,10 @@ public class NumberDialog extends JDialog {
 					namePanel.requestFocus();
 				}
 				else if (focusTarget == LOW) {
-					rangePanel.requestFocus(rangePanel.LOW);
+					rangePanel.requestFocus(RangePanel.LOW);
 				}
 				else { // focusTarget == HIGH
-					rangePanel.requestFocus(rangePanel.HIGH);
+					rangePanel.requestFocus(RangePanel.HIGH);
 				}
 			}
 		});		

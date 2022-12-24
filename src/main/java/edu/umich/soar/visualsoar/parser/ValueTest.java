@@ -7,7 +7,7 @@ package edu.umich.soar.visualsoar.parser;
 
 public final class ValueTest {
 	// Data Members
-	private Test d_test;
+	private final Test d_test;
 	private boolean d_acceptablePreference = false;
 
 	// Constructor

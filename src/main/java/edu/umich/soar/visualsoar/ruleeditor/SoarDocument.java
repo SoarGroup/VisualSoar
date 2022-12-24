@@ -34,7 +34,7 @@ public class SoarDocument extends DefaultStyledDocument
     
     public SoarDocument()
     {
-        colorTable = (SyntaxColor[])Prefs.getSyntaxColors().clone();
+        colorTable = Prefs.getSyntaxColors().clone();
 
         //set default font size
         Style defaultStyle = this.getStyle("default");
@@ -772,7 +772,7 @@ public class SoarDocument extends DefaultStyledDocument
         endIndex = root.getElementIndex(selectionEnd);
 
         // endIndex is one less if last line just a line feed
-        String lastLine = getElementString(((AbstractElement)root.getElement(endIndex)), data);
+        String lastLine = getElementString(root.getElement(endIndex), data);
         if(lastLine.trim().length() == 0)
         {
             endIndex--;

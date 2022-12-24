@@ -116,7 +116,7 @@ public class TreeFileWriter {
 			//nodeID = new Integer(nodeID.intValue() + 1);
 			//node = (TreeNode)e.nextElement();
       node = (OperatorNode)e.nextElement();
-      nodeID = ht.get(node.getParent()) + "_" + node.toString();
+      nodeID = ht.get(node.getParent()) + "_" + node;
 			ht.put(node, nodeID);
 
 			// Again the same technique write out the tree information, then the node specific stuff, then

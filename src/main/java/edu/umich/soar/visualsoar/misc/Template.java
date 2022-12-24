@@ -47,15 +47,15 @@ public class Template {
 
 	private String resource; // Path to the resource
 	private List<Template> templates; // Sub templates
-	private String name; // Name of directory or template
+	private final String name; // Name of directory or template
 	private int caretOffset; // offset of last $caret$ macro
 
 	// Formatter for the $date$ macro
-	private static SimpleDateFormat dateFormat = new SimpleDateFormat(
+	private static final SimpleDateFormat dateFormat = new SimpleDateFormat(
 			"yyyy/MM/dd");
 
 	// Formatter for the $time$ macro
-	private static SimpleDateFormat timeFormat = new SimpleDateFormat(
+	private static final SimpleDateFormat timeFormat = new SimpleDateFormat(
 			"HH:mm:ss");
 
 	/**

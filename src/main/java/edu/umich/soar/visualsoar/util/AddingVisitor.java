@@ -17,7 +17,7 @@ public class AddingVisitor extends Visitor {
 // Data Members
 ///////////////////////////////////////////
 	private NamedEdge edge;
-	private LinkedList changeEvents = new LinkedList();
+	private final LinkedList changeEvents = new LinkedList();
 	
 ///////////////////////////////////////////
 // Constructors

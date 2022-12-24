@@ -77,9 +77,9 @@ public class Constant {
 			case FLOATING_CONST:
 				return "" + d_floatConst;
 			case SYMBOLIC_CONST:
-				return new String(d_symConst);
+				return d_symConst;
 			default:
-				return new String("Unknown Type");
+				return "Unknown Type";
 		}	
 	}
 }

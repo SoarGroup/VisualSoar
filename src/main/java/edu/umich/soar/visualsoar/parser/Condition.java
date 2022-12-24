@@ -2,8 +2,8 @@ package edu.umich.soar.visualsoar.parser;
 
 public final class Condition {
 	// Data Members
-	private boolean d_isNegated;
-	private PositiveCondition d_positiveCondition;
+	private final boolean d_isNegated;
+	private final PositiveCondition d_positiveCondition;
 	
 	// Constructors
 	public Condition(boolean isNegated,PositiveCondition positiveCondition) {

@@ -9,7 +9,7 @@ import edu.umich.soar.visualsoar.operatorwindow.OperatorNode;
  */
 
 public class DefaultCheckerErrorHandler extends DefaultMatcherErrorHandler implements CheckerErrorHandler {
-	private String d_errorBegin;
+	private final String d_errorBegin;
 
 ///////////////////////////////////////////////////
 // Constructors

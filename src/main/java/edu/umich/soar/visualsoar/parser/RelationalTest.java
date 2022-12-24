@@ -11,8 +11,8 @@ public class RelationalTest {
 	public static final int EQ = 6;
 	
 	// Data Members
-	private int d_relation;	
-	private SingleTest d_singleTest;
+	private final int d_relation;
+	private final SingleTest d_singleTest;
 	
 	// Constructors
 	public RelationalTest(int relation,SingleTest singleTest) {

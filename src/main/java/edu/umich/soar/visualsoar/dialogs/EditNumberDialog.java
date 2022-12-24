@@ -139,10 +139,10 @@ public class EditNumberDialog extends JDialog {
 		addWindowListener(new WindowAdapter() {
 			public void windowActivated(WindowEvent e) {
 				if (focusTarget == LOW) {
-					rangePanel.requestFocus(rangePanel.LOW);
+					rangePanel.requestFocus(RangePanel.LOW);
 				}
 				else { // focusTarget == HIGH
-					rangePanel.requestFocus(rangePanel.HIGH);
+					rangePanel.requestFocus(RangePanel.HIGH);
 				}
 			}
 		});		

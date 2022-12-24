@@ -57,12 +57,12 @@ public enum Prefs {
 	private final String def;
 	private final boolean defBoolean;
 	
-	private Prefs(String def) {
+	Prefs(String def) {
 		this.def = def;
 		this.defBoolean = false;
 	}
 	
-	private Prefs(boolean def) {
+	Prefs(boolean def) {
 		this.def = null;
 		this.defBoolean = def;
 	}

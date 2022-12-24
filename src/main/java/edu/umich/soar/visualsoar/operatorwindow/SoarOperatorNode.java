@@ -601,9 +601,9 @@ public class SoarOperatorNode extends FileNode
             {
                 NamedEdge ne = emanEnum.nextElement();
                 if(ne.getName().equals("superstate")) {
-                    swmm.removeTriple((SoarVertex)ne.V0(),
+                    swmm.removeTriple(ne.V0(),
                             ne.getName(),
-                            (SoarVertex)ne.V1());
+                            ne.V1());
                 }
             }
 

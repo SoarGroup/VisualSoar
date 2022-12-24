@@ -25,12 +25,12 @@ public class TransferableVertex implements Transferable {
 	
 	public TransferableVertex(int i, String _rep) {
 		id = new Integer(i);
-		rep = new String(_rep);
+		rep = _rep;
 	}
 	
 	public TransferableVertex(Vertex v, String _rep) {
 		id = new Integer(v.getValue());
-		rep = new String(_rep);
+		rep = _rep;
 	}
 	
 	public TransferableVertex(Vertex v, String inRep, Edge e) {

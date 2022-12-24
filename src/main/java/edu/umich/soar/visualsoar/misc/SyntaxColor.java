@@ -71,6 +71,6 @@ public class SyntaxColor extends Color
     
     public boolean equals(String s)
     {
-        return (name != null ? name.equals(s) : false);
+        return (name != null && name.equals(s));
     }
 }

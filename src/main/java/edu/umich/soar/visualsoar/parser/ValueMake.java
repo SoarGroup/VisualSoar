@@ -5,7 +5,7 @@ import java.util.*;
 public final class ValueMake {
 	// Data Members
 	private RHSValue d_rhsValue;
-	private List preferenceSpecifiers = new LinkedList();
+	private final List preferenceSpecifiers = new LinkedList();
 
 	// Constructors
 	private ValueMake() {}

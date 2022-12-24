@@ -15,7 +15,7 @@ import java.util.*;
  * @author Brad Jones
  */
 public class SoarWMTreeModelWrapper implements TreeModel, WorkingMemoryListener {
-	private LinkedList listeners = new LinkedList();
+	private final LinkedList listeners = new LinkedList();
 	private SoarWorkingMemoryModel swmm = null;
 	private FakeTreeNode root = null;
 

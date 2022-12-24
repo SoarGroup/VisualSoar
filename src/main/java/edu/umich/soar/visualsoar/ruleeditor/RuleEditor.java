@@ -43,13 +43,13 @@ import sml.Agent;
 public class RuleEditor extends CustomInternalFrame
 {
     //********** Data Members  *****************
-    private OperatorNode associatedNode;
-    private EditorPane editorPane = new EditorPane();
-    private UndoManager undoManager = new CustomUndoManager();
+    private final OperatorNode associatedNode;
+    private final EditorPane editorPane = new EditorPane();
+    private final UndoManager undoManager = new CustomUndoManager();
     private String fileName;
     private boolean change = false;
-    private JLabel lineNumberLabel = new JLabel("Line:");
-    private JLabel modifiedLabel = new JLabel("");
+    private final JLabel lineNumberLabel = new JLabel("Line:");
+    private final JLabel modifiedLabel = new JLabel("");
 
 
     //For keeping track of find/replace operations
@@ -60,9 +60,9 @@ public class RuleEditor extends CustomInternalFrame
     private boolean wrapSearch = false;
 
     //For highlighting a section of text (e.g., due to a Find command)
-    private Highlighter highlighter = editorPane.getHighlighter();
-    private Color hlColor = new Color(255,255,128); // a pale yellow
-    private DefaultHighlighter.DefaultHighlightPainter hlPainter
+    private final Highlighter highlighter = editorPane.getHighlighter();
+    private final Color hlColor = new Color(255,255,128); // a pale yellow
+    private final DefaultHighlighter.DefaultHighlightPainter hlPainter
     = new DefaultHighlighter.DefaultHighlightPainter(hlColor);
     private Object lastHighlight = null;
 
@@ -78,45 +78,45 @@ public class RuleEditor extends CustomInternalFrame
 
 
     // ********** Actions ***********
-    private Action saveAction = new SaveAction();
-    private Action revertToSavedAction = new RevertToSavedAction();
-    private Action closeAction = new CloseAction();
+    private final Action saveAction = new SaveAction();
+    private final Action revertToSavedAction = new RevertToSavedAction();
+    private final Action closeAction = new CloseAction();
 
-    private Action undoAction = new UndoAction();
-    private Action redoAction = new RedoAction();
-    private Action cutAction = new DefaultEditorKit.CutAction();
-    private Action copyAction = new DefaultEditorKit.CopyAction();
-    private Action pasteAction = new PasteAction();
-    private Action insertTextFromFileAction = new InsertTextFromFileAction();
+    private final Action undoAction = new UndoAction();
+    private final Action redoAction = new RedoAction();
+    private final Action cutAction = new DefaultEditorKit.CutAction();
+    private final Action copyAction = new DefaultEditorKit.CopyAction();
+    private final Action pasteAction = new PasteAction();
+    private final Action insertTextFromFileAction = new InsertTextFromFileAction();
 
-    private Action commentOutAction = new CommentOutAction();
-    private Action uncommentOutAction = new UncommentOutAction();
+    private final Action commentOutAction = new CommentOutAction();
+    private final Action uncommentOutAction = new UncommentOutAction();
 
-    private Action reDrawAction = new ReDrawAction();
-    private Action reJustifyAction = new ReJustifyAction();
+    private final Action reDrawAction = new ReDrawAction();
+    private final Action reJustifyAction = new ReJustifyAction();
 
-    private Action findAction = new FindAction();
-    private FindAgainAction findAgainAction = new FindAgainAction();
-    private ReplaceAction replaceAction = new ReplaceAction();
-    private ReplaceAndFindAgainAction replaceAndFindAgainAction = new ReplaceAndFindAgainAction();
-    private ReplaceAllAction replaceAllAction = new ReplaceAllAction();
-    private Action findAndReplaceAction = new FindAndReplaceAction();
+    private final Action findAction = new FindAction();
+    private final FindAgainAction findAgainAction = new FindAgainAction();
+    private final ReplaceAction replaceAction = new ReplaceAction();
+    private final ReplaceAndFindAgainAction replaceAndFindAgainAction = new ReplaceAndFindAgainAction();
+    private final ReplaceAllAction replaceAllAction = new ReplaceAllAction();
+    private final Action findAndReplaceAction = new FindAndReplaceAction();
 
-    private Action checkProductionsAction = new CheckProductionsAction();
-    private Action tabCompleteAction = new TabCompleteAction();
-    private Action autoSoarCompleteAction = new AutoSoarCompleteAction();
+    private final Action checkProductionsAction = new CheckProductionsAction();
+    private final Action tabCompleteAction = new TabCompleteAction();
+    private final Action autoSoarCompleteAction = new AutoSoarCompleteAction();
 
 
     
     // 3P
     // Menu item handlers for the STI operations in this window.
-    private Action sendProductionToSoarAction = new SendProductionToSoarAction();
-    private Action sendFileToSoarAction = new SendFileToSoarAction();
-    private Action sendAllFilesToSoarAction = new SendAllFilesToSoarAction();
-    private Action sendMatchesToSoarAction = new SendMatchesToSoarAction();
-    private Action sendExciseProductionToSoarAction = new SendExciseProductionToSoarAction();
+    private final Action sendProductionToSoarAction = new SendProductionToSoarAction();
+    private final Action sendFileToSoarAction = new SendFileToSoarAction();
+    private final Action sendAllFilesToSoarAction = new SendAllFilesToSoarAction();
+    private final Action sendMatchesToSoarAction = new SendMatchesToSoarAction();
+    private final Action sendExciseProductionToSoarAction = new SendExciseProductionToSoarAction();
 
-    private BackupThread backupThread;
+    private final BackupThread backupThread;
     // Constructors
     /**
      * Constructs a new JInternalFrame, sets its size and
@@ -641,7 +641,7 @@ public class RuleEditor extends CustomInternalFrame
     public String getAllText() 
     {
         Document doc = editorPane.getDocument();
-        String s = new String();
+        String s = "";
         try 
         {
             s = doc.getText(0,doc.getLength());
@@ -1836,7 +1836,7 @@ public class RuleEditor extends CustomInternalFrame
 
         public void actionPerformed(ActionEvent ae) 
         {
-            java.util.List errors = new LinkedList();;
+            java.util.List errors = new LinkedList();
             Vector v = null;
             Vector vecErrors = new Vector();
             
@@ -1973,7 +1973,7 @@ public class RuleEditor extends CustomInternalFrame
             int nl = commentText.indexOf('\n');
             while(nl != -1)
             {
-                commentText = commentText.substring(0,nl+1) + "#" + commentText.substring(nl+1,commentText.length());
+                commentText = commentText.substring(0,nl+1) + "#" + commentText.substring(nl+1);
                 nl = (nl+1) >= commentText.length() ? -1 : commentText.indexOf('\n',nl+1);
 
                 //increment selection end to accomodate added char
@@ -2012,7 +2012,7 @@ public class RuleEditor extends CustomInternalFrame
 
                 String uncommentText = selectedText;
                 if(uncommentText.charAt(0) == '#') {
-                    uncommentText = uncommentText.substring(1, uncommentText.length());
+                    uncommentText = uncommentText.substring(1);
 
                     //decrease the selection range to accommodate missing char
                     selEnd--;
@@ -2020,7 +2020,7 @@ public class RuleEditor extends CustomInternalFrame
                 int nlp = uncommentText.indexOf("\n#");
                 while(nlp != -1) 
                 {
-                    uncommentText = uncommentText.substring(0,nlp+1) + uncommentText.substring(nlp+2,uncommentText.length());
+                    uncommentText = uncommentText.substring(0,nlp+1) + uncommentText.substring(nlp+2);
                     nlp = uncommentText.indexOf("\n#",nlp+1);
 
                     //decrease the selection range to accommodate missing char
@@ -2103,13 +2103,13 @@ public class RuleEditor extends CustomInternalFrame
             int caret = prodSoFar.lastIndexOf("^");
             int period = prodSoFar.lastIndexOf(".");
             int space = prodSoFar.lastIndexOf(" ");
-            String userType = new String();
+            String userType = "";
 
 
             // Guarantee that period is more relevant than space and caret
             if(period != -1 && caret != -1 && space != -1 && period > caret && period > space) 
             {
-                userType = prodSoFar.substring(period+1,prodSoFar.length());
+                userType = prodSoFar.substring(period+1);
                 prodSoFar = prodSoFar.substring(0,period+1) + "<$$>" + end;
                 attributeComplete(pos,userType,prodSoFar);
             }
@@ -2205,19 +2205,19 @@ public class RuleEditor extends CustomInternalFrame
             int caret = prodSoFar.lastIndexOf("^");
             int period = prodSoFar.lastIndexOf(".");
             int space = prodSoFar.lastIndexOf(" ");
-            String userType = new String();
+            String userType = "";
             // The most relevant is the caret
             if((period == -1 && caret != -1 && space != -1 && caret > space)
                || (period != -1 && caret != -1 && space != -1 && period < caret && space < caret)) 
             {
-                userType = prodSoFar.substring(caret+1,prodSoFar.length());
+                userType = prodSoFar.substring(caret+1);
                 prodSoFar = prodSoFar.substring(0,caret+1) + "<$$>" + end;
                 attributeComplete(pos,userType,prodSoFar);
             }
             // The most relevant is the period
             else if(period != -1 && caret != -1 && space != -1 && period > caret && period > space) 
             {
-                userType = prodSoFar.substring(period+1,prodSoFar.length());
+                userType = prodSoFar.substring(period+1);
                 prodSoFar = prodSoFar.substring(0,period+1) + "<$$>" + end;
                 attributeComplete(pos,userType,prodSoFar);
             }
@@ -2225,7 +2225,7 @@ public class RuleEditor extends CustomInternalFrame
             else if((period == -1 && caret != -1 && space != -1 && space > caret)
                     || (period != -1 && caret != -1 && space != -1 && space > caret && space > period)) 
             {
-                userType = prodSoFar.substring(space+1,prodSoFar.length());
+                userType = prodSoFar.substring(space+1);
                 prodSoFar = prodSoFar.substring(0,space+1) + "<$$>" + end;
                 valueComplete(pos,userType,prodSoFar);
             }
@@ -2293,7 +2293,7 @@ public class RuleEditor extends CustomInternalFrame
             else if(completeMatches.size() == 1) 
             {
                 String matched = (String)completeMatches.get(0);
-                editorPane.insert(matched.substring(userType.length(),matched.length()),pos);
+                editorPane.insert(matched.substring(userType.length()),pos);
             }
             else 
             {
@@ -2614,7 +2614,7 @@ public class RuleEditor extends CustomInternalFrame
 
     //These are characters are "significant" for the purpose of
     //class CustomUndoableEdit (below)
-    private static char[] SIG_CHARS = {' ', '.', '\n', '\t', '{', '}', '(', ')', '^', '*'};
+    private static final char[] SIG_CHARS = {' ', '.', '\n', '\t', '{', '}', '(', ')', '^', '*'};
 
     /**
      * class CustomUndoableEvent
@@ -2631,7 +2631,7 @@ public class RuleEditor extends CustomInternalFrame
      */
     class CustomUndoableEdit implements UndoableEdit {
 
-        private UndoableEdit parent;
+        private final UndoableEdit parent;
         private boolean significant = false;  // is this edit "significant"?
 
         public CustomUndoableEdit(UndoableEdit initParent) {

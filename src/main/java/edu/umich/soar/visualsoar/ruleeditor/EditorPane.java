@@ -19,17 +19,17 @@ import edu.umich.soar.visualsoar.misc.Prefs;
 public class EditorPane extends javax.swing.JEditorPane
 
 {
-    private JPopupMenu contextMenu;
+    private final JPopupMenu contextMenu;
 
     /**
      * @serial a reference to the DropTargetListener for Drag and Drop operations, may be deleted in future
      */
-    private DropTargetListener dtListener = new EPDropTargetListener();
+    private final DropTargetListener dtListener = new EPDropTargetListener();
 
     /**
      * @serial a reference to the DropTarget for Drag and Drop operations, may be deleted in future
      */
-    private DropTarget dropTarget = new DropTarget(this,DnDConstants.ACTION_COPY,dtListener,true);
+    private final DropTarget dropTarget = new DropTarget(this,DnDConstants.ACTION_COPY,dtListener,true);
 
 
     class EPDropTargetListener implements DropTargetListener
@@ -143,7 +143,7 @@ public class EditorPane extends javax.swing.JEditorPane
     {
         public void mouseReleased(MouseEvent e)
         {
-            if (e.getButton() == e.BUTTON3)
+            if (e.getButton() == MouseEvent.BUTTON3)
             {
                 contextMenu.show(e.getComponent(), e.getX(), e.getY());
             }
@@ -160,10 +160,7 @@ public class EditorPane extends javax.swing.JEditorPane
             TextUI ui = getUI();
             int w = port.getWidth();
             int wp = ui.getPreferredSize(this).width;
-            if (w > wp)
-            {
-                return true; // wrap
-            }
+            return w > wp; // wrap
         }
         return false; // no wrap
     }

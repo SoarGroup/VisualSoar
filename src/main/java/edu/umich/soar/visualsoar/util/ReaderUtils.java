@@ -23,7 +23,7 @@ public class ReaderUtils {
 	 * @throws IOException represents something went wrong reading the stream 
 	 */
 	public static String getWord(Reader r) throws IOException {
-		String s = new String();
+		String s = "";
 		boolean wordbegin = false;
 		boolean wordend = false;
 		// Get rid of leading whitespace

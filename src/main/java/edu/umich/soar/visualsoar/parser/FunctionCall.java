@@ -3,7 +3,7 @@ import java.util.*;
 
 public final class FunctionCall {
 	private Pair d_functionName;
-	private List d_rhsValues = new LinkedList();
+	private final List d_rhsValues = new LinkedList();
 	
 	
 	// Constructors

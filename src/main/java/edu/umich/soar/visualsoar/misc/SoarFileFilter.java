@@ -29,12 +29,7 @@ public class SoarFileFilter extends javax.swing.filechooser.FileFilter implement
 	 * @return true if the file ends with vsa or is a folder false otherwise
 	 */
 	public boolean accept(File dir, String name) {
-		if (name.endsWith(".vsa")) {
-			return true;
-		}
-		else {
-			return false;
-		}
+        return name.endsWith(".vsa");
 	}
 	
 	/**

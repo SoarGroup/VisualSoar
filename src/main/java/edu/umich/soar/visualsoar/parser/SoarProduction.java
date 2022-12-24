@@ -18,15 +18,15 @@ public final class SoarProduction {
 		
 	// Accessors
 	public final void setName(String name) {
-		d_name = new String(name);
+		d_name = name;
 	}
 	
 	public final void setComment(String comment) {
-		d_comment = new String(comment);
+		d_comment = comment;
 	}
 	
 	public final void setProductionType(String productionType) {
-		d_productionType = new String(productionType);
+		d_productionType = productionType;
 	}
 	
 	public final void setStartLine(int startLine) {

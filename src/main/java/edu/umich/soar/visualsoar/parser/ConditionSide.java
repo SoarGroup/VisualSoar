@@ -5,7 +5,7 @@ import java.util.LinkedList;
 import java.util.Iterator;
 
 public final class ConditionSide {
-	private List d_conditions = new LinkedList();
+	private final List d_conditions = new LinkedList();
 	
 	// Constructor
 	public ConditionSide() {

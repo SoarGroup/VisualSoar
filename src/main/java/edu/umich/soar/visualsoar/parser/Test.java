@@ -4,7 +4,7 @@ public final class Test {
 	// Data Members
 	private ConjunctiveTest d_conjunctiveTest;
 	private SimpleTest d_simpleTest;
-	private boolean d_isConjunctiveTest; 
+	private final boolean d_isConjunctiveTest;
 	
 	
 	// Constructors

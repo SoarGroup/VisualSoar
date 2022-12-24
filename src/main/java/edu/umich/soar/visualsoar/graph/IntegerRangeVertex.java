@@ -23,10 +23,8 @@ public class IntegerRangeVertex extends SoarVertex {
 	public boolean isValid(String s) {
 		try {
 			int i = Integer.parseInt(s);
-			if (i >= low && i <= high)
-				return true;
-			return false;
-		}
+            return i >= low && i <= high;
+        }
 		catch(NumberFormatException nfe) {
 			return false;
 		}

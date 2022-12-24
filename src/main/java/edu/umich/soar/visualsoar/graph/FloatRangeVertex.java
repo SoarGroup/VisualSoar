@@ -39,10 +39,8 @@ public class FloatRangeVertex extends SoarVertex {
 	public boolean isValid(String s) {
 		try {
 			float f = Float.parseFloat(s);
-			if (f >= low && f <= high)
-				return true;
-			return false;
-		}
+            return f >= low && f <= high;
+        }
 		catch(NumberFormatException nfe) {
 			return false;
 		}
