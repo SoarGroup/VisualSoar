@@ -1298,7 +1298,7 @@ public class OperatorWindow extends JTree
     /**
      * Returns a breadth first enumeration of the tree
      */
-    public Enumeration<javax.swing.tree.TreeNode> breadthFirstEnumeration()
+    public Enumeration<TreeNode> breadthFirstEnumeration()
     {
         return ((DefaultMutableTreeNode)(treeModel.getRoot())).breadthFirstEnumeration();
     }

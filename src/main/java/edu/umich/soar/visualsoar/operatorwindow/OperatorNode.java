@@ -332,10 +332,6 @@ public abstract class OperatorNode extends VSTreeNode implements java.io.Seriali
     {
         return false;           // no datamap errors found
     }
-    
-	public DataFlavor isDropOk(int action,DataFlavor[] dataFlavor) {
-		return null;
-	}
 
 	public Vector<String> getProdNames() {
 		return new Vector<>();
@@ -587,10 +583,8 @@ public abstract class OperatorNode extends VSTreeNode implements java.io.Seriali
   public void addFile(OperatorWindow operatorWindow, String newFileName) throws IOException {
     System.err.println("addFile: This should never get called");
   }
-	
-	public void addLink(OperatorWindow operatorWindow, LinkNode inLinkNode) {}
-	
-	
+
+
 	/**
 	 * If the node supports this operation it should be overloaded in the subclass
 	 * if this function gets called it means that the node did not properly overload

@@ -11,11 +11,8 @@ import edu.umich.soar.visualsoar.misc.FeedbackListObject;
 import javax.swing.*;
 import javax.swing.tree.DefaultTreeModel;
 import java.awt.*;
-import java.awt.datatransfer.DataFlavor;
 import java.io.*;
-import java.util.Arrays;
 import java.util.Enumeration;
-import java.util.List;
 import java.util.Vector;
 
 public class SoarOperatorNode extends FileNode
@@ -161,23 +158,8 @@ public class SoarOperatorNode extends FileNode
         firstTimeAdd(operatorWindow,swmm);
         VSEImporter.read(r,this,operatorWindow,swmm,VSEImporter.HLOPERATOR | VSEImporter.OPERATOR);
     }
-    
-    public DataFlavor isDropOk(int action,DataFlavor[] dataFlavors)
-    {
 
-        if(    (action == java.awt.dnd.DnDConstants.ACTION_LINK)
-            || (action == java.awt.dnd.DnDConstants.ACTION_MOVE) )
-        {
-            List<DataFlavor> flavorList = Arrays.asList(dataFlavors);
-            if(flavorList.contains(TransferableOperatorNodeLink.flavors[0])) 
-            {
-                return TransferableOperatorNodeLink.flavors[0]; 
-            }
-        }
-        return null;
-    }
-    
-    public void exportType(Writer w) throws IOException 
+    public void exportType(Writer w) throws IOException
     {
 
         if(isHighLevel) 
@@ -402,23 +384,6 @@ public class SoarOperatorNode extends FileNode
     }//addFileOperator
 
 
-    /**
-     * Add a linked sub-operator (typically as a result of a drag-and-drop)
-     */
-    public void addLink(OperatorWindow operatorWindow,LinkNode linkNode) 
-    {
-        try
-        {
-            if(!isHighLevel) firstTimeAdd(operatorWindow,operatorWindow.getDatamap());
-
-            operatorWindow.addChild(this,linkNode);
-            File rules = new File(linkNode.getFileName());
-            rules.createNewFile();
-            sourceChildren();
-        }
-        catch(IOException ioe) { /* quietly fail... */ }
-    }//addLink
-    
     /**
      * Removes the selected operator from the tree if it is allowed
      *

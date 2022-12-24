@@ -4,7 +4,6 @@ import edu.umich.soar.visualsoar.MainFrame;
 import edu.umich.soar.visualsoar.datamap.SoarWorkingMemoryModel;
 
 import java.io.*;
-import java.awt.datatransfer.DataFlavor;
 import java.awt.Component;
 import javax.swing.JOptionPane;
 import java.util.*;
@@ -328,42 +327,8 @@ public class FolderNode extends OperatorNode implements java.io.Serializable
             ((OperatorNode)getChildAt(i)).copyStructures(copyOfFolder);
         }       
     }
-    
-    public DataFlavor isDropOk(int action,DataFlavor[] dataFlavors) 
-    {
 
-        if(name.equals("elaborations") == false) 
-        {
-
-            if(action == java.awt.dnd.DnDConstants.ACTION_MOVE) 
-            {
-
-                List flavorList = Arrays.asList(dataFlavors);
-                if(flavorList.contains(TransferableOperatorNodeLink.flavors[0])) 
-                {
-
-                    return TransferableOperatorNodeLink.flavors[0]; 
-                }
-                else 
-                {
-
-                    return null;
-                }
-            }
-            else 
-            {
-
-                return null;
-            }
-        }
-        else 
-        {
-
-            return null;
-        }
-    }
-    
-    public void source(Writer w) throws IOException 
+    public void source(Writer w) throws IOException
     {
 
         String LINE = System.getProperty("line.separator");
