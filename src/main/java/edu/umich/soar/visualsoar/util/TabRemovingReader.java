@@ -6,11 +6,9 @@ public class TabRemovingReader extends Reader
 {
     private boolean inTab = false;
     private int spaceCount = 0;
-    private Reader reader;
-    
-    private TabRemovingReader() {}
+    private final Reader reader;
 
-    public TabRemovingReader(Reader inReader) 
+    public TabRemovingReader(Reader inReader)
     {
         reader = inReader;
     }

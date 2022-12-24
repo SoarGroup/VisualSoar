@@ -9,7 +9,6 @@ public final class SoarProduction {
 	private String d_name;
 	private int d_startLine;
 	private String d_comment;
-	private String d_productionType;
 	private ConditionSide d_conditionSide;
 	private ActionSide d_actionSide;
 	
@@ -17,51 +16,47 @@ public final class SoarProduction {
 	public SoarProduction() {}
 		
 	// Accessors
-	public final void setName(String name) {
+	public void setName(String name) {
 		d_name = name;
 	}
 	
-	public final void setComment(String comment) {
+	public void setComment(String comment) {
 		d_comment = comment;
 	}
-	
-	public final void setProductionType(String productionType) {
-		d_productionType = productionType;
+
+	//parameter never used but left here to support parser
+	public void setProductionType(String productionType) {
 	}
 	
-	public final void setStartLine(int startLine) {
+	public void setStartLine(int startLine) {
 		d_startLine = startLine;
 	}
 	
-	public final void setConditionSide(ConditionSide cs) {
+	public void setConditionSide(ConditionSide cs) {
 		d_conditionSide = cs;
 	}
 	
-	public final void setActionSide(ActionSide as) {
+	public void setActionSide(ActionSide as) {
 		d_actionSide = as;
 	}
 	
-	public final int getStartLine() {
+	public int getStartLine() {
 		return d_startLine;
 	}
 	
-	public final String getName() {
+	public String getName() {
 		return d_name;
 	}
 	
-	public final String getComment() {
+	public String getComment() {
 		return d_comment;
 	}
-	
-	public final String getProductionType() {
-		return d_productionType;
-	}
-	
-	public final ConditionSide getConditionSide() {
+
+	public ConditionSide getConditionSide() {
 		return d_conditionSide;
 	}
 	
-	public final ActionSide getActionSide() {
+	public ActionSide getActionSide() {
 		return d_actionSide;
 	}
 }

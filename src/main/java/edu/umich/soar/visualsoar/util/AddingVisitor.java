@@ -1,8 +1,9 @@
 package edu.umich.soar.visualsoar.util;
 import edu.umich.soar.visualsoar.datamap.FakeTreeNode;
 import edu.umich.soar.visualsoar.graph.NamedEdge;
+
+import javax.swing.event.TreeModelEvent;
 import java.util.*;
-import javax.swing.*;
 
 /**
  * This class follows the visitor pattern
@@ -16,14 +17,9 @@ public class AddingVisitor extends Visitor {
 ///////////////////////////////////////////
 // Data Members
 ///////////////////////////////////////////
-	private NamedEdge edge;
-	private final LinkedList changeEvents = new LinkedList();
-	
-///////////////////////////////////////////
-// Constructors
-///////////////////////////////////////////
-	// Deny Default Construction
-	private AddingVisitor() {}
+	private final NamedEdge edge;
+	private final LinkedList<TreeModelEvent> changeEvents = new LinkedList<>();
+
 	public AddingVisitor(NamedEdge ne) {
 		edge = ne;
 	}
@@ -34,7 +30,7 @@ public class AddingVisitor extends Visitor {
 	public void visit(Object o) {
 		if(o instanceof FakeTreeNode) {
 			FakeTreeNode ftn = (FakeTreeNode)o;
-			if (ftn.hasLoaded() == false) {
+			if (!ftn.hasLoaded()) {
 				return;
       }
 			if (edge.V0().getValue() == ftn.getEnumeratingVertex().getValue()) {

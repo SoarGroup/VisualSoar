@@ -1,16 +1,13 @@
 package edu.umich.soar.visualsoar.operatorwindow;
-import edu.umich.soar.visualsoar.MainFrame;
+
 import edu.umich.soar.visualsoar.datamap.DataMap;
 import edu.umich.soar.visualsoar.datamap.SoarWorkingMemoryModel;
-import edu.umich.soar.visualsoar.graph.SoarIdentifierVertex;
-import edu.umich.soar.visualsoar.parser.ParseException;
-import edu.umich.soar.visualsoar.ruleeditor.RuleEditor;
-import javax.swing.tree.*;
-import java.io.*;
-import java.awt.Component;
-import java.awt.datatransfer.DataFlavor;
-import java.util.*;
-import javax.swing.JOptionPane;
+import edu.umich.soar.visualsoar.misc.FeedbackListObject;
+
+import java.awt.*;
+import java.io.IOException;
+import java.io.Writer;
+import java.util.Vector;
 
 
 /**
@@ -35,24 +32,6 @@ public class ImpasseOperatorNode extends SoarOperatorNode
     }
 
     /**
-     * this creates a highlevel operator with the given name, file, folder and
-     * dataMapId
-     */
-    public ImpasseOperatorNode(String inName,
-                               int inId,
-                               String inFileName,
-                               String inFolderName,
-                               SoarIdentifierVertex inDataMapId) 
-    {
-
-        this(inName,inId,inFileName);
-        folderName = inFolderName;
-        dataMapId = inDataMapId;
-        dataMapIdNumber = inDataMapId.getValue();
-        isHighLevel = true;
-    }
-
-    /**
      * This will construct a high-level operator node, this one supports
      * serialization, restoreId must be called to get this object into a good
      * state
@@ -72,10 +51,9 @@ public class ImpasseOperatorNode extends SoarOperatorNode
      *  for any portions of the datamap that were not tested by any productions
      *  and are not located within the output-link.
      */
-    public void searchTestDataMap(SoarWorkingMemoryModel swmm, Vector errors) 
+    public void searchTestDataMap(SoarWorkingMemoryModel swmm, Vector<FeedbackListObject> errors)
     {
-
-        // if highlevel, then search datamap
+        // if high-level, then search datamap
         if(isHighLevel()) 
         {
 
@@ -84,10 +62,10 @@ public class ImpasseOperatorNode extends SoarOperatorNode
         }
     }
 
-    public void searchCreateDataMap(SoarWorkingMemoryModel swmm, Vector errors) 
+    public void searchCreateDataMap(SoarWorkingMemoryModel swmm, Vector<FeedbackListObject> errors)
     {
 
-        // if highlevel, then search datamap
+        // if high-level, then search datamap
         if(isHighLevel()) 
         {
 
@@ -97,10 +75,10 @@ public class ImpasseOperatorNode extends SoarOperatorNode
     }
 
     public void searchTestNoCreateDataMap(SoarWorkingMemoryModel swmm,
-                                          Vector errors) 
+                                          Vector<FeedbackListObject> errors)
     {
 
-        // if highlevel, then search datamap
+        // if high-level, then search datamap
         if(isHighLevel()) 
         {
 
@@ -111,10 +89,10 @@ public class ImpasseOperatorNode extends SoarOperatorNode
     }
 
     public void searchCreateNoTestDataMap(SoarWorkingMemoryModel swmm,
-                                          Vector errors) 
+                                          Vector<FeedbackListObject> errors)
     {
 
-        // if highlevel, then search datamap
+        // if high-level, then search datamap
         if(isHighLevel()) 
         {
 
@@ -125,10 +103,10 @@ public class ImpasseOperatorNode extends SoarOperatorNode
     }
 
     public void searchNoTestNoCreateDataMap(SoarWorkingMemoryModel swmm,
-                                            Vector errors) 
+                                            Vector<FeedbackListObject> errors)
     {
 
-        // if highlevel, then search datamap
+        // if high-level, then search datamap
         if(isHighLevel()) 
         {
 

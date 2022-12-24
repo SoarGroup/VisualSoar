@@ -81,15 +81,7 @@ public class FileNode extends OperatorNode implements java.io.Serializable
         sourceChildren();
     }
 
-    /**
-     * This resets the rule editor to null for this node
-     */
-    public void clearRuleEditor() 
-    {
-        ruleEditor = null;
-    }
-    
-    public void setRuleEditor(RuleEditor re) 
+    public void setRuleEditor(RuleEditor re)
     {
         ruleEditor = re;
     }
@@ -114,18 +106,18 @@ public class FileNode extends OperatorNode implements java.io.Serializable
             throw new IOException("Bad file name");
         }
 
-        if (!oldFile.renameTo(newFile)) 
+        if (!oldFile.renameTo(newFile))
         {
             throw new IOException("Unable to rename operator file.");
         }
-        else 
+        else
         {
             name = newName;
             fileAssociation = newFile.getName();
             if (ruleEditor != null)
             ruleEditor.fileRenamed(newFile.getPath());
-        }   
-        model.nodeChanged(this);  
+        }
+        model.nodeChanged(this);
     }
         
     /**

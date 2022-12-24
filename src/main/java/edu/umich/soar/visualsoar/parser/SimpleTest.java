@@ -4,11 +4,8 @@ public final class SimpleTest {
 	// Data Members
 	private DisjunctionTest d_disjunctionTest;
 	private RelationalTest d_relationalTest;
-	private boolean d_isDisjunctionTest;
-	
-	// NOT IMPLEMENTED
-	private SimpleTest() {}
-	
+	private final boolean d_isDisjunctionTest;
+
 	// Constructor
 	public SimpleTest(DisjunctionTest disjunctionTest) {
 		d_disjunctionTest = disjunctionTest;
@@ -21,18 +18,18 @@ public final class SimpleTest {
 	}
 	
 	// Accessors
-	public final boolean isDisjunctionTest() {
+	public boolean isDisjunctionTest() {
 		return d_isDisjunctionTest;
 	}
 	
-	public final DisjunctionTest getDisjunctionTest() {
+	public DisjunctionTest getDisjunctionTest() {
 		if(!d_isDisjunctionTest) 
 			throw new IllegalArgumentException("Not Disjunction");
 		else
 			return d_disjunctionTest;
 	}
 	
-	public final RelationalTest getRelationalTest() {
+	public RelationalTest getRelationalTest() {
 		if(d_isDisjunctionTest) 
 			throw new IllegalArgumentException("Not Relation");
 		else

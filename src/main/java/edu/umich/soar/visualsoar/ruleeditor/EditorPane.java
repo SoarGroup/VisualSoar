@@ -29,7 +29,6 @@ public class EditorPane extends javax.swing.JEditorPane
     /**
      * @serial a reference to the DropTarget for Drag and Drop operations, may be deleted in future
      */
-    private final DropTarget dropTarget = new DropTarget(this,DnDConstants.ACTION_COPY,dtListener,true);
 
 
     class EPDropTargetListener implements DropTargetListener

@@ -23,7 +23,7 @@ public class PreferencesDialog extends JDialog {
          
 	JTabbedPane			tabPane = new JTabbedPane(JTabbedPane.TOP);
 	/**
-	 * Panel which contians the syntax color editing buttons
+	 * Panel which contains the syntax color editing buttons
 	 */
 	SyntaxColorsPanel 	colorPanel;
 	

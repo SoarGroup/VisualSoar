@@ -18,16 +18,8 @@ public class WorkingMemoryEvent {
 	/**
 	 * The edge that changed
 	 */
-	private NamedEdge edge;
-	
-///////////////////////////////////////////////////////////////////
-// Constructors
-///////////////////////////////////////////////////////////////////
-	/*
-	 * Deny default construction
-	 */
-	private WorkingMemoryEvent() {}
-	
+	private final NamedEdge edge;
+
 	/**
 	 * Constructs the Feedback List
 	 * @param e the WME that changed 

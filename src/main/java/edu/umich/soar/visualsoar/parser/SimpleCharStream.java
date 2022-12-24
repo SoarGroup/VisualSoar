@@ -19,8 +19,8 @@ public class SimpleCharStream
   protected int[] bufline;
   protected int[] bufcolumn;
 
-  protected int column = 0;
-  protected int line = 1;
+  protected int column;
+  protected int line;
 
   protected boolean prevCharIsCR = false;
   protected boolean prevCharIsLF = false;
@@ -31,11 +31,6 @@ public class SimpleCharStream
   protected int maxNextCharInd = 0;
   protected int inBuf = 0;
   protected int tabSize = 1;
-  protected boolean trackLineColumn = true;
-
-  public void setTabSize(int i) { tabSize = i; }
-  public int getTabSize() { return tabSize; }
-
 
 
   protected void ExpandBuff(boolean wrapAround)
@@ -120,7 +115,6 @@ public class SimpleCharStream
       }
       else
         maxNextCharInd += i;
-      return;
     }
     catch(java.io.IOException e) {
       --bufpos;
@@ -201,26 +195,6 @@ public class SimpleCharStream
 
     UpdateLineColumn(c);
     return c;
-  }
-
-  @Deprecated
-  /**
-   * @deprecated
-   * @see #getEndColumn
-   */
-
-  public int getColumn() {
-    return bufcolumn[bufpos];
-  }
-
-  @Deprecated
-  /**
-   * @deprecated
-   * @see #getEndLine
-   */
-
-  public int getLine() {
-    return bufline[bufpos];
   }
 
   /** Get token end column number. */
@@ -305,11 +279,6 @@ public class SimpleCharStream
     ReInit(dstream, startline, startcolumn, 4096);
   }
 
-  /** Reinitialise. */
-  public void ReInit(java.io.Reader dstream)
-  {
-    ReInit(dstream, 1, 1, 4096);
-  }
   /** Constructor. */
   public SimpleCharStream(java.io.InputStream dstream, String encoding, int startline,
   int startcolumn, int buffersize) throws java.io.UnsupportedEncodingException
@@ -358,35 +327,12 @@ public class SimpleCharStream
   }
 
   /** Reinitialise. */
-  public void ReInit(java.io.InputStream dstream, int startline,
-                          int startcolumn, int buffersize)
-  {
-    ReInit(new java.io.InputStreamReader(dstream), startline, startcolumn, buffersize);
-  }
-
-  /** Reinitialise. */
-  public void ReInit(java.io.InputStream dstream, String encoding) throws java.io.UnsupportedEncodingException
-  {
-    ReInit(dstream, encoding, 1, 1, 4096);
-  }
-
-  /** Reinitialise. */
-  public void ReInit(java.io.InputStream dstream)
-  {
-    ReInit(dstream, 1, 1, 4096);
-  }
-  /** Reinitialise. */
   public void ReInit(java.io.InputStream dstream, String encoding, int startline,
                      int startcolumn) throws java.io.UnsupportedEncodingException
   {
     ReInit(dstream, encoding, startline, startcolumn, 4096);
   }
-  /** Reinitialise. */
-  public void ReInit(java.io.InputStream dstream, int startline,
-                     int startcolumn)
-  {
-    ReInit(dstream, startline, startcolumn, 4096);
-  }
+
   /** Get token literal value. */
   public String GetImage()
   {
@@ -397,23 +343,6 @@ public class SimpleCharStream
                             new String(buffer, 0, bufpos + 1);
   }
 
-  /** Get the suffix. */
-  public char[] GetSuffix(int len)
-  {
-    char[] ret = new char[len];
-
-    if ((bufpos + 1) >= len)
-      System.arraycopy(buffer, bufpos - len + 1, ret, 0, len);
-    else
-    {
-      System.arraycopy(buffer, bufsize - (len - bufpos - 1), ret, 0,
-                                                        len - bufpos - 1);
-      System.arraycopy(buffer, 0, ret, len - bufpos - 1, bufpos + 1);
-    }
-
-    return ret;
-  }
-
   /** Reset buffer when finished. */
   public void Done()
   {
@@ -422,53 +351,5 @@ public class SimpleCharStream
     bufcolumn = null;
   }
 
-  /**
-   * Method to adjust line and column numbers for the start of a token.
-   */
-  public void adjustBeginLineColumn(int newLine, int newCol)
-  {
-    int start = tokenBegin;
-    int len;
-
-    if (bufpos >= tokenBegin)
-    {
-      len = bufpos - tokenBegin + inBuf + 1;
-    }
-    else
-    {
-      len = bufsize - tokenBegin + bufpos + 1 + inBuf;
-    }
-
-    int i = 0, j = 0, k = 0;
-    int nextColDiff = 0, columnDiff = 0;
-
-    while (i < len && bufline[j = start % bufsize] == bufline[k = ++start % bufsize])
-    {
-      bufline[j] = newLine;
-      nextColDiff = columnDiff + bufcolumn[k] - bufcolumn[j];
-      bufcolumn[j] = newCol + columnDiff;
-      columnDiff = nextColDiff;
-      i++;
-    }
-
-    if (i < len)
-    {
-      bufline[j] = newLine++;
-      bufcolumn[j] = newCol + columnDiff;
-
-      while (i++ < len)
-      {
-        if (bufline[j = start % bufsize] != bufline[++start % bufsize])
-          bufline[j] = newLine++;
-        else
-          bufline[j] = newLine;
-      }
-    }
-
-    line = bufline[j];
-    column = bufcolumn[j];
-  }
-  boolean getTrackLineColumn() { return trackLineColumn; }
-  void setTrackLineColumn(boolean tlc) { trackLineColumn = tlc; }
 }
 /* JavaCC - OriginalChecksum=2476a871e82e4b6b5ab35a16b1bf7252 (do not edit this line) */

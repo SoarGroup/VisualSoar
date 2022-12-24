@@ -2,8 +2,8 @@ package edu.umich.soar.visualsoar.parser;
 
 public class Constant {
 	// Data Members
-	private int d_beginLine;
-	private int d_constType;
+	private final int d_beginLine;
+	private final int d_constType;
 	private int d_intConst;
 	private float d_floatConst;
 	private String d_symConst;
@@ -13,9 +13,6 @@ public class Constant {
 	public static final int SYMBOLIC_CONST = 1;
 	public static final int FLOATING_CONST = 2;
 
-	// Deny Default Construction
-	private Constant() {}
-		
 	// Constructors
 	public Constant(String symConst,int beginLine) {
 		d_beginLine = beginLine;
@@ -34,38 +31,8 @@ public class Constant {
 		d_floatConst = floatConst;
 		d_constType = FLOATING_CONST;
 	}
-	
-	
-	// Accessor Functions
-	public int getConstantType() {
-		return d_constType;
-	}
-	
-	public int getBeginLine() {
-		return d_beginLine;
-	}
-	
-	public int getIntConst() {
-		if(d_constType != INTEGER_CONST)
-			throw new IllegalArgumentException("Not a Integer Constant");
-		else
-			return d_intConst;
-	}
-	
-	public float getFloatConst() {
-		if(d_constType != FLOATING_CONST)
-			throw new IllegalArgumentException("Not a Floating Point Constant");
-		else
-			return d_floatConst;
-	}
-	
-	public String getSymConst() {
-		if(d_constType != SYMBOLIC_CONST)
-			throw new IllegalArgumentException("Not a Symbolic Constant");
-		else
-			return d_symConst;
-	}
-	
+
+
 	public Pair toPair() {
 		return new Pair(toString(),d_beginLine);
 	}

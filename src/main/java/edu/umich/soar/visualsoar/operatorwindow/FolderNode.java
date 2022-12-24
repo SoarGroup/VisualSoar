@@ -2,6 +2,7 @@ package edu.umich.soar.visualsoar.operatorwindow;
 
 import edu.umich.soar.visualsoar.MainFrame;
 import edu.umich.soar.visualsoar.datamap.SoarWorkingMemoryModel;
+import edu.umich.soar.visualsoar.misc.FeedbackListObject;
 
 import java.io.*;
 import java.awt.Component;
@@ -83,14 +84,13 @@ public class FolderNode extends OperatorNode implements java.io.Serializable
     /**
      * This is the function that gets called when you want to add a sub file
      * operator to this node
-     * @param operatorWindow
+     *
      * @param newFileName the name of the new operator to add
      */
     public void addFileOperator(OperatorWindow operatorWindow, SoarWorkingMemoryModel swmm, String newFileName) throws IOException
     {
 
         File file = new File(getFullPathName() + File.separator + newFileName + ".soar");
-        FileOperatorNode fon = null;
 
         if(checkCreateReplace(file))
         {
@@ -98,7 +98,7 @@ public class FolderNode extends OperatorNode implements java.io.Serializable
             return;
         }
         //FileNode fn = operatorWindow.createFileNode(newFileName,file.getName());
-        fon = operatorWindow.createFileOperatorNode(newFileName, file.getName());
+        FileOperatorNode fon = operatorWindow.createFileOperatorNode(newFileName, file.getName());
         operatorWindow.addChild(this,fon);
         sourceChildren();
     }
@@ -115,7 +115,6 @@ public class FolderNode extends OperatorNode implements java.io.Serializable
     {
 
         File rules = new File(getFullPathName() + File.separator + newOperatorName + ".soar");
-        OperatorNode on = null;
 
         if (creationConflict(rules))
         {
@@ -129,7 +128,7 @@ public class FolderNode extends OperatorNode implements java.io.Serializable
             throw new IOException();
         }
 
-        on = operatorWindow.createSoarOperatorNode(newOperatorName,
+        OperatorNode on = operatorWindow.createSoarOperatorNode(newOperatorName,
                                                    rules.getName());
         operatorWindow.addChild(this,on);
         sourceChildren();
@@ -139,13 +138,11 @@ public class FolderNode extends OperatorNode implements java.io.Serializable
     /**
      * This is the function that gets called when you want to add a sub Impasse
      * Operator to this node
-     * @param operatorWindow
+     *
      * @param newOperatorName the name of the new operator to add */
     public OperatorNode addImpasseOperator(OperatorWindow operatorWindow, SoarWorkingMemoryModel swmm,String newOperatorName) throws IOException 
     {
-
         File rules = new File(getFullPathName() + File.separator + newOperatorName + ".soar");
-        SoarOperatorNode ion = null;
 
         if (creationConflict(rules))
         {
@@ -159,7 +156,7 @@ public class FolderNode extends OperatorNode implements java.io.Serializable
             throw new IOException();
         }
 
-        ion = operatorWindow.createImpasseOperatorNode(newOperatorName,
+        SoarOperatorNode ion = operatorWindow.createImpasseOperatorNode(newOperatorName,
                                                        rules.getName());
         operatorWindow.addChild(this,ion);
         sourceChildren();
@@ -199,7 +196,7 @@ public class FolderNode extends OperatorNode implements java.io.Serializable
 
             sourceChildren();
         }
-        catch(IOException ioe) {}
+        catch(IOException ioe) { /* shrug */ }
     }
 
 
@@ -272,7 +269,7 @@ public class FolderNode extends OperatorNode implements java.io.Serializable
         w.write("FOLDER " + name);
     }
     
-    public void exportFile(Writer w,int id) throws IOException {}
+    public void exportFile(Writer w,int id) {}
     
     public void exportDataMap(Writer w) throws IOException 
     {
@@ -365,14 +362,14 @@ public class FolderNode extends OperatorNode implements java.io.Serializable
     }
 
     public void searchTestDataMap(SoarWorkingMemoryModel swmm,
-                                  Vector errors) {}
+                                  Vector<FeedbackListObject> errors) {}
     public void searchCreateDataMap(SoarWorkingMemoryModel swmm,
-                                    Vector errors) {}
+                                    Vector<FeedbackListObject> errors) {}
     public void searchTestNoCreateDataMap(SoarWorkingMemoryModel swmm,
-                                          Vector errors) {}
+                                          Vector<FeedbackListObject> errors) {}
     public void searchCreateNoTestDataMap(SoarWorkingMemoryModel swmm,
-                                          Vector errors) {}
+                                          Vector<FeedbackListObject> errors) {}
     public void searchNoTestNoCreateDataMap(SoarWorkingMemoryModel swmm,
-                                            Vector errors) {}  
+                                            Vector<FeedbackListObject> errors) {}
     
 }

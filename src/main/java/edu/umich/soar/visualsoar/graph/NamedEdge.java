@@ -234,14 +234,6 @@ public class NamedEdge extends Edge
 
 
     /**
-     *  Returns the value of testedStatus
-     */
-    public int getTestedStatus() 
-    {
-        return testedStatus;
-    }
-
-    /**
      *  If this edge was created by a production (action side of production)
      *  this will return true.
      */

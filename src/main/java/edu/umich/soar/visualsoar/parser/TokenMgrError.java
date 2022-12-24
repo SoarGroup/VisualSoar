@@ -23,19 +23,9 @@ public class TokenMgrError extends Error
   public static final int LEXICAL_ERROR = 0;
 
   /**
-   * An attempt was made to create a second instance of a static token manager.
-   */
-  public static final int STATIC_LEXER_ERROR = 1;
-
-  /**
    * Tried to change to an invalid lexical state.
    */
   public static final int INVALID_LEXICAL_STATE = 2;
-
-  /**
-   * Detected (and bailed out of) an infinite loop in the token manager.
-   */
-  public static final int LOOP_DETECTED = 3;
 
   /**
    * Indicates the reason why the exception is thrown. It will have
@@ -47,7 +37,7 @@ public class TokenMgrError extends Error
    * Replaces unprintable characters by their escaped (or unicode escaped)
    * equivalents in the given string
    */
-  protected static final String addEscapes(String str) {
+  protected static String addEscapes(String str) {
     StringBuilder retval = new StringBuilder();
     char ch;
     for (int i = 0; i < str.length(); i++) {
@@ -80,11 +70,11 @@ public class TokenMgrError extends Error
         default:
           if ((ch = str.charAt(i)) < 0x20 || ch > 0x7e) {
             String s = "0000" + Integer.toString(ch, 16);
-            retval.append("\\u" + s.substring(s.length() - 4));
+            retval.append("\\u");
+            retval.append(s.substring(s.length() - 4));
           } else {
             retval.append(ch);
           }
-          continue;
       }
     }
     return retval.toString();

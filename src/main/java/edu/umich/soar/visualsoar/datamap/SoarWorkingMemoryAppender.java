@@ -1,9 +1,11 @@
 package edu.umich.soar.visualsoar.datamap;
-import edu.umich.soar.visualsoar.graph.SoarVertex;
+
 import edu.umich.soar.visualsoar.util.ReaderUtils;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.Reader;
 import java.util.Vector;
+
 public class SoarWorkingMemoryAppender {
 	public static void append(SoarWorkingMemoryModel swmm,Reader fr) throws IOException, NumberFormatException {
 		try {
@@ -11,32 +13,31 @@ public class SoarWorkingMemoryAppender {
 			int numberOfVertices = ReaderUtils.getInteger(fr);			
 			for(int i = 0; i < numberOfVertices; ++i) {
 				String type = ReaderUtils.getWord(fr);
-				SoarVertex vertexToAdd = null;
-				int id = ReaderUtils.getInteger(fr);
+				ReaderUtils.getInteger(fr);
 				if (type.equals("SOAR_ID")) {
-					vertexToAdd = swmm.createNewSoarId();
+					swmm.createNewSoarId();
 				}
 				else if (type.equals("ENUMERATION")) {
 					int enumerationSize = ReaderUtils.getInteger(fr);
 					Vector<String> v = new Vector<>();
 					for(int j = 0; j < enumerationSize; ++j) 
 						v.add(ReaderUtils.getWord(fr));
-					vertexToAdd = swmm.createNewEnumeration(v);
+					swmm.createNewEnumeration(v);
 				}
 				else if (type.equals("INTEGER_RANGE")) {
-					vertexToAdd = swmm.createNewIntegerRange(ReaderUtils.getInteger(fr),ReaderUtils.getInteger(fr));
+					swmm.createNewIntegerRange(ReaderUtils.getInteger(fr), ReaderUtils.getInteger(fr));
 				}
 				else if (type.equals("INTEGER")) {
-					vertexToAdd = swmm.createNewInteger();
+					swmm.createNewInteger();
 				}
 				else if (type.equals("FLOAT_RANGE")) {
-					vertexToAdd = swmm.createNewFloatRange(ReaderUtils.getFloat(fr),ReaderUtils.getFloat(fr));
+					swmm.createNewFloatRange(ReaderUtils.getFloat(fr), ReaderUtils.getFloat(fr));
 				}
 				else if (type.equals("FLOAT")) {
-					vertexToAdd = swmm.createNewFloat();
+					swmm.createNewFloat();
 				}
 				else if (type.equals("STRING")) {
-					vertexToAdd = swmm.createNewString();
+					swmm.createNewString();
 				}
 				else {
 					System.err.println("Unknown type: please update SoarWorking Memory Reader constructor :" + type);

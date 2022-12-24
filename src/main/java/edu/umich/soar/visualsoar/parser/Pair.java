@@ -6,13 +6,7 @@ public final class Pair implements Comparable {
 /////////////////////////////////////
 	private String d_string;
 	private int d_line;
-	
-/////////////////////////////////////
-// Constructors
-/////////////////////////////////////
-	// Deny Default Construction
-	private Pair() {}
-	
+
 	public Pair(String string,int line) {
 		d_string = string;
 		d_line = line;

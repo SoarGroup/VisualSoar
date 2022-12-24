@@ -8,7 +8,6 @@ package edu.umich.soar.visualsoar.parser;
 public final class ValueTest {
 	// Data Members
 	private final Test d_test;
-	private boolean d_acceptablePreference = false;
 
 	// Constructor
 	public ValueTest(Test test) {
@@ -16,16 +15,11 @@ public final class ValueTest {
 	}
 	
 	// Accessors
-	public final Test getTest() {
+	public Test getTest() {
 		return d_test;
 	}
 
-	public final boolean hasAcceptablePreference() {
-		return d_acceptablePreference;
-	}
-	
 	// Modifiers
-	public final void acceptablePreference() {
-		d_acceptablePreference = true;
+	public void acceptablePreference() {
 	}
 }

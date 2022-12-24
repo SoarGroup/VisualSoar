@@ -4,7 +4,6 @@ import edu.umich.soar.visualsoar.datamap.DataMap;
 import edu.umich.soar.visualsoar.datamap.SoarWorkingMemoryModel;
 import edu.umich.soar.visualsoar.graph.EnumerationVertex;
 import edu.umich.soar.visualsoar.graph.NamedEdge;
-import edu.umich.soar.visualsoar.graph.SoarIdentifierVertex;
 import edu.umich.soar.visualsoar.graph.SoarVertex;
 
 import java.io.*;
@@ -29,19 +28,7 @@ class OperatorOperatorNode extends SoarOperatorNode {
 		super(inName,inId,inFileName);
 	}
 
-	/**
-	 * this creates a highlevel operator with the given name, file, folder and
-	 * dataMapId
-	 */
-	public OperatorOperatorNode(String inName,int inId,String inFileName,String inFolderName,SoarIdentifierVertex inDataMapId) {
-		this(inName,inId,inFileName);
-		folderName = inFolderName;
-		dataMapId = inDataMapId;
-		dataMapIdNumber = inDataMapId.getValue();
-		isHighLevel = true;
-	}
-
-	/**
+    /**
 	 * This will construct a high-level operator node, this one supports serialization,
 	 * restoreId must be called to get this object into a good state
 	 */

@@ -1,22 +1,22 @@
 package edu.umich.soar.visualsoar.operatorwindow;
 
-import java.awt.datatransfer.*;
-import java.io.IOException;
-import java.util.*;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
+import java.util.Arrays;
+import java.util.List;
 
 class TransferableOperatorNodeLink implements Transferable {
 	public static final DataFlavor[] flavors = { new DataFlavor(Integer.class, "An Id for the Operator Node") };
-	private static final List flavorList = Arrays.asList(flavors);
+	private static final List<DataFlavor> flavorList = Arrays.asList(flavors);
 
-	private Integer soarOperatorNodeId;
+	private final Integer soarOperatorNodeId;
 
-	private TransferableOperatorNodeLink() {}
-	
 	public TransferableOperatorNodeLink(Integer inSoarOperatorNodeId) {
 		soarOperatorNodeId = inSoarOperatorNodeId;
 	}
 	
-	public synchronized Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException, IOException {
+	public synchronized Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException {
 		if (flavor.equals(flavors[0])) {
 			return soarOperatorNodeId;
 		}

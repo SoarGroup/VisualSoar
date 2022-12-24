@@ -18,7 +18,7 @@ import java.util.Vector;
 
 public class TransferableVertex implements Transferable {
 	public static final DataFlavor[] flavors = { new DataFlavor(Vector.class, "Visual Soar Working Memory Id, and Name") };
-	private static final List flavorList = Arrays.asList(flavors);
+	private static final List<DataFlavor> flavorList = Arrays.asList(flavors);
 	
 	private final Integer id;
 	private final String rep;

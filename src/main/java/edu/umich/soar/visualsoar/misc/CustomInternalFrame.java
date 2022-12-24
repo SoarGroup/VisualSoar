@@ -1,5 +1,4 @@
 package edu.umich.soar.visualsoar.misc;
-import javax.swing.JDesktopPane;
 import javax.swing.JInternalFrame;
 
 
@@ -22,48 +21,8 @@ public class CustomInternalFrame extends JInternalFrame
       ----------------------------------------------------------------------
      */
     protected int type;
-    
 
-    /*======================================================================
-      Constructors
-      ----------------------------------------------------------------------
-     */
-    public CustomInternalFrame()
-    {
-        super();
 
-        type = UNKNOWN;
-    }
-
-    public CustomInternalFrame(String title)
-    {
-        super(title);
-
-        type = UNKNOWN;
-    }
-
-    public CustomInternalFrame(String title, boolean resizable)
-    {
-        super(title, resizable);
-
-        type = UNKNOWN;
-    }
-    
-    public CustomInternalFrame(String title, boolean resizable, boolean closable)
-    {
-        super(title, resizable, closable);
-
-        type = UNKNOWN;
-    }
-    
-    public CustomInternalFrame(String title, boolean resizable, boolean closable,
-                   boolean maximizable)
-    {
-        super(title, resizable, closable, maximizable);
-
-        type = UNKNOWN;
-    }
-        
     public CustomInternalFrame(String title, boolean resizable, boolean closable,
                    boolean maximizable, boolean iconifiable)
     {

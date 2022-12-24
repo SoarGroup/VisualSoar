@@ -19,7 +19,7 @@ public class NumberDialog extends JDialog {
 	static int 			FLOAT = 4;
 	
 	/**
-	 * which entry field will recieve focus. Valid values are
+	 * which entry field will receive focus. Valid values are
 	 * NumberDialog.NAME, NumberDialog.LOW and NumberDialog.HIGH
 	 */
 	int 				focusTarget = NAME;
@@ -29,7 +29,7 @@ public class NumberDialog extends JDialog {
 	 * to create. Valid values are NumberDialog.INTEGER and
 	 * NumberDialog.FLOAT
 	 */
-	int 				dialogType = INTEGER;
+	int 				dialogType;
 	
 	boolean 			approved = false;
 	 
@@ -44,7 +44,7 @@ public class NumberDialog extends JDialog {
 	NamePanel 			namePanel = new NamePanel("Attribute Name");
 
 	/**
-	 * Panel which contians the range entry fields
+	 * Panel which contains the range entry fields
 	 */
 	RangePanel 			rangePanel;
 	
@@ -147,7 +147,6 @@ public class NumberDialog extends JDialog {
 					JOptionPane.showMessageDialog(NumberDialog.this, 
 						"The left field must be less than the right field", 
 						"Invalid Range", JOptionPane.ERROR_MESSAGE);
-					rangeIsValid = false;
 					focusTarget = LOW;
 				}
 				else {

@@ -1,10 +1,11 @@
 package edu.umich.soar.visualsoar.dialogs;
-import edu.umich.soar.visualsoar.datamap.DataMapUtils;
 
-import java.awt.*;
-import java.awt.event.*;
 import javax.swing.*;
-import java.beans.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 /**
  * Dialog which takes input for the creation of a comment field on an edge
@@ -85,15 +86,6 @@ public class CommentDialog extends JDialog {
 
 	public String getText() {
 		return commentText;
-	}
-	
-	/**
-	 * @param s String to set the name entry field to 
-	 * before making the dialog visible
-	 */
-	public void makeVisible(String s) {
-		namePanel.setText(s);
-		setVisible(true);
 	}
 
 }

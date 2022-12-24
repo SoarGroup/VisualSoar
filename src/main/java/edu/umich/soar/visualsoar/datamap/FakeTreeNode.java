@@ -1,11 +1,13 @@
 package edu.umich.soar.visualsoar.datamap;
+
 import edu.umich.soar.visualsoar.graph.EnumerationVertex;
 import edu.umich.soar.visualsoar.graph.NamedEdge;
 import edu.umich.soar.visualsoar.graph.SoarIdentifierVertex;
 import edu.umich.soar.visualsoar.graph.SoarVertex;
-import java.util.*;
+
 import javax.swing.event.TreeModelEvent;
-import javax.swing.*;
+import java.util.Enumeration;
+import java.util.Vector;
 
 /**
  * This class takes graph nodes and cleverly (or not so cleverly) disguises
@@ -20,7 +22,7 @@ public class FakeTreeNode
 // Data Members
 /////////////////////////////////////////
     
-    // a flag noting whether or not this node has been loaded
+    // a flag noting whether this node has been loaded
     private boolean hasLoaded = false;
     
     // a string of how this node should be represented
@@ -36,7 +38,7 @@ public class FakeTreeNode
     private FakeTreeNode parent;
     
     // the children for this node
-    private final Vector children = new Vector();
+    private final Vector<FakeTreeNode> children = new Vector<>();
     
     // the associated edge for this node, can be null
     private NamedEdge theEdge = null;
@@ -93,7 +95,7 @@ public class FakeTreeNode
 //////////////////////////////////////////
     public FakeTreeNode getChildAt(int index) 
     {
-        return ((FakeTreeNode)children.get(index));
+        return children.get(index);
     }
     
     public int getChildCount() 
@@ -136,20 +138,14 @@ public class FakeTreeNode
         return parent;
     }
     
-    public Vector getTreePath() 
+    public Vector<FakeTreeNode> getTreePath()
     {
-        if (parent == null) 
-        {
-            Vector v = new Vector();
-            v.add(this);
-            return v;
+        Vector<FakeTreeNode> v = new Vector<>();
+        if (parent != null) {
+            v = parent.getTreePath();
         }
-        else 
-        {
-            Vector v = parent.getTreePath();
-            v.add(this);
-            return v;
-        }
+        v.add(this);
+        return v;
     }
 
     public boolean hasLoaded() 

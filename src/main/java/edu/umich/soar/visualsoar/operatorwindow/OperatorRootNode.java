@@ -5,6 +5,7 @@ import edu.umich.soar.visualsoar.datamap.DataMap;
 import edu.umich.soar.visualsoar.datamap.SoarWorkingMemoryModel;
 import edu.umich.soar.visualsoar.graph.SoarIdentifierVertex;
 import edu.umich.soar.visualsoar.graph.SoarVertex;
+import edu.umich.soar.visualsoar.misc.FeedbackListObject;
 
 import java.io.*;
 import java.awt.Component;
@@ -22,7 +23,7 @@ public class OperatorRootNode extends FolderNode implements java.io.Serializable
 // Data Members
 ///////////////////////////////////////////////////////////////////
 	/**
-	 * A that represents the file path to the datamap, must be intialized
+	 * A that represents the file path to the datamap, must be initialized
 	 * in the constructor
 	 */
 	private String fullPathStart;
@@ -33,8 +34,7 @@ public class OperatorRootNode extends FolderNode implements java.io.Serializable
 	/**
 	 * This constructs the normal OperatorRootNode object
 	 * @param inName the name of the node
-	 * @param inFullPathStart
-	 * @param inFolder
+	 *
 	 */
 	public OperatorRootNode(String inName, int inId,String inFullPathStart, String inFolder) {
 		super(inName,inId,inFolder);
@@ -81,7 +81,7 @@ public class OperatorRootNode extends FolderNode implements java.io.Serializable
 	
 	/**
 	 * Adds a suboperator underneath this root node
-	 * @param operatorWindow
+	 *
 	 * @param swmm the Working Memory Model so that we can add corresponding entries to the datamap
 	 * @param newOperatorName the name of the operator being added
 	 */
@@ -138,7 +138,7 @@ public class OperatorRootNode extends FolderNode implements java.io.Serializable
 	}
 	
 	/**
-	 * This opens/shows a dataMap with this nodes associated Data Map File
+	 * This opens/shows a dataMap with this node's associated Data Map File
 	 * @param pw the MainFrame 
 	 */
 	public void openDataMap(SoarWorkingMemoryModel swmm,MainFrame pw) {
@@ -159,15 +159,9 @@ public class OperatorRootNode extends FolderNode implements java.io.Serializable
 	/**
 	 * rename
 	 * is used by {@link #renameAndBackup}
-	 *
-	 * @param operatorWindow
-	 * @param newName
-	 * @param newPath
-	 * @throws IOException
 	 */
 	public void rename(OperatorWindow operatorWindow, String newName, String newPath) throws IOException {
 		DefaultTreeModel model = (DefaultTreeModel)operatorWindow.getModel();
-		File oldFolder = new File(getFolderName());		
 		File newFolder = new File(newPath + File.separator + newName);
 
 		this.folderName = newFolder.getName();
@@ -235,27 +229,27 @@ public class OperatorRootNode extends FolderNode implements java.io.Serializable
 		sourceRecursive();		
 	}
 
-  public void searchTestDataMap(SoarWorkingMemoryModel swmm, Vector errors) {
+  public void searchTestDataMap(SoarWorkingMemoryModel swmm, Vector<FeedbackListObject> errors) {
     DataMap dataMap = new DataMap(swmm,swmm.getTopstate(), "");
     errors.addAll(dataMap.searchTestDataMap(swmm.getTopstate(),  toString() ));
   }
 
-  public void searchCreateDataMap(SoarWorkingMemoryModel swmm, Vector errors) {
+  public void searchCreateDataMap(SoarWorkingMemoryModel swmm, Vector<FeedbackListObject> errors) {
     DataMap dataMap = new DataMap(swmm,swmm.getTopstate(), "");
     errors.addAll(dataMap.searchCreateDataMap(swmm.getTopstate(),  toString() ));
   }
 
-  public void searchTestNoCreateDataMap(SoarWorkingMemoryModel swmm, Vector errors) {
+  public void searchTestNoCreateDataMap(SoarWorkingMemoryModel swmm, Vector<FeedbackListObject> errors) {
     DataMap dataMap = new DataMap(swmm,swmm.getTopstate(), "");
     errors.addAll(dataMap.searchTestNoCreateDataMap(swmm.getTopstate(), toString() ));
   }
 
-  public void searchCreateNoTestDataMap(SoarWorkingMemoryModel swmm, Vector errors) {
+  public void searchCreateNoTestDataMap(SoarWorkingMemoryModel swmm, Vector<FeedbackListObject> errors) {
     DataMap dataMap = new DataMap(swmm,swmm.getTopstate(), "");
     errors.addAll(dataMap.searchCreateNoTestDataMap(swmm.getTopstate(), toString() ));
   }
 
-  public void searchNoTestNoCreateDataMap(SoarWorkingMemoryModel swmm, Vector errors) {
+  public void searchNoTestNoCreateDataMap(SoarWorkingMemoryModel swmm, Vector<FeedbackListObject> errors) {
     DataMap dataMap = new DataMap(swmm,swmm.getTopstate(), "");
     errors.addAll(dataMap.searchNoTestNoCreateDataMap(swmm.getTopstate(), toString() ));
   }

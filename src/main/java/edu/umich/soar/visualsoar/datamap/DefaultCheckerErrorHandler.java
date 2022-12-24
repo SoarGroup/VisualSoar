@@ -9,14 +9,12 @@ import edu.umich.soar.visualsoar.operatorwindow.OperatorNode;
  */
 
 public class DefaultCheckerErrorHandler extends DefaultMatcherErrorHandler implements CheckerErrorHandler {
-	private final String d_errorBegin;
 
-///////////////////////////////////////////////////
+	///////////////////////////////////////////////////
 // Constructors
 ///////////////////////////////////////////////////
 	public DefaultCheckerErrorHandler(OperatorNode initOpNode, String initProdName, int initStartLine) {
 		super(initOpNode, initProdName, initStartLine);
-		d_errorBegin = "" + this.productionName + "(" + initStartLine + "): ";
 	}
 
 

@@ -11,11 +11,14 @@ import javax.swing.plaf.metal.*;
  * Author: Nobuo Tamemasa
  * http://www.codeguru.com/java/articles/187.shtml
  * @version 1.0 01/12/99
+ *
+ * TODO:  This class and TextFolderIcons are basically the same.
+ * They should be merged.
  */
 public class TextIcons extends MetalIconFactory.TreeLeafIcon {
 
   protected String label;
-  private static Hashtable labels;
+  private static Hashtable<String, String> labels;
 
   protected TextIcons() {
   }
@@ -36,42 +39,19 @@ public class TextIcons extends MetalIconFactory.TreeLeafIcon {
   public static Icon getIcon(String str) {
 
     if (labels == null) {
-      labels = new Hashtable();
+      labels = new Hashtable<>();
       setDefaultSet();
     }
     TextIcons icon = new TextIcons();
-    icon.label = (String)labels.get(str);
+    icon.label = labels.get(str);
     return icon;
   }
-  
-  public static void setLabelSet(String ext, String label) {
-    if (labels == null) {
-      labels = new Hashtable();
-      setDefaultSet();
-    }
-    labels.put(ext, label);   
-  }
-  
+
   private static void setDefaultSet() {
     labels.put("impasse"     ,"I");
     labels.put("file"  ,"F");
     labels.put("operator"  ,"O");
     labels.put("link", "L");
-    
-    // and so on
-    /*
-    labels.put("txt"   ,"TXT");   
-    labels.put("TXT"   ,"TXT");   
-    labels.put("cc"    ,"C++");   
-    labels.put("C"     ,"C++");   
-    labels.put("cpp"   ,"C++");   
-    labels.put("exe"   ,"BIN");   
-    labels.put("class" ,"BIN");   
-    labels.put("gif"   ,"GIF");   
-    labels.put("GIF"   ,"GIF");  
-    
-    labels.put("", "");   
-    */
   }
 
 }

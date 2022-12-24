@@ -1,9 +1,7 @@
 package edu.umich.soar.visualsoar.dialogs;
- 
-import java.awt.*;
-import java.awt.event.*;
+
 import javax.swing.*;
-import javax.swing.text.*;
+import java.awt.*;
 
 /**
  * Panel that contains the buttons for the find dialogs
@@ -19,6 +17,10 @@ class FindButtonPanel extends JPanel {
 
 	/**
 	 * The 'find in project' version
+	 *
+	 * @param findInProject is not used but needed to distinguish this ctor
+	 *                      from the single file version.  This could be done
+	 *                      a cleaner way but *shrug*
 	 */
 	public FindButtonPanel(boolean findInProject) {
 		cancelButton.setMnemonic('c');

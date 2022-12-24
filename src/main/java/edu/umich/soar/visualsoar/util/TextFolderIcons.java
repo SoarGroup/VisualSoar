@@ -15,7 +15,7 @@ import javax.swing.plaf.metal.*;
 public class TextFolderIcons extends MetalIconFactory.TreeFolderIcon {
 
   protected String label;
-  private static Hashtable labels;
+  private static Hashtable<String, String> labels;
 
   protected TextFolderIcons() {
   }
@@ -26,7 +26,7 @@ public class TextFolderIcons extends MetalIconFactory.TreeFolderIcon {
       FontMetrics fm = g.getFontMetrics();
           
       int offsetX = (getIconWidth()  - fm.stringWidth(label)) /2;
-      int offsetY = 0;
+      int offsetY;
       if( fm.toString().equals("F")) {
         offsetY = (getIconHeight() - fm.getHeight()) /2 - 3;
       }
@@ -41,43 +41,20 @@ public class TextFolderIcons extends MetalIconFactory.TreeFolderIcon {
   public static Icon getIcon(String str) {
 
     if (labels == null) {
-      labels = new Hashtable();
+      labels = new Hashtable<>();
       setDefaultSet();
     }
     TextFolderIcons icon = new TextFolderIcons();
-    icon.label = (String)labels.get(str);
+    icon.label = labels.get(str);
 
     return icon;
   }
-  
-  public static void setLabelSet(String ext, String label) {
-    if (labels == null) {
-      labels = new Hashtable();
-      setDefaultSet();
-    }
-    labels.put(ext, label);   
-  }
-  
+
   private static void setDefaultSet() {
     labels.put("impasse"     ,"I");
     labels.put("file"  ,"F");
     labels.put("operator"  ,"O");
     labels.put("link", "L");
-    
-    // and so on
-    /*
-    labels.put("txt"   ,"TXT");   
-    labels.put("TXT"   ,"TXT");   
-    labels.put("cc"    ,"C++");   
-    labels.put("C"     ,"C++");   
-    labels.put("cpp"   ,"C++");   
-    labels.put("exe"   ,"BIN");   
-    labels.put("class" ,"BIN");   
-    labels.put("gif"   ,"GIF");   
-    labels.put("GIF"   ,"GIF");  
-    
-    labels.put("", "");   
-    */
   }
 
 }

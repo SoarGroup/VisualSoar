@@ -5,10 +5,7 @@ public class SingleTest {
 	private Constant d_constant;
 	private Pair d_variable;
 	private boolean d_isConstant;
-	
-	// NOT IMPLEMENTED
-	private SingleTest() {}
-	
+
 	// Constructors
 	public SingleTest(Constant constant) {
 		d_constant = constant;

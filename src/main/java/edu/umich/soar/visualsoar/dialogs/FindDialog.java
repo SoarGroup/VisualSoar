@@ -1,10 +1,13 @@
 package edu.umich.soar.visualsoar.dialogs;
-import edu.umich.soar.visualsoar.operatorwindow.OperatorWindow;
+
 import edu.umich.soar.visualsoar.ruleeditor.RuleEditor;
- 
-import java.awt.*;
-import java.awt.event.*;
+
 import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 
 /**
@@ -23,12 +26,10 @@ public class FindDialog extends JDialog {
 	 * the rule editor this find was excecuted from, null if this is
 	 * a project-wide search
 	 */
-	RuleEditor 			d_ruleEditor = null;
+	RuleEditor 			d_ruleEditor;
 	
 	FindButtonPanel 	buttonPanel;
-	
-	OperatorWindow		opWin = null;
-		
+
 	/**
 	 * @param owner Frame which owns the dialog
 	 * @param ruleEditor the rule editor in which to search

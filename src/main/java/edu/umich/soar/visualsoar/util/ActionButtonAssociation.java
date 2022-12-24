@@ -15,13 +15,7 @@ public class ActionButtonAssociation implements java.beans.PropertyChangeListene
 ///////////////////////////////////////////////////////////////////
 	private Action a;
 	private AbstractButton b;
-	
-///////////////////////////////////////////////////////////////////
-// Constructors
-///////////////////////////////////////////////////////////////////
-	// deny default construction
-	private ActionButtonAssociation() {}
-	
+
 	/**
 	 * This associates the button with the give action
 	 * @param _a the action for which you want the button associated

@@ -8,9 +8,16 @@ import edu.umich.soar.visualsoar.ruleeditor.RuleEditor;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
-import java.io.*;
-import java.util.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.LineNumberReader;
+import java.util.Enumeration;
+import java.util.Vector;
 
 /**
  * Dialog which takes input for, and initiates a find or replace
@@ -44,14 +51,14 @@ public class ReplaceInProjectDialog extends JDialog
      *
      */
     RuleEditor        d_ruleEditor = null;
-    OperatorWindow    opWin = null;
+    OperatorWindow    opWin;
 
     /**
-     * panel which contains all the replace input field
+     * panel which contains all the "replace input" fields
      */
-    ReplacePanel           replacePanel = new ReplacePanel();
-    FindReplaceButtonPanel buttonPanel  = new FindReplaceButtonPanel();
-    Vector                 v            = new Vector();
+    ReplacePanel                replacePanel = new ReplacePanel();
+    FindReplaceButtonPanel      buttonPanel  = new FindReplaceButtonPanel();
+    Vector<FeedbackListObject>  v            = new Vector<>();
 
     /**
      * Dialog that searches through all the files within a project for a string
@@ -98,7 +105,7 @@ public class ReplaceInProjectDialog extends JDialog
         getRootPane().setDefaultButton(buttonPanel.findButton);
 
 
-        //Set the match case as unfocusable so user can
+        //Set the match case as un-focusable so user can
         //quickly tab between the find & replace fields
         findPanel.optionsPanel.matchCase.setFocusable(false);
 
@@ -122,7 +129,7 @@ public class ReplaceInProjectDialog extends JDialog
             });
 
 
-        /**
+        /*
          *   Replace all replaces all requested strings with the replacement string.
          *   All instances of replacement are sent to the feedback list.
          */
@@ -148,8 +155,8 @@ public class ReplaceInProjectDialog extends JDialog
                         }
 
 
-                        //  Do initial search to get all of the line numbers of all the replaced components
-                        if (! caseSensitive.booleanValue() ) 
+                        //  Do an initial search to get the line numbers of all the replaced components
+                        if (!caseSensitive)
                         {
                             toFind = toFind.toLowerCase();
                         }
@@ -167,11 +174,11 @@ public class ReplaceInProjectDialog extends JDialog
                                     String line = lnr.readLine();
                                     while (line != null) 
                                     {
-                                        if (!caseSensitive.booleanValue() ) 
+                                        if (!caseSensitive)
                                         {
                                             line = line.toLowerCase();
                                         }
-                                        if (line.indexOf(toFind) != -1) 
+                                        if (line.contains(toFind))
                                         {
                                             v.add(new FeedbackListObject(current,
                                                                          lnr.getLineNumber(),
@@ -195,7 +202,8 @@ public class ReplaceInProjectDialog extends JDialog
 
                         if (v.isEmpty()) 
                         {
-                            v.add(toFind + " not found in project");
+                            String msg = toFind + " not found in project";
+                            v.add(new FeedbackListObject(msg));
                         }
 
 
@@ -296,10 +304,10 @@ public class ReplaceInProjectDialog extends JDialog
 
     private void findInProject(String toFind, String toReplace, Boolean caseSensitive, boolean outputToFeedbackList)
     {
-        boolean matchCase = caseSensitive.booleanValue();
+        boolean matchCase = caseSensitive;
         boolean foundInFile = false;
         stringFound = false;
-        String reFileName = null;
+        String reFileName;
 
         while( !stringFound && (bfe.hasMoreElements() || searchingRuleEditor) )
         {
@@ -310,15 +318,12 @@ public class ReplaceInProjectDialog extends JDialog
 
                 // See if Rule Editor is already open for that file.  If it is, then start searching Rule Editor
                 JInternalFrame[] bif = MainFrame.getMainFrame().getDesktopPane().getAllFrames();   // Get all open Rule Editors
-                for(int i = 0; i < bif.length; ++i)
-                {
-                    if(bif[i] instanceof RuleEditor)
-                    {
-                        RuleEditor be = (RuleEditor)bif[i];
+                for (JInternalFrame jInternalFrame : bif) {
+                    if (jInternalFrame instanceof RuleEditor) {
+                        RuleEditor be = (RuleEditor) jInternalFrame;
                         reFileName = be.getFile();
 
-                        if( reFileName.equals(fn) )
-                        {
+                        if (reFileName.equals(fn)) {
                             d_ruleEditor = be;
                             d_ruleEditor.resetCaret();
                             searchingRuleEditor = true;
@@ -340,7 +345,7 @@ public class ReplaceInProjectDialog extends JDialog
                             {
                                 line = line.toLowerCase();
                             }
-                            if (line.indexOf(toFind) != -1)
+                            if (line.contains(toFind))
                             {
                                 // Found a matching string in this line
                                 foundInFile = true;
@@ -348,15 +353,12 @@ public class ReplaceInProjectDialog extends JDialog
                                 // set correct rule editor
 
                                 JInternalFrame[] jif = MainFrame.getMainFrame().getDesktopPane().getAllFrames();   // Get all open Rule Editors
-                                for(int i = 0; i < jif.length; ++i)
-                                {
-                                    if(jif[i] instanceof RuleEditor)
-                                    {
-                                        RuleEditor re = (RuleEditor)jif[i];
+                                for (JInternalFrame jInternalFrame : jif) {
+                                    if (jInternalFrame instanceof RuleEditor) {
+                                        RuleEditor re = (RuleEditor) jInternalFrame;
                                         reFileName = re.getFile();
 
-                                        if( reFileName.equals(fn) )
-                                        {
+                                        if (reFileName.equals(fn)) {
                                             d_ruleEditor = re;
                                             d_ruleEditor.resetCaret();
                                             searchingRuleEditor = true;
@@ -384,10 +386,10 @@ public class ReplaceInProjectDialog extends JDialog
                 // Do rule editor stuff
                 d_ruleEditor.setFindReplaceData(toFind,
                                                 toReplace,
-                                                new Boolean(true),
+                                                Boolean.TRUE,
                                                 caseSensitive,
-                                                new Boolean(true));
-                if( d_ruleEditor.findResult() == true)
+                                                Boolean.TRUE);
+                if(d_ruleEditor.findResult())
                 {
                     stringFound = true;
                     stringSelected = true;

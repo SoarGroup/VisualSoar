@@ -8,7 +8,7 @@ import java.io.*;
  */
 public class SoarFileFilter extends javax.swing.filechooser.FileFilter implements FilenameFilter {
 	/**
-	 * Will only accept files with a vsa extension
+	 * Will only accept files with a .vsa extension
 	 * @return true if the file ends with vsa or is a folder false otherwise
 	 */
 	public boolean accept(File f) {
@@ -17,14 +17,13 @@ public class SoarFileFilter extends javax.swing.filechooser.FileFilter implement
 
 		String suffix =  getSuffix(f);
 		if (suffix != null) {
-			boolean accept = suffix.equals("vsa");
-			return accept;
+			return suffix.equals("vsa");
 		}
 		return false;
 	}
 	
 	/**
-	 * Same as the other accept method, but included for compatibilty with the FilenameFilter
+	 * Same as the other accept method, but included for compatibility with the FilenameFilter
 	 * interface used for native dialogs
 	 * @return true if the file ends with vsa or is a folder false otherwise
 	 */

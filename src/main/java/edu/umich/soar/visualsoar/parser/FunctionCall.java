@@ -1,28 +1,16 @@
 package edu.umich.soar.visualsoar.parser;
 import java.util.*;
 
+/** This class really does nothing and only exists to support {@link SoarParser} */
 public final class FunctionCall {
-	private Pair d_functionName;
-	private final List d_rhsValues = new LinkedList();
-	
-	
-	// Constructors
-	private FunctionCall() {}
-	
+	private final List<RHSValue> d_rhsValues = new LinkedList<>();
+
 	public FunctionCall(Pair functionName) {
-		d_functionName = functionName;
 	}
 	
 	// Member Functions
-	public final void add(RHSValue rhsValue) {
+	public void add(RHSValue rhsValue) {
 		d_rhsValues.add(rhsValue);
 	}
-	
-	public final Iterator getRHSValues() {
-		return d_rhsValues.iterator();
-	}
-	
-	public final Pair getFunctionName() {
-		return d_functionName;
-	}
-} 
+
+}

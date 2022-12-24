@@ -9,13 +9,15 @@ import edu.umich.soar.visualsoar.parser.ParseException;
 import edu.umich.soar.visualsoar.parser.SoarProduction;
 import edu.umich.soar.visualsoar.parser.TokenMgrError;
 
-import java.awt.datatransfer.*;
 import javax.swing.*;
 import javax.swing.tree.TreeNode;
-import java.awt.event.*;
-import java.awt.Component;
-import java.util.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.*;
+import java.util.Enumeration;
+import java.util.Hashtable;
+import java.util.Vector;
 
 
 /**

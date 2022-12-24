@@ -15,6 +15,7 @@ import java.util.*;
  *  with itself, instead, it uses the datamap of its' Operator parent
  *  Supports sub-filing.
  */
+@SuppressWarnings("unused")
 public class FileOperatorNode extends SoarOperatorNode {
 
 	/////////////////////////////////////////
