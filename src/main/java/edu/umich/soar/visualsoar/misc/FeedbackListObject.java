@@ -183,16 +183,19 @@ public class FeedbackListObject
             }
             return dm;
         }
-        else
-        return null;
+        else {
+            return null;
+        }
     }
 
     public int getDataMapId() 
     {
-        if(isDataMapObject())
-        return siv.getValue();
-        else
-        return -1;
+        if(isDataMapObject()) {
+            return siv.getValue();
+        }
+        else {
+            return -1;
+        }
     }
 
     /**
@@ -204,8 +207,9 @@ public class FeedbackListObject
         {
             return edge;
         }
-        else
-        return null;
+        else {
+            return null;
+        }
     }
     
     /**
@@ -217,10 +221,12 @@ public class FeedbackListObject
     {
         if(!isDataMapObject()) 
         {
-            if (msgEnough)
-            return message;
-            else
-            return node.getUniqueName() + "(" + lineNumber + "): " + message;
+            if (msgEnough) {
+                return message;
+            }
+            else {
+                return node.getUniqueName() + "(" + lineNumber + "): " + message;
+            }
         }
         else 
         {

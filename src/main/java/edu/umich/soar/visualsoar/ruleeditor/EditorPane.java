@@ -63,8 +63,9 @@ public class EditorPane extends javax.swing.JEditorPane
             boolean found = false;
             for(int i = 0; i < flavors.length && !found; ++i)
             {
-                if (flavors[i] == DataFlavor.stringFlavor)
-                found = true;
+                if (flavors[i] == DataFlavor.stringFlavor) {
+                    found = true;
+                }
             }
             if (found)
             e.acceptDrop(action);

@@ -154,11 +154,14 @@ public class NamedEdge extends Edge
      */
     public boolean satisfies(Triple triple) 
     {
-        if (!TripleUtils.isVariable(triple.getAttribute().getString()))
-        if (!triple.getAttribute().getString().equals(name))
-        return false;
-        if (TripleUtils.isVariable(triple.getValue().getString()))
-        return true;
+        if (!TripleUtils.isVariable(triple.getAttribute().getString())) {
+            if (!triple.getAttribute().getString().equals(name)) {
+                return false;
+            }
+        }
+        if (TripleUtils.isVariable(triple.getValue().getString())) {
+            return true;
+        }
         SoarVertex sv = V1();
         return sv.isValid(triple.getValue().getString());
     }
@@ -327,18 +330,19 @@ public class NamedEdge extends Edge
     {
         // make sure this is the output-link
         if(!getName().equals("output-link"))  return;
-        VSQueue VSQueue = new QueueAsLinkedList();
+        VSQueue<SoarVertex> queue = new QueueAsLinkedList<>();
         int numberOfVertices = swmm.getNumberOfVertices();
         boolean[] visitedVertices = new boolean[numberOfVertices];
-        for(int i = 0; i < numberOfVertices; i++)
-        visitedVertices[i] = false;
-        VSQueue.enqueue(this.V1());
+        for(int i = 0; i < numberOfVertices; i++) {
+            visitedVertices[i] = false;
+        }
+        queue.enqueue(this.V1());
         this.tested();
         this.setErrorNoted();
 
-        while(!VSQueue.isEmpty())
+        while(!queue.isEmpty())
         {
-            SoarVertex w = (SoarVertex) VSQueue.dequeue();
+            SoarVertex w = queue.dequeue();
             visitedVertices[w.getValue()] = true;
             if(w.allowsEmanatingEdges()) 
             {
@@ -351,7 +355,7 @@ public class NamedEdge extends Edge
                     if(! visitedVertices[theEdge.V1().getValue()]) 
                     {
                         visitedVertices[w.getValue()] = true;
-                        VSQueue.enqueue(theEdge.V1());
+                        queue.enqueue(theEdge.V1());
                     }   // if haven't visited this vertex, add to the queue
                 } // while looking at all the edges of the vertex
             }

@@ -79,15 +79,17 @@ public class FakeTreeNode
             if(foundName) 
             {
                 EnumerationVertex ev = (EnumerationVertex) edge.V1();
-                if(ev != null)
-                representation = "operator " + ev;
+                if(ev != null) {
+                    representation = "operator " + ev;
+                }
             }
 
         }   // end of if the current node is an operator node
 
         // Add any possible comments to the representation of the fake node
-        if(ne.hasComment() )
-        representation = representation + "          * " + ne.getComment() + " *";
+        if(ne.hasComment() ) {
+            representation = representation + "          * " + ne.getComment() + " *";
+        }
     }
 
 //////////////////////////////////////////

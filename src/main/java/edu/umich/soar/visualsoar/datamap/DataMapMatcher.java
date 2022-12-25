@@ -118,8 +118,9 @@ public class DataMapMatcher
             {
 
                 // Ignore case if attribute is a 'variable' (<' '>)
-                if( TripleUtils.isVariable(currentTriple.getAttribute().getString()) )
-                return;
+                if( TripleUtils.isVariable(currentTriple.getAttribute().getString()) ) {
+                    return;
+                }
 
                 Set<SoarVertex> varSet = varMap.get(currentTriple.getVariable().getString());
 
@@ -160,8 +161,9 @@ public class DataMapMatcher
                                     while(parentEdges.hasMoreElements())
                                     {
                                         NamedEdge parentEdge = parentEdges.nextElement();
-                                        if(parentEdge.V1().equals(currentSV))
-                                        parentName = parentEdge.getName();
+                                        if(parentEdge.V1().equals(currentSV)) {
+                                            parentName = parentEdge.getName();
+                                        }
                                     }
                                 }
                             }//while finding all the possible parent vertices
@@ -276,8 +278,9 @@ public class DataMapMatcher
                                         }     // end of if found edge called 'name'
                                     }
                                     // If empty operator folder found, use it
-                                    if(emptyFolder)
-                                    currentSV = edge.V1();
+                                    if(emptyFolder) {
+                                        currentSV = edge.V1();
+                                    }
                                 }   // end of checking operator identifier children for identical name
                             }   // while checking parent edges for soarIdentifierVertexs 'operator'
 
@@ -314,8 +317,10 @@ public class DataMapMatcher
                         while(dEdges.hasMoreElements()) 
                         {
                             NamedEdge dEdge = dEdges.nextElement();
-                            if(dEdge.getName().equals(currentTriple.getAttribute().getString()) && (dEdge.V1() instanceof SoarIdentifierVertex))
-                            alreadyThere = true;
+                            if(dEdge.getName().equals(currentTriple.getAttribute().getString())
+                                    && (dEdge.V1() instanceof SoarIdentifierVertex)) {
+                                alreadyThere = true;
+                            }
                         }
                         if(!alreadyThere) 
                         {

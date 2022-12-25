@@ -121,8 +121,9 @@ public class FeedbackList extends JList<FeedbackListObject> implements ActionLis
             {
                 try
                 {
-                    if (dm.isIcon())
-                    dm.setIcon(false);
+                    if (dm.isIcon()) {
+                        dm.setIcon(false);
+                    }
                     dm.setSelected(true);
                     dm.moveToFront();
                 }

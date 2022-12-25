@@ -167,10 +167,8 @@ public class ImpasseOperatorNode extends SoarOperatorNode
     public void exportDesc(Writer w) throws IOException 
     {
 
-        if(isHighLevel) 
-        w.write("HLIOPERATOR " + name + " " + dataMapIdNumber);
-        else
-        w.write("IOPERATOR " + name);
+        if(isHighLevel) w.write("HLIOPERATOR " + name + " " + dataMapIdNumber);
+        else w.write("IOPERATOR " + name);
     }
 
     public void write(Writer w) throws IOException 

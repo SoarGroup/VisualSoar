@@ -843,8 +843,9 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
     {
 		try 
         {
-			if (re.isIcon())
-            re.setIcon(false);
+			if (re.isIcon()) {
+				re.setIcon(false);
+			}
 			re.setSelected(true);
 			re.moveToFront();
 		}
@@ -1113,8 +1114,9 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 
 					//Open the new project
 					operatorWindow = new OperatorWindow(file);
-					if(file.getParent() != null)
-					Prefs.openFolder.set(file.getParentFile().getAbsolutePath());
+					if(file.getParent() != null) {
+						Prefs.openFolder.set(file.getParentFile().getAbsolutePath());
+					}
 					operatorDesktopSplit.setLeftComponent(new JScrollPane(operatorWindow));
 
 					projectActionsEnable(true);

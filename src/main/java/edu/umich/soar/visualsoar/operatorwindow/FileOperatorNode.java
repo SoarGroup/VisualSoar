@@ -113,8 +113,9 @@ public class FileOperatorNode extends SoarOperatorNode {
         
         // Create the Folder
         File folder = new File(parent.getFullPathName() + File.separator + name);
-        if (creationConflict(folder, true))
-        return;
+        if (creationConflict(folder, true)) {
+			return;
+		}
         if (!folder.mkdir()) throw new IOException();
 
         // Determine the datamap id

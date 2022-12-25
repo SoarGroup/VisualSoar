@@ -26,12 +26,12 @@ public abstract class DirectedGraph extends Graph {
     for(int i = 1; i < numberOfVertices; i++)
       visitedVertices[i] = false;
     visitedVertices[0] = true;
-    VSQueue VSQueue = new QueueAsLinkedList();
+    VSQueue<SoarVertex> queue = new QueueAsLinkedList<>();
     List<SoarVertex> foundVertices = new LinkedList<>();
-    VSQueue.enqueue(selectVertex(0));
+    queue.enqueue(selectVertex(0));
 
-    while(!VSQueue.isEmpty()) {
-      SoarVertex w = (SoarVertex) VSQueue.dequeue();
+    while(!queue.isEmpty()) {
+      SoarVertex w = queue.dequeue();
       visitedVertices[w.getValue()] = true;
 
       if(w.allowsEmanatingEdges()) {
@@ -43,7 +43,7 @@ public abstract class DirectedGraph extends Graph {
               foundVertices.add(w);
             }
             visitedVertices[w.getValue()] = true;
-            VSQueue.enqueue(edge.V1());
+            queue.enqueue(edge.V1());
           }     // if haven't visited this vertex yet, then check if match and add to queue
 
         }   // while edges have more elements
@@ -62,11 +62,11 @@ public abstract class DirectedGraph extends Graph {
     for(int i = 1; i < numberOfVertices; i++)
       visitedVertices[i] = false;
     visitedVertices[0] = true;
-    VSQueue VSQueue = new QueueAsLinkedList();
-    VSQueue.enqueue(selectVertex(0));
+    VSQueue<SoarVertex> queue = new QueueAsLinkedList<>();
+    queue.enqueue(selectVertex(0));
 
-    while(!VSQueue.isEmpty()) {
-      SoarVertex w = (SoarVertex) VSQueue.dequeue();
+    while(!queue.isEmpty()) {
+      SoarVertex w = queue.dequeue();
       visitedVertices[w.getValue()] = true;
       if(w.allowsEmanatingEdges()) {
         Enumeration<NamedEdge> edges = swmm.emanatingEdges(w);
@@ -84,7 +84,7 @@ public abstract class DirectedGraph extends Graph {
               }
             }
             visitedVertices[w.getValue()] = true;
-            VSQueue.enqueue(edge.V1());
+            queue.enqueue(edge.V1());
           }     // if haven't visited this vertex yet, then check if match and add to queue
         }   // while edges have more elements
       }

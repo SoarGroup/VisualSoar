@@ -114,8 +114,9 @@ public class FileNode extends OperatorNode implements java.io.Serializable
         {
             name = newName;
             fileAssociation = newFile.getName();
-            if (ruleEditor != null)
-            ruleEditor.fileRenamed(newFile.getPath());
+            if (ruleEditor != null) {
+                ruleEditor.fileRenamed(newFile.getPath());
+            }
         }
         model.nodeChanged(this);
     }
