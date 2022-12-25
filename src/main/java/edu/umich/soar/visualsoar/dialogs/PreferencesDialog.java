@@ -151,18 +151,14 @@ public class PreferencesDialog extends JDialog {
 	}     // end of constructor
 	
 	public void commitChanges() {
-		TreeMap		colorsToChange = colorPanel.getChanges();
-		Iterator	keys = colorsToChange.keySet().iterator();
-		Integer		theKey;
-		Color		theColor;
-		int			temp;
-		
+		TreeMap<Integer, Color> colorsToChange = colorPanel.getChanges();
+		Iterator<Integer> keys = colorsToChange.keySet().iterator();
+
 		while (keys.hasNext()) {
-			theKey = (Integer)keys.next();
-			theColor = (Color)colorsToChange.get(theKey);
+			int theKey = keys.next();
+			Color theColor = colorsToChange.get(theKey);
 			
-			temp = theKey;
-			colorTable[temp] = new SyntaxColor(theColor, colorTable[temp]);
+			colorTable[theKey] = new SyntaxColor(theColor, colorTable[theKey]);
 		}
 	}
 

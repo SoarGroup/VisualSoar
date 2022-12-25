@@ -1,11 +1,11 @@
 package edu.umich.soar.visualsoar.parser;
 
-public final class Pair implements Comparable {
+public final class Pair implements Comparable<Pair> {
 /////////////////////////////////////
 // Data Members
 /////////////////////////////////////
-	private String d_string;
-	private int d_line;
+	private final String d_string;
+	private final int d_line;
 
 	public Pair(String string,int line) {
 		d_string = string;
@@ -15,15 +15,15 @@ public final class Pair implements Comparable {
 /////////////////////////////////////
 // Accessors
 /////////////////////////////////////
-	public final String getString() {
+	public String getString() {
 		return d_string;
 	}
 	
-	public final int getLine() {
+	public int getLine() {
 		return d_line;
 	}
 	
-	public final boolean equals(Object o) {
+	public boolean equals(Object o) {
 		if(o instanceof Pair) {
 			Pair p = (Pair)o;
 			return d_string.equals(p.getString());
@@ -31,8 +31,7 @@ public final class Pair implements Comparable {
 		return false;
 	}
 	
-	public final int compareTo(Object o) {
-		Pair p = (Pair)o;
+	public int compareTo(Pair p) {
 		return d_string.compareTo(p.getString());
 	}
 

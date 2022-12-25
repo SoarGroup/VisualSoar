@@ -41,7 +41,7 @@ public class TreeFileWriter {
 		
 		// Doing this enumeration guarentees that we will never reach a
 		// child without first processing its parent
-		Enumeration e = root.preorderEnumeration();
+		Enumeration<TreeNode> e = root.preorderEnumeration();
 
 		VSTreeNode node = (VSTreeNode)e.nextElement();
 		ht.put(node, nodeID);

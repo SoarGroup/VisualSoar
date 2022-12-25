@@ -1,9 +1,11 @@
 package edu.umich.soar.visualsoar.datamap;
 
 import edu.umich.soar.visualsoar.graph.SoarIdentifierVertex;
+import edu.umich.soar.visualsoar.graph.SoarVertex;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorNode;
 import edu.umich.soar.visualsoar.parser.TriplesExtractor;
 
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -25,20 +27,22 @@ public class DataMapChecker
                              TriplesExtractor triplesExtractor,
                              CheckerErrorHandler ceh) 
     {
-        Map varMap = DataMapMatcher.matches(dataMap,
+        Map<String, HashSet<SoarVertex>> varMap = DataMapMatcher.matches(
+                                            dataMap,
                                             startVertex,
                                             triplesExtractor,
                                             ceh);
         if(varMap != null) 
         {
-            Set keySet = varMap.keySet();
-            Iterator vars = keySet.iterator();
+            Set<String> keySet = varMap.keySet();
+            Iterator<String> vars = keySet.iterator();
             while(vars.hasNext()) 
             {
-                String varKey = (String)vars.next();
-                Set value = (Set)varMap.get(varKey);
-                if(value.isEmpty()) 
-                ceh.variableNotMatched(varKey); 
+                String varKey = vars.next();
+                Set<SoarVertex> value = varMap.get(varKey);
+                if(value.isEmpty()) {
+                    ceh.variableNotMatched(varKey);
+                }
             }
         }
     }

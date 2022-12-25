@@ -113,7 +113,7 @@ class SyntaxColorsPanel extends JPanel {
 		return enable.isSelected();
 	}
 	
-	public TreeMap getChanges() {
+	public TreeMap<Integer, Color> getChanges() {
 		return colorsToChange;
 	}
 		

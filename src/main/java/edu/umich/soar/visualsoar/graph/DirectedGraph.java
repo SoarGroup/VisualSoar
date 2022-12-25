@@ -2,6 +2,7 @@ package edu.umich.soar.visualsoar.graph;
 
 import edu.umich.soar.visualsoar.datamap.SoarWorkingMemoryModel;
 import edu.umich.soar.visualsoar.util.QueueAsLinkedList;
+import edu.umich.soar.visualsoar.util.VSQueue;
 
 import java.util.Enumeration;
 import java.util.LinkedList;
@@ -25,12 +26,12 @@ public abstract class DirectedGraph extends Graph {
     for(int i = 1; i < numberOfVertices; i++)
       visitedVertices[i] = false;
     visitedVertices[0] = true;
-    edu.umich.soar.visualsoar.util.Queue queue = new QueueAsLinkedList();
+    VSQueue VSQueue = new QueueAsLinkedList();
     List<SoarVertex> foundVertices = new LinkedList<>();
-    queue.enqueue(selectVertex(0));
+    VSQueue.enqueue(selectVertex(0));
 
-    while(!queue.isEmpty()) {
-      SoarVertex w = (SoarVertex)queue.dequeue();
+    while(!VSQueue.isEmpty()) {
+      SoarVertex w = (SoarVertex) VSQueue.dequeue();
       visitedVertices[w.getValue()] = true;
 
       if(w.allowsEmanatingEdges()) {
@@ -42,7 +43,7 @@ public abstract class DirectedGraph extends Graph {
               foundVertices.add(w);
             }
             visitedVertices[w.getValue()] = true;
-            queue.enqueue(edge.V1());
+            VSQueue.enqueue(edge.V1());
           }     // if haven't visited this vertex yet, then check if match and add to queue
 
         }   // while edges have more elements
@@ -61,11 +62,11 @@ public abstract class DirectedGraph extends Graph {
     for(int i = 1; i < numberOfVertices; i++)
       visitedVertices[i] = false;
     visitedVertices[0] = true;
-    edu.umich.soar.visualsoar.util.Queue queue = new QueueAsLinkedList();
-    queue.enqueue(selectVertex(0));
+    VSQueue VSQueue = new QueueAsLinkedList();
+    VSQueue.enqueue(selectVertex(0));
 
-    while(!queue.isEmpty()) {
-      SoarVertex w = (SoarVertex)queue.dequeue();
+    while(!VSQueue.isEmpty()) {
+      SoarVertex w = (SoarVertex) VSQueue.dequeue();
       visitedVertices[w.getValue()] = true;
       if(w.allowsEmanatingEdges()) {
         Enumeration<NamedEdge> edges = swmm.emanatingEdges(w);
@@ -83,7 +84,7 @@ public abstract class DirectedGraph extends Graph {
               }
             }
             visitedVertices[w.getValue()] = true;
-            queue.enqueue(edge.V1());
+            VSQueue.enqueue(edge.V1());
           }     // if haven't visited this vertex yet, then check if match and add to queue
         }   // while edges have more elements
       }

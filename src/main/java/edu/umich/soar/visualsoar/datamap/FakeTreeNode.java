@@ -64,11 +64,11 @@ public class FakeTreeNode
         if( representation.equals("operator") ) 
         {
             boolean foundName = false;
-            Enumeration e = swmm.emanatingEdges(enumeratingVertex);
+            Enumeration<NamedEdge> e = swmm.emanatingEdges(enumeratingVertex);
             NamedEdge edge = null;
             while(e.hasMoreElements() && !foundName) 
             {
-                edge = (NamedEdge)e.nextElement();
+                edge = e.nextElement();
                 if( ((edge.getName()).equals("name"))
                     && (edge.V1() instanceof EnumerationVertex) )
                 {
@@ -103,11 +103,11 @@ public class FakeTreeNode
         if (!hasLoaded) 
         {
             int count = 0;
-            Enumeration e = swmm.emanatingEdges(enumeratingVertex);
+            Enumeration<NamedEdge> e = swmm.emanatingEdges(enumeratingVertex);
             while(e.hasMoreElements()) 
             {
                 ++count;
-                NamedEdge edge = (NamedEdge)e.nextElement();
+                NamedEdge edge = e.nextElement();
                 FakeTreeNode aChild = new FakeTreeNode(swmm,edge);
                 aChild.setParent(this);
                 children.add(aChild);
@@ -213,10 +213,10 @@ public class FakeTreeNode
         int[] indices = new int[1];
         boolean found = false;
         int count = 0;
-        Enumeration e = children.elements();
+        Enumeration<FakeTreeNode> e = children.elements();
         while(!found && e.hasMoreElements()) 
         {
-            FakeTreeNode currentChild = (FakeTreeNode)e.nextElement();
+            FakeTreeNode currentChild = e.nextElement();
             if(ne.equals(currentChild.getEdge())) 
             {
                 found = true;   
@@ -230,10 +230,10 @@ public class FakeTreeNode
     
     public void visitChildren(edu.umich.soar.visualsoar.util.Visitor v) 
     {
-        Enumeration e = children.elements();
+        Enumeration<FakeTreeNode> e = children.elements();
         while(e.hasMoreElements()) 
         {
-            FakeTreeNode currentChild = (FakeTreeNode)e.nextElement();
+            FakeTreeNode currentChild = e.nextElement();
             v.visit(currentChild);
             currentChild.visitChildren(v);
         }

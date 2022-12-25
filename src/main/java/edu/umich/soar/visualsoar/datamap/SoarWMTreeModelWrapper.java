@@ -1,13 +1,16 @@
 package edu.umich.soar.visualsoar.datamap;
+
 import edu.umich.soar.visualsoar.graph.NamedEdge;
 import edu.umich.soar.visualsoar.graph.SoarIdentifierVertex;
 import edu.umich.soar.visualsoar.util.AddingVisitor;
 import edu.umich.soar.visualsoar.util.EnumerationIteratorWrapper;
 import edu.umich.soar.visualsoar.util.RemovingVisitor;
-import javax.swing.tree.*;
-import javax.swing.event.*;
-import javax.swing.*;
-import java.util.*;
+
+import javax.swing.event.TreeModelEvent;
+import javax.swing.event.TreeModelListener;
+import javax.swing.tree.TreeModel;
+import javax.swing.tree.TreePath;
+import java.util.LinkedList;
 
 /**
  * This is a wrapper class
@@ -15,21 +18,19 @@ import java.util.*;
  * @author Brad Jones
  */
 public class SoarWMTreeModelWrapper implements TreeModel, WorkingMemoryListener {
-	private final LinkedList listeners = new LinkedList();
-	private SoarWorkingMemoryModel swmm = null;
-	private FakeTreeNode root = null;
+	private final LinkedList<TreeModelListener> listeners = new LinkedList<>();
+	private final FakeTreeNode root;
 
 	/**
    * Creates a tree model from working memory
    * by creating a FakeTreeNode as the root of the tree
-   * @param _swmm working memory
+   * @param swmm working memory
    * @param siv the soar vertex which the root is based on
    * @param name name of the tree
    * @see FakeTreeNode
    */
-	public SoarWMTreeModelWrapper(SoarWorkingMemoryModel _swmm,SoarIdentifierVertex siv, String name) {
-		swmm = _swmm;
-	 	swmm.addWorkingMemoryListener(this);
+	public SoarWMTreeModelWrapper(SoarWorkingMemoryModel swmm,SoarIdentifierVertex siv, String name) {
+		swmm.addWorkingMemoryListener(this);
 		root = new FakeTreeNode(swmm,siv,name);
 	}
 		
@@ -80,21 +81,19 @@ public class SoarWMTreeModelWrapper implements TreeModel, WorkingMemoryListener 
                                                                        
 		av.visit(root);
 		root.visitChildren(av);
-		Enumeration e = av.changeEvents();
+		EnumerationIteratorWrapper e = av.changeEvents();
 		while(e.hasMoreElements()) {
 			TreeModelEvent tme = (TreeModelEvent)e.nextElement();
 			notifyListenersOfAdd(tme);
 		}
-//    FakeTreeNode ftn = root;
-//    TreeModelEvent tm = ftn.add(triple);
-//    notifyListenersOfAdd( tm);
 	}
+
 	public void WMERemoved(WorkingMemoryEvent wme) {
 		NamedEdge triple = wme.getTriple();
 		RemovingVisitor rv = new RemovingVisitor(triple);
 		rv.visit(root);
 		root.visitChildren(rv);
-		Enumeration e = rv.changeEvents();
+		EnumerationIteratorWrapper e = rv.changeEvents();
 		while(e.hasMoreElements()) {
 			TreeModelEvent tme = (TreeModelEvent)e.nextElement();
 			notifyListenersOfRemove(tme);
@@ -103,15 +102,15 @@ public class SoarWMTreeModelWrapper implements TreeModel, WorkingMemoryListener 
 	}
 	
 	protected void notifyListenersOfAdd(TreeModelEvent tme) {
-		Enumeration e = new EnumerationIteratorWrapper(listeners.iterator());
+		EnumerationIteratorWrapper e = new EnumerationIteratorWrapper(listeners.iterator());
 		while(e.hasMoreElements()) {
 			TreeModelListener tml = (TreeModelListener)e.nextElement();
 			tml.treeNodesInserted(tme);
 		}
 	}
 	
-	protected void notifyListenersOfRemove(TreeModelEvent tme) { 
-		Enumeration e = new EnumerationIteratorWrapper(listeners.iterator());
+	protected void notifyListenersOfRemove(TreeModelEvent tme) {
+		EnumerationIteratorWrapper e = new EnumerationIteratorWrapper(listeners.iterator());
 		while(e.hasMoreElements()) {
 			TreeModelListener tml = (TreeModelListener)e.nextElement();
 			tml.treeNodesRemoved(tme);

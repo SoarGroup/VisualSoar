@@ -7,6 +7,7 @@ import edu.umich.soar.visualsoar.operatorwindow.OperatorWindow;
 import edu.umich.soar.visualsoar.ruleeditor.RuleEditor;
 
 import javax.swing.*;
+import javax.swing.tree.TreeNode;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -32,7 +33,7 @@ public class ReplaceInProjectDialog extends JDialog
      * performed.
      */
     OperatorNode root;
-    Enumeration bfe;
+    Enumeration<TreeNode> bfe;
     boolean searchingRuleEditor;
     boolean stringFound;
     boolean stringSelected;

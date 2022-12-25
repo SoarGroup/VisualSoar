@@ -1,15 +1,11 @@
 package edu.umich.soar.visualsoar.datamap;
 
-import edu.umich.soar.visualsoar.graph.EnumerationVertex;
-import edu.umich.soar.visualsoar.graph.FloatRangeVertex;
-import edu.umich.soar.visualsoar.graph.IntegerRangeVertex;
-import edu.umich.soar.visualsoar.graph.SoarIdentifierVertex;
-import edu.umich.soar.visualsoar.graph.SoarVertex;
-import edu.umich.soar.visualsoar.graph.StringVertex;
+import edu.umich.soar.visualsoar.graph.*;
 import edu.umich.soar.visualsoar.util.ReaderUtils;
+
+import java.io.IOException;
+import java.io.Reader;
 import java.util.Vector;
-import java.io.*;
-import javax.swing.*;
 
 /**
  * This class has one function read, which reads a representation of soar working memory
@@ -36,14 +32,14 @@ public class SoarWorkingMemoryReader {
 
 			// Get the root node
 			String rootType = ReaderUtils.getWord(fr);
-			SoarIdentifierVertex topstate = null;
+			SoarIdentifierVertex topState = null;
 
 			if (rootType.equals("SOAR_ID"))
-				topstate = new SoarIdentifierVertex(ReaderUtils.getInteger(fr));
+				topState = new SoarIdentifierVertex(ReaderUtils.getInteger(fr));
 			else
 				System.err.println("Root type must be Soar id");
 				
-			swmm.setTopstate(topstate);
+			swmm.setTopstate(topState);
 
 
 			// Get the rest of the vertices
@@ -56,7 +52,7 @@ public class SoarWorkingMemoryReader {
 				}
 				else if (type.equals("ENUMERATION")) {
 					int enumerationSize = ReaderUtils.getInteger(fr);
-					Vector v = new Vector();
+					Vector<String> v = new Vector<>();
 					for(int j = 0; j < enumerationSize; ++j) 
 						v.add(ReaderUtils.getWord(fr));
 					vertexToAdd = new EnumerationVertex(id,v);
@@ -102,13 +98,9 @@ public class SoarWorkingMemoryReader {
         }
       }
 		}
-		catch(IOException ioe) {
+		catch(IOException | NumberFormatException ioe) {
 			ioe.printStackTrace();
 			throw ioe;
-		}
-		catch(NumberFormatException nfe) {
-			nfe.printStackTrace();
-			throw nfe;
 		}
 	}
 }

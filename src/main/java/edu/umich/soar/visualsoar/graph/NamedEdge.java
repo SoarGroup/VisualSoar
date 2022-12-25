@@ -5,6 +5,7 @@ import edu.umich.soar.visualsoar.operatorwindow.OperatorNode;
 import edu.umich.soar.visualsoar.parser.Triple;
 import edu.umich.soar.visualsoar.parser.TripleUtils;
 import edu.umich.soar.visualsoar.util.QueueAsLinkedList;
+import edu.umich.soar.visualsoar.util.VSQueue;
 
 import java.util.Enumeration;
 
@@ -326,18 +327,18 @@ public class NamedEdge extends Edge
     {
         // make sure this is the output-link
         if(!getName().equals("output-link"))  return;
-        edu.umich.soar.visualsoar.util.Queue queue = new QueueAsLinkedList();
+        VSQueue VSQueue = new QueueAsLinkedList();
         int numberOfVertices = swmm.getNumberOfVertices();
         boolean[] visitedVertices = new boolean[numberOfVertices];
         for(int i = 0; i < numberOfVertices; i++)
         visitedVertices[i] = false;
-        queue.enqueue(this.V1());
+        VSQueue.enqueue(this.V1());
         this.tested();
         this.setErrorNoted();
 
-        while(!queue.isEmpty()) 
+        while(!VSQueue.isEmpty())
         {
-            SoarVertex w = (SoarVertex)queue.dequeue();
+            SoarVertex w = (SoarVertex) VSQueue.dequeue();
             visitedVertices[w.getValue()] = true;
             if(w.allowsEmanatingEdges()) 
             {
@@ -350,7 +351,7 @@ public class NamedEdge extends Edge
                     if(! visitedVertices[theEdge.V1().getValue()]) 
                     {
                         visitedVertices[w.getValue()] = true;
-                        queue.enqueue(theEdge.V1());
+                        VSQueue.enqueue(theEdge.V1());
                     }   // if haven't visited this vertex, add to the queue
                 } // while looking at all the edges of the vertex
             }

@@ -39,7 +39,7 @@ public class AddingVisitor extends Visitor {
 		}
 	}
 	
-	public Enumeration changeEvents() {
+	public EnumerationIteratorWrapper changeEvents() {
 		return new EnumerationIteratorWrapper(changeEvents.iterator());
 	}
 }

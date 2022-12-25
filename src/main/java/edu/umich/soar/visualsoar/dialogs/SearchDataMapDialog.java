@@ -11,16 +11,12 @@ import edu.umich.soar.visualsoar.graph.IntegerRangeVertex;
 import edu.umich.soar.visualsoar.graph.SoarIdentifierVertex;
 import edu.umich.soar.visualsoar.graph.StringVertex;
 import edu.umich.soar.visualsoar.util.QueueAsLinkedList;
+import edu.umich.soar.visualsoar.util.VSQueue;
+
 import javax.swing.*;
-import javax.swing.tree.*;
-import javax.swing.filechooser.FileFilter;
 import java.awt.*;
-import java.awt.dnd.*;
-import java.awt.datatransfer.*;
 import java.awt.event.*;
-import java.io.*;
 import java.lang.*;
-import java.util.*;
 
 /**
  * Dialog which searches a datamap for requested edges.
@@ -43,7 +39,7 @@ public class SearchDataMapDialog extends JDialog {
   private String lastSearch = "";
 
   // Search variables
-  private edu.umich.soar.visualsoar.util.Queue queue;
+  private VSQueue VSQueue;
   private boolean[] visitedVertices;
   private int numberOfVertices;
 
@@ -59,7 +55,7 @@ public class SearchDataMapDialog extends JDialog {
 
     dmt = tree;
     swmm = (MainFrame.getMainFrame()).getOperatorWindow().getDatamap();
-    queue = new QueueAsLinkedList();
+    VSQueue = new QueueAsLinkedList();
     rootOfSearch = rootNode;
     initializeSearch();
 
@@ -114,8 +110,8 @@ public class SearchDataMapDialog extends JDialog {
         int children = 0;
 
 
-        while((!queue.isEmpty())  && edgeNotFound) {
-          FakeTreeNode ftn = (FakeTreeNode)queue.dequeue();
+        while((!VSQueue.isEmpty())  && edgeNotFound) {
+          FakeTreeNode ftn = (FakeTreeNode) VSQueue.dequeue();
           int rootValue = ftn.getEnumeratingVertex().getValue();
           visitedVertices[rootValue] = true;
           children = ftn.getChildCount();
@@ -140,7 +136,7 @@ public class SearchDataMapDialog extends JDialog {
               int vertexValue = childftn.getEnumeratingVertex().getValue();
               if(! visitedVertices[vertexValue]) {
                 visitedVertices[vertexValue] = true;
-                queue.enqueue(childftn);
+                VSQueue.enqueue(childftn);
               }   // if never visited vertex
               else {
                 // Check this edge since it won't be added to the queue
@@ -165,7 +161,7 @@ public class SearchDataMapDialog extends JDialog {
               int vertexValue = childftn.getEnumeratingVertex().getValue();
               if(! visitedVertices[vertexValue]) {
                 visitedVertices[vertexValue] = true;
-                queue.enqueue(childftn);
+                VSQueue.enqueue(childftn);
               } // if never visited vertex, enqueue
             }
           } // end of if edge found, still add children to queue for continued searching
@@ -195,14 +191,14 @@ public class SearchDataMapDialog extends JDialog {
    *  desired word
    */
   private void initializeSearch() {
-    queue = new QueueAsLinkedList();
+    VSQueue = new QueueAsLinkedList();
     FakeTreeNode ftn = rootOfSearch;
     numberOfVertices = swmm.getNumberOfVertices();
     lastSearch = "";
     visitedVertices = new boolean[numberOfVertices];
     for(int i = 0; i < numberOfVertices; i++)
       visitedVertices[i] = false;
-    queue.enqueue(ftn);
+    VSQueue.enqueue(ftn);
   }
 
 }     // end of SearchDataMapDialog class

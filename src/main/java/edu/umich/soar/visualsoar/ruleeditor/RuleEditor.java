@@ -2109,10 +2109,10 @@ public class RuleEditor extends CustomInternalFrame
             {
                 String newAddedCharacters = addedCharacters + matched.charAt(curPos);
                 String potStartString = userType + newAddedCharacters;
-                Iterator j = completeMatches.iterator();
+                Iterator<String> j = completeMatches.iterator();
                 while(j.hasNext())
                 {
-                    String currentString = (String)j.next();
+                    String currentString = j.next();
                     if(!currentString.startsWith(potStartString))
                     {
                         stillGood = false;
@@ -2183,13 +2183,13 @@ public class RuleEditor extends CustomInternalFrame
             matches = dataMap.matches(dataMap.getTopstate(),sp,"<$$>");
         }
         List<String> completeMatches = new LinkedList<>();
-        //This iterator can't be given a parameter.  See my note
+        //Warning: This iterator can't be given a parameter.  See my note
         // below and in DataMapMatcher.addConstraint() -:AMN:
         Iterator i = matches.iterator();
         while(i.hasNext())
         {
             //This cast is wacky.  Let's take what *should* be a SoarVertex
-            //and cast it to a string because String objects have been
+            //and cast it to a String because String objects have been
             //inserted into the Set<SoarVertex> in 'matches'.
             String matched = (String)i.next();
             if(matched.startsWith(userType))

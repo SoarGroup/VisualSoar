@@ -154,7 +154,7 @@ class VSEImporter {
 		}
 		else if(ruleFile.equals("DATAMAP")) {
 			SoarWorkingMemoryAppender.append(swmm,r);
-			Iterator i = hlOperators.iterator();
+			Iterator<OperatorNode> i = hlOperators.iterator();
 			while(i.hasNext()) {
 				SoarOperatorNode hlo = (SoarOperatorNode)i.next();
 				hlo.restoreId(swmm);

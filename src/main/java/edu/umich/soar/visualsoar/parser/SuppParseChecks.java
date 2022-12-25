@@ -2,17 +2,13 @@ package edu.umich.soar.visualsoar.parser;
 
 import edu.umich.soar.visualsoar.misc.FeedbackListObject;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorNode;
-import edu.umich.soar.visualsoar.parser.Action;
 import edu.umich.soar.visualsoar.ruleeditor.RuleEditor;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.Iterator;
 import java.util.Vector;
 import java.util.regex.Matcher;
@@ -55,9 +51,9 @@ public class SuppParseChecks {
     private static void getAttrTestVarNames(Vector<String> vars, Test test) {
         if (test.isConjunctiveTest()) {
             ConjunctiveTest cjTest = test.getConjunctiveTest();
-            Iterator stIter = cjTest.getSimpleTests();
+            Iterator<SimpleTest> stIter = cjTest.getSimpleTests();
             while (stIter.hasNext()) {
-                SimpleTest stest = (SimpleTest) stIter.next();
+                SimpleTest stest = stIter.next();
                 getSimpleTestVarName(vars, stest);
             }
         } else {
@@ -79,9 +75,9 @@ public class SuppParseChecks {
         //A PCond can be a conjunction of conditions...
         if (pcond.isConjunction()) {
             //Recurse into the conjunction
-            Iterator conjIter = pcond.getConjunction();
+            Iterator<Condition> conjIter = pcond.getConjunction();
             while (conjIter.hasNext()) {
-                Condition cond = (Condition)conjIter.next();
+                Condition cond = conjIter.next();
                 getPCondVarNames(vars, cond.getPositiveCondition());
             }
             return;
@@ -91,21 +87,21 @@ public class SuppParseChecks {
         vars.add(pcond.getConditionForOneIdentifier().getVariable().getString());
 
         //attribute-value tests
-        Iterator avIter = pcond.getConditionForOneIdentifier().getAttributeValueTests();
+        Iterator<AttributeValueTest> avIter = pcond.getConditionForOneIdentifier().getAttributeValueTests();
         while(avIter.hasNext()) {
-            AttributeValueTest avt = ((AttributeValueTest)avIter.next());
+            AttributeValueTest avt = avIter.next();
 
             //Attribute tests
-            Iterator attrIter = avt.getAttributeTests();
+            Iterator<AttributeTest> attrIter = avt.getAttributeTests();
             while(attrIter.hasNext()) {
-                AttributeTest attr = ((AttributeTest)attrIter.next());
+                AttributeTest attr = attrIter.next();
                 getAttrTestVarNames(vars, attr.getTest());
             }//attr tests
 
             //Value Tests
-            Iterator valIter = avt.getValueTests();
+            Iterator<ValueTest> valIter = avt.getValueTests();
             while(valIter.hasNext()) {
-                ValueTest val = ((ValueTest)valIter.next());
+                ValueTest val = valIter.next();
                 getValTestVarNames(vars, val.getTest());
             }//Value
 
@@ -124,9 +120,9 @@ public class SuppParseChecks {
     private static void getValTestVarNames(Vector<String> vars, Test test) {
         if (test.isConjunctiveTest()) {
             ConjunctiveTest cjTest = test.getConjunctiveTest();
-            Iterator stIter = cjTest.getSimpleTests();
+            Iterator<SimpleTest> stIter = cjTest.getSimpleTests();
             while (stIter.hasNext()) {
-                SimpleTest stest = (SimpleTest) stIter.next();
+                SimpleTest stest = stIter.next();
                 getSimpleTestVarName(vars, stest);
             }
         } else {
@@ -139,15 +135,13 @@ public class SuppParseChecks {
      * getLHSVarNames
      *
      * builds a list of variables that match in the LHS
-     *
-     * @param prod
      */
     private static Vector<String> getLHSVarNames(SoarProduction prod) {
 
         Vector<String> lhsVars = new Vector<>();
-        Iterator condIter = prod.getConditionSide().getConditions();
+        Iterator<Condition> condIter = prod.getConditionSide().getConditions();
         while(condIter.hasNext()) {
-            PositiveCondition pcond = ((Condition) condIter.next()).getPositiveCondition();
+            PositiveCondition pcond = condIter.next().getPositiveCondition();
             getPCondVarNames(lhsVars, pcond);
         }//while
 
@@ -177,31 +171,31 @@ public class SuppParseChecks {
         //Get variables from the on RHS.  Some of these will be variables
         //that are created and others will be used.
         // Example:  "(<s> ^foo <v>)" uses "<s>" and creates "<v>"
-        Iterator actIter = prod.getActionSide().getActions();
+        Iterator<Action> actIter = prod.getActionSide().getActions();
         while(actIter.hasNext()) {
-            Action act = (Action)actIter.next();
+            Action act = actIter.next();
             if (! act.isVarAttrValMake()) continue; //ignore function call
 
             //The identifier slot is always a used variable
             usedVars.add(act.getVarAttrValMake().getVariable());
 
-            Iterator avIter = act.getVarAttrValMake().getAttributeValueMakes();
+            Iterator<AttributeValueMake> avIter = act.getVarAttrValMake().getAttributeValueMakes();
             while(avIter.hasNext()) {
-                AttributeValueMake avMake = (AttributeValueMake)avIter.next();
+                AttributeValueMake avMake = avIter.next();
 
                 //RHS value tested
-                Iterator rhsValIter = avMake.getRHSValues();
+                Iterator<RHSValue> rhsValIter = avMake.getRHSValues();
                 while (rhsValIter.hasNext()) {
-                    RHSValue rhsVal = (RHSValue) rhsValIter.next();
+                    RHSValue rhsVal = rhsValIter.next();
                     if (rhsVal.isVariable()) {
                         usedVars.add(rhsVal.getVariable());
                     }
                 }
 
                 //RHS value created
-                Iterator rhsMakeIter = avMake.getValueMakes();
+                Iterator<ValueMake> rhsMakeIter = avMake.getValueMakes();
                 while(rhsMakeIter.hasNext()) {
-                    ValueMake val = (ValueMake) rhsMakeIter.next();
+                    ValueMake val = rhsMakeIter.next();
                     if (val.getRHSValue().isVariable()) {
                         createdVars.add(val.getRHSValue().getVariable().getString());
                     }
@@ -236,7 +230,7 @@ public class SuppParseChecks {
         //find the start position of each production
         Pattern prodPattern = Pattern.compile("[ \n\t\r][sg]p[ \t\n\r]*\\{");
         Matcher prodMatch = prodPattern.matcher(text);
-        Vector<Integer> prodStarts = new Vector<Integer>();
+        Vector<Integer> prodStarts = new Vector<>();
         while(prodMatch.find()) {
             prodStarts.add(prodMatch.start());
         }
@@ -244,10 +238,9 @@ public class SuppParseChecks {
 
         //This vertor stores all the places to insert a courtesy close brace
         // (typically there will be none)
-        Vector<Integer> bracePositions = new Vector<Integer>();
-        for(int pos = 0; pos < prodStarts.size() - 1; ++pos) {
-            int start = pos;
-            int end = prodStarts.get(pos + 1);
+        Vector<Integer> bracePositions = new Vector<>();
+        for(int start = 0; start < prodStarts.size() - 1; ++start) {
+            int end = prodStarts.get(start + 1);
 
             //Count the open and close braces to detect a mismatch
             int depth = 0;
@@ -277,18 +270,17 @@ public class SuppParseChecks {
                 //time to bail out
                 if (lastCloseParen != -1) {
 
-                    //Either the last brace is completely absent or
+                    //Either the last brace is completely absent (-1) or
                     //it precedes the last paren.  Either way, we've found
                     //a place to insert a brace
-                    if ((lastCloseParen > lastCloseBrace)
-                            || (lastCloseBrace == -1)) {
+                    if (lastCloseParen > lastCloseBrace) {
                         //calculate where to put a courtesy brace
                         int index = end - 1;
                         while (Character.isWhitespace(text.charAt(index))) {
                             index--;
                         }
                         index++;
-                        bracePositions.add(lastCloseParen + 1);
+                        bracePositions.add(index + 1);
                     }
                 }
             }//mismatch found
@@ -335,7 +327,7 @@ public class SuppParseChecks {
     public static void fixUnmatchedBraces(String filename) {
         //Read in the file content
         Path fPath = Paths.get(filename);
-        String fileContent = "";
+        String fileContent;
         try {
             byte[] bytes = Files.readAllBytes(fPath);
             fileContent = new String (bytes);
@@ -357,9 +349,8 @@ public class SuppParseChecks {
                 pw.print(fileContent);
                 pw.close();
             } catch (IOException e) {
-                //quiet fail.  This inot important enough to do anything about it.
+                //quiet fail.  This is not important enough to do anything about it.
                 //and likely to be caught by other parts of VisualSoar.
-                return;
             }
 
         }//if file was changed

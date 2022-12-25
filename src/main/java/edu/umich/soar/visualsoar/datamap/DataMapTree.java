@@ -13,6 +13,7 @@ import edu.umich.soar.visualsoar.parser.SoarProduction;
 import edu.umich.soar.visualsoar.parser.TokenMgrError;
 import edu.umich.soar.visualsoar.parser.Triple;
 import edu.umich.soar.visualsoar.util.QueueAsLinkedList;
+import edu.umich.soar.visualsoar.util.VSQueue;
 
 import javax.swing.*;
 import javax.swing.tree.TreeModel;
@@ -1194,7 +1195,7 @@ public class DataMapTree extends JTree implements ClipboardOwner
 	  */
 	 public void validateAll() 
 	 {
-		 edu.umich.soar.visualsoar.util.Queue queue = new QueueAsLinkedList();
+		 VSQueue<SoarVertex> queue = new QueueAsLinkedList<>();
 		 int numberOfVertices = swmm.getNumberOfVertices();
 		 boolean[] visitedVertices = new boolean[numberOfVertices];
 		 for(int i = 0; i < numberOfVertices; i++)
@@ -1210,9 +1211,9 @@ public class DataMapTree extends JTree implements ClipboardOwner
 		 swmm.notifyListenersOfRemove(ne);
 		 swmm.notifyListenersOfAdd(ne);
 
-		 while(!queue.isEmpty()) 
+		 while(!queue.isEmpty())
 		 {
-			 SoarVertex w = (SoarVertex)queue.dequeue();
+			 SoarVertex w = queue.dequeue();
 			 visitedVertices[w.getValue()] = true;
 			 if(w.allowsEmanatingEdges()) 
 			 {
@@ -1237,7 +1238,7 @@ public class DataMapTree extends JTree implements ClipboardOwner
 	  */
 	 public void validateDataMap() 
 	 {
-		 edu.umich.soar.visualsoar.util.Queue queue = new QueueAsLinkedList();
+		 VSQueue<SoarVertex> queue = new QueueAsLinkedList<>();
 		 int numberOfVertices = swmm.getNumberOfVertices();
 		 boolean[] visitedVertices = new boolean[numberOfVertices];
 		 for(int i = 0; i < numberOfVertices; i++)
@@ -1247,9 +1248,9 @@ public class DataMapTree extends JTree implements ClipboardOwner
 		 {
 			 FakeTreeNode root = (FakeTreeNode)getModel().getRoot();
 			 queue.enqueue(root.getEnumeratingVertex());
-			 while(!queue.isEmpty()) 
+			 while(!queue.isEmpty())
 			 {
-				 SoarVertex w = (SoarVertex)queue.dequeue();
+				 SoarVertex w = queue.dequeue();
 
 				 visitedVertices[w.getValue()] = true;
 				 if(w.allowsEmanatingEdges()) 
@@ -1279,7 +1280,7 @@ public class DataMapTree extends JTree implements ClipboardOwner
 	  */
 	 public void removeInvalid() 
 	 {
-		 edu.umich.soar.visualsoar.util.Queue queue = new QueueAsLinkedList();
+		 VSQueue<SoarVertex> queue = new QueueAsLinkedList<>();
 		 int numberOfVertices = swmm.getNumberOfVertices();
 		 boolean[] visitedVertices = new boolean[numberOfVertices];
 		 for(int i = 0; i < numberOfVertices; i++)
@@ -1290,9 +1291,9 @@ public class DataMapTree extends JTree implements ClipboardOwner
 			 FakeTreeNode root = (FakeTreeNode)getModel().getRoot();
 			 queue.enqueue(root.getEnumeratingVertex());
 
-			 while(!queue.isEmpty()) 
+			 while(!queue.isEmpty())
 			 {
-				 SoarVertex w = (SoarVertex)queue.dequeue();
+				 SoarVertex w = queue.dequeue();
 				 visitedVertices[w.getValue()] = true;
 				 if(w.allowsEmanatingEdges()) 
 				 {
@@ -1334,7 +1335,7 @@ public class DataMapTree extends JTree implements ClipboardOwner
 	 public Vector<FeedbackListObject> searchTestDataMap(SoarIdentifierVertex in_siv, String dataMapName)
 	 {
 		 Vector<FeedbackListObject> errors = new Vector<>();
-		 edu.umich.soar.visualsoar.util.Queue queue = new QueueAsLinkedList();
+		 VSQueue<SoarVertex> queue = new QueueAsLinkedList<>();
 		 int numberOfVertices = swmm.getNumberOfVertices();
 		 boolean[] visitedVertices = new boolean[numberOfVertices];
 		 for(int i = 0; i < numberOfVertices; i++)
@@ -1344,9 +1345,9 @@ public class DataMapTree extends JTree implements ClipboardOwner
 		 {
 			 FakeTreeNode root = (FakeTreeNode)getModel().getRoot();
 			 queue.enqueue(root.getEnumeratingVertex());
-			 while(!queue.isEmpty()) 
+			 while(!queue.isEmpty())
 			 {
-				 SoarVertex w = (SoarVertex)queue.dequeue();
+				 SoarVertex w = queue.dequeue();
 
 				 visitedVertices[w.getValue()] = true;
 				 if(w.allowsEmanatingEdges()) 
@@ -1388,7 +1389,7 @@ public class DataMapTree extends JTree implements ClipboardOwner
 	 public Vector<FeedbackListObject> searchCreateDataMap(SoarIdentifierVertex in_siv, String dataMapName)
 	 {
 		 Vector<FeedbackListObject> errors = new Vector<>();
-		 edu.umich.soar.visualsoar.util.Queue queue = new QueueAsLinkedList();
+		 VSQueue<SoarVertex> queue = new QueueAsLinkedList<>();
 		 int numberOfVertices = swmm.getNumberOfVertices();
 		 boolean[] visitedVertices = new boolean[numberOfVertices];
 		 for(int i = 0; i < numberOfVertices; i++)
@@ -1398,9 +1399,9 @@ public class DataMapTree extends JTree implements ClipboardOwner
 		 {
 			 FakeTreeNode root = (FakeTreeNode)getModel().getRoot();
 			 queue.enqueue(root.getEnumeratingVertex());
-			 while(!queue.isEmpty()) 
+			 while(!queue.isEmpty())
 			 {
-				 SoarVertex w = (SoarVertex)queue.dequeue();
+				 SoarVertex w = queue.dequeue();
 
 				 visitedVertices[w.getValue()] = true;
 				 if(w.allowsEmanatingEdges()) 
@@ -1442,7 +1443,7 @@ public class DataMapTree extends JTree implements ClipboardOwner
 	 public Vector<FeedbackListObject> searchTestNoCreateDataMap(SoarIdentifierVertex in_siv, String dataMapName)
 	 {
 		 Vector<FeedbackListObject> errors = new Vector<>();
-		 edu.umich.soar.visualsoar.util.Queue queue = new QueueAsLinkedList();
+		 VSQueue<SoarVertex> queue = new QueueAsLinkedList<>();
 		 int numberOfVertices = swmm.getNumberOfVertices();
 		 boolean[] visitedVertices = new boolean[numberOfVertices];
 		 for(int i = 0; i < numberOfVertices; i++)
@@ -1452,9 +1453,9 @@ public class DataMapTree extends JTree implements ClipboardOwner
 		 {
 			 FakeTreeNode root = (FakeTreeNode)getModel().getRoot();
 			 queue.enqueue(root.getEnumeratingVertex());
-			 while(!queue.isEmpty()) 
+			 while(!queue.isEmpty())
 			 {
-				 SoarVertex w = (SoarVertex)queue.dequeue();
+				 SoarVertex w = queue.dequeue();
 
 				 visitedVertices[w.getValue()] = true;
 				 if(w.allowsEmanatingEdges()) 
@@ -1497,7 +1498,7 @@ public class DataMapTree extends JTree implements ClipboardOwner
 	 public Vector<FeedbackListObject> searchCreateNoTestDataMap(SoarIdentifierVertex in_siv, String dataMapName)
 	 {
 		 Vector<FeedbackListObject> errors = new Vector<>();
-		 edu.umich.soar.visualsoar.util.Queue queue = new QueueAsLinkedList();
+		 VSQueue<SoarVertex> queue = new QueueAsLinkedList<>();
 		 int numberOfVertices = swmm.getNumberOfVertices();
 		 boolean[] visitedVertices = new boolean[numberOfVertices];
 		 for(int i = 0; i < numberOfVertices; i++)
@@ -1507,9 +1508,9 @@ public class DataMapTree extends JTree implements ClipboardOwner
 		 {
 			 FakeTreeNode root = (FakeTreeNode)getModel().getRoot();
 			 queue.enqueue(root.getEnumeratingVertex());
-			 while(!queue.isEmpty()) 
+			 while(!queue.isEmpty())
 			 {
-				 SoarVertex w = (SoarVertex)queue.dequeue();
+				 SoarVertex w = queue.dequeue();
 
 				 visitedVertices[w.getValue()] = true;
 				 if(w.allowsEmanatingEdges()) 
@@ -1551,7 +1552,7 @@ public class DataMapTree extends JTree implements ClipboardOwner
 	 public Vector<FeedbackListObject> searchNoTestNoCreateDataMap(SoarIdentifierVertex in_siv, String dataMapName)
 	 {
 		 Vector<FeedbackListObject> errors = new Vector<>();
-		 edu.umich.soar.visualsoar.util.Queue queue = new QueueAsLinkedList();
+		 VSQueue<SoarVertex> queue = new QueueAsLinkedList<>();
 		 int numberOfVertices = swmm.getNumberOfVertices();
 		 boolean[] visitedVertices = new boolean[numberOfVertices];
 		 for(int i = 0; i < numberOfVertices; i++)
@@ -1561,9 +1562,9 @@ public class DataMapTree extends JTree implements ClipboardOwner
 		 {
 			 FakeTreeNode root = (FakeTreeNode)getModel().getRoot();
 			 queue.enqueue(root.getEnumeratingVertex());
-			 while(!queue.isEmpty()) 
+			 while(!queue.isEmpty())
 			 {
-				 SoarVertex w = (SoarVertex)queue.dequeue();
+				 SoarVertex w = queue.dequeue();
 
 				 visitedVertices[w.getValue()] = true;
 				 if(w.allowsEmanatingEdges()) 
@@ -1605,7 +1606,7 @@ public class DataMapTree extends JTree implements ClipboardOwner
 	  */
 	 public FakeTreeNode selectEdge(NamedEdge desiredEdge) 
 	 {
-		 edu.umich.soar.visualsoar.util.Queue queue = new QueueAsLinkedList();
+		 VSQueue<FakeTreeNode> queue = new QueueAsLinkedList<>();
 		 FakeTreeNode foundftn = null;
 		 int numberOfVertices = swmm.getNumberOfVertices();
 		 boolean[] visitedVertices = new boolean[numberOfVertices];
@@ -1619,9 +1620,9 @@ public class DataMapTree extends JTree implements ClipboardOwner
 			 FakeTreeNode root = (FakeTreeNode)getModel().getRoot();
 			 queue.enqueue(root);
 
-			 while((!queue.isEmpty())  && edgeNotFound) 
+			 while((!queue.isEmpty())  && edgeNotFound)
 			 {
-				 FakeTreeNode ftn = (FakeTreeNode)queue.dequeue();
+				 FakeTreeNode ftn = queue.dequeue();
 				 int rootValue = ftn.getEnumeratingVertex().getValue();
 				 visitedVertices[rootValue] = true;
 				 children = ftn.getChildCount();
@@ -1674,7 +1675,7 @@ public class DataMapTree extends JTree implements ClipboardOwner
 	  */
 	 public void displayGeneratedNodes()
 	 {
-		 edu.umich.soar.visualsoar.util.Queue queue = new QueueAsLinkedList();
+		 VSQueue<FakeTreeNode> queue = new QueueAsLinkedList<>();
 		 int numberOfVertices = swmm.getNumberOfVertices();
 		 boolean[] visitedVertices = new boolean[numberOfVertices];
 		 int children;
@@ -1688,7 +1689,7 @@ public class DataMapTree extends JTree implements ClipboardOwner
 
 			 while(!queue.isEmpty())
 			 {
-				 FakeTreeNode ftn = (FakeTreeNode)queue.dequeue();
+				 FakeTreeNode ftn = queue.dequeue();
 				 int rootValue = ftn.getEnumeratingVertex().getValue();
 				 visitedVertices[rootValue] = true;
 				 children = ftn.getChildCount();

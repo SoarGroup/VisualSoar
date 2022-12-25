@@ -5,6 +5,7 @@ import edu.umich.soar.visualsoar.datamap.SoarWorkingMemoryModel;
 import edu.umich.soar.visualsoar.graph.EnumerationVertex;
 import edu.umich.soar.visualsoar.graph.NamedEdge;
 import edu.umich.soar.visualsoar.graph.SoarVertex;
+import edu.umich.soar.visualsoar.misc.FeedbackListObject;
 
 import java.io.*;
 import java.awt.Component;
@@ -39,39 +40,43 @@ class OperatorOperatorNode extends SoarOperatorNode {
 		isHighLevel = true;
 	}
   
-  public void searchTestDataMap(SoarWorkingMemoryModel swmm, Vector errors) {
-    // if highlevel, then search datamap
+  public void searchTestDataMap(SoarWorkingMemoryModel swmm, Vector<FeedbackListObject> errors) {
+    // if high-level, then search datamap
     if(isHighLevel()) {
       DataMap dataMap = new DataMap(swmm,dataMapId,toString());
       errors.addAll( dataMap.searchTestDataMap(dataMapId, toString()) );
     }
   }
-  public void searchCreateDataMap(SoarWorkingMemoryModel swmm, Vector errors) {
-    // if highlevel, then search datamap
+  public void searchCreateDataMap(SoarWorkingMemoryModel swmm, 
+                                  Vector<FeedbackListObject> errors) {
+    // if high-level, then search datamap
     if(isHighLevel()) {
       DataMap dataMap = new DataMap(swmm,dataMapId,toString());
       errors.addAll( dataMap.searchCreateDataMap(dataMapId, toString()) );
     }
   }
 
-  public void searchTestNoCreateDataMap(SoarWorkingMemoryModel swmm, Vector errors) {
-    // if highlevel, then serach datamap
+  public void searchTestNoCreateDataMap(SoarWorkingMemoryModel swmm, 
+                                        Vector<FeedbackListObject> errors) {
+    // if high-level, then search datamap
     if(isHighLevel()) {
       DataMap dataMap = new DataMap(swmm, dataMapId, toString());
       errors.addAll( dataMap.searchTestNoCreateDataMap(dataMapId, toString()) );
     }
   }
 
-  public void searchCreateNoTestDataMap(SoarWorkingMemoryModel swmm, Vector errors) {
-    // if highlevel, then serach datamap
+  public void searchCreateNoTestDataMap(SoarWorkingMemoryModel swmm, 
+                                        Vector<FeedbackListObject> errors) {
+    // if high-level, then search datamap
     if(isHighLevel()) {
       DataMap dataMap = new DataMap(swmm, dataMapId, toString());
       errors.addAll( dataMap.searchCreateNoTestDataMap(dataMapId, toString()) );
     }
   }
 
-  public void searchNoTestNoCreateDataMap(SoarWorkingMemoryModel swmm, Vector errors) {
-    // if highlevel, then serach datamap
+  public void searchNoTestNoCreateDataMap(SoarWorkingMemoryModel swmm, 
+                                          Vector<FeedbackListObject> errors) {
+    // if high-level, then search datamap
     if(isHighLevel()) {
       DataMap dataMap = new DataMap(swmm, dataMapId, toString());
       errors.addAll( dataMap.searchNoTestNoCreateDataMap(dataMapId, toString()) );
@@ -138,7 +143,7 @@ class OperatorOperatorNode extends SoarOperatorNode {
 
     /**
      * The user wants to rename this node
-     * @param operatorWindow
+     * 
      * @param newName the new name that the user wants this node to be called
      */
     public void rename(OperatorWindow operatorWindow,
@@ -164,7 +169,7 @@ class OperatorOperatorNode extends SoarOperatorNode {
         SoarWorkingMemoryModel swmm = operatorWindow.getDatamap();
 
         //Search for all operators in the datamap
-        Enumeration enumOper;
+        Enumeration<NamedEdge> enumOper;
         if (node instanceof SoarOperatorNode)
         {
             enumOper = swmm.emanatingEdges(((SoarOperatorNode)node).dataMapId);
@@ -175,15 +180,15 @@ class OperatorOperatorNode extends SoarOperatorNode {
         }
         while(enumOper.hasMoreElements())
         {
-            NamedEdge ne = (NamedEdge)enumOper.nextElement();
+            NamedEdge ne = enumOper.nextElement();
             if (ne.getName().equals("operator"))
             {
                 //Search this operator for the old name
                 SoarVertex svOper = ne.V1();
-                Enumeration enumName = swmm.emanatingEdges(svOper);
+                Enumeration<NamedEdge> enumName = swmm.emanatingEdges(svOper);
                 while(enumName.hasMoreElements())
                 {
-                    ne = (NamedEdge)enumName.nextElement();
+                    ne = enumName.nextElement();
                     if (ne.getName().equals("name"))
                     {
                         SoarVertex svName = ne.V1();

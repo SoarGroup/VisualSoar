@@ -6,14 +6,14 @@ import java.util.LinkedList;
  * list behave like a queue
  */
 
-public class QueueAsLinkedList implements Queue {
-	LinkedList line = new LinkedList();
+public class QueueAsLinkedList<E> implements VSQueue<E> {
+	LinkedList<E> line = new LinkedList<>();
 	
-	public void enqueue(Object o) {
+	public void enqueue(E o) {
 		line.add(o);
 	}
 	
-	public Object dequeue() {
+	public E dequeue() {
 		return line.removeFirst();		
 	}
 	
