@@ -19,8 +19,6 @@ public class OperatorWindowRenderer extends DefaultTreeCellRenderer {
     private static final long serialVersionUID = 20221225L;
 
     public OperatorWindowRenderer() {
-
-
     }
 
     public Component getTreeCellRendererComponent(

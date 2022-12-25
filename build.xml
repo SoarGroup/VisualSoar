@@ -46,7 +46,7 @@
 
 	<target name="compile" depends="init">
 		<javac destdir="${target.classes}" debug="on" optimize="on" target="${java.target.level}" source="${java.source.level}" >
-		  <compilerarg value="-Xlint:all" /> 
+		  <!-- <compilerarg value="-Xlint:all" /> -->
 			<src path="${src}" />
 			<classpath refid="compile.libs"/>
 		</javac>
