@@ -16,6 +16,8 @@ import java.util.Vector;
  */
 
 public class CopyVertexVector extends Vector<CopyVertex> implements Transferable {
+    private static final long serialVersionUID = 20221225L;
+
     public static final DataFlavor[] flavors =
             {
                     new DataFlavor(Vector.class, "Visual Soar Vertex Type and Name")

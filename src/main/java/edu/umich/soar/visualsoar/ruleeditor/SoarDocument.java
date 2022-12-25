@@ -11,6 +11,8 @@ import java.io.Reader;
 import java.io.StringReader;
 
 public class SoarDocument extends DefaultStyledDocument {
+    private static final long serialVersionUID = 20221225L;
+
     //These are enforced by the preferences dialog
     public static final int MIN_FONT_SIZE = 6;
     public static final int DEFAULT_FONT_SIZE = 12;

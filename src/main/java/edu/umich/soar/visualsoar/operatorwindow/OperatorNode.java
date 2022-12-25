@@ -36,7 +36,9 @@ import java.util.Vector;
  * @see FileOperatorNode (via SoarOperatorNode)
  */
 public abstract class OperatorNode extends VSTreeNode implements java.io.Serializable {
-    ///////////////////////////////////////////////////////////////////
+    private static final long serialVersionUID = 20221225L;
+
+///////////////////////////////////////////////////////////////////
 // Data Members
 ////////////////////////////////////////////////////////////////////
     static protected JPopupMenu contextMenu = new JPopupMenu();

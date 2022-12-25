@@ -16,6 +16,7 @@ import java.util.Enumeration;
 import java.util.Vector;
 
 public class SoarOperatorNode extends FileNode {
+    private static final long serialVersionUID = 20221225L;
 
     /////////////////////////////////////////
     // DataMembers

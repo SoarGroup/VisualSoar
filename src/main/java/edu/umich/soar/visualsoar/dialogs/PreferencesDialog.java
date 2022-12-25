@@ -21,6 +21,8 @@ import java.util.TreeMap;
  * @author Brian Harleton
  */
 public class PreferencesDialog extends JDialog {
+    private static final long serialVersionUID = 20221225L;
+
 
     JTabbedPane tabPane = new JTabbedPane(JTabbedPane.TOP);
     /**

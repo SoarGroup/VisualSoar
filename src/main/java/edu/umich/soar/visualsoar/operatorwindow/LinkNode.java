@@ -21,6 +21,8 @@ import java.util.Map;
  * So, the code remains here to support it. -:AMN: Dec 2022
  */
 public class LinkNode extends FileNode {
+    private static final long serialVersionUID = 20221225L;
+
     SoarOperatorNode linkedToNode;
     int linkedToNodeId;
 

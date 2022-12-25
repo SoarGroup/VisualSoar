@@ -5,6 +5,8 @@ import edu.umich.soar.visualsoar.parser.SoarParserConstants;
 import java.awt.*;
 
 public class SyntaxColor extends Color {
+    private static final long serialVersionUID = 20221225L;
+
     public static SyntaxColor[] getDefaultSyntaxColors() {
         SyntaxColor[] temp;
 

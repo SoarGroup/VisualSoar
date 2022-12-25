@@ -14,6 +14,8 @@ import java.util.Hashtable;
  * @version 1.0 01/12/99
  */
 public class TextFolderIcons extends MetalIconFactory.TreeFolderIcon {
+    private static final long serialVersionUID = 20221225L;
+
 
     protected String label;
     private static Hashtable<String, String> labels;

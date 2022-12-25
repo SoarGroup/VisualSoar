@@ -44,6 +44,8 @@ import java.util.Vector;
  * @author Brad Jones
  */
 public class RuleEditor extends CustomInternalFrame {
+    private static final long serialVersionUID = 20221225L;
+
     //********** Data Members  *****************
     private final OperatorNode associatedNode;
     private final EditorPane editorPane = new EditorPane();
@@ -1281,6 +1283,8 @@ public class RuleEditor extends CustomInternalFrame {
     // ACTIONS
     ////////////////////////////////////////////////////////
     class InsertTextFromFileAction extends AbstractAction {
+        private static final long serialVersionUID = 20221225L;
+
         public InsertTextFromFileAction() {
             super("Insert Text From File");
         }
@@ -1314,6 +1318,8 @@ public class RuleEditor extends CustomInternalFrame {
      * Gets the currently selected rule editor and tells it to save itself
      */
     class SaveAction extends AbstractAction {
+        private static final long serialVersionUID = 20221225L;
+
         public SaveAction() {
             super("Save File");
         }
@@ -1331,6 +1337,8 @@ public class RuleEditor extends CustomInternalFrame {
      * reverts the editor's contents to its last saved state
      */
     class RevertToSavedAction extends AbstractAction {
+        private static final long serialVersionUID = 20221225L;
+
         public RevertToSavedAction() {
             super("Revert To Saved");
             setEnabled(true);
@@ -1349,6 +1357,8 @@ public class RuleEditor extends CustomInternalFrame {
      * Closes the current window
      */
     class CloseAction extends AbstractAction {
+        private static final long serialVersionUID = 20221225L;
+
         public CloseAction() {
             super("Close");
         }
@@ -1370,6 +1380,8 @@ public class RuleEditor extends CustomInternalFrame {
     }
 
     class UndoAction extends AbstractAction {
+        private static final long serialVersionUID = 20221225L;
+
         public UndoAction() {
             super("Undo");
         }
@@ -1385,6 +1397,8 @@ public class RuleEditor extends CustomInternalFrame {
     }
 
     class ReDrawAction extends AbstractAction {
+        private static final long serialVersionUID = 20221225L;
+
         public ReDrawAction() {
             super("Redraw");
         }
@@ -1395,6 +1409,8 @@ public class RuleEditor extends CustomInternalFrame {
     }
 
     class ReJustifyAction extends AbstractAction {
+        private static final long serialVersionUID = 20221225L;
+
         public ReJustifyAction() {
             super("ReJustify");
         }
@@ -1406,6 +1422,8 @@ public class RuleEditor extends CustomInternalFrame {
 
 
     class RedoAction extends AbstractAction {
+        private static final long serialVersionUID = 20221225L;
+
         public RedoAction() {
             super("Redo");
         }
@@ -1420,6 +1438,8 @@ public class RuleEditor extends CustomInternalFrame {
     }
 
     class PasteAction extends DefaultEditorKit.PasteAction {
+        private static final long serialVersionUID = 20221225L;
+
         public PasteAction() {
             super();
         }
@@ -1431,6 +1451,8 @@ public class RuleEditor extends CustomInternalFrame {
     }
 
     class FindAction extends AbstractAction {
+        private static final long serialVersionUID = 20221225L;
+
         public FindAction() {
             super("Find");
         }
@@ -1442,6 +1464,8 @@ public class RuleEditor extends CustomInternalFrame {
     }
 
     class FindAndReplaceAction extends AbstractAction {
+        private static final long serialVersionUID = 20221225L;
+
         public FindAndReplaceAction() {
             super("Find And Replace");
         }
@@ -1453,6 +1477,8 @@ public class RuleEditor extends CustomInternalFrame {
     }
 
     class FindAgainAction extends AbstractAction {
+        private static final long serialVersionUID = 20221225L;
+
         public FindAgainAction() {
             super("Find Again");
             setEnabled(false);
@@ -1464,6 +1490,8 @@ public class RuleEditor extends CustomInternalFrame {
     }
 
     class ReplaceAndFindAgainAction extends AbstractAction {
+        private static final long serialVersionUID = 20221225L;
+
         public ReplaceAndFindAgainAction() {
             super("Replace & Find Again");
             setEnabled(false);
@@ -1476,6 +1504,8 @@ public class RuleEditor extends CustomInternalFrame {
     }
 
     class ReplaceAction extends AbstractAction {
+        private static final long serialVersionUID = 20221225L;
+
         public ReplaceAction() {
             super("Replace");
             setEnabled(false);
@@ -1487,6 +1517,8 @@ public class RuleEditor extends CustomInternalFrame {
     }
 
     class ReplaceAllAction extends AbstractAction {
+        private static final long serialVersionUID = 20221225L;
+
         public ReplaceAllAction() {
             super("Replace All");
             setEnabled(false);
@@ -1498,6 +1530,8 @@ public class RuleEditor extends CustomInternalFrame {
     }
 
     class CheckProductionsAction extends AbstractAction {
+        private static final long serialVersionUID = 20221225L;
+
         public CheckProductionsAction() {
             super("Check Productions");
         }
@@ -1546,6 +1580,8 @@ public class RuleEditor extends CustomInternalFrame {
      * This class puts the instantiated template in the text area.
      */
     class InsertTemplateAction extends AbstractAction {
+        private static final long serialVersionUID = 20221225L;
+
         private final Template template;
 
         public InsertTemplateAction(Template t) {
@@ -1572,6 +1608,8 @@ public class RuleEditor extends CustomInternalFrame {
      * of the text area
      */
     class CommentOutAction extends AbstractAction {
+        private static final long serialVersionUID = 20221225L;
+
         public CommentOutAction() {
             super("Comment Out");
         }
@@ -1634,6 +1672,8 @@ public class RuleEditor extends CustomInternalFrame {
      * line) from the currently selected text of the text area.
      */
     class UncommentOutAction extends AbstractAction {
+        private static final long serialVersionUID = 20221225L;
+
         public UncommentOutAction() {
             super("Uncomment Out");
         }
@@ -1686,6 +1726,8 @@ public class RuleEditor extends CustomInternalFrame {
      * into the rule editor, it only displays the attribute options in the feedback window.
      */
     class AutoSoarCompleteAction extends AbstractAction {
+        private static final long serialVersionUID = 20221225L;
+
         public AutoSoarCompleteAction() {
             super("Auto Soar Complete");
         }
@@ -1767,6 +1809,8 @@ public class RuleEditor extends CustomInternalFrame {
 
 
     class TabCompleteAction extends AbstractAction {
+        private static final long serialVersionUID = 20221225L;
+
         public TabCompleteAction() {
             super("Tab Complete");
         }
@@ -1958,6 +2002,8 @@ public class RuleEditor extends CustomInternalFrame {
     // 3P
     // Handles the "Runtime|Send Production" menu item
     class SendProductionToSoarAction extends AbstractAction {
+        private static final long serialVersionUID = 20221225L;
+
         public SendProductionToSoarAction() {
             super("Send Production");
         }
@@ -1988,6 +2034,8 @@ public class RuleEditor extends CustomInternalFrame {
     // 3P
     // Handles the "Runtime|Send File" menu item
     class SendFileToSoarAction extends AbstractAction {
+        private static final long serialVersionUID = 20221225L;
+
         public SendFileToSoarAction() {
             super("Send File");
         }
@@ -2019,6 +2067,8 @@ public class RuleEditor extends CustomInternalFrame {
     // 3P
     // Handles the "Runtime|Send All Files" menu item
     class SendAllFilesToSoarAction extends AbstractAction {
+        private static final long serialVersionUID = 20221225L;
+
         public SendAllFilesToSoarAction() {
             super("Send All Files");
         }
@@ -2068,6 +2118,8 @@ public class RuleEditor extends CustomInternalFrame {
     // 3P
     // Handles the "Runtime|Matches Production" menu item
     class SendMatchesToSoarAction extends AbstractAction {
+        private static final long serialVersionUID = 20221225L;
+
         public SendMatchesToSoarAction() {
             super("Matches Production");
         }
@@ -2092,6 +2144,8 @@ public class RuleEditor extends CustomInternalFrame {
     // 3P
     // Handles the "Runtime|Excise Production" menu item
     class SendExciseProductionToSoarAction extends AbstractAction {
+        private static final long serialVersionUID = 20221225L;
+
         public SendExciseProductionToSoarAction() {
             super("Excise Production");
         }
@@ -2284,6 +2338,8 @@ public class RuleEditor extends CustomInternalFrame {
      */
 
     class CustomUndoManager extends UndoManager {
+        private static final long serialVersionUID = 20221225L;
+
         public CustomUndoManager() {
             super();
             setLimit(10000); //This seems to be enough?

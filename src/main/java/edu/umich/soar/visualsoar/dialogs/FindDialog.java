@@ -17,6 +17,8 @@ import java.awt.event.WindowEvent;
  * @see RuleEditor#find
  */
 public class FindDialog extends JDialog {
+    private static final long serialVersionUID = 20221225L;
+
 
     /**
      * panel which contains the find input field and option buttons

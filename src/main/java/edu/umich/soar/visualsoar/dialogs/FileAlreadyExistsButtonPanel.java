@@ -10,6 +10,8 @@ import java.awt.*;
  * @see FileAlreadyExistsDialog
  */
 class FileAlreadyExistsButtonPanel extends JPanel {
+    private static final long serialVersionUID = 20221225L;
+
 
     JButton cancelButton = new JButton("Cancel");
     JButton useButton = new JButton("Use");

@@ -15,6 +15,8 @@ import java.awt.event.WindowEvent;
  * @author Jon Bauman
  */
 public class NewAgentDialog extends JDialog {
+    private static final long serialVersionUID = 20221225L;
+
 
     String newAgentName = null;
     String newAgentPath = null;

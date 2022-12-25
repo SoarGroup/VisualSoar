@@ -18,6 +18,8 @@ import java.awt.event.WindowEvent;
  * @see edu.umich.soar.visualsoar.operatorwindow.OperatorNode
  */
 public class FileAlreadyExistsDialog extends JDialog {
+    private static final long serialVersionUID = 20221225L;
+
     private int approved = 0;
 
 

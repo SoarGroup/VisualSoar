@@ -10,6 +10,8 @@ import java.awt.*;
  * @see AboutDialog
  */
 class AboutButtonPanel extends JPanel {
+    private static final long serialVersionUID = 20221225L;
+
 
     JButton greatButton = new JButton("Great");
 

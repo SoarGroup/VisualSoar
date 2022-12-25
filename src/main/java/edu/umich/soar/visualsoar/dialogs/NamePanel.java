@@ -11,6 +11,8 @@ import java.awt.event.KeyEvent;
  * @author Jon Bauman
  */
 class NamePanel extends JPanel {
+    private static final long serialVersionUID = 20221225L;
+
 
     JTextField nameField = new JTextField(20);
 

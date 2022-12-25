@@ -16,6 +16,8 @@ import java.awt.event.WindowEvent;
  * @author Jon Bauman
  */
 public class NameDialog extends JDialog {
+    private static final long serialVersionUID = 20221225L;
+
 
     boolean approved = false;
 

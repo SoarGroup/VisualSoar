@@ -14,6 +14,8 @@ import java.awt.event.KeyEvent;
  * @see EditNumberDialog
  */
 class RangePanel extends JPanel {
+    private static final long serialVersionUID = 20221225L;
+
 
     static int INTEGER = 0;
     static int FLOAT = 1;

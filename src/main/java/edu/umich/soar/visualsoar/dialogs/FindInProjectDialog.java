@@ -19,6 +19,8 @@ import java.awt.event.WindowEvent;
  * @see FindDialog
  */
 public class FindInProjectDialog extends JDialog {
+    private static final long serialVersionUID = 20221225L;
+
     FindInProjectPanel findPanel;
     FindButtonPanel buttonPanel;
     OperatorWindow opWin = null;

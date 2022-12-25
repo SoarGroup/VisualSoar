@@ -9,6 +9,8 @@ import java.awt.*;
  * @author Jon Bauman
  */
 class DefaultButtonPanel extends JPanel {
+    private static final long serialVersionUID = 20221225L;
+
 
     JButton cancelButton = new JButton("Cancel");
     JButton okButton = new JButton("OK");

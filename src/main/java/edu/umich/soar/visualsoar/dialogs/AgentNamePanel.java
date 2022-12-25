@@ -12,6 +12,8 @@ import java.awt.event.KeyEvent;
  * @see NewAgentDialog
  */
 class AgentNamePanel extends JPanel {
+    private static final long serialVersionUID = 20221225L;
+
 
     JTextField nameField = new JTextField("untitled-agent", 20);
 

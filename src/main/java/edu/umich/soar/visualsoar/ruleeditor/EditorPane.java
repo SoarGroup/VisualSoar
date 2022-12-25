@@ -17,6 +17,8 @@ import java.io.StringReader;
  * it isn't especially relevant now
  */
 public class EditorPane extends javax.swing.JEditorPane {
+    private static final long serialVersionUID = 20221225L;
+
     private final JPopupMenu contextMenu;
 
     /**
@@ -376,6 +378,8 @@ public class EditorPane extends javax.swing.JEditorPane {
     }
 
     class AutoJustifyAction extends AbstractAction {
+        private static final long serialVersionUID = 20221225L;
+
 
         public void actionPerformed(ActionEvent e) {
             SoarDocument doc = (SoarDocument) getDocument();

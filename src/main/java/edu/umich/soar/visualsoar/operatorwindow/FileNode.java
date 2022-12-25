@@ -24,6 +24,8 @@ import java.util.regex.Pattern;
  * @version 0.5a 5 Aug 1999
  */
 public class FileNode extends OperatorNode implements java.io.Serializable {
+    private static final long serialVersionUID = 20221225L;
+
 ///////////////////////////////////////////////////////////////////
 // Data Members
 ///////////////////////////////////////////////////////////////////

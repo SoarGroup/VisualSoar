@@ -10,6 +10,8 @@ import javax.swing.border.EmptyBorder;
  * @see AboutDialog
  */
 class AboutEmailPanel extends JPanel {
+    private static final long serialVersionUID = 20221225L;
+
 
     JLabel emailLabel =
             new JLabel("If you have any questions or comments,");

@@ -44,6 +44,8 @@ import java.util.*;
  */
 public class MainFrame extends JFrame implements Kernel.StringEventInterface
 {
+	private static final long serialVersionUID = 20221225L;
+
 /////////////////////////////////////////
 // Static Members
 /////////////////////////////////////////
@@ -584,10 +586,10 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
      * @author ThreePenny
      */
 	class SoarRuntimeAgentMenuListener extends MenuAdapter
-	
     {
+		private static final long serialVersionUID = 20221225L;
+
 		public void menuSelected(MenuEvent e)
-		
         {
 			// Remove our existing items
 			soarRuntimeAgentMenu.removeAll();
@@ -654,7 +656,6 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
      * @author ThreePenny
      */
 	class AgentConnectionActionListener implements ActionListener
-	
     {
 		// Index of this agent connection in the menu
 		private final String m_sAgentConnectionName;
@@ -961,9 +962,10 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 * Runs through all the Rule Editors in the Desktop Pane and tells them to save
 * themselves.
 */
-	class SaveAllFilesAction extends PerformableAction 
-    {
-		public SaveAllFilesAction() 
+	class SaveAllFilesAction extends PerformableAction {
+		private static final long serialVersionUID = 20221225L;
+
+		public SaveAllFilesAction()
         {
 			super("Save All");
 			setEnabled(false);
@@ -1003,9 +1005,10 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 	 * if all the closes go successfully, then it closes
 	 * the operator hierarchy then exits
 	 */
-	class ExitAction extends AbstractAction 
-    {
-		public ExitAction() 
+	class ExitAction extends AbstractAction {
+		private static final long serialVersionUID = 20221225L;
+
+		public ExitAction()
         {
 			super("Exit");
 		}
@@ -1035,9 +1038,10 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
      * Attempts to save the datamap
      * @see OperatorWindow#saveHierarchy()
      */
-	class SaveDataMapAndProjectAction extends PerformableAction
-    {
-		public SaveDataMapAndProjectAction() 
+	class SaveDataMapAndProjectAction extends PerformableAction {
+		private static final long serialVersionUID = 20221225L;
+
+		public SaveDataMapAndProjectAction()
         {
 			super("Save DataMap And Project Action");
 		}
@@ -1082,7 +1086,9 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 	 */
 	class OpenProjectAction extends AbstractAction 
     {
-		public OpenProjectAction() 
+		private static final long serialVersionUID = 20221225L;
+
+		public OpenProjectAction()
         {
 			super("Open Project...");
 		}	
@@ -1163,7 +1169,9 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
      */
     class OpenFileAction extends AbstractAction 
     {
-        public OpenFileAction() 
+		private static final long serialVersionUID = 20221225L;
+
+		public OpenFileAction()
         {
             super("Open File...");
         }
@@ -1205,7 +1213,9 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 	 */
 	class NewProjectAction extends AbstractAction 
     {
-		public NewProjectAction() 
+		private static final long serialVersionUID = 20221225L;
+
+		public NewProjectAction()
         {
 			super("New Project...");
 		}
@@ -1273,7 +1283,9 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 	 */
 	class CloseProjectAction extends PerformableAction 
     {
-		public CloseProjectAction() 
+		private static final long serialVersionUID = 20221225L;
+
+		public CloseProjectAction()
         {
 			super("Close Project");
 			setEnabled(false);
@@ -1319,7 +1331,9 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 	 */
 	class ExportAgentAction extends PerformableAction 
     {
-		public ExportAgentAction() 
+		private static final long serialVersionUID = 20221225L;
+
+		public ExportAgentAction()
         {
 			super("Export Agent");
 		}
@@ -1353,7 +1367,9 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 	 */
 	static class PreferencesAction extends AbstractAction
     {
-		public PreferencesAction() 
+		private static final long serialVersionUID = 20221225L;
+
+		public PreferencesAction()
         {
 			super("Preferences Action");
 		}
@@ -1371,7 +1387,9 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 	 */	
 	class ContactUsAction extends AbstractAction 
     {
-		public ContactUsAction() 
+		private static final long serialVersionUID = 20221225L;
+
+		public ContactUsAction()
         {
 			super("About VisualSoar");
 		}
@@ -1388,7 +1406,9 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 	 */	
 	class ViewKeyBindingsAction extends AbstractAction 
     {
-		public ViewKeyBindingsAction() 
+		private static final long serialVersionUID = 20221225L;
+
+		public ViewKeyBindingsAction()
         {
 			super("VisualSoar Keybindings");
 		}
@@ -1441,8 +1461,9 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
      * @author ThreePenny
      */
 	class SoarRuntimeInitAction extends AbstractAction
-	
     {
+		private static final long serialVersionUID = 20221225L;
+
 		public SoarRuntimeInitAction()
 		
         {
@@ -1557,7 +1578,6 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
      * @author ThreePenny
      */
 	void SoarRuntimeTerm()
-	
     {
 		try
 		{
@@ -1587,10 +1607,10 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
      * @author ThreePenny
      */
 	class SoarRuntimeTermAction extends AbstractAction
-	
     {
+		private static final long serialVersionUID = 20221225L;
+
 		public SoarRuntimeTermAction()
-		
         {
 			// Set the name and default to being disabled
 			super("Disconnect");
@@ -1598,7 +1618,6 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		}
 		
 		public void actionPerformed(ActionEvent e)
-		
         {
 			// Terminate the soar runtime
 			SoarRuntimeTerm();
@@ -1608,7 +1627,9 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
     // Handles the "Runtime|Send All Files" menu item
     class SendAllFilesToSoarAction extends AbstractAction
     {
-        public SendAllFilesToSoarAction()
+		private static final long serialVersionUID = 20221225L;
+
+		public SendAllFilesToSoarAction()
         {
             super("Send All Files");
 			setEnabled(false);
@@ -1655,6 +1676,8 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
      */
 	class SoarRuntimeSendRawCommandAction extends AbstractAction 
     {
+		private static final long serialVersionUID = 20221225L;
+
 		public SoarRuntimeSendRawCommandAction()
 		
         {
@@ -1788,7 +1811,9 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
      */
 	class VerifyProjectAction extends PerformableAction
     {
-		public VerifyProjectAction() 
+		private static final long serialVersionUID = 20221225L;
+
+		public VerifyProjectAction()
         {
 			super("Verify Project Integrity");
 			setEnabled(false);
@@ -1862,6 +1887,8 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 	 */
 	class LoadTopStateDatamapAction extends AbstractAction
 	{
+		private static final long serialVersionUID = 20221225L;
+
 		public LoadTopStateDatamapAction()
 		{
 			super("Load Top-State Data Map");
@@ -1885,7 +1912,9 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
      */
 	class CheckSyntaxErrorsAction extends AbstractAction 
     {
-    	//a list of all production names seen is stored here so that duplicates can be found
+		private static final long serialVersionUID = 20221225L;
+
+		//a list of all production names seen is stored here so that duplicates can be found
 		private final Vector<String> allProdNames = new Vector<>();
 
 		public CheckSyntaxErrorsAction() 
@@ -2000,7 +2029,9 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
      */
 	class CheckAllProductionsAction extends PerformableAction
     {
-		public CheckAllProductionsAction() 
+		private static final long serialVersionUID = 20221225L;
+
+		public CheckAllProductionsAction()
         {
 			super("Check All Productions");
 			setEnabled(false);
@@ -2054,7 +2085,9 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
      */
 	abstract class SearchDataMapAction extends AbstractAction
     {
-        int numNodes = 0;       // number of operator nodes in the project
+		private static final long serialVersionUID = 20221225L;
+
+		int numNodes = 0;       // number of operator nodes in the project
         int numChecks = 0;      // number of nodes scanned so far
         
 		public SearchDataMapAction() 
@@ -2174,7 +2207,9 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
      */
 	class SearchDataMapTestAction extends SearchDataMapAction
     {
-        public void searchDatamap(OperatorNode opNode, Vector<FeedbackListObject> v)
+		private static final long serialVersionUID = 20221225L;
+
+		public void searchDatamap(OperatorNode opNode, Vector<FeedbackListObject> v)
         {
             opNode.searchTestDataMap(operatorWindow.getDatamap(), v);
         }//searchDatamap
@@ -2186,7 +2221,9 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
      */
 	class SearchDataMapCreateAction extends SearchDataMapAction
     {
-        public void searchDatamap(OperatorNode opNode, Vector<FeedbackListObject> v)
+		private static final long serialVersionUID = 20221225L;
+
+		public void searchDatamap(OperatorNode opNode, Vector<FeedbackListObject> v)
         {
             opNode.searchCreateDataMap(operatorWindow.getDatamap(), v);
         }//searchDatamap
@@ -2197,7 +2234,9 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
      */
 	class SearchDataMapTestNoCreateAction extends SearchDataMapAction
     {
-        public void searchDatamap(OperatorNode opNode, Vector<FeedbackListObject> v)
+		private static final long serialVersionUID = 20221225L;
+
+		public void searchDatamap(OperatorNode opNode, Vector<FeedbackListObject> v)
         {
             opNode.searchTestNoCreateDataMap(operatorWindow.getDatamap(), v);
         }//searchDatamap
@@ -2208,7 +2247,9 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
      */
 	class SearchDataMapCreateNoTestAction extends SearchDataMapAction
     {
-        public void searchDatamap(OperatorNode opNode, Vector<FeedbackListObject> v)
+		private static final long serialVersionUID = 20221225L;
+
+		public void searchDatamap(OperatorNode opNode, Vector<FeedbackListObject> v)
         {
             opNode.searchCreateNoTestDataMap(operatorWindow.getDatamap(), v);
         }//searchDatamap
@@ -2219,7 +2260,9 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
      */
 	class SearchDataMapNoTestNoCreateAction extends SearchDataMapAction
     {
-        public void searchDatamap(OperatorNode opNode, Vector<FeedbackListObject> v)
+		private static final long serialVersionUID = 20221225L;
+
+		public void searchDatamap(OperatorNode opNode, Vector<FeedbackListObject> v)
         {
             opNode.searchNoTestNoCreateDataMap(operatorWindow.getDatamap(), v);
         }//searchDatamap
@@ -2236,6 +2279,8 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
      */
     class GenerateDataMapAction extends AbstractAction 
     {
+		private static final long serialVersionUID = 20221225L;
+
 		JProgressBar progressBar;
 		JDialog progressDialog;
 
@@ -2359,7 +2404,9 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 
 	class FindInProjectAction extends AbstractAction 
     {
-  		public FindInProjectAction()
+		private static final long serialVersionUID = 20221225L;
+
+		public FindInProjectAction()
         {
   			super("Find in Project");
 			setEnabled(false);
@@ -2385,7 +2432,9 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 
     class ReplaceInProjectAction extends AbstractAction 
     {
-        public ReplaceInProjectAction() 
+		private static final long serialVersionUID = 20221225L;
+
+		public ReplaceInProjectAction()
         {
             super("Replace in Project");
             setEnabled(false);
@@ -2411,7 +2460,9 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 	
 	class CommitAction extends PerformableAction 
     {
-		public CommitAction() 
+		private static final long serialVersionUID = 20221225L;
+
+		public CommitAction()
         {
 			super("Commit");
 			setEnabled(false);
@@ -2436,7 +2487,9 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 	
 	class SaveProjectAsAction extends AbstractAction 
     {
-		public SaveProjectAsAction() 
+		private static final long serialVersionUID = 20221225L;
+
+		public SaveProjectAsAction()
         {
 			super("Save Project As");
 			setEnabled(false);
@@ -2584,7 +2637,9 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 
     class TileWindowsAction extends AbstractAction 
     {
-        public TileWindowsAction() 
+		private static final long serialVersionUID = 20221225L;
+
+		public TileWindowsAction()
         {
             super("Tile Windows");
         }
@@ -2598,7 +2653,9 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 
     class ReTileWindowsAction extends AbstractAction 
     {
-        public ReTileWindowsAction() 
+		private static final long serialVersionUID = 20221225L;
+
+		public ReTileWindowsAction()
         {
             super("Re-Tile Windows");
         }
@@ -2612,7 +2669,9 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 
     class CascadeAction extends AbstractAction 
     {
-        public CascadeAction() 
+		private static final long serialVersionUID = 20221225L;
+
+		public CascadeAction()
         {
             super("Cascade Windows");
         }

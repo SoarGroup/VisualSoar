@@ -12,6 +12,8 @@ import java.awt.*;
  * @see FindInProjectDialog
  */
 class FindInProjectOptionsPanel extends JPanel {
+    private static final long serialVersionUID = 20221225L;
+
     JCheckBox matchCase = new JCheckBox("Match Case", false);
 
     public FindInProjectOptionsPanel() {

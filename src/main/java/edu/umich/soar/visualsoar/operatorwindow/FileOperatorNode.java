@@ -20,6 +20,7 @@ import java.util.Vector;
  */
 @SuppressWarnings("unused")
 public class FileOperatorNode extends SoarOperatorNode {
+    private static final long serialVersionUID = 20221225L;
 
     /////////////////////////////////////////
     // Constructors

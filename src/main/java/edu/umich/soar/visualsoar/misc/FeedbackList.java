@@ -24,6 +24,8 @@ import java.util.Vector;
 
 
 public class FeedbackList extends JList<FeedbackListObject> implements ActionListener {
+    private static final long serialVersionUID = 20221225L;
+
 ///////////////////////////////////////////////////////////////////
 // Instance Variables
 ///////////////////////////////////////////////////////////////////
@@ -172,6 +174,8 @@ public class FeedbackList extends JList<FeedbackListObject> implements ActionLis
      * class FeedbackCellRenderer displays a FeedbackListObject's text as a clickable label in an appropriate color
      */
     static class FeedbackCellRenderer extends JLabel implements ListCellRenderer<FeedbackListObject> {
+        private static final long serialVersionUID = 20221225L;
+
         private static final Border EMPTY_BORDER = BorderFactory.createEmptyBorder(2, 2, 2, 2);
         private static final Color FEEDBACK_ERROR_COLOR = Color.red;
         private static final Color FEEDBACK_MSG_COLOR = Color.blue.darker();

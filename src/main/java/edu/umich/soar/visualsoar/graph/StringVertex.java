@@ -1,7 +1,9 @@
 package edu.umich.soar.visualsoar.graph;
 
 public class StringVertex extends SoarVertex {
-    //////////////////////////////////
+    private static final long serialVersionUID = 20221225L;
+
+//////////////////////////////////
 // Constructors
 //////////////////////////////////
     public StringVertex(int id) {

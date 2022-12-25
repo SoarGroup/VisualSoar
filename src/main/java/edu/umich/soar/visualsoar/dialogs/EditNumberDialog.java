@@ -14,6 +14,8 @@ import java.awt.event.WindowEvent;
  * @author Jon Bauman
  */
 public class EditNumberDialog extends JDialog {
+    private static final long serialVersionUID = 20221225L;
+
 
     static int LOW = 1;
     static int HIGH = 2;

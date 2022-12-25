@@ -10,6 +10,8 @@ import javax.swing.border.EmptyBorder;
  * @see AboutDialog
  */
 class AboutVersionPanel extends JPanel {
+    private static final long serialVersionUID = 20221225L;
+
 
     JLabel versionLabel =
             new JLabel("Visual Soar");

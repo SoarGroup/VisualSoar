@@ -8,6 +8,8 @@ package edu.umich.soar.visualsoar.operatorwindow;
  * @version 0.5a 5 Aug 1999
  */
 public abstract class VSTreeNode extends javax.swing.tree.DefaultMutableTreeNode {
+    private static final long serialVersionUID = 20221225L;
+
 ///////////////////////////////////////////////////////////////////
 // Methods
 ///////////////////////////////////////////////////////////////////

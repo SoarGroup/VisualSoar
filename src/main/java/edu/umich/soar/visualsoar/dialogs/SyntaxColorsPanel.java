@@ -17,6 +17,8 @@ import java.util.TreeMap;
  * @author Jon Bauman
  */
 class SyntaxColorsPanel extends JPanel {
+    private static final long serialVersionUID = 20221225L;
+
 
     JCheckBox enable = new JCheckBox("Enable Syntax Highlighting");
 

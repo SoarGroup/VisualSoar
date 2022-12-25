@@ -13,6 +13,8 @@ import java.awt.*;
  * @author Jon Bauman
  */
 class AutoTilePanel extends JPanel {
+    private static final long serialVersionUID = 20221225L;
+
 
     JCheckBox enable = new JCheckBox("Enable Auto-tiling");
     JLabel tileStyle = new JLabel("Default Tile Style:");

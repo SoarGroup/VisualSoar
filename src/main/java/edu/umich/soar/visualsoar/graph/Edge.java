@@ -12,6 +12,9 @@ package edu.umich.soar.visualsoar.graph;
  */
 
 public class Edge implements java.io.Serializable {
+
+    private static final long serialVersionUID = 20221225L;
+
 ////////////////////////////////////////
 // DataMembers
 ////////////////////////////////////////

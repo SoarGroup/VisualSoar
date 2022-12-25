@@ -10,6 +10,8 @@ import java.awt.*;
  * @see NewAgentDialog
  */
 class AgentButtonPanel extends JPanel {
+    private static final long serialVersionUID = 20221225L;
+
 
     JButton cancelButton = new JButton("Cancel");
     JButton newButton = new JButton("New");

@@ -20,6 +20,8 @@ import java.util.Vector;
  * writing to disk.
  **/
 class OperatorOperatorNode extends SoarOperatorNode {
+    private static final long serialVersionUID = 20221225L;
+
 
     /////////////////////////////////////////
     // Constructors

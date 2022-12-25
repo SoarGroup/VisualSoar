@@ -14,6 +14,8 @@ import java.util.Vector;
  * @see EditEnumerationDialog
  */
 class EnumPanel extends JPanel {
+    private static final long serialVersionUID = 20221225L;
+
 
     JTextField newString = new JTextField(20);
     Vector<String> theStrings = new Vector<>();

@@ -18,6 +18,8 @@ import java.awt.event.WindowEvent;
  * @see edu.umich.soar.visualsoar.datamap.DataMapTree
  */
 public class IdentifierDialog extends JDialog {
+    private static final long serialVersionUID = 20221225L;
+
 
     boolean approved = false;
 

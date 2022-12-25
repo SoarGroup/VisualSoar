@@ -20,6 +20,9 @@ import java.util.Vector;
  * @version 0.5a 5 Aug 1999
  */
 public class OperatorRootNode extends FolderNode implements java.io.Serializable {
+
+    private static final long serialVersionUID = 20221225L;
+
 ///////////////////////////////////////////////////////////////////
 // Data Members
 ///////////////////////////////////////////////////////////////////

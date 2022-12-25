@@ -12,6 +12,8 @@ import java.awt.event.KeyEvent;
  * @see ReplaceInProjectDialog
  */
 class ReplacePanel extends JPanel {
+    private static final long serialVersionUID = 20221225L;
+
 
     JTextField replaceField = new JTextField(20);
 

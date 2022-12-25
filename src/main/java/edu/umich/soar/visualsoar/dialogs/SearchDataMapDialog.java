@@ -24,6 +24,8 @@ import java.awt.event.WindowEvent;
  * @see DataMap
  */
 public class SearchDataMapDialog extends JDialog {
+    private static final long serialVersionUID = 20221225L;
+
 
     SearchDataMapFindPanel findPanel = new SearchDataMapFindPanel();
 

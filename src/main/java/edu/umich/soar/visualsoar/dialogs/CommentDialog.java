@@ -16,6 +16,8 @@ import java.awt.event.WindowEvent;
  * @see edu.umich.soar.visualsoar.graph.NamedEdge
  */
 public class CommentDialog extends JDialog {
+    private static final long serialVersionUID = 20221225L;
+
 
     boolean approved = false;
 

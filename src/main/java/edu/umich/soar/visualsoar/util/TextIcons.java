@@ -17,6 +17,8 @@ import java.util.Hashtable;
  * They should be merged.
  */
 public class TextIcons extends MetalIconFactory.TreeLeafIcon {
+    private static final long serialVersionUID = 20221225L;
+
 
     protected String label;
     private static Hashtable<String, String> labels;

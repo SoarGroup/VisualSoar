@@ -18,6 +18,8 @@ import java.util.Set;
 import java.util.TreeSet;
 
 public class DirectorySelectionDialog extends JDialog {
+    private static final long serialVersionUID = 20221225L;
+
     private JPanel rootSelectionPanel;
     private JComboBox<File> rootSelector;
     private final DirectoryTree directoryTree;
@@ -190,6 +192,8 @@ public class DirectorySelectionDialog extends JDialog {
 }
 
 class DirectoryTree extends JTree {
+    private static final long serialVersionUID = 20221225L;
+
     public DirectoryTree(File root) {
         super(new DirectoryNode(root));
         addTreeExpansionListener(new TreeExpansionListener() {
@@ -261,6 +265,8 @@ class DirectoryTree extends JTree {
 }
 
 class DirectoryNode extends DefaultMutableTreeNode implements Comparable<DirectoryNode> {
+    private static final long serialVersionUID = 20221225L;
+
     private static final DirectoryFilter directoryFilter = new DirectoryFilter();
     private boolean explored = false;
     private final String name;

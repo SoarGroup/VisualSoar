@@ -5,8 +5,10 @@ import edu.umich.soar.visualsoar.dialogs.EditNumberDialog;
 import java.awt.*;
 
 public class IntegerRangeVertex extends SoarVertex {
-    int low, high;
-    String rep;
+    private static final long serialVersionUID = 20221225L;
+
+    private int low, high;
+    private String rep;
 
     public IntegerRangeVertex(int id, int _low, int _high) {
         super(id);

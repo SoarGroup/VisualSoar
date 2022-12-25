@@ -18,6 +18,8 @@ import java.awt.event.WindowEvent;
  * @see RuleEditor#replace
  */
 public class FindReplaceDialog extends JDialog {
+    private static final long serialVersionUID = 20221225L;
+
 
     /**
      * panel which contains the find input field and option buttons

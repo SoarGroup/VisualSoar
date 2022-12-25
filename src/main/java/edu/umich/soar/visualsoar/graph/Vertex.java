@@ -7,6 +7,8 @@ package edu.umich.soar.visualsoar.graph;
  * @version 0.9 6/5/00
  */
 public class Vertex implements java.io.Serializable {
+    private static final long serialVersionUID = 20221225L;
+
     ////////////////////////////////////////
 // DataMembers
 ////////////////////////////////////////

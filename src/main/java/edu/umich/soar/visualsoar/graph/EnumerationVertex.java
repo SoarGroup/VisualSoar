@@ -14,7 +14,9 @@ import java.util.Vector;
  */
 
 public class EnumerationVertex extends SoarVertex {
-    ///////////////////////////////////////////////
+    private static final long serialVersionUID = 20221225L;
+
+///////////////////////////////////////////////
 // Data Members
 ///////////////////////////////////////////////
     private Vector<String> theStrings;

@@ -16,6 +16,8 @@ import java.awt.event.WindowEvent;
  * @author Jon Bauman
  */
 public class NumberDialog extends JDialog {
+    private static final long serialVersionUID = 20221225L;
+
 
     static int NAME = 0;
     static int LOW = 1;

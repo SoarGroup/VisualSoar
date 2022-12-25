@@ -11,6 +11,8 @@ import javax.swing.border.EmptyBorder;
  * @see AboutDialog
  */
 class AboutImagePanel extends JPanel {
+    private static final long serialVersionUID = 20221225L;
+
 
     JLabel authorLabel =
             new JLabel("Visual Soar created by:");

@@ -48,6 +48,8 @@ import java.util.Vector;
  * @author Andrew Nuxoll
  */
 public class DataMapTree extends JTree implements ClipboardOwner {
+    private static final long serialVersionUID = 20221225L;
+
 
     ////////////////////////////////////////
     // DataMembers
@@ -1595,24 +1597,32 @@ public class DataMapTree extends JTree implements ClipboardOwner {
     }
 
     class CopyAction extends AbstractAction {
+        private static final long serialVersionUID = 20221225L;
+
         public void actionPerformed(ActionEvent e) {
             copy();
         }
     }
 
     class PasteAction extends AbstractAction {
+        private static final long serialVersionUID = 20221225L;
+
         public void actionPerformed(ActionEvent e) {
             paste();
         }
     }
 
     class LinkAction extends AbstractAction {
+        private static final long serialVersionUID = 20221225L;
+
         public void actionPerformed(ActionEvent e) {
             link();
         }
     }
 
     class SearchAction extends AbstractAction {
+        private static final long serialVersionUID = 20221225L;
+
         public SearchAction() {
             super("Search DataMap");
             setEnabled(false);
@@ -1635,12 +1645,16 @@ public class DataMapTree extends JTree implements ClipboardOwner {
 
 
     class ValidateDataMapAction extends AbstractAction {
+        private static final long serialVersionUID = 20221225L;
+
         public void actionPerformed(ActionEvent e) {
             validateDataMap();
         }
     }
 
     class RemoveInvalidAction extends AbstractAction {
+        private static final long serialVersionUID = 20221225L;
+
         public void actionPerformed(ActionEvent e) {
             removeInvalid();
         }

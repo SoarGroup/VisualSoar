@@ -16,7 +16,7 @@ import java.util.Vector;
  * writing to disk.
  */
 public class ImpasseOperatorNode extends SoarOperatorNode {
-
+    private static final long serialVersionUID = 20221225L;
 
     /////////////////////////////////////////
     // Constructors

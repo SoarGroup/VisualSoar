@@ -10,6 +10,8 @@ import java.awt.*;
  * @see SearchDataMapDialog
  */
 class SearchDataMapButtonPanel extends JPanel {
+    private static final long serialVersionUID = 20221225L;
+
 
     JCheckBox keepDialog = new JCheckBox("Keep Dialog", true);
 

@@ -16,10 +16,11 @@ import java.awt.event.WindowEvent;
  */
 
 public class SaveProjectAsDialog extends JDialog {
-    String newAgentName = null;
-    String newAgentPath = null;
+    private static final long serialVersionUID = 20221225L;
 
-    boolean approved = false;
+    private String newAgentName = null;
+    private String newAgentPath = null;
+    private boolean approved = false;
 
     /**
      * Name of Agent Input field

@@ -17,6 +17,8 @@ import java.io.File;
  * @see NewAgentDialog
  */
 class AgentPathPanel extends JPanel {
+    private static final long serialVersionUID = 20221225L;
+
 
     String workingDir = Prefs.openFolder.get();
     JTextField pathField = new JTextField(workingDir, 20);

@@ -11,6 +11,8 @@ import java.awt.*;
  * @see FindReplaceDialog
  */
 class FindButtonPanel extends JPanel {
+    private static final long serialVersionUID = 20221225L;
+
 
     JCheckBox keepDialog;
     JButton cancelButton = new JButton("Cancel");

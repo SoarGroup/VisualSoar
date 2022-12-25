@@ -13,6 +13,8 @@ import java.awt.*;
  * @see FindReplaceDialog
  */
 class FindOptionsPanel extends JPanel {
+    private static final long serialVersionUID = 20221225L;
+
 
     JLabel upDownLabel = new JLabel("Find Direction");
     JRadioButton upButton = new JRadioButton("Up", false);

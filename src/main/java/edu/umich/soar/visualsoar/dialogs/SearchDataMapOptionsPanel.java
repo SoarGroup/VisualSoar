@@ -13,6 +13,8 @@ import java.awt.*;
  * @see SearchDataMapDialog
  */
 class SearchDataMapOptionsPanel extends JPanel {
+    private static final long serialVersionUID = 20221225L;
+
 
     JCheckBox identifierCase = new JCheckBox("Identifiers", true);
     JCheckBox enumerationCase = new JCheckBox("Enumerations", true);

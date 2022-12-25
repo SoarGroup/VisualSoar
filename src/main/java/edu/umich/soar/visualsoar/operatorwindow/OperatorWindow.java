@@ -34,6 +34,8 @@ import java.util.*;
  */
 @SuppressWarnings("unused")
 public class OperatorWindow extends JTree {
+    private static final long serialVersionUID = 20221225L;
+
     int nextId = 1;
 ///////////////////////////////////////////////////////////////////////////
 // Data members

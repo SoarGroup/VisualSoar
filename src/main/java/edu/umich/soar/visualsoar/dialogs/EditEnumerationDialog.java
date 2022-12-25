@@ -14,6 +14,8 @@ import java.util.Vector;
  * @see edu.umich.soar.visualsoar.datamap.DataMapTree
  */
 public class EditEnumerationDialog extends JDialog {
+    private static final long serialVersionUID = 20221225L;
+
 
     /**
      * panel which facilitates entry of enumerations
@@ -113,6 +115,8 @@ public class EditEnumerationDialog extends JDialog {
 
 
     class EnterAction extends AbstractAction {
+        private static final long serialVersionUID = 20221225L;
+
         public EnterAction() {
             super("Enter Action");
         }

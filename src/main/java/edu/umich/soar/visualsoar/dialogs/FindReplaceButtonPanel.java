@@ -10,6 +10,8 @@ import java.awt.*;
  * @see FindReplaceDialog
  */
 class FindReplaceButtonPanel extends JPanel {
+    private static final long serialVersionUID = 20221225L;
+
 
     JCheckBox keepDialog = new JCheckBox("Keep Dialog", true);
 

@@ -28,6 +28,8 @@ import java.util.Vector;
  * @see FindInProjectDialog
  */
 public class ReplaceInProjectDialog extends JDialog {
+    private static final long serialVersionUID = 20221225L;
+
     /**
      * These keep track of place in directory tree that search is currently being
      * performed.

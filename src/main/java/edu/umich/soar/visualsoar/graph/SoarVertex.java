@@ -11,6 +11,8 @@ import javax.swing.*;
  */
 
 public abstract class SoarVertex extends Vertex {
+    private static final long serialVersionUID = 20221225L;
+
 ///////////////////////////////////////////////
 // Constructors
 ///////////////////////////////////////////////

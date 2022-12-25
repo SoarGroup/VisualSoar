@@ -15,6 +15,8 @@ import javax.swing.text.PlainDocument;
  * https://docs.oracle.com/javase/7/docs/api/javax/swing/JTextField.html
  */
 public class NumberTextField extends JTextField {
+    private static final long serialVersionUID = 20221225L;
+
 
     public NumberTextField() {
         super("", 3);  //set's field width
@@ -25,6 +27,8 @@ public class NumberTextField extends JTextField {
     }
 
     static class NumberDocument extends PlainDocument {
+        private static final long serialVersionUID = 20221225L;
+
 
         public void insertString(int offset, String str, AttributeSet a)
                 throws BadLocationException {

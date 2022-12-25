@@ -3,7 +3,9 @@ package edu.umich.soar.visualsoar.graph;
 import edu.umich.soar.visualsoar.dialogs.EditNumberDialog;
 
 public class FloatRangeVertex extends SoarVertex {
-    //////////////////////////////////////////
+    private static final long serialVersionUID = 20221225L;
+
+//////////////////////////////////////////
 // Data Members
 //////////////////////////////////////////
     private double low, high;

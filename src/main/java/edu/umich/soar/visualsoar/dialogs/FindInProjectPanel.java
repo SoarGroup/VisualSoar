@@ -12,8 +12,11 @@ import java.awt.event.KeyEvent;
  * @see FindInProjectDialog
  */
 class FindInProjectPanel extends JPanel {
-    JTextField findField = new JTextField(20);
-    FindInProjectOptionsPanel optionsPanel;
+    private static final long serialVersionUID = 20221225L;
+
+    private JTextField findField = new JTextField(20);
+    //FIXME:  this shouldn't need to be public
+    public FindInProjectOptionsPanel optionsPanel;
 
     public FindInProjectPanel() {
         optionsPanel = new FindInProjectOptionsPanel();

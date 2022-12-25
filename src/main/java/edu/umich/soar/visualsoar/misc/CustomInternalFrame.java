@@ -8,6 +8,8 @@ import javax.swing.*;
  * information with it.
  */
 public class CustomInternalFrame extends JInternalFrame {
+    private static final long serialVersionUID = 20221225L;
+
     /*======================================================================
       Constants
       ----------------------------------------------------------------------

@@ -18,6 +18,8 @@ import java.util.Vector;
  * @version 0.5a 6/29/1999
  */
 public class CustomDesktopPane extends JDesktopPane {
+    private static final long serialVersionUID = 20221225L;
+
     //amount of offset between cascaded windows
     public static final int X_OFFSET = 30;
     public static final int Y_OFFSET = 30;
@@ -39,6 +41,8 @@ public class CustomDesktopPane extends JDesktopPane {
      * desktop pane
      */
     class CascadeAction extends PerformableAction {
+        private static final long serialVersionUID = 20221225L;
+
         public CascadeAction() {
             super("Cascade");
         }
@@ -394,6 +398,8 @@ public class CustomDesktopPane extends JDesktopPane {
      * windows which are iconized.
      */
     class TileAction extends PerformableAction {
+        private static final long serialVersionUID = 20221225L;
+
         public TileAction() {
             super("Tile");
         }
@@ -412,6 +418,8 @@ public class CustomDesktopPane extends JDesktopPane {
     }
 
     class ReTileAction extends AbstractAction {
+        private static final long serialVersionUID = 20221225L;
+
         public ReTileAction() {
             super("ReTile");
         }

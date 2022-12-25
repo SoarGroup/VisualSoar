@@ -13,6 +13,8 @@ import java.awt.event.KeyEvent;
  * @see FindReplaceDialog
  */
 class FindPanel extends JPanel {
+    private static final long serialVersionUID = 20221225L;
+
 
     JTextField findField = new JTextField(20);
     FindOptionsPanel optionsPanel;

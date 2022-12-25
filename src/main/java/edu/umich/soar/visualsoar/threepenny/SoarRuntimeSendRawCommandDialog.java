@@ -13,6 +13,8 @@ import java.awt.event.*;
 // This dialog is used to retrieve a "raw command" (text string) from
 // the user which is sent to the runtime via the STI.
 public class SoarRuntimeSendRawCommandDialog extends JDialog {
+    private static final long serialVersionUID = 20221225L;
+
 
     /**
      * panels which contain the find input field and the buttons
@@ -74,6 +76,8 @@ public class SoarRuntimeSendRawCommandDialog extends JDialog {
 
     // Panel that contains the text entry for the raw command
     class RawCommandPanel extends JPanel {
+        private static final long serialVersionUID = 20221225L;
+
         JTextField rawCommandField = new JTextField(20);
 
         public RawCommandPanel() {
@@ -101,6 +105,8 @@ public class SoarRuntimeSendRawCommandDialog extends JDialog {
 
     // Panel containing the "Send" and "Cancel" buttons
     class SendRawCommandButtonPanel extends JPanel {
+        private static final long serialVersionUID = 20221225L;
+
         JButton cancelButton = new JButton("Cancel");
         JButton sendButton = new JButton("Send");
 
