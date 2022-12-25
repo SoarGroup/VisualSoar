@@ -151,7 +151,7 @@ public class FeedbackList extends JList<FeedbackListObject> implements ActionLis
         }
 
         //Make sure no-one's been fiddling with the list model
-        //:AMN:  I don't understand why we need this?
+        //TODO: I don't understand why we need this? -:AMN:
         if (getModel() != dlm) {
             setModel(dlm);
         }

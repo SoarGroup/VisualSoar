@@ -26,14 +26,17 @@ import java.util.Vector;
  *
  * @author Brad Jones
  * @version 0.5a 5 Aug 1999
- * @see FolderNode
- * @see OperatorRootNode (via FolderNode)
- * @see FileNode
- * @see LinkNode (via FileNode)
- * @see SoarOperatorNode  (via FileNode)
- * @see OperatorOperatorNode (via SoaorOperatorNode)
- * @see ImpasseOperatorNode (via SoarOperatorNode)
- * @see FileOperatorNode (via SoarOperatorNode)
+ * <p>
+ * Class Hierarchy: <br/>
+ *    Operator Node                                superclass for all nodes<br/>
+ *    +-- {@link FolderNode}                       contains a folder<br/>
+ *        +-- {@link OperatorRootNode}             root folder of the entire pane<br/>
+ *    +-- {@link FileNode}                         superclass for any node with an associated file<br/>
+ *        +-- {@link LinkNode}                     (no longer used)<br/>
+ *        +-- {@link SoarOperatorNode}             superclass for code-containing nodes<br/>
+ *            +-- {@link OperatorOperatorNode}     contains an operator<br/>
+ *            +-- {@link ImpasseOperatorNode}      contains an impasse file<br/>
+ *            +-- {@link FileOperatorNode}         contains elaborations<br/>
  */
 public abstract class OperatorNode extends VSTreeNode implements java.io.Serializable {
     private static final long serialVersionUID = 20221225L;
@@ -279,13 +282,13 @@ public abstract class OperatorNode extends VSTreeNode implements java.io.Seriali
      * @param pe   the ParseException to parse
      * @return the generated FeedbackListObject
      */
-    public static FeedbackListObject parseParseException(OperatorNode node, ParseException pe) {
+    public static FeedbackListObject parseParseException(OperatorNode node,
+                                                         ParseException pe) {
         String parseError = pe.toString();
+        //Strip away unncessary full qualifiers on class name
+        parseError = parseError.replace("edu.umich.soar.visualsoar.", "");
         int lineNum = getLineNumFromErr(parseError);
-        String lineNumStr = "(" + lineNum + "): ";
-        String errString = node.getFileName() + lineNumStr + parseError;
-
-        return new FeedbackListObject(node, lineNum, errString, true, true);
+        return new FeedbackListObject(node, lineNum, parseError, true);
     }
 
     /**

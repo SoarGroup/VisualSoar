@@ -9,24 +9,36 @@ import edu.umich.soar.visualsoar.operatorwindow.OperatorNode;
 
 
 /**
- * Just used to pass some things around
+ * A FeedbackListObject contains a message to be displayed to the user
+ * in the Feedback Pane (bottom of window).  Generally there are three
+ * type of feedback messages:
+ *  1.  just some text
+ *         Example: "Save finished"
+ *  2.  text associated with a place in the code
+ *         Example: "tanksoar/wander(22): Parse exception: '}' expected"
+ *  3.  text associated with a mismatch between a place in the code and a
+ *      a particular datamap entry
+ *         Example: "propose*wander(17) does not match constraint (&lt;s&gt; name foo)"
  *
  * @author Brad Jones
  * @version 0.5a 5 Aug 1999
  */
 public class FeedbackListObject {
-    ///////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////
 // Data Members
 ///////////////////////////////////////////////////////////////////
-    private OperatorNode node;
-    private int lineNumber = -1;
-    private String message;
-    private boolean msgEnough = false;
-    private boolean d_isError = false;
-    private String assocString = null;
+    //NOTE:  Of all the properties below, only message is mandatory.  However,
+    //       the more information you provide the more helpful VS can be.
+    private OperatorNode node;              //node associated with this message
+    private String prodName = null;         //name of production associated with this message
+    private int lineNumber = -1;            //line number associated with this message
+    private String message;                 //message text
+    private boolean isError = false;        //if 'true' message will be displayed in red text
+    private String assocString = null;      //code string to highlight in file when user double-clicks
 
-    // feedback list members that are used for accessing datamap info
-    //   - there probably should be a whole subclass for these types
+    // Feedback list members that are used for accessing datamap info use
+    // these properties as well.
+    // TODO: There should be a whole subclass for this type of feedback object
     private boolean dataMapObject = false;
     private NamedEdge edge;
     private SoarIdentifierVertex siv;
@@ -36,9 +48,6 @@ public class FeedbackListObject {
 // Constructors
 ///////////////////////////////////////////////////////////////////
 
-    /**
-     * Create the List Object with the given parameters
-     */
     public FeedbackListObject(OperatorNode in_node,
                               int in_ln,
                               String msg) {
@@ -48,30 +57,40 @@ public class FeedbackListObject {
     }
 
     public FeedbackListObject(OperatorNode in_node,
+                              String in_prod,
+                              int in_ln,
+                              String msg) {
+        this(in_node, in_ln, msg);
+        prodName = in_prod;
+    }
+
+
+
+    public FeedbackListObject(OperatorNode in_node,
                               int in_ln,
                               String msg,
                               String in_assocString) {
-        node = in_node;
-        lineNumber = in_ln;
-        message = msg;
+        this(in_node, in_ln, msg);
         assocString = in_assocString;
     }
 
     public FeedbackListObject(OperatorNode in_node,
                               int in_ln,
                               String msg,
-                              boolean _msgEnough) {
+                              boolean isError) {
         this(in_node, in_ln, msg);
-        msgEnough = _msgEnough;
+        this.isError = isError;
     }
 
     public FeedbackListObject(OperatorNode in_node,
+                              String in_prod,
                               int in_ln,
                               String msg,
                               boolean _msgEnough,
                               boolean isError) {
         this(in_node, in_ln, msg, _msgEnough);
-        d_isError = isError;
+        prodName = in_prod;
+        this.isError = isError;
     }
 
     public FeedbackListObject(NamedEdge in_edge,
@@ -96,7 +115,7 @@ public class FeedbackListObject {
 // Methods
 ///////////////////////////////////////////////////////////////////
     public boolean isError() {
-        return d_isError;
+        return isError;
     }
 
     public boolean hasNode() {
@@ -212,10 +231,15 @@ public class FeedbackListObject {
      */
     public String toString() {
         if (!isDataMapObject()) {
-            if (msgEnough) {
+            if (node == null) {
                 return message;
-            } else {
-                return node.getUniqueName() + "(" + lineNumber + "): " + message;
+            }
+            else {
+                String retVal = node.getUniqueName() + "(" + lineNumber + "): " + message;
+                if (prodName != null) {
+                    retVal = prodName + ": " + retVal;
+                }
+                return retVal;
             }
         } else {
             return dataMapName + ":  " + edge.toString();

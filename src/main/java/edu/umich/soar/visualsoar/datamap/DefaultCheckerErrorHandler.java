@@ -19,11 +19,10 @@ public class DefaultCheckerErrorHandler extends DefaultMatcherErrorHandler imple
     }
 
 
-    //////////////////////////////////////////////////
+//////////////////////////////////////////////////
 // Modifiers
 //////////////////////////////////////////////////
     public void variableNotMatched(String variable) {
-//		d_errors.add(d_errorBegin + "variable " + variable + " could not be matched in production");
-        d_errors.add(new FeedbackListObject(null, startLine, "variable " + variable + " could not be matched in production"));
+        d_errors.add(new FeedbackListObject(opNode, productionName, startLine, "variable " + variable + " could not be matched in production"));
     }
 }
