@@ -16,153 +16,156 @@ import java.util.TreeMap;
 
 /**
  * Dialog that allows preferences to be edited
+ *
  * @author Jon Bauman
  * @author Brian Harleton
  */
 public class PreferencesDialog extends JDialog {
-         
-	JTabbedPane			tabPane = new JTabbedPane(JTabbedPane.TOP);
-	/**
-	 * Panel which contains the syntax color editing buttons
-	 */
-	SyntaxColorsPanel 	colorPanel;
-	
-	/**          
-	 * Panel which contains the auto-tiling pref buttons
-	 */
-	AutoTilePanel		tilePanel = new AutoTilePanel();
 
-	/**
-	 * Panel which contains all the buttons
-	 */
-	DefaultButtonPanel 	buttonPanel = new DefaultButtonPanel();
+    JTabbedPane tabPane = new JTabbedPane(JTabbedPane.TOP);
+    /**
+     * Panel which contains the syntax color editing buttons
+     */
+    SyntaxColorsPanel colorPanel;
 
-	/**
-	 * The syntax colors
-	 */
-	SyntaxColor[]		colorTable = Prefs.getSyntaxColors();
-	
-	boolean				approved = false;
+    /**
+     * Panel which contains the auto-tiling pref buttons
+     */
+    AutoTilePanel tilePanel = new AutoTilePanel();
 
-	JCheckBox     autoIndentingCheckBox = new JCheckBox("Auto-Indenting", Prefs.autoIndentingEnabled.getBoolean());
-  	JCheckBox     autoSoarCompleteCheckBox = new JCheckBox("Auto-Soar Complete", Prefs.autoSoarCompleteEnabled.getBoolean());
+    /**
+     * Panel which contains all the buttons
+     */
+    DefaultButtonPanel buttonPanel = new DefaultButtonPanel();
 
-  	/** used to let the user change the font size of the editor font */
-	NumberTextField editorFontField = new NumberTextField();
+    /**
+     * The syntax colors
+     */
+    SyntaxColor[] colorTable = Prefs.getSyntaxColors();
 
+    boolean approved = false;
 
-	/**
-	 * @param owner Frame which owns the dialog
-	 */	  
-	public PreferencesDialog(final Frame owner) {
-		super(owner, "Preferences", true);
+    JCheckBox autoIndentingCheckBox = new JCheckBox("Auto-Indenting", Prefs.autoIndentingEnabled.getBoolean());
+    JCheckBox autoSoarCompleteCheckBox = new JCheckBox("Auto-Soar Complete", Prefs.autoSoarCompleteEnabled.getBoolean());
+
+    /**
+     * used to let the user change the font size of the editor font
+     */
+    NumberTextField editorFontField = new NumberTextField();
 
 
-		Container 			contentPane = getContentPane();
-		GridBagLayout 		gridbag = new GridBagLayout();
-		GridBagConstraints 	c = new GridBagConstraints();
-		JPanel				ruleEditorPanel = new JPanel();
-		JPanel				generalPanel = new JPanel();
-    	JPanel        		checkBoxPanel = new JPanel();
-    	JPanel 				editorFontPanel = new JPanel();
+    /**
+     * @param owner Frame which owns the dialog
+     */
+    public PreferencesDialog(final Frame owner) {
+        super(owner, "Preferences", true);
 
-		colorPanel = new SyntaxColorsPanel(Prefs.getSyntaxColors());
 
-		setResizable(false);
+        Container contentPane = getContentPane();
+        GridBagLayout gridbag = new GridBagLayout();
+        GridBagConstraints c = new GridBagConstraints();
+        JPanel ruleEditorPanel = new JPanel();
+        JPanel generalPanel = new JPanel();
+        JPanel checkBoxPanel = new JPanel();
+        JPanel editorFontPanel = new JPanel();
 
-		contentPane.setLayout(gridbag);
+        colorPanel = new SyntaxColorsPanel(Prefs.getSyntaxColors());
 
-		// specifies component as last one on the row
-		c.gridwidth = GridBagConstraints.REMAINDER;
-		c.fill = GridBagConstraints.HORIZONTAL;
+        setResizable(false);
 
-		//Auto-Formatting Section
-		checkBoxPanel.setLayout(new BorderLayout());
-		checkBoxPanel.setBorder(new CompoundBorder(
-				  BorderFactory.createTitledBorder("Auto Formatting"),
-				  BorderFactory.createEmptyBorder(10,10,10,10)));
-		checkBoxPanel.add(autoIndentingCheckBox, BorderLayout.NORTH);
-		checkBoxPanel.add(autoSoarCompleteCheckBox, BorderLayout.SOUTH);
+        contentPane.setLayout(gridbag);
 
-    	//Font Size Section (added by :AMN: on 25 Sep 2022)
-		editorFontPanel.setBorder(new CompoundBorder(
-				BorderFactory.createTitledBorder("Editor Font"),
-				BorderFactory.createEmptyBorder(10,10,10,10)));
-		editorFontPanel.add(Box.createHorizontalBox());
-		editorFontPanel.add(new JLabel("Font Size: "));
-		editorFontField.setText("" + SoarDocument.getFontSize());
-		editorFontPanel.add(editorFontField);
+        // specifies component as last one on the row
+        c.gridwidth = GridBagConstraints.REMAINDER;
+        c.fill = GridBagConstraints.HORIZONTAL;
 
-    	ruleEditorPanel.setLayout(new BoxLayout(ruleEditorPanel, BoxLayout.Y_AXIS));
-		ruleEditorPanel.add(colorPanel);
-		ruleEditorPanel.add(editorFontPanel);
-		ruleEditorPanel.add(checkBoxPanel);
+        //Auto-Formatting Section
+        checkBoxPanel.setLayout(new BorderLayout());
+        checkBoxPanel.setBorder(new CompoundBorder(
+                BorderFactory.createTitledBorder("Auto Formatting"),
+                BorderFactory.createEmptyBorder(10, 10, 10, 10)));
+        checkBoxPanel.add(autoIndentingCheckBox, BorderLayout.NORTH);
+        checkBoxPanel.add(autoSoarCompleteCheckBox, BorderLayout.SOUTH);
 
-		generalPanel.setLayout(new BoxLayout(generalPanel, BoxLayout.Y_AXIS));
-		generalPanel.add(tilePanel, BorderLayout.SOUTH);
+        //Font Size Section (added by :AMN: on 25 Sep 2022)
+        editorFontPanel.setBorder(new CompoundBorder(
+                BorderFactory.createTitledBorder("Editor Font"),
+                BorderFactory.createEmptyBorder(10, 10, 10, 10)));
+        editorFontPanel.add(Box.createHorizontalBox());
+        editorFontPanel.add(new JLabel("Font Size: "));
+        editorFontField.setText("" + SoarDocument.getFontSize());
+        editorFontPanel.add(editorFontField);
 
-		tabPane.addTab("Rule Editor", ruleEditorPanel);
-		tabPane.addTab("General", generalPanel);
+        ruleEditorPanel.setLayout(new BoxLayout(ruleEditorPanel, BoxLayout.Y_AXIS));
+        ruleEditorPanel.add(colorPanel);
+        ruleEditorPanel.add(editorFontPanel);
+        ruleEditorPanel.add(checkBoxPanel);
 
-		tabPane.setSelectedIndex(0);
+        generalPanel.setLayout(new BoxLayout(generalPanel, BoxLayout.Y_AXIS));
+        generalPanel.add(tilePanel, BorderLayout.SOUTH);
 
-		contentPane.add(tabPane, c);
-		contentPane.add(buttonPanel, c);
+        tabPane.addTab("Rule Editor", ruleEditorPanel);
+        tabPane.addTab("General", generalPanel);
 
-		pack();
-		getRootPane().setDefaultButton(buttonPanel.okButton);
+        tabPane.setSelectedIndex(0);
 
-		addWindowListener(new WindowAdapter() {
-			public void windowOpened(WindowEvent we) {
-				setLocationRelativeTo(owner);
-			}
-		});
+        contentPane.add(tabPane, c);
+        contentPane.add(buttonPanel, c);
 
-		buttonPanel.cancelButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				dispose();
-			}
-		});
+        pack();
+        getRootPane().setDefaultButton(buttonPanel.okButton);
 
-		buttonPanel.okButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				approved = true;
+        addWindowListener(new WindowAdapter() {
+            public void windowOpened(WindowEvent we) {
+                setLocationRelativeTo(owner);
+            }
+        });
 
-				Prefs.highlightingEnabled.setBoolean(colorPanel.getEnableHighlighting());
-				Prefs.autoTileEnabled.setBoolean(tilePanel.getAutoTile());
-				Prefs.horizTile.setBoolean(tilePanel.getHorizontalTile());
-				Prefs.autoIndentingEnabled.setBoolean(autoIndentingCheckBox.isSelected());
-				Prefs.autoIndentingEnabled.setBoolean(autoSoarCompleteCheckBox.isSelected());
-        
-				commitChanges();
-				Prefs.setSyntaxColors(colorTable);
-				dispose();
+        buttonPanel.cancelButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                dispose();
+            }
+        });
 
-				//Set a new font size
-				int fontSize = Integer.parseInt(editorFontField.getText());
-				if (fontSize != SoarDocument.getFontSize()) {
-					fontSize = Math.max(SoarDocument.MIN_FONT_SIZE, fontSize);
-					fontSize = Math.min(SoarDocument.MAX_FONT_SIZE, fontSize);
-					SoarDocument.setFontSize(fontSize);
-				}
-			}
-		});
+        buttonPanel.okButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                approved = true;
 
-	}     // end of constructor
-	
-	public void commitChanges() {
-		TreeMap<Integer, Color> colorsToChange = colorPanel.getChanges();
-		Iterator<Integer> keys = colorsToChange.keySet().iterator();
+                Prefs.highlightingEnabled.setBoolean(colorPanel.getEnableHighlighting());
+                Prefs.autoTileEnabled.setBoolean(tilePanel.getAutoTile());
+                Prefs.horizTile.setBoolean(tilePanel.getHorizontalTile());
+                Prefs.autoIndentingEnabled.setBoolean(autoIndentingCheckBox.isSelected());
+                Prefs.autoIndentingEnabled.setBoolean(autoSoarCompleteCheckBox.isSelected());
 
-		while (keys.hasNext()) {
-			int theKey = keys.next();
-			Color theColor = colorsToChange.get(theKey);
-			
-			colorTable[theKey] = new SyntaxColor(theColor, colorTable[theKey]);
-		}
-	}
+                commitChanges();
+                Prefs.setSyntaxColors(colorTable);
+                dispose();
 
-	public boolean wasApproved() {
-		return approved;
-	}
+                //Set a new font size
+                int fontSize = Integer.parseInt(editorFontField.getText());
+                if (fontSize != SoarDocument.getFontSize()) {
+                    fontSize = Math.max(SoarDocument.MIN_FONT_SIZE, fontSize);
+                    fontSize = Math.min(SoarDocument.MAX_FONT_SIZE, fontSize);
+                    SoarDocument.setFontSize(fontSize);
+                }
+            }
+        });
+
+    }     // end of constructor
+
+    public void commitChanges() {
+        TreeMap<Integer, Color> colorsToChange = colorPanel.getChanges();
+        Iterator<Integer> keys = colorsToChange.keySet().iterator();
+
+        while (keys.hasNext()) {
+            int theKey = keys.next();
+            Color theColor = colorsToChange.get(theKey);
+
+            colorTable[theKey] = new SyntaxColor(theColor, colorTable[theKey]);
+        }
+    }
+
+    public boolean wasApproved() {
+        return approved;
+    }
 }

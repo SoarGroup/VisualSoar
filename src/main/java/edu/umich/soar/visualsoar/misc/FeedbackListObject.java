@@ -10,12 +10,12 @@ import edu.umich.soar.visualsoar.operatorwindow.OperatorNode;
 
 /**
  * Just used to pass some things around
+ *
  * @author Brad Jones
  * @version 0.5a 5 Aug 1999
  */
-public class FeedbackListObject  
-{
-///////////////////////////////////////////////////////////////////
+public class FeedbackListObject {
+    ///////////////////////////////////////////////////////////////////
 // Data Members
 ///////////////////////////////////////////////////////////////////
     private OperatorNode node;
@@ -35,53 +35,49 @@ public class FeedbackListObject
 ///////////////////////////////////////////////////////////////////
 // Constructors
 ///////////////////////////////////////////////////////////////////
+
     /**
      * Create the List Object with the given parameters
      */
     public FeedbackListObject(OperatorNode in_node,
                               int in_ln,
-                              String msg) 
-    {
+                              String msg) {
         node = in_node;
         lineNumber = in_ln;
         message = msg;
     }
-    
+
     public FeedbackListObject(OperatorNode in_node,
                               int in_ln,
                               String msg,
-                              String in_assocString)
-    {
+                              String in_assocString) {
         node = in_node;
         lineNumber = in_ln;
         message = msg;
         assocString = in_assocString;
     }
-    
+
     public FeedbackListObject(OperatorNode in_node,
                               int in_ln,
                               String msg,
-                              boolean _msgEnough) 
-    {
-        this(in_node,in_ln,msg);
+                              boolean _msgEnough) {
+        this(in_node, in_ln, msg);
         msgEnough = _msgEnough;
     }
-    
+
     public FeedbackListObject(OperatorNode in_node,
                               int in_ln,
                               String msg,
                               boolean _msgEnough,
-                              boolean isError) 
-    {
-        this(in_node,in_ln,msg,_msgEnough);
+                              boolean isError) {
+        this(in_node, in_ln, msg, _msgEnough);
         d_isError = isError;
     }
 
     public FeedbackListObject(NamedEdge in_edge,
                               SoarIdentifierVertex in_siv,
                               String inDataMapName,
-                              String msg) 
-    {
+                              String msg) {
         edge = in_edge;
         siv = in_siv;
         message = msg;
@@ -95,164 +91,150 @@ public class FeedbackListObject
         this(null, 0, msg, true);
 
     }
-    
-///////////////////////////////////////////////////////////////////
+
+    ///////////////////////////////////////////////////////////////////
 // Methods
 ///////////////////////////////////////////////////////////////////
-    public boolean isError() 
-    {
+    public boolean isError() {
         return d_isError;
     }
-    public boolean hasNode() { return node != null; }
+
+    public boolean hasNode() {
+        return node != null;
+    }
 
     /**
      * returns the filename of the file for which the node of this
      * list object is associated
+     *
      * @return a string which is the file name of the file of which this object is associated
      */
-    public String getFileName() 
-    {
+    public String getFileName() {
         return node.getFileName();
     }
-    
+
     /**
      * returns the node for which this object is associated
+     *
      * @return a reference to the node
      */
-    public OperatorNode getNode() 
-    {
+    public OperatorNode getNode() {
         return node;
     }
 
-    /** sets the node with a new value */
-    public void setNode(OperatorNode newNode) { this.node = newNode;    }
+    /**
+     * sets the node with a new value
+     */
+    public void setNode(OperatorNode newNode) {
+        this.node = newNode;
+    }
 
 
     /**
      * returns the line number for which this object is associated
+     *
      * @return an int that is positive
      */
-    public int getLine() 
-    {
+    public int getLine() {
         return lineNumber;
     }
 
     /**
      * returns the message for this object
+     *
      * @return a string that is additional information for the user
      */
-    public String getMessage() 
-    {
+    public String getMessage() {
         return message;
     }
-    
+
     /**
      * lets you set a new message
+     *
      * @param s a string that is the new message
      */
-    public void setMessage(String s) 
-    {
+    public void setMessage(String s) {
         message = s;
     }
 
     /**
-   * determines whether object relates to a datamap or production
-   * @return true if object relates to a datamap entry
-   */
-    public boolean isDataMapObject() 
-    {
+     * determines whether object relates to a datamap or production
+     *
+     * @return true if object relates to a datamap entry
+     */
+    public boolean isDataMapObject() {
         return dataMapObject;
     }
 
     /**
-   *  Creates a DataMap from the datamap information
-   *  @return a datamap based on the information in this object, null if not a datamap object type
-   */
-    public DataMap createDataMap(SoarWorkingMemoryModel swmm) 
-    {
+     * Creates a DataMap from the datamap information
+     *
+     * @return a datamap based on the information in this object, null if not a datamap object type
+     */
+    public DataMap createDataMap(SoarWorkingMemoryModel swmm) {
         DataMap dm;
-        if(isDataMapObject()) 
-        {
-            if(siv.getValue() != 0) 
-            {
+        if (isDataMapObject()) {
+            if (siv.getValue() != 0) {
                 dm = new DataMap(swmm, siv, dataMapName);
-            }
-            else 
-            {
-                dm = new DataMap(swmm, swmm.getTopstate(),dataMapName);
+            } else {
+                dm = new DataMap(swmm, swmm.getTopstate(), dataMapName);
             }
             return dm;
-        }
-        else {
+        } else {
             return null;
         }
     }
 
-    public int getDataMapId() 
-    {
-        if(isDataMapObject()) {
+    public int getDataMapId() {
+        if (isDataMapObject()) {
             return siv.getValue();
-        }
-        else {
+        } else {
             return -1;
         }
     }
 
     /**
-   *  Returns the NamedEdge associated with this object, null if not a datamap object
-   */
-    public NamedEdge getEdge() 
-    {
-        if(isDataMapObject()) 
-        {
+     * Returns the NamedEdge associated with this object, null if not a datamap object
+     */
+    public NamedEdge getEdge() {
+        if (isDataMapObject()) {
             return edge;
-        }
-        else {
+        } else {
             return null;
         }
     }
-    
+
     /**
      * returns a string to represent this object, it is a combination of
      * the file, line number and the message
+     *
      * @return a string that represents this object
      */
-    public String toString() 
-    {
-        if(!isDataMapObject()) 
-        {
+    public String toString() {
+        if (!isDataMapObject()) {
             if (msgEnough) {
                 return message;
-            }
-            else {
+            } else {
                 return node.getUniqueName() + "(" + lineNumber + "): " + message;
             }
-        }
-        else 
-        {
+        } else {
             return dataMapName + ":  " + edge.toString();
         }
     }
 
-/**
- * Displays the file associated with the node referenced by this object
- */
-public void DisplayFile()
-{
-    if (assocString != null)
-    {
-        node.openRulesToString(MainFrame.getMainFrame(),
-                               lineNumber,
-                               assocString);
+    /**
+     * Displays the file associated with the node referenced by this object
+     */
+    public void DisplayFile() {
+        if (assocString != null) {
+            node.openRulesToString(MainFrame.getMainFrame(),
+                    lineNumber,
+                    assocString);
+        } else if (lineNumber >= 0) {
+            node.openRules(MainFrame.getMainFrame(), lineNumber);
+        } else {
+            node.openRules(MainFrame.getMainFrame());
+        }
     }
-    else if (lineNumber >= 0)
-    {
-        node.openRules(MainFrame.getMainFrame(), lineNumber);
-    }
-    else
-    {
-        node.openRules(MainFrame.getMainFrame());
-    }
-}
 
 }//class FeedbackListObject

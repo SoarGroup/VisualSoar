@@ -13,73 +13,67 @@ import java.util.Vector;
  * This class takes graph nodes and cleverly (or not so cleverly) disguises
  * as tree nodes, to prevent infinite recursion, the children are loaded when
  * needed
+ *
  * @author Brad Jones
  */
 
-public class FakeTreeNode  
-{
+public class FakeTreeNode {
 /////////////////////////////////////////
 // Data Members
 /////////////////////////////////////////
-    
+
     // a flag noting whether this node has been loaded
     private boolean hasLoaded = false;
-    
+
     // a string of how this node should be represented
     private String representation;
-    
+
     // the vertex from which emanating edges are considered children
     private final SoarVertex enumeratingVertex;
-    
+
     // a reference to the graph structure so we can extract the information as needed
     private final SoarWorkingMemoryModel swmm;
-    
+
     // the parent of this node, can be null
     private FakeTreeNode parent;
-    
+
     // the children for this node
     private final Vector<FakeTreeNode> children = new Vector<>();
-    
+
     // the associated edge for this node, can be null
     private NamedEdge theEdge = null;
-    
-/////////////////////////////////////////
+
+    /////////////////////////////////////////
 // Constructors
 /////////////////////////////////////////
-    public FakeTreeNode(SoarWorkingMemoryModel in_swmm, SoarIdentifierVertex siv, String s) 
-    {
+    public FakeTreeNode(SoarWorkingMemoryModel in_swmm, SoarIdentifierVertex siv, String s) {
         representation = s;
         enumeratingVertex = siv;
         swmm = in_swmm;
     }
 
-    public FakeTreeNode(SoarWorkingMemoryModel in_swmm, NamedEdge ne) 
-    {
+    public FakeTreeNode(SoarWorkingMemoryModel in_swmm, NamedEdge ne) {
 
         representation = ne.toString();
         enumeratingVertex = ne.V1();
         swmm = in_swmm;
         theEdge = ne;
 
-        if( representation.equals("operator") ) 
-        {
+        if (representation.equals("operator")) {
             boolean foundName = false;
             Enumeration<NamedEdge> e = swmm.emanatingEdges(enumeratingVertex);
             NamedEdge edge = null;
-            while(e.hasMoreElements() && !foundName) 
-            {
+            while (e.hasMoreElements() && !foundName) {
                 edge = e.nextElement();
-                if( ((edge.getName()).equals("name"))
-                    && (edge.V1() instanceof EnumerationVertex) )
-                {
+                if (((edge.getName()).equals("name"))
+                        && (edge.V1() instanceof EnumerationVertex)) {
                     foundName = true;
                 }
             } // while looking through enumeration
 
-            if(foundName) 
-            {
+            if (foundName) {
                 EnumerationVertex ev = (EnumerationVertex) edge.V1();
-                if(ev != null) {
+                if (ev != null) {
                     representation = "operator " + ev;
                 }
             }
@@ -87,61 +81,52 @@ public class FakeTreeNode
         }   // end of if the current node is an operator node
 
         // Add any possible comments to the representation of the fake node
-        if(ne.hasComment() ) {
+        if (ne.hasComment()) {
             representation = representation + "          * " + ne.getComment() + " *";
         }
     }
 
-//////////////////////////////////////////
+    //////////////////////////////////////////
 // Accessors
 //////////////////////////////////////////
-    public FakeTreeNode getChildAt(int index) 
-    {
+    public FakeTreeNode getChildAt(int index) {
         return children.get(index);
     }
-    
-    public int getChildCount() 
-    {
-        if (!hasLoaded) 
-        {
+
+    public int getChildCount() {
+        if (!hasLoaded) {
             int count = 0;
             Enumeration<NamedEdge> e = swmm.emanatingEdges(enumeratingVertex);
-            while(e.hasMoreElements()) 
-            {
+            while (e.hasMoreElements()) {
                 ++count;
                 NamedEdge edge = e.nextElement();
-                FakeTreeNode aChild = new FakeTreeNode(swmm,edge);
+                FakeTreeNode aChild = new FakeTreeNode(swmm, edge);
                 aChild.setParent(this);
                 children.add(aChild);
-            }   
+            }
             hasLoaded = true;
             return count;
         }
-        return children.size(); 
+        return children.size();
     }
 
-    public NamedEdge getEdge() 
-    {
+    public NamedEdge getEdge() {
         return theEdge;
     }
 
-    public SoarVertex getEnumeratingVertex() 
-    {
+    public SoarVertex getEnumeratingVertex() {
         return enumeratingVertex;
     }
 
-    public int getIndex(FakeTreeNode ftn) 
-    {
+    public int getIndex(FakeTreeNode ftn) {
         return children.indexOf(ftn);
     }
 
-    public FakeTreeNode getParent() 
-    {
+    public FakeTreeNode getParent() {
         return parent;
     }
-    
-    public Vector<FakeTreeNode> getTreePath()
-    {
+
+    public Vector<FakeTreeNode> getTreePath() {
         Vector<FakeTreeNode> v = new Vector<>();
         if (parent != null) {
             v = parent.getTreePath();
@@ -150,94 +135,78 @@ public class FakeTreeNode
         return v;
     }
 
-    public boolean hasLoaded() 
-    {
+    public boolean hasLoaded() {
         return hasLoaded;
     }
-    
-    public boolean isLeaf() 
-    {
+
+    public boolean isLeaf() {
         return !enumeratingVertex.allowsEmanatingEdges();
     }
 
-    public boolean isRoot() 
-    {
+    public boolean isRoot() {
         return (parent == null);
     }
 
-    public String toString() 
-    {
+    public String toString() {
         return representation;
     }
 
 
-//////////////////////////////////////////
+    //////////////////////////////////////////
 // Manipulators
 //////////////////////////////////////////
-    public TreeModelEvent add(NamedEdge ne) 
-    {
+    public TreeModelEvent add(NamedEdge ne) {
         int[] indices = new int[1];
-        FakeTreeNode aChild = new FakeTreeNode(swmm,ne);
+        FakeTreeNode aChild = new FakeTreeNode(swmm, ne);
         aChild.setParent(this);
         boolean found = false;
         int foundAt = 0;
-        for(int i = 0; i < children.size() && !found; ++i) 
-        {
-            NamedEdge current = getChildAt(i).getEdge();        
-            if (current.getName().compareTo(ne.getName()) >= 0) 
-            {
+        for (int i = 0; i < children.size() && !found; ++i) {
+            NamedEdge current = getChildAt(i).getEdge();
+            if (current.getName().compareTo(ne.getName()) >= 0) {
                 found = true;
                 foundAt = i;
             }
         }
-        if (found) 
-        {
-            children.add(foundAt,aChild);
+        if (found) {
+            children.add(foundAt, aChild);
             indices[0] = foundAt;
-        }
-        else 
-        {
+        } else {
             children.add(aChild);
             indices[0] = children.size() - 1;
         }
-        
-        return new TreeModelEvent(swmm,getTreePath().toArray(),indices,children.toArray());
+
+        return new TreeModelEvent(swmm, getTreePath().toArray(), indices, children.toArray());
     }
 
 
-    public void setParent(FakeTreeNode ftn) 
-    {
+    public void setParent(FakeTreeNode ftn) {
         parent = ftn;
     }
 
-    public TreeModelEvent remove(NamedEdge ne) 
-    {
+    public TreeModelEvent remove(NamedEdge ne) {
         int[] indices = new int[1];
         boolean found = false;
         int count = 0;
         Enumeration<FakeTreeNode> e = children.elements();
-        while(!found && e.hasMoreElements()) 
-        {
+        while (!found && e.hasMoreElements()) {
             FakeTreeNode currentChild = e.nextElement();
-            if(ne.equals(currentChild.getEdge())) 
-            {
-                found = true;   
+            if (ne.equals(currentChild.getEdge())) {
+                found = true;
                 indices[0] = count;
             }
             ++count;
         }
         children.removeElementAt(indices[0]);
-        return new TreeModelEvent(swmm,getTreePath().toArray(),indices,children.toArray());
+        return new TreeModelEvent(swmm, getTreePath().toArray(), indices, children.toArray());
     }
-    
-    public void visitChildren(edu.umich.soar.visualsoar.util.Visitor v) 
-    {
+
+    public void visitChildren(edu.umich.soar.visualsoar.util.Visitor v) {
         Enumeration<FakeTreeNode> e = children.elements();
-        while(e.hasMoreElements()) 
-        {
+        while (e.hasMoreElements()) {
             FakeTreeNode currentChild = e.nextElement();
             v.visit(currentChild);
             currentChild.visitChildren(v);
         }
-    } 
+    }
 }

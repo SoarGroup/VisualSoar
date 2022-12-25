@@ -1,4 +1,5 @@
 package edu.umich.soar.visualsoar.util;
+
 import java.util.LinkedList;
 
 /**
@@ -7,17 +8,17 @@ import java.util.LinkedList;
  */
 
 public class QueueAsLinkedList<E> implements VSQueue<E> {
-	LinkedList<E> line = new LinkedList<>();
-	
-	public void enqueue(E o) {
-		line.add(o);
-	}
-	
-	public E dequeue() {
-		return line.removeFirst();		
-	}
-	
-	public boolean isEmpty() {
-		return line.isEmpty();
-	}
+    LinkedList<E> line = new LinkedList<>();
+
+    public void enqueue(E o) {
+        line.add(o);
+    }
+
+    public E dequeue() {
+        return line.removeFirst();
+    }
+
+    public boolean isEmpty() {
+        return line.isEmpty();
+    }
 }

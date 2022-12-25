@@ -7,14 +7,15 @@ import edu.umich.soar.visualsoar.graph.SoarIdentifierVertex;
 import edu.umich.soar.visualsoar.graph.SoarVertex;
 import edu.umich.soar.visualsoar.misc.FeedbackListObject;
 
-import java.io.*;
-import java.awt.Component;
+import javax.swing.*;
 import javax.swing.tree.DefaultTreeModel;
-import javax.swing.JOptionPane;
+import java.awt.*;
+import java.io.*;
 import java.util.Vector;
 
 /**
  * This is the root node for the operator window
+ *
  * @author Brad Jones
  * @version 0.5a 5 Aug 1999
  */
@@ -22,236 +23,241 @@ public class OperatorRootNode extends FolderNode implements java.io.Serializable
 ///////////////////////////////////////////////////////////////////
 // Data Members
 ///////////////////////////////////////////////////////////////////
-	/**
-	 * A that represents the file path to the datamap, must be initialized
-	 * in the constructor
-	 */
-	private String fullPathStart;
-	
+    /**
+     * A that represents the file path to the datamap, must be initialized
+     * in the constructor
+     */
+    private String fullPathStart;
+
 ///////////////////////////////////////////////////////////////////
 // Constructors
 ///////////////////////////////////////////////////////////////////
-	/**
-	 * This constructs the normal OperatorRootNode object
-	 * @param inName the name of the node
-	 *
-	 */
-	public OperatorRootNode(String inName, int inId,String inFullPathStart, String inFolder) {
-		super(inName,inId,inFolder);
-		fullPathStart = inFullPathStart;
-	}
-	
-	public OperatorRootNode(String inName,int inId,String inFolder) {
-		super(inName,inId,inFolder);
-	}
-	
+
+    /**
+     * This constructs the normal OperatorRootNode object
+     *
+     * @param inName the name of the node
+     */
+    public OperatorRootNode(String inName, int inId, String inFullPathStart, String inFolder) {
+        super(inName, inId, inFolder);
+        fullPathStart = inFullPathStart;
+    }
+
+    public OperatorRootNode(String inName, int inId, String inFolder) {
+        super(inName, inId, inFolder);
+    }
+
 ///////////////////////////////////////////////////////////////////
 // Methods
 ///////////////////////////////////////////////////////////////////
 
-  /**
-   * @return whether an openDataMap() call on this node will work
-   */
-	public boolean noDataMap()
-    {
-		return false;
-	}
-    
-	/**
-	 * Given a Writer this writes out a description of the root node
-	 * that can be read back in later
-	 * @param w the writer 
-	 * @throws IOException if there is an error writing to the writer
-	 */
-	public void write(Writer w) throws IOException {
-		w.write("ROOT " + name + " " + folderName + " " + id);
-	}
-	
-	public void exportDesc(Writer w) throws IOException {
-		w.write("ROOT " + name);
-	}
-	
-	public void setFullPath(String s) {
-		fullPathStart = s;
-	}
-	
-	public String getFullPathStart() {
-		return fullPathStart;
-	}
-	
-	/**
-	 * Adds a suboperator underneath this root node
-	 *
-	 * @param swmm the Working Memory Model so that we can add corresponding entries to the datamap
-	 * @param newOperatorName the name of the operator being added
-	 */
-	public OperatorNode addSuboperator(OperatorWindow operatorWindow, SoarWorkingMemoryModel swmm,String newOperatorName) throws IOException {
-		super.addSuboperator(operatorWindow,swmm,newOperatorName);
+    /**
+     * @return whether an openDataMap() call on this node will work
+     */
+    public boolean noDataMap() {
+        return false;
+    }
 
-		SoarVertex oper = swmm.createNewSoarId();
-		SoarVertex operName = swmm.createNewEnumeration(newOperatorName);
-		swmm.addTriple(swmm.getTopstate(),"operator",oper);
-		swmm.addTriple(oper,"name",operName);
+    /**
+     * Given a Writer this writes out a description of the root node
+     * that can be read back in later
+     *
+     * @param w the writer
+     * @throws IOException if there is an error writing to the writer
+     */
+    public void write(Writer w) throws IOException {
+        w.write("ROOT " + name + " " + folderName + " " + id);
+    }
 
-		return this;
-	}
+    public void exportDesc(Writer w) throws IOException {
+        w.write("ROOT " + name);
+    }
 
-	public String getName() { return this.name; }
-	
-	public String getProjectFile() {
-		return fullPathStart + File.separator + name + ".vsa";
-	}
-	
-	public String getDataMapFile() {
-		return getFolderName() + File.separator + name + ".dm";
-	}
-	
-	/**
-	 * This returns the path of the project so that children can
-	 * determine the full path
-	 * @return the path of the project
-	 */
-	protected String getFullPathName() {
-		return fullPathStart + File.separator + folderName;
-	}
-	
-	/**
-	 * This adjusts the context menu so that only the valid commands 
-	 * are displayed
-	 * @param c the owner of the context menu, should be the OperatorWindow
-	 * @param x the horizontal position on the screen where the context menu should
-	 * be displayed
-	 * @param y the vertical position on the screen where the context menu should
-	 * be displayed
-	 */
-	public void showContextMenu(Component c, int x, int y) {
-		addSuboperatorItem.setEnabled(true);
-		addFileItem.setEnabled(true);
-		openRulesItem.setEnabled(false);
-		openDataMapItem.setEnabled(true);
-		deleteItem.setEnabled(false);
-		renameItem.setEnabled(false);
-		exportItem.setEnabled(false);
-    	impasseSubMenu.setEnabled(true);
-		checkChildrenAgainstDataMapItem.setEnabled(true);
-		contextMenu.show(c,x,y);
-	}
-	
-	/**
-	 * This opens/shows a dataMap with this node's associated Data Map File
-	 * @param pw the MainFrame 
-	 */
-	public void openDataMap(SoarWorkingMemoryModel swmm,MainFrame pw) {
-		DataMap dataMap = new DataMap(swmm,swmm.getTopstate(),toString());
-		dataMap.setVisible(true);
-		pw.addDataMap(dataMap);
-    	pw.getDesktopPane().dmAddDataMap(swmm.getTopstate().getValue(), dataMap);
-	}
-	
-	/**
-	 * This returns the associated datamap entry for the root node
-	 * which is going to be the top-state
-	 */
-	public SoarIdentifierVertex getStateIdVertex() {
-		return MainFrame.getMainFrame().getOperatorWindow().getDatamap().getTopstate();
-	}
+    public void setFullPath(String s) {
+        fullPathStart = s;
+    }
 
-	/**
-	 * rename
-	 * is used by {@link #renameAndBackup}
-	 */
-	public void rename(OperatorWindow operatorWindow, String newName, String newPath) throws IOException {
-		DefaultTreeModel model = (DefaultTreeModel)operatorWindow.getModel();
-		File newFolder = new File(newPath + File.separator + newName);
+    public String getFullPathStart() {
+        return fullPathStart;
+    }
 
-		this.folderName = newFolder.getName();
-		this.name = newName;
-    	this.fullPathStart = newPath;
+    /**
+     * Adds a suboperator underneath this root node
+     *
+     * @param swmm            the Working Memory Model so that we can add corresponding entries to the datamap
+     * @param newOperatorName the name of the operator being added
+     */
+    public OperatorNode addSuboperator(OperatorWindow operatorWindow, SoarWorkingMemoryModel swmm, String newOperatorName) throws IOException {
+        super.addSuboperator(operatorWindow, swmm, newOperatorName);
 
-		model.nodeChanged(this);
-	}//rename
-	
-	public void importFunc(Reader r,OperatorWindow operatorWindow,SoarWorkingMemoryModel swmm) throws IOException, NumberFormatException {
-			VSEImporter.read(r,this,operatorWindow,swmm,VSEImporter.HLOPERATOR | VSEImporter.OPERATOR);
-	}
-	
-	public void renameAndBackup(OperatorWindow operatorWindow, String newName, String newPath) {
+        SoarVertex oper = swmm.createNewSoarId();
+        SoarVertex operName = swmm.createNewEnumeration(newOperatorName);
+        swmm.addTriple(swmm.getTopstate(), "operator", oper);
+        swmm.addTriple(oper, "name", operName);
 
-		if( new File(newPath + File.separator + newName + ".vsa").exists()) {
-		  JOptionPane.showMessageDialog(MainFrame.getMainFrame(),"An agent with this name already exists at this location.","Naming Error",JOptionPane.ERROR_MESSAGE);
-				return;
-		}
+        return this;
+    }
 
-		//Create the parent folder if it doesn't exist
-		File parentFolder = new File(newPath);
-		if (!parentFolder.exists()) {
-			parentFolder.mkdir();
-		}
+    public String getName() {
+        return this.name;
+    }
 
-		//Create the new project folder if it doesn't exist
-		File newFolder = new File(newPath + File.separator + newName);
-		if (! newFolder.exists()) {
-			newFolder.mkdir();
-		}
+    public String getProjectFile() {
+        return fullPathStart + File.separator + name + ".vsa";
+    }
 
-		try {
-			//Update the instance variables identifying this project
-			rename(operatorWindow, newName, newPath);
+    public String getDataMapFile() {
+        return getFolderName() + File.separator + name + ".dm";
+    }
 
-			//Create a subfolder for the .dm file
-			String newDataFolderName = newPath + File.separator + newName;
-			File newDataFolder = new File(newDataFolderName);
-			if (! newDataFolder.exists()) {
-				newDataFolder.mkdir();
-			}
+    /**
+     * This returns the path of the project so that children can
+     * determine the full path
+     *
+     * @return the path of the project
+     */
+    protected String getFullPathName() {
+        return fullPathStart + File.separator + folderName;
+    }
 
-			//Create the new datamap file
-			String newGraphFileName = newDataFolderName + File.separator + newName + ".dm";
-			FileWriter graphWriter = new FileWriter(newGraphFileName);
-			operatorWindow.getDatamap().write(graphWriter);
-			graphWriter.close();
+    /**
+     * This adjusts the context menu so that only the valid commands
+     * are displayed
+     *
+     * @param c the owner of the context menu, should be the OperatorWindow
+     * @param x the horizontal position on the screen where the context menu should
+     *          be displayed
+     * @param y the vertical position on the screen where the context menu should
+     *          be displayed
+     */
+    public void showContextMenu(Component c, int x, int y) {
+        addSuboperatorItem.setEnabled(true);
+        addFileItem.setEnabled(true);
+        openRulesItem.setEnabled(false);
+        openDataMapItem.setEnabled(true);
+        deleteItem.setEnabled(false);
+        renameItem.setEnabled(false);
+        exportItem.setEnabled(false);
+        impasseSubMenu.setEnabled(true);
+        checkChildrenAgainstDataMapItem.setEnabled(true);
+        contextMenu.show(c, x, y);
+    }
 
-			for(int i = 0; i < getChildCount(); ++i) {
-				OperatorNode child = (OperatorNode)getChildAt(i);
-				child.copyStructures(newDataFolder);
-			}
-		}
-		catch(IOException ioe) {
-			JOptionPane.showMessageDialog(MainFrame.getMainFrame(),"Save As Failed!","Save As Failed",JOptionPane.ERROR_MESSAGE);
-		}
-	}//renameAndBackup
+    /**
+     * This opens/shows a dataMap with this node's associated Data Map File
+     *
+     * @param pw the MainFrame
+     */
+    public void openDataMap(SoarWorkingMemoryModel swmm, MainFrame pw) {
+        DataMap dataMap = new DataMap(swmm, swmm.getTopstate(), toString());
+        dataMap.setVisible(true);
+        pw.addDataMap(dataMap);
+        pw.getDesktopPane().dmAddDataMap(swmm.getTopstate().getValue(), dataMap);
+    }
 
-	public void startSourcing() throws IOException {
-		String filename = fullPathStart + File.separator + folderName + ".soar";
-		Writer w = new FileWriter(filename);
-		source(w);
-		w.close();
-		sourceRecursive();		
-	}
+    /**
+     * This returns the associated datamap entry for the root node
+     * which is going to be the top-state
+     */
+    public SoarIdentifierVertex getStateIdVertex() {
+        return MainFrame.getMainFrame().getOperatorWindow().getDatamap().getTopstate();
+    }
 
-  public void searchTestDataMap(SoarWorkingMemoryModel swmm, Vector<FeedbackListObject> errors) {
-    DataMap dataMap = new DataMap(swmm,swmm.getTopstate(), "");
-    errors.addAll(dataMap.searchTestDataMap(swmm.getTopstate(),  toString() ));
-  }
+    /**
+     * rename
+     * is used by {@link #renameAndBackup}
+     */
+    public void rename(OperatorWindow operatorWindow, String newName, String newPath) throws IOException {
+        DefaultTreeModel model = (DefaultTreeModel) operatorWindow.getModel();
+        File newFolder = new File(newPath + File.separator + newName);
 
-  public void searchCreateDataMap(SoarWorkingMemoryModel swmm, Vector<FeedbackListObject> errors) {
-    DataMap dataMap = new DataMap(swmm,swmm.getTopstate(), "");
-    errors.addAll(dataMap.searchCreateDataMap(swmm.getTopstate(),  toString() ));
-  }
+        this.folderName = newFolder.getName();
+        this.name = newName;
+        this.fullPathStart = newPath;
 
-  public void searchTestNoCreateDataMap(SoarWorkingMemoryModel swmm, Vector<FeedbackListObject> errors) {
-    DataMap dataMap = new DataMap(swmm,swmm.getTopstate(), "");
-    errors.addAll(dataMap.searchTestNoCreateDataMap(swmm.getTopstate(), toString() ));
-  }
+        model.nodeChanged(this);
+    }//rename
 
-  public void searchCreateNoTestDataMap(SoarWorkingMemoryModel swmm, Vector<FeedbackListObject> errors) {
-    DataMap dataMap = new DataMap(swmm,swmm.getTopstate(), "");
-    errors.addAll(dataMap.searchCreateNoTestDataMap(swmm.getTopstate(), toString() ));
-  }
+    public void importFunc(Reader r, OperatorWindow operatorWindow, SoarWorkingMemoryModel swmm) throws IOException, NumberFormatException {
+        VSEImporter.read(r, this, operatorWindow, swmm, VSEImporter.HLOPERATOR | VSEImporter.OPERATOR);
+    }
 
-  public void searchNoTestNoCreateDataMap(SoarWorkingMemoryModel swmm, Vector<FeedbackListObject> errors) {
-    DataMap dataMap = new DataMap(swmm,swmm.getTopstate(), "");
-    errors.addAll(dataMap.searchNoTestNoCreateDataMap(swmm.getTopstate(), toString() ));
-  }
+    public void renameAndBackup(OperatorWindow operatorWindow, String newName, String newPath) {
+
+        if (new File(newPath + File.separator + newName + ".vsa").exists()) {
+            JOptionPane.showMessageDialog(MainFrame.getMainFrame(), "An agent with this name already exists at this location.", "Naming Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        //Create the parent folder if it doesn't exist
+        File parentFolder = new File(newPath);
+        if (!parentFolder.exists()) {
+            parentFolder.mkdir();
+        }
+
+        //Create the new project folder if it doesn't exist
+        File newFolder = new File(newPath + File.separator + newName);
+        if (!newFolder.exists()) {
+            newFolder.mkdir();
+        }
+
+        try {
+            //Update the instance variables identifying this project
+            rename(operatorWindow, newName, newPath);
+
+            //Create a subfolder for the .dm file
+            String newDataFolderName = newPath + File.separator + newName;
+            File newDataFolder = new File(newDataFolderName);
+            if (!newDataFolder.exists()) {
+                newDataFolder.mkdir();
+            }
+
+            //Create the new datamap file
+            String newGraphFileName = newDataFolderName + File.separator + newName + ".dm";
+            FileWriter graphWriter = new FileWriter(newGraphFileName);
+            operatorWindow.getDatamap().write(graphWriter);
+            graphWriter.close();
+
+            for (int i = 0; i < getChildCount(); ++i) {
+                OperatorNode child = (OperatorNode) getChildAt(i);
+                child.copyStructures(newDataFolder);
+            }
+        } catch (IOException ioe) {
+            JOptionPane.showMessageDialog(MainFrame.getMainFrame(), "Save As Failed!", "Save As Failed", JOptionPane.ERROR_MESSAGE);
+        }
+    }//renameAndBackup
+
+    public void startSourcing() throws IOException {
+        String filename = fullPathStart + File.separator + folderName + ".soar";
+        Writer w = new FileWriter(filename);
+        source(w);
+        w.close();
+        sourceRecursive();
+    }
+
+    public void searchTestDataMap(SoarWorkingMemoryModel swmm, Vector<FeedbackListObject> errors) {
+        DataMap dataMap = new DataMap(swmm, swmm.getTopstate(), "");
+        errors.addAll(dataMap.searchTestDataMap(swmm.getTopstate(), toString()));
+    }
+
+    public void searchCreateDataMap(SoarWorkingMemoryModel swmm, Vector<FeedbackListObject> errors) {
+        DataMap dataMap = new DataMap(swmm, swmm.getTopstate(), "");
+        errors.addAll(dataMap.searchCreateDataMap(swmm.getTopstate(), toString()));
+    }
+
+    public void searchTestNoCreateDataMap(SoarWorkingMemoryModel swmm, Vector<FeedbackListObject> errors) {
+        DataMap dataMap = new DataMap(swmm, swmm.getTopstate(), "");
+        errors.addAll(dataMap.searchTestNoCreateDataMap(swmm.getTopstate(), toString()));
+    }
+
+    public void searchCreateNoTestDataMap(SoarWorkingMemoryModel swmm, Vector<FeedbackListObject> errors) {
+        DataMap dataMap = new DataMap(swmm, swmm.getTopstate(), "");
+        errors.addAll(dataMap.searchCreateNoTestDataMap(swmm.getTopstate(), toString()));
+    }
+
+    public void searchNoTestNoCreateDataMap(SoarWorkingMemoryModel swmm, Vector<FeedbackListObject> errors) {
+        DataMap dataMap = new DataMap(swmm, swmm.getTopstate(), "");
+        errors.addAll(dataMap.searchNoTestNoCreateDataMap(swmm.getTopstate(), toString()));
+    }
 }
 	

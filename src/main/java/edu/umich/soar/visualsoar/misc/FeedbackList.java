@@ -1,25 +1,29 @@
 package edu.umich.soar.visualsoar.misc;
+
 import edu.umich.soar.visualsoar.MainFrame;
 import edu.umich.soar.visualsoar.datamap.DataMap;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorWindow;
 
-import java.util.*;
 import javax.swing.*;
-import javax.swing.border.*;
+import javax.swing.border.Border;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.Vector;
 
 /**
  * A class that is the FeedbackList window in the MainFrame
- * its job is to provide various forms of messages from 
+ * its job is to provide various forms of messages from
  * Visual Soar to the user
+ *
  * @author Brad Jones
  * @version 0.5a 4 Aug 1999
  */
 
 
-public class FeedbackList extends JList<FeedbackListObject> implements ActionListener
-{
+public class FeedbackList extends JList<FeedbackListObject> implements ActionListener {
 ///////////////////////////////////////////////////////////////////
 // Instance Variables
 ///////////////////////////////////////////////////////////////////
@@ -36,8 +40,7 @@ public class FeedbackList extends JList<FeedbackListObject> implements ActionLis
 ///////////////////////////////////////////////////////////////////
 
 
-    public FeedbackList()
-    {
+    public FeedbackList() {
         setModel(dlm);
 
         //Constuct the context menu when users right click on a feedback item
@@ -49,31 +52,28 @@ public class FeedbackList extends JList<FeedbackListObject> implements ActionLis
 
         //handle double click and right click
         addMouseListener(
-            new MouseAdapter() 
-            {
-                public void mouseClicked(MouseEvent e) 
-                {
-                    //record currently selected object
-                    int index = locationToIndex(e.getPoint());
-                    if (dlm.getElementAt(index).hasNode()) {
-                        //user may not select messages with no associated node
-                        //as context operations would fail on such objects
-                        selectedObj = dlm.getElementAt(index);
-                    }
+                new MouseAdapter() {
+                    public void mouseClicked(MouseEvent e) {
+                        //record currently selected object
+                        int index = locationToIndex(e.getPoint());
+                        if (dlm.getElementAt(index).hasNode()) {
+                            //user may not select messages with no associated node
+                            //as context operations would fail on such objects
+                            selectedObj = dlm.getElementAt(index);
+                        }
 
-                    //double click:  go to associated source code
-                    if (e.getClickCount() == 2)
-                    {
-                        loadAssociatedSourceCode();
+                        //double click:  go to associated source code
+                        if (e.getClickCount() == 2) {
+                            loadAssociatedSourceCode();
+                        }
+                        //right click:  context menu
+                        else if (SwingUtilities.isRightMouseButton(e)) {
+                            dmAddMenuItem.setEnabled(!selectedObj.isDataMapObject());
+                            rightClickContextMenu.show(e.getComponent(), e.getX(), e.getY());
+                        }
                     }
-                    //right click:  context menu
-                    else if (SwingUtilities.isRightMouseButton(e)) {
-                        dmAddMenuItem.setEnabled(! selectedObj.isDataMapObject());
-                        rightClickContextMenu.show(e.getComponent(), e.getX(), e.getY());
-                    }
-                }
-            });
-        
+                });
+
         setCellRenderer(new FeedbackCellRenderer());
 
     }
@@ -89,8 +89,7 @@ public class FeedbackList extends JList<FeedbackListObject> implements ActionLis
     public void actionPerformed(ActionEvent action) {
         if (action.getSource().equals(gotoSourceMenuItem)) {
             loadAssociatedSourceCode();
-        }
-        else if (action.getSource().equals(dmAddMenuItem)) {
+        } else if (action.getSource().equals(dmAddMenuItem)) {
             OperatorWindow opWin = MainFrame.getMainFrame().getOperatorWindow();
             Vector<FeedbackListObject> vecErrors = new Vector<>();
             opWin.generateDataMapForOneError(selectedObj, vecErrors);
@@ -100,40 +99,31 @@ public class FeedbackList extends JList<FeedbackListObject> implements ActionLis
 
     /**
      * loadAssociatedSourceCode
-     *
+     * <p>
      * loads the associated source code file and highlights the line that
      * caused the feedback for the currently selected feedback list object
      */
     private void loadAssociatedSourceCode() {
         if (this.selectedObj == null) return;  //nothing to do
 
-        if(!this.selectedObj.isDataMapObject())
-        {
+        if (!this.selectedObj.isDataMapObject()) {
             this.selectedObj.DisplayFile();
-        }
-        else
-        {
+        } else {
             // check to see if datamap already opened
             DataMap dm = MainFrame.getMainFrame().getDesktopPane().dmGetDataMap(this.selectedObj.getDataMapId());
 
             // Only open a new window if the window does not already exist
-            if( dm != null)
-            {
-                try
-                {
+            if (dm != null) {
+                try {
                     if (dm.isIcon()) {
                         dm.setIcon(false);
                     }
                     dm.setSelected(true);
                     dm.moveToFront();
-                }
-                catch (java.beans.PropertyVetoException pve)
-                {
+                } catch (java.beans.PropertyVetoException pve) {
                     System.err.println("Guess we can't do that");
                 }
-            }
-            else
-            {
+            } else {
                 dm = this.selectedObj.createDataMap(MainFrame.getMainFrame().getOperatorWindow().getDatamap());
                 MainFrame mf = MainFrame.getMainFrame();
                 mf.addDataMap(dm);
@@ -150,77 +140,68 @@ public class FeedbackList extends JList<FeedbackListObject> implements ActionLis
      * Override the default implementation.  We want to update the
      * DefaultListModel class we're using here.
      */
-    public void setListData(Vector<? extends FeedbackListObject> v)
-    {
+    public void setListData(Vector<? extends FeedbackListObject> v) {
         dlm.removeAllElements();
         //dlm has no "addAll" method so roll our own
         dlm.ensureCapacity(v.size());
-        for(FeedbackListObject flobj : v) {
+        for (FeedbackListObject flobj : v) {
             dlm.addElement(flobj);
         }
 
         //Make sure no-one's been fiddling with the list model
         //:AMN:  I don't understand why we need this?
-        if (getModel() != dlm)
-        {
+        if (getModel() != dlm) {
             setModel(dlm);
         }
     }//setListData
-    
+
     /**
      * Remove all the data in the list.
-     *
      */
-    public void clearListData()
-    {
+    public void clearListData() {
         dlm.removeAllElements();
-        
+
         //Make sure no-one's been fiddling with the list model
-        if (getModel() != dlm)
-        {
+        if (getModel() != dlm) {
             setModel(dlm);
         }
     }//clearListData
 
 
-    /** class FeedbackCellRenderer displays a FeedbackListObject's text as a clickable label in an appropriate color */
-    static class FeedbackCellRenderer extends JLabel implements ListCellRenderer<FeedbackListObject>
-    {
-        private static final Border EMPTY_BORDER = BorderFactory.createEmptyBorder(2,2,2,2);
+    /**
+     * class FeedbackCellRenderer displays a FeedbackListObject's text as a clickable label in an appropriate color
+     */
+    static class FeedbackCellRenderer extends JLabel implements ListCellRenderer<FeedbackListObject> {
+        private static final Border EMPTY_BORDER = BorderFactory.createEmptyBorder(2, 2, 2, 2);
         private static final Color FEEDBACK_ERROR_COLOR = Color.red;
         private static final Color FEEDBACK_MSG_COLOR = Color.blue.darker();
 
-        public FeedbackCellRenderer() 
-        {
+        public FeedbackCellRenderer() {
             setOpaque(true);
-            setFont(new Font("SansSerif",Font.PLAIN,12));
+            setFont(new Font("SansSerif", Font.PLAIN, 12));
         }
-        
+
         public Component getListCellRendererComponent(JList list,
                                                       FeedbackListObject value,
                                                       int index,
                                                       boolean isSelected,
-                                                      boolean cellHasFocus) 
-        {
+                                                      boolean cellHasFocus) {
             setText(value.toString());
-            if(isSelected)
-            {
+            if (isSelected) {
                 setForeground(list.getSelectionForeground());
                 setBackground(list.getSelectionBackground());
-            }
-            else if(value.hasNode())
-            {
-                if(value.isError())
+            } else if (value.hasNode()) {
+                if (value.isError()) {
                     setForeground(FEEDBACK_ERROR_COLOR);
-                else
+                } else {
                     setForeground(FEEDBACK_MSG_COLOR);
-            }
-            else {
+                }
+            } else {
                 setForeground(list.getForeground());
                 setBackground(list.getBackground());
             }
 
-            
+
             setBorder(EMPTY_BORDER);
             return this;
         }

@@ -16,8 +16,7 @@ import java.util.Enumeration;
  * @version 0.5a Oct 1999
  */
 
-public class NamedEdge extends Edge 
-{
+public class NamedEdge extends Edge {
 ///////////////////////////////////////////////////////////////////
 // Data Members
 ///////////////////////////////////////////////////////////////////
@@ -25,7 +24,7 @@ public class NamedEdge extends Edge
      * The name of this named edge
      */
     protected String name;
-         
+
     /**
      * Comments user attributes to this edge on the datamap
      */
@@ -46,49 +45,51 @@ public class NamedEdge extends Edge
     private int lineNumber = 0;
 
     /**
-     *  Status of NamedEdge as follows:
-     *  0 = Never tested or created by project's productions
-     *  1 = Tested by a rule  (condition)
-     *  2 = Created by a rule (action)
-     *  3 = Both tested and created by rules
+     * Status of NamedEdge as follows:
+     * 0 = Never tested or created by project's productions
+     * 1 = Tested by a rule  (condition)
+     * 2 = Created by a rule (action)
+     * 3 = Both tested and created by rules
      */
     private int testedStatus;
     /*  keeps track of if edge was already reported as never tested/created
         so that it doesn't show up multiple times in feedback list
     */
     private boolean errorNoted;
-    
+
 ///////////////////////////////////////////////////////////////////
 // Constructors
 ///////////////////////////////////////////////////////////////////
     // Deny Default Construction
+
     /**
      * A named edge is logically a connection between two
      * vertices, from v0 to v1, with a name
-     * @param v0 where the edge starts
-     * @param v1 where the edge ends
+     *
+     * @param v0    where the edge starts
+     * @param v1    where the edge ends
      * @param _name the name that you want to name the string, note
-     * if you change this string you also change the name of the node
+     *              if you change this string you also change the name of the node
      */
-    public NamedEdge(SoarVertex v0, SoarVertex v1, String _name)
-    {
-        super(v0,v1);
+    public NamedEdge(SoarVertex v0, SoarVertex v1, String _name) {
+        super(v0, v1);
         name = _name;
         generated = false;
         testedStatus = 0;
         errorNoted = false;
     }
-    
+
 ///////////////////////////////////////////////////////////////////
 // Methods
 ///////////////////////////////////////////////////////////////////
+
     /**
      * This method returns the name of the node, note if the return
      * value of this string is changed so is the name of the node
+     *
      * @return the name of this node
      */
-    public String getName() 
-    {
+    public String getName() {
         return name;
     }
 
@@ -97,46 +98,44 @@ public class NamedEdge extends Edge
      * to the parameter passed, note changes to s will change the
      * name of the node
      */
-    public void rename(String s) 
-    {
-        name  = s;
+    public void rename(String s) {
+        name = s;
     }
-    
+
     /**
      * This presents a String representation of this class
      * it is the name of the edge followed by representation
      * of v1's toString() method
+     *
      * @return a string just described
      */
-    public String toString() 
-    {
+    public String toString() {
         return name + v1.toString();
     }
-    
+
     /**
      * This is the write method that writes out a representation
      * of this edge to the Writer that can later be read back in
      * to recreate this edge
+     *
      * @param w the stream to write the representation to
      * @throws java.io.IOException if an error writing to the stream occurs
      */
-    public void write(java.io.Writer w) throws java.io.IOException 
-    {
+    public void write(java.io.Writer w) throws java.io.IOException {
         w.write("" + v0.getValue() + ' ' + name + ' ' + v1.getValue() + '\n');
     }
-    
+
     /**
      * an edge is equal to another object if and only if
      * the other object is an edge, not null and the starting
      * ending vertexes are equal and the names are the same
+     *
      * @param o the object that you want to test equality
      * @return whether the test was true or false like just described
      */
-    public boolean equals(Object o) 
-    {
-        if (o instanceof NamedEdge)
-        {
-            NamedEdge anotherEdge = (NamedEdge)o;
+    public boolean equals(Object o) {
+        if (o instanceof NamedEdge) {
+            NamedEdge anotherEdge = (NamedEdge) o;
             return v0.getValue() == anotherEdge.V0().getValue() &&
                     v1.getValue() == anotherEdge.V1().getValue() &&
                     name.equals(anotherEdge.getName());
@@ -144,7 +143,7 @@ public class NamedEdge extends Edge
 
         return false;
     }//equals
-    
+
     /**
      * satisfies tests whether this edge could be used to satisfy the
      * constraint passed in, if so, it returns true else false
@@ -152,8 +151,7 @@ public class NamedEdge extends Edge
      * @param triple the constraint to test satisfaction to
      * @return true if this NamedEdge can satisfy that constraint
      */
-    public boolean satisfies(Triple triple) 
-    {
+    public boolean satisfies(Triple triple) {
         if (!TripleUtils.isVariable(triple.getAttribute().getString())) {
             if (!triple.getAttribute().getString().equals(name)) {
                 return false;
@@ -167,24 +165,19 @@ public class NamedEdge extends Edge
     }
 
 
-
-    public boolean hasComment() 
-    {
+    public boolean hasComment() {
         return !comment.equals("");
     }
 
-    public void setComment(String newComment) 
-    {
+    public void setComment(String newComment) {
         comment = newComment;
     }
 
-    public String getComment() 
-    {
+    public String getComment() {
         return comment;
     }
 
-    public boolean isGenerated() 
-    {
+    public boolean isGenerated() {
         return generated;
     }
 
@@ -192,8 +185,7 @@ public class NamedEdge extends Edge
      *  Called when the datamap automatically generates the edge on the
      *  datamap.  Displayed as green text on datamap.
      */
-    public void setAsGenerated() 
-    {
+    public void setAsGenerated() {
         generated = true;
     }
 
@@ -202,158 +194,135 @@ public class NamedEdge extends Edge
      *  generated variable goes to false and subsequently the datamap know
      *  displays the edge as normal black color text.
      */
-    public void validate() 
-    {
+    public void validate() {
         generated = false;
         lineNumber = 0;
         node = null;
     }
 
     /**
-     *  If this edge was already reported as non created/tested, then
-     *  it will return true so that the error is not reported multiple times
+     * If this edge was already reported as non created/tested, then
+     * it will return true so that the error is not reported multiple times
      */
-    public boolean getErrorNoted() 
-    {
+    public boolean getErrorNoted() {
         return errorNoted;
     }
 
     /**
-     *  Sets the errorNoted variable of this edge as true, meaning that it has already
-     *  been reported to the feedback list as non-tested/created
+     * Sets the errorNoted variable of this edge as true, meaning that it has already
+     * been reported to the feedback list as non-tested/created
      */
-    public void setErrorNoted() 
-    {
+    public void setErrorNoted() {
         errorNoted = true;
     }
 
     /**
-     *  resets the errorNoted variable of this edge, meaning that it
-     *  has never been reported by the feedback list as non-tested/created.
+     * resets the errorNoted variable of this edge, meaning that it
+     * has never been reported by the feedback list as non-tested/created.
      */
-    public void resetErrorNoted() 
-    {
+    public void resetErrorNoted() {
         errorNoted = false;
     }
 
 
     /**
-     *  If this edge was created by a production (action side of production)
-     *  this will return true.
+     * If this edge was created by a production (action side of production)
+     * this will return true.
      */
-    public boolean isCreated() 
-    {
+    public boolean isCreated() {
         return (testedStatus == 2) || (testedStatus == 3);
     }
 
     /**
-     *  Returns true only if edge was created but NEVER tested
+     * Returns true only if edge was created but NEVER tested
      */
-    public boolean isCreatedNoTest() 
-    {
+    public boolean isCreatedNoTest() {
         return testedStatus == 2;
     }
-  
+
     /**
-     *  Returns true only if edge was tested but NEVER created
+     * Returns true only if edge was tested but NEVER created
      */
-    public boolean isTestedNoCreate() 
-    {
+    public boolean isTestedNoCreate() {
         return testedStatus == 1;
     }
 
     /**
-     *  If this edge was tested by a production (condition side of production)
-     *  this will return true.
+     * If this edge was tested by a production (condition side of production)
+     * this will return true.
      */
-    public boolean isTested() 
-    {
+    public boolean isTested() {
         return (testedStatus == 1) || (testedStatus == 3);
     }
 
     /**
-     *  If this edge was never tested or created by a production
-     *  this will return true.
+     * If this edge was never tested or created by a production
+     * this will return true.
      */
-    public boolean notMentioned() 
-    {
+    public boolean notMentioned() {
         return testedStatus == 0;
     }
 
     /**
      * Sets testedStatus to zero
      */
-    public void resetTestedStatus() 
-    {
+    public void resetTestedStatus() {
         testedStatus = 0;
     }
 
     /**
-     *  If edge was already created by a production,
-     *  sets testedStatus to 3 (both).
-     *  Otherwise, sets testedStatus to 1 (tested).
+     * If edge was already created by a production,
+     * sets testedStatus to 3 (both).
+     * Otherwise, sets testedStatus to 1 (tested).
      */
-    public void tested() 
-    {
-        if(testedStatus == 0) 
-        {
+    public void tested() {
+        if (testedStatus == 0) {
             testedStatus = 1;
-        }
-        else if(testedStatus == 2) 
-        {
+        } else if (testedStatus == 2) {
             testedStatus = 3;
         }
     }
 
     /**
-     *  If edge was already tested by a production,
-     *  sets testedStatus to 3 (both).
-     *  Otherwise, sets testedStatus to 2 (created).
+     * If edge was already tested by a production,
+     * sets testedStatus to 3 (both).
+     * Otherwise, sets testedStatus to 2 (created).
      */
-    public void created() 
-    {
-        if(testedStatus == 0) 
-        {
+    public void created() {
+        if (testedStatus == 0) {
             testedStatus = 2;
-        }
-        else if(testedStatus == 1) 
-        {
+        } else if (testedStatus == 1) {
             testedStatus = 3;
         }
     }
 
 
     /**
-     *  Initializes/Sets all edges on the output link as tested.
+     * Initializes/Sets all edges on the output link as tested.
      */
-    public void setOutputLinkTested(SoarWorkingMemoryModel swmm)
-    {
+    public void setOutputLinkTested(SoarWorkingMemoryModel swmm) {
         // make sure this is the output-link
-        if(!getName().equals("output-link"))  return;
+        if (!getName().equals("output-link")) return;
         VSQueue<SoarVertex> queue = new QueueAsLinkedList<>();
         int numberOfVertices = swmm.getNumberOfVertices();
         boolean[] visitedVertices = new boolean[numberOfVertices];
-        for(int i = 0; i < numberOfVertices; i++) {
+        for (int i = 0; i < numberOfVertices; i++) {
             visitedVertices[i] = false;
         }
         queue.enqueue(this.V1());
         this.tested();
         this.setErrorNoted();
 
-        while(!queue.isEmpty())
-        {
+        while (!queue.isEmpty()) {
             SoarVertex w = queue.dequeue();
             visitedVertices[w.getValue()] = true;
-            if(w.allowsEmanatingEdges()) 
-            {
+            if (w.allowsEmanatingEdges()) {
                 Enumeration<NamedEdge> edges = swmm.emanatingEdges(w);
-                while(edges.hasMoreElements()) 
-                {
+                while (edges.hasMoreElements()) {
                     NamedEdge theEdge = edges.nextElement();
                     theEdge.tested();
                     theEdge.setErrorNoted();
-                    if(! visitedVertices[theEdge.V1().getValue()]) 
-                    {
+                    if (!visitedVertices[theEdge.V1().getValue()]) {
                         visitedVertices[w.getValue()] = true;
                         queue.enqueue(theEdge.V1());
                     }   // if haven't visited this vertex, add to the queue
@@ -364,23 +333,19 @@ public class NamedEdge extends Edge
     } // end of setOutputLinkTested()
 
 
-    public OperatorNode getNode()
-    {
+    public OperatorNode getNode() {
         return node;
     }
 
-    public void setNode(OperatorNode newNode) 
-    {
+    public void setNode(OperatorNode newNode) {
         node = newNode;
     }
 
-    public int getLine() 
-    {
+    public int getLine() {
         return lineNumber;
     }
 
-    public void setLineNumber(int number) 
-    {
+    public void setLineNumber(int number) {
         lineNumber = number;
     }
 

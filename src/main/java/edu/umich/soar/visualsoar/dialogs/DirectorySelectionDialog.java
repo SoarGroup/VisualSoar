@@ -65,13 +65,13 @@ public class DirectorySelectionDialog extends JDialog {
             }
             //Windoze
             else {
-				for (File root : roots) {
-					if (root.getPath().compareTo(volumeName) == 0) {
-						rootSelector.setSelectedItem(root);
-						directoryTree.changeRoot(root);
-						directoryTree.setPath(directory);
-					}
-				}
+                for (File root : roots) {
+                    if (root.getPath().compareTo(volumeName) == 0) {
+                        rootSelector.setSelectedItem(root);
+                        directoryTree.changeRoot(root);
+                        directoryTree.setPath(directory);
+                    }
+                }
             }
         }
     }
@@ -87,7 +87,7 @@ public class DirectorySelectionDialog extends JDialog {
     private void createRootSelector(File[] roots) {
         rootSelector = new JComboBox<>();
 
-		for (File root : roots) rootSelector.addItem(root);
+        for (File root : roots) rootSelector.addItem(root);
 
         rootSelector.addItemListener(new ItemListener() {
             public void itemStateChanged(ItemEvent event) {
@@ -163,8 +163,9 @@ public class DirectorySelectionDialog extends JDialog {
                 }
                 String newFolderName = JOptionPane.showInputDialog(DirectorySelectionDialog.this,
                         "Enter Name For New Folder:");
-                if (newFolderName == null)
+                if (newFolderName == null) {
                     return;
+                }
                 if (newFolderName.length() == 0) {
                     getToolkit().beep();
                     return;
@@ -219,8 +220,9 @@ class DirectoryTree extends JTree {
         DirectoryNode parent = (DirectoryNode) getModel().getRoot();
         TreePath expansionPath = new TreePath(parent);
         int index = directory.getAbsolutePath().indexOf(File.separator);
-        if (index == -1)
+        if (index == -1) {
             return;
+        }
         String name = getNextName(directory, expansionPath);
         while (name != null) {
             DirectoryNode child = null;
@@ -246,12 +248,13 @@ class DirectoryTree extends JTree {
         DirectoryNode node = (DirectoryNode) treePath.getLastPathComponent();
         int length = node.getDirectory().getPath().length();
         String directoryPath = directory.getAbsolutePath();
-        if (directoryPath.length() <= length + 1)
+        if (directoryPath.length() <= length + 1) {
             return null;
+        }
         int pos = directoryPath.indexOf(File.separator, length + 1);
-        if (pos == -1)
+        if (pos == -1) {
             return directory.getName();
-        else {
+        } else {
             return directoryPath.substring(length, pos);
         }
     }
@@ -267,10 +270,11 @@ class DirectoryNode extends DefaultMutableTreeNode implements Comparable<Directo
      */
     public DirectoryNode(File inFile) {
         setUserObject(inFile);
-        if (inFile.getParentFile() == null)
+        if (inFile.getParentFile() == null) {
             name = inFile.getPath();
-        else
+        } else {
             name = inFile.getName();
+        }
     }
 
     public boolean getAllowsChildren() {
@@ -290,8 +294,9 @@ class DirectoryNode extends DefaultMutableTreeNode implements Comparable<Directo
     }
 
     public int getChildCount() {
-        if (!explored)
+        if (!explored) {
             explore();
+        }
         return super.getChildCount();
     }
 

@@ -8,9 +8,9 @@ import javax.swing.text.PlainDocument;
 
 /**
  * class NumberTextField
- *
+ * <p>
  * is a JTextField that only allows whole numbers
- *
+ * <p>
  * Initial code was borrowed from the UpperCaseDocument example on this page:
  * https://docs.oracle.com/javase/7/docs/api/javax/swing/JTextField.html
  */

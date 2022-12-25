@@ -13,34 +13,33 @@ import java.util.Set;
 /**
  * This class provides some static methods to do the checking against the
  * datamap
- * @author Brad Jones */
- 
-public class DataMapChecker 
-{
+ *
+ * @author Brad Jones
+ */
+
+public class DataMapChecker {
     // There is no need to instantiate this class
-    private DataMapChecker() {}
-    
+    private DataMapChecker() {
+    }
+
     // Static Member Functions
 
     public static void check(SoarWorkingMemoryModel dataMap,
                              SoarIdentifierVertex startVertex,
                              TriplesExtractor triplesExtractor,
-                             CheckerErrorHandler ceh) 
-    {
+                             CheckerErrorHandler ceh) {
         Map<String, HashSet<SoarVertex>> varMap = DataMapMatcher.matches(
-                                            dataMap,
-                                            startVertex,
-                                            triplesExtractor,
-                                            ceh);
-        if(varMap != null) 
-        {
+                dataMap,
+                startVertex,
+                triplesExtractor,
+                ceh);
+        if (varMap != null) {
             Set<String> keySet = varMap.keySet();
             Iterator<String> vars = keySet.iterator();
-            while(vars.hasNext()) 
-            {
+            while (vars.hasNext()) {
                 String varKey = vars.next();
                 Set<SoarVertex> value = varMap.get(varKey);
-                if(value.isEmpty()) {
+                if (value.isEmpty()) {
                     ceh.variableNotMatched(varKey);
                 }
             }
@@ -56,10 +55,9 @@ public class DataMapChecker
                                 SoarIdentifierVertex startVertex,
                                 TriplesExtractor triplesExtractor,
                                 CheckerErrorHandler ceh,
-                                OperatorNode current) 
-    {
+                                OperatorNode current) {
         DataMapMatcher.complete(dataMap, startVertex, triplesExtractor, ceh, current);
     }//complete()
-    
+
 }
 

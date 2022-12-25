@@ -49,12 +49,13 @@ public class Triple {
     }
 
     public int getLine() {
-        if (d_value.getLine() != -1)
+        if (d_value.getLine() != -1) {
             return d_value.getLine();
-        else if (d_attribute.getLine() != -1)
+        } else if (d_attribute.getLine() != -1) {
             return d_attribute.getLine();
-        else
+        } else {
             return d_variable.getLine();
+        }
     }
 
     public boolean isCondition() {

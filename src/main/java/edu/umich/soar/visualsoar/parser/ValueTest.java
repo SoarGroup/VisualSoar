@@ -6,20 +6,20 @@ package edu.umich.soar.visualsoar.parser;
  */
 
 public final class ValueTest {
-	// Data Members
-	private final Test d_test;
+    // Data Members
+    private final Test d_test;
 
-	// Constructor
-	public ValueTest(Test test) {
-		d_test = test;
-	}
-	
-	// Accessors
-	public Test getTest() {
-		return d_test;
-	}
+    // Constructor
+    public ValueTest(Test test) {
+        d_test = test;
+    }
 
-	// Modifiers
-	public void acceptablePreference() {
-	}
+    // Accessors
+    public Test getTest() {
+        return d_test;
+    }
+
+    // Modifiers
+    public void acceptablePreference() {
+    }
 }

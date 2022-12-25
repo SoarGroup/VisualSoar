@@ -4,7 +4,7 @@ import edu.umich.soar.visualsoar.graph.SoarVertex;
 
 /**
  * class CopyVertex
- *
+ * <p>
  * is a simple data containing class for storing a vertex in the datamap
  * along with the name of the attribute that attaches it to a parent node.
  * This is used for copying datmap entries.
@@ -14,7 +14,7 @@ import edu.umich.soar.visualsoar.graph.SoarVertex;
 
 public class CopyVertex {
     public String name;
-    public SoarVertex  vertex;
+    public SoarVertex vertex;
 
     public CopyVertex(String inName, SoarVertex inVertex) {
         name = inName;
