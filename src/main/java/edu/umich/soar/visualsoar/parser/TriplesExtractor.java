@@ -230,7 +230,7 @@ public class TriplesExtractor {
                 }
             }
             Iterator<ValueMake> valueMakeIterator = avm.getValueMakes();
-            while (rhsValueIterator.hasNext()) {
+            while (valueMakeIterator.hasNext()) {
                 ValueMake vm = valueMakeIterator.next();
                 Pair value = extract(vm.getRHSValue());
                 triples.add(d_tripleFactory.createTriple(variable, attributeMakes, value, false, false, false));

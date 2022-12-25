@@ -35,11 +35,11 @@ public class DataMapMatcher {
      * @param triplesExtractor all the triples that were in a production
      * @param meh              the structure that holds the errors when they are found
      */
-    public static Map<String, HashSet<SoarVertex>>
-    matches(SoarWorkingMemoryModel dataMap,
-            SoarIdentifierVertex startVertex,
-            TriplesExtractor triplesExtractor,
-            MatcherErrorHandler meh) {
+    public static Map<String, HashSet<SoarVertex>>  matches(
+                                            SoarWorkingMemoryModel dataMap,
+                                            SoarIdentifierVertex startVertex,
+                                            TriplesExtractor triplesExtractor,
+                                            MatcherErrorHandler meh) {
         Map<String, HashSet<SoarVertex>> varMap = new HashMap<>();
         Iterator<Pair> pairIter = triplesExtractor.variables();
         while (pairIter.hasNext()) {
