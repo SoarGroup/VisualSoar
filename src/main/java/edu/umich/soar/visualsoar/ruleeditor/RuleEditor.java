@@ -868,15 +868,14 @@ public class RuleEditor extends CustomInternalFrame {
         //Add any required braces
         Vector<Integer> bracePositions = SuppParseChecks.findMissingBracePositions(text);
         if (bracePositions.isEmpty()) return; //nothing to do
-
-        //Add required braces
         text = SuppParseChecks.insertBraces(text, bracePositions);
 
-        //Adjust the caretPosition
+        //Adjust the caretPosition so cursor stays in the same relative location
         int caretPos = editorPane.getCaretPosition();
         for (int i : bracePositions) {
-            if (i < caretPos) caretPos += 2;
+            if (i < caretPos) caretPos += 1;
         }
+        caretPos = Math.min(text.length() - 2, caretPos); //don't go over the edge!
         editorPane.setCaretPosition(caretPos);
 
 

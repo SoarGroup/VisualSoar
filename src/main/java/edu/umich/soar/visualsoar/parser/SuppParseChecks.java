@@ -225,30 +225,44 @@ public class SuppParseChecks {
      * @return the locations where braces should be placed
      */
     public static Vector<Integer> findMissingBracePositions(String text) {
+        //This vector stores all the places to insert a courtesy close brace
+        // (typically there will be none)
+        Vector<Integer> bracePositions = new Vector<>();
+
+        //Bail out now if there isn't sufficient text to bother with
+        if (text.length() < 10) return bracePositions;
+
         //find the start position of each production
-        Pattern prodPattern = Pattern.compile("[ \n\t\r][sg]p[ \t\n\r]*\\{");
+        Pattern prodPattern = Pattern.compile("[ \t]*[sg]p[ \t]*\\{");
         Matcher prodMatch = prodPattern.matcher(text);
         Vector<Integer> prodStarts = new Vector<>();
         while (prodMatch.find()) {
             prodStarts.add(prodMatch.start());
         }
-        prodStarts.add(text.length() - 1); //add end of file
+        prodStarts.add(text.length()); //add end of file to support loop below
 
-        //This vertor stores all the places to insert a courtesy close brace
-        // (typically there will be none)
-        Vector<Integer> bracePositions = new Vector<>();
-        for (int start = 0; start < prodStarts.size() - 1; ++start) {
-            int end = prodStarts.get(start + 1);
+        //Iterate over each sub-section of the text that contains a production
+        for(int pos = 0; pos < prodStarts.size() - 1; ++pos) {
+            int start = prodStarts.get(pos);
+            int end = prodStarts.get(pos + 1) - 1;
 
             //Count the open and close braces to detect a mismatch
+            //also keep track of some landmarks in the text b lock
             int depth = 0;
+            int lastCloseParen = -1;
+            int lastCloseBrace = -1;
+            int lastNonWhite = -1;  //last non-whitespace that wasn't in a comment
             for (int i = start; i <= end; ++i) {
                 switch (text.charAt(i)) {
                     case '{':
                         depth++;
                         break;
                     case '}':
+                        lastCloseBrace = i;
                         depth--;
+                        break;
+                    case ')':
+                        lastCloseParen = i;
                         break;
                     case '#':  //ignore comments
                         while (text.charAt(i) != '\n') {
@@ -256,31 +270,53 @@ public class SuppParseChecks {
                         }
                         break;
                 }
+                //last non-whitespace char that's not in a comment
+                if (! Character.isWhitespace(text.charAt(i))) {
+                    lastNonWhite = i;
+                }
             }//counting braces
 
             //if there was a one-level mismatch see if the last brace appears
             // to be missing
             if (depth == 1) {
-                int lastCloseParen = text.lastIndexOf(')', end);
-                int lastCloseBrace = text.lastIndexOf('}', end);
+                //Don't make edits in these suspicious situations:
+                //1.  no close parens found
+                //2.  there's code after the last paren
+                //3.  the last close brace is after the last paren
+                if ( (lastCloseParen != -1)
+                        && (lastNonWhite <= lastCloseParen)
+                        && (lastCloseBrace < lastCloseParen)) {
 
-                //if there was no close paren at all then something's up,
-                //time to bail out
-                if (lastCloseParen != -1) {
-
-                    //Either the last brace is completely absent (-1) or
-                    //it precedes the last paren.  Either way, we've found
-                    //a place to insert a brace
-                    if (lastCloseParen > lastCloseBrace) {
-                        //calculate where to put a courtesy brace
-                        int index = end - 1;
-                        while (Character.isWhitespace(text.charAt(index))) {
-                            index--;
+                    //Insert a brace in one of these positions
+                    //1. whitespace immediately after a new line (preferred)
+                    //2. the first whitespace char after the last paren (acceptable)
+                    //3. the very last char in the block (least preferred)
+                    int index = lastCloseParen + 1;
+                    int firstWhite = -1;  //location of first white space
+                    int prefSpot = -1;  //location of preferred position found
+                    while(index < end) {
+                        char c = text.charAt(index);
+                        if (Character.isWhitespace(c)) {
+                            //any whitespace is good
+                            if (firstWhite == -1) firstWhite = index;
+                            //a whitespace after a newline is preferred
+                            if (c == '\n') {
+                                prefSpot = index;
+                                break;
+                            }
                         }
                         index++;
-                        bracePositions.add(index + 1);
                     }
-                }
+                    if (prefSpot > -1) {
+                        bracePositions.add(prefSpot);
+                    }
+                    else if (firstWhite > -1) {
+                        bracePositions.add(firstWhite);
+                    }
+                    else if (index >= end - 1) {  //very last spot
+                        bracePositions.add(index);
+                    }
+                }//likely a missing close-brace
             }//mismatch found
         }//for each production
 
