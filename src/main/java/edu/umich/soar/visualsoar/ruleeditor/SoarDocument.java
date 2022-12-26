@@ -589,8 +589,7 @@ public class SoarDocument extends DefaultStyledDocument {
     /**
      * Justifies a chunk of text from in the rule editor.
      * If nothing is highlighted, then justifies the entire document
-     *
-     * @param selectionStart the position of the beginning of the highlighted text
+     *  @param selectionStart the position of the beginning of the highlighted text
      * @param selectionEnd   the position of the end of the highlighted text
      */
     public void justifyDocument(int selectionStart, int selectionEnd) {
@@ -598,7 +597,14 @@ public class SoarDocument extends DefaultStyledDocument {
         Content data = getContent();
 
         String prevLine = null;
+        String currLine;
+        String newCurrLine;
+        String indentString;
 
+        int elemIndex;
+        int prevLineIndex;
+        int endIndex;
+        int numSpaces;
         int currLineBegin;
         int currLineEnd;
 
@@ -619,9 +625,9 @@ public class SoarDocument extends DefaultStyledDocument {
             // the first production (ie echo)
         }
 
-        int elemIndex = root.getElementIndex(selectionStart);
-        int prevLineIndex = elemIndex - 1;
-        int endIndex = root.getElementIndex(selectionEnd);
+        elemIndex = root.getElementIndex(selectionStart);
+        prevLineIndex = elemIndex - 1;
+        endIndex = root.getElementIndex(selectionEnd);
 
         // endIndex is one less if last line just a line feed
         String lastLine = getElementString(root.getElement(endIndex), data);
@@ -635,9 +641,9 @@ public class SoarDocument extends DefaultStyledDocument {
             currLineElem = (AbstractElement) root.getElement(elemIndex);
             currLineBegin = currLineElem.getStartOffset();
             currLineEnd = currLineElem.getEndOffset() - 1;
-            String currLine = getElementString(currLineElem, data);
-            String indentString = "";
-            int numSpaces = 0;
+            currLine = getElementString(currLineElem, data);
+            indentString = "";
+            numSpaces = 0;
 
             // Get last prevLine that isn't a blank line or comment
             if (elemIndex > 0) {
@@ -653,7 +659,7 @@ public class SoarDocument extends DefaultStyledDocument {
                     }
                 }   // end of while getting last previous line of Soar code
             }
-            String newCurrLine = currLine.trim();
+            newCurrLine = currLine.trim();
 
             if ((newCurrLine.length() != 0)
                     && ((newCurrLine.charAt(0) == '}')
