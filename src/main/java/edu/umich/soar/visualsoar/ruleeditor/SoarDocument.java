@@ -132,6 +132,17 @@ public class SoarDocument extends DefaultStyledDocument {
             e.printStackTrace();
         }
 
+        //Weird bug:  Sometimes the line has a non-ASCII char at the front.
+        //            This was confusing justifyDocument() so I kludged
+        //            over it here.  Is there a better solution?  idk.  -:AMN:
+        if (theLine.length() > 0) {
+            char c = theLine.charAt(0);
+            while (c > 127) {
+                theLine = theLine.substring(1);
+                if (theLine.length() == 0) break;
+                c = theLine.charAt(0);
+            }
+        }
         return theLine;
     } // getElementString()
 
@@ -585,10 +596,12 @@ public class SoarDocument extends DefaultStyledDocument {
         }  // iterate through tokens    
     } // colorSyntax() (specific section)
 
-
     /**
      * Justifies a chunk of text from in the rule editor.
      * If nothing is highlighted, then justifies the entire document
+     *
+     * TODO:  This method should be refactored to make more manageable
+     *
      *  @param selectionStart the position of the beginning of the highlighted text
      * @param selectionEnd   the position of the end of the highlighted text
      */
@@ -607,7 +620,6 @@ public class SoarDocument extends DefaultStyledDocument {
         int numSpaces;
         int currLineBegin;
         int currLineEnd;
-
 
         char lastChar;
         char[] indentChars;
@@ -715,7 +727,7 @@ public class SoarDocument extends DefaultStyledDocument {
                     int currentElementIndex = prevLineIndex;
                     boolean done = false;
                     numSpaces = 3;
-                    int count = 0;
+                    int parenCount = 0;
                     String currentLine = prevLine;
 
                     while ((!done)
@@ -723,10 +735,10 @@ public class SoarDocument extends DefaultStyledDocument {
                             && (currentElementIndex > -1)) {
                         for (int i = currentLine.length() - 1; i >= 0; --i) {
                             if (currentLine.charAt(i) == ')') {
-                                ++count;
+                                ++parenCount;
                             } else if (currentLine.charAt(i) == '(') {
-                                --count;
-                                if (count <= 0) {
+                                --parenCount;
+                                if (parenCount <= 0) {
                                     numSpaces = i;
                                     done = true;
                                     break;
@@ -751,6 +763,9 @@ public class SoarDocument extends DefaultStyledDocument {
                 else if (lastChar == '{') {
                     numSpaces = prevLine.indexOf('{');
                 } else if (newCurrLine.startsWith("(") && lastChar == '}') {
+                    numSpaces = 3;
+                }
+                else if (newCurrLine.startsWith("-(") && lastChar == '}') {
                     numSpaces = 3;
                 } else if (prevLineIndex >= 0) {
                     // look for a ^ on previous line
