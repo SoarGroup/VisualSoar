@@ -70,6 +70,14 @@ public class DataMapTree extends JTree implements ClipboardOwner {
      */
     DragGestureListener dgListener = new DMTDragGestureListener();
 
+    /** Reference to the DropTargetListener for Drag and Drop operations, may be deleted in future. */
+    DropTargetListener dtListener = new DMTDropTargetListener();
+
+    /** Reference to the DropTarget for Drag and Drop operations, may be deleted in future. */
+    @SuppressWarnings("unused")  //not sure why IntelliJ thinks this is "unused"
+    private final DropTarget dropTarget = new DropTarget(this,DnDConstants.ACTION_LINK | DnDConstants.ACTION_COPY_OR_MOVE,dtListener,true);
+
+
     private final SoarWorkingMemoryModel swmm;
     private static final JPopupMenu contextMenu = new JPopupMenu();
     private static final JMenuItem AddIdentifierItem = new JMenuItem("Add Identifier...");
@@ -866,6 +874,25 @@ public class DataMapTree extends JTree implements ClipboardOwner {
         return copyVertices;
     }
 
+    private void pasteCopyVertices(CopyVertexVector data) {
+        TreePath          path = getSelectionPath();
+        FakeTreeNode        ftn;
+
+        if (data == null) return;
+        if (path == null)
+        {
+            return;
+        }
+
+        ftn = (FakeTreeNode)path.getLastPathComponent();
+        for (int j = 0; j < data.size(); j++)
+        {
+            SoarVertex  parent = ftn.getEnumeratingVertex();
+            SoarVertex  child = swmm.createVertexCopy(data.getVertex(j));
+            swmm.addTriple(parent, data.getName(j), child);
+        }
+    }
+
     /**
      * Paste a portion of the datamap from the clipboard
      */
@@ -1525,9 +1552,9 @@ public class DataMapTree extends JTree implements ClipboardOwner {
                 return;
             }
             if (dge.getTriggerEvent() instanceof MouseEvent) {
-				if (((MouseEvent) dge.getTriggerEvent()).isPopupTrigger()) {
-					return;
-				}
+                if (((MouseEvent) dge.getTriggerEvent()).isPopupTrigger()) {
+                    return;
+                }
             }
 
             if (getSelectionCount() > 1) {
@@ -1538,11 +1565,11 @@ public class DataMapTree extends JTree implements ClipboardOwner {
             FakeTreeNode ftn = (FakeTreeNode) path.getLastPathComponent();
             NamedEdge e = ftn.getEdge();
             Transferable t;
-			if (e == null) {
-				t = new TransferableVertex(ftn.getEnumeratingVertex(), ftn.toString());
-			} else {
-				t = new TransferableVertex(ftn.getEnumeratingVertex(), e.getName(), e);
-			}
+            if (e == null) {
+                t = new TransferableVertex(ftn.getEnumeratingVertex(), ftn.toString());
+            } else {
+                t = new TransferableVertex(ftn.getEnumeratingVertex(), e.getName(), e);
+            }
             if (action == DnDConstants.ACTION_LINK) {
                 DragSource.getDefaultDragSource().startDrag(dge, DragSource.DefaultLinkNoDrop, t, new DMTDragSourceListener());
             } else if (action == DnDConstants.ACTION_COPY) {
@@ -1553,7 +1580,203 @@ public class DataMapTree extends JTree implements ClipboardOwner {
 
             OriginalSelectionPath = path;
         }
-    }
+    }//class DMTDragGestureListener
+
+    /**
+     * class DMTDropTargetListener
+     *
+     *
+     */
+    class DMTDropTargetListener implements DropTargetListener
+    {
+        public void dragEnter(DropTargetDragEvent dtde) {
+        }
+        public void dragExit(DropTargetEvent dte)
+        {
+            // reset cursor back to normal
+            Cursor defaultCursor = new Cursor(Cursor.DEFAULT_CURSOR);
+            DataMapTree.getDataMapTree().setCursor(defaultCursor);
+        }
+
+        public void dragOver(DropTargetDragEvent dtde)
+        {
+
+            int action = dtde.getDropAction();
+            Point loc = dtde.getLocation();
+            int x = (int)loc.getX(), y = (int)loc.getY();
+            TreePath path = getPathForLocation(x, y);
+            if (path != null)
+            {
+                clearSelection();
+                setSelectionPath(path);
+                if(isDropOK(x,y,action))
+                {
+                    if(action == DnDConstants.ACTION_LINK)
+                    {
+                        Cursor cursor = DragSource.DefaultLinkDrop;
+                        DataMapTree.getDataMapTree().setCursor(cursor);
+                        dtde.acceptDrag(DnDConstants.ACTION_LINK);
+                    }
+                    else if(action == DnDConstants.ACTION_COPY)
+                    {
+                        Cursor cursor = DragSource.DefaultCopyDrop;
+                        DataMapTree.getDataMapTree().setCursor(cursor);
+                        dtde.acceptDrag(DnDConstants.ACTION_COPY);
+                    }
+                    else
+                    {
+                        Cursor cursor = DragSource.DefaultMoveDrop;
+                        DataMapTree.getDataMapTree().setCursor(cursor);
+                        dtde.acceptDrag(DnDConstants.ACTION_MOVE);
+                    }
+                }   // if drop ok
+                else
+                {
+                    Cursor cursor;
+                    if(action == DnDConstants.ACTION_LINK)
+                    {
+                        cursor = DragSource.DefaultLinkNoDrop;
+                    }
+                    else if(action == DnDConstants.ACTION_COPY)
+                    {
+                        cursor = DragSource.DefaultCopyNoDrop;
+                    }
+                    else
+                    {
+                        cursor = DragSource.DefaultMoveNoDrop;
+                    }
+                    DataMapTree.getDataMapTree().setCursor(cursor);
+                    dtde.rejectDrag();
+                }
+            }   // if path ok
+            else
+            {
+                Cursor cursor = DragSource.DefaultCopyNoDrop;
+                DataMapTree.getDataMapTree().setCursor(cursor);
+                dtde.rejectDrag();
+            }
+        }
+
+        public void dropActionChanged(DropTargetDragEvent dtde) {
+        }
+
+        /**
+         * drop
+         *
+         * Gets called when the user releases the mouse in a drag-and-drop
+         * operation in a datamap window.
+         *
+         */
+        public void drop(DropTargetDropEvent e)
+        {
+            //Verify that drop is acceptable
+            Point loc = e.getLocation();
+            int x = (int)loc.getX(), y = (int)loc.getY();
+
+            //action will be one of:  copy, move or link
+            int action = e.getDropAction();
+            if (isDropOK(x, y, action))
+            {
+                e.acceptDrop(action);
+            }
+            else
+            {
+                e.rejectDrop();
+                return;
+            }
+
+            // reset cursor back to normal
+            Cursor defaultCursor = new Cursor(Cursor.DEFAULT_CURSOR);
+            DataMapTree.getDataMapTree().setCursor(defaultCursor);
+
+
+            if (action == DnDConstants.ACTION_COPY) {
+                System.out.println("dndcopy!");
+                TreePath currentPath = getPathForLocation(x, y);
+                setSelectionPath(OriginalSelectionPath);
+                CopyVertexVector copyVerticies = getCopyVertices();
+                setSelectionPath(currentPath);
+                pasteCopyVertices(copyVerticies);
+            } else {  //action is either MOVE or LINK
+
+                //Extract the WME data from the event
+                DataFlavor[] flavors = e.getCurrentDataFlavors();
+                DataFlavor chosen = flavors[0];
+                Vector data;  //This must be a raw vector (see TransferrableVertex.getTransferData)
+                try
+                {
+                    data = (Vector)e.getTransferable().getTransferData(chosen);
+                }
+                catch(Throwable t)
+                {
+                    t.printStackTrace();
+                    e.dropComplete(false);
+                    return;
+                }
+
+                //Get the target for the drop
+                TreePath path = getPathForLocation(x, y);
+                if (path == null) return;
+                FakeTreeNode ftn = ((FakeTreeNode) path.getLastPathComponent());
+                if (ftn == null) return;
+                SoarVertex vertex = ftn.getEnumeratingVertex();
+
+                //Get the thing we're dropping
+                SoarVertex dataVertex =
+                        swmm.getVertexForId((Integer) data.get(0));
+
+                //If we are moving a node, we have to first make sure that we're
+                //not creating a loop.
+                if ((action & DnDConstants.ACTION_MOVE) != 0)
+                {
+                    for(int i = 0; i < path.getPathCount(); i++)
+                    {
+                        SoarVertex v = ((FakeTreeNode)path.getPath()[i]).getEnumeratingVertex();
+                        if (dataVertex.equals(v))
+                        {
+                            e.rejectDrop();
+                            return;
+                        }
+                    }
+                }
+
+                //Perform the drop
+                swmm.addTriple(vertex,(String)data.get(1),dataVertex);
+                if(action == DnDConstants.ACTION_MOVE)
+                {
+                    NamedEdge ne = (NamedEdge)data.get(2);
+                    swmm.removeTriple(ne.V0(),ne.getName(), ne.V1());
+                }
+
+            }
+            e.dropComplete(true);
+
+        }
+
+        /**
+         * helper method for {@link #dragOver} and {@link #drop} to
+         * determine if a given coordinate is a valid drop destination
+         */
+        boolean isDropOK(int x, int y, int action)
+        {
+            TreePath path = getPathForLocation(x, y);
+            if (path == null) {
+                return false;
+            }
+            if (path.equals(OriginalSelectionPath)) {
+                return false;
+            }
+
+            if (action == DnDConstants.ACTION_LINK || action == DnDConstants.ACTION_MOVE || action == DnDConstants.ACTION_COPY)
+            {
+                FakeTreeNode ftn = (FakeTreeNode)path.getLastPathComponent();
+                return !ftn.isLeaf();
+            }
+            return false;
+
+        }//isDropOK
+    }//class DMTDropTargetListener
+
 
     static class DMTDragSourceListener implements DragSourceListener {
 
@@ -1602,7 +1825,7 @@ public class DataMapTree extends JTree implements ClipboardOwner {
         public void actionPerformed(ActionEvent e) {
             copy();
         }
-    }
+    }//class DMTDragSourceListener
 
     class PasteAction extends AbstractAction {
         private static final long serialVersionUID = 20221225L;
@@ -1634,15 +1857,14 @@ public class DataMapTree extends JTree implements ClipboardOwner {
             if (thePath != null) {
                 fake = ((FakeTreeNode) thePath.getLastPathComponent());
             } else {
-				if (DataMapTree.getDataMapTree().getModel().getRoot() instanceof FakeTreeNode) {
-					fake = (FakeTreeNode) DataMapTree.getDataMapTree().getModel().getRoot();
-				}
+                if (DataMapTree.getDataMapTree().getModel().getRoot() instanceof FakeTreeNode) {
+                    fake = (FakeTreeNode) DataMapTree.getDataMapTree().getModel().getRoot();
+                }
             }
             SearchDataMapDialog searchDialog = new SearchDataMapDialog(MainFrame.getMainFrame(), DataMapTree.getDataMapTree(), fake);
             searchDialog.setVisible(true);
         }
-    }
-
+    }//class SearchAction
 
     class ValidateDataMapAction extends AbstractAction {
         private static final long serialVersionUID = 20221225L;
