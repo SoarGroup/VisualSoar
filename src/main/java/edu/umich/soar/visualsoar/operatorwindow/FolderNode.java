@@ -175,7 +175,7 @@ public class FolderNode extends OperatorNode implements java.io.Serializable {
         }
 
         return this;
-    }
+    }//addImpasseOperator
 
 
     public void notifyDeletionOfChild(OperatorWindow operatorWindow,

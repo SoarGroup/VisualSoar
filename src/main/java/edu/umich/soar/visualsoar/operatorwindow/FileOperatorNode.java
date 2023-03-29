@@ -117,14 +117,14 @@ public class FileOperatorNode extends SoarOperatorNode {
      * This represents the set of actions that should be preformed when an
      * operator becomes a high-level operator
      */
-    public void firstTimeAdd(OperatorWindow operatorWindow,
+    public boolean firstTimeAdd(OperatorWindow operatorWindow,
                              SoarWorkingMemoryModel swmm) throws IOException {
         OperatorNode parent = (OperatorNode) getParent();
 
         // Create the Folder
         File folder = new File(parent.getFullPathName() + File.separator + name);
         if (creationConflict(folder, true)) {
-            return;
+            return false;
         }
         if (!folder.mkdir()) throw new IOException();
 
@@ -141,6 +141,8 @@ public class FileOperatorNode extends SoarOperatorNode {
 
         //Add the folder
         folderName = folder.getName();
+
+        return true;
     }
 
 

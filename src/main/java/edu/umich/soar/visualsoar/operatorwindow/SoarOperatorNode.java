@@ -112,15 +112,17 @@ public class SoarOperatorNode extends FileNode {
      * This represents the set of actions that should be preformed when an
      * operator becomes a high-level operator.  This function is overridden
      * in FileOperatorNode since it does not represent a Soar state.
+     *
+     * @return true on success
      */
-    public void firstTimeAdd(OperatorWindow operatorWindow,
+    public boolean firstTimeAdd(OperatorWindow operatorWindow,
                              SoarWorkingMemoryModel swmm) throws IOException {
 
         // Create the Folder
         File folder = new File(((OperatorNode) getParent()).getFullPathName() + File.separator + name);
 
         if (creationConflict(folder, true)) {
-            return;
+            return false;
         }
 
         if (!folder.mkdir()) {
@@ -145,6 +147,8 @@ public class SoarOperatorNode extends FileNode {
         //Add the elaborations node and folder
         operatorWindow.addChild(this, elaborationNode);
         folderName = folder.getName();
+
+        return true;
     }
 
     public void importFunc(Reader r,
@@ -152,7 +156,9 @@ public class SoarOperatorNode extends FileNode {
                            SoarWorkingMemoryModel swmm) throws IOException, NumberFormatException {
 
         if (!isHighLevel) {
-            firstTimeAdd(operatorWindow, swmm);
+            if (! firstTimeAdd(operatorWindow, swmm)) {
+                throw new IOException("firstTimeAdd() failed in SoarOperatorNode.importFunc()");
+            }
         }
         VSEImporter.read(r, this, operatorWindow, swmm, VSEImporter.HLOPERATOR | VSEImporter.OPERATOR);
     }
@@ -273,7 +279,11 @@ public class SoarOperatorNode extends FileNode {
     public OperatorNode addSuboperator(OperatorWindow operatorWindow,
                                        SoarWorkingMemoryModel swmm,
                                        String newOperatorName) throws IOException {
-        if (!isHighLevel) firstTimeAdd(operatorWindow, swmm);
+        if (!isHighLevel) {
+            if (!firstTimeAdd(operatorWindow, swmm)) {
+                return this;
+            }
+        }
 
         File rules = new File(getFullPathName() + File.separator + newOperatorName + ".soar");
         if (creationConflict(rules)) {
@@ -348,7 +358,9 @@ public class SoarOperatorNode extends FileNode {
      * @param newFileName the name of the new operator to add
      */
     public void addFileOperator(OperatorWindow operatorWindow, SoarWorkingMemoryModel swmm, String newFileName) throws IOException {
-        if (!isHighLevel) firstTimeAdd(operatorWindow, swmm);
+        if (!isHighLevel) {
+            if (!firstTimeAdd(operatorWindow, swmm)) return;
+        }
 
         File file = new File(getFullPathName() + File.separator + newFileName + ".soar");
         if (checkCreateReplace(file)) return;
@@ -514,17 +526,20 @@ public class SoarOperatorNode extends FileNode {
         if ((newParent instanceof SoarOperatorNode)
                 && !((SoarOperatorNode) newParent).isHighLevel()) {
             try {
-                ((SoarOperatorNode) newParent).firstTimeAdd(operatorWindow,
-                        operatorWindow.getDatamap());
+                SoarOperatorNode son = ((SoarOperatorNode) newParent);
+                SoarWorkingMemoryModel swmm = operatorWindow.getDatamap();
+                if (!son.firstTimeAdd(operatorWindow,swmm)) {
+                    return false;
+                }
             } catch (IOException ioe) {
                 System.out.println("Move failed, because firstTimeAdd on parent failed");
-                return true;
+                return false;
             }
         }
 
         //check for name conflict (why don't we do this first??)
         if (newParent.creationConflict(new File(newParent.getFolderName() + File.separator + fileAssociation))) {
-            return true;
+            return false;
         }
 
         //If moving a high-level operator its folder also needs to be renamed
