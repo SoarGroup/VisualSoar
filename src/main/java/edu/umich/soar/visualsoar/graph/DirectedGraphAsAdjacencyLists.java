@@ -2,10 +2,7 @@ package edu.umich.soar.visualsoar.graph;
 
 import edu.umich.soar.visualsoar.util.*;
 
-import java.util.Enumeration;
-import java.util.Hashtable;
-import java.util.List;
-import java.util.Vector;
+import java.util.*;
 
 /**
  * This class is an implementation of the DirectedGraph class, using Adjacency Lists
@@ -43,9 +40,47 @@ public class DirectedGraphAsAdjacencyLists extends DirectedGraph {
     public void addEdge(NamedEdge e) {
         Vertex start = e.V0();
         Vector<NamedEdge> emanatingEdges = adjacencyLists.get(start.getValue());
-        emanatingEdges.add(e);
+        insertSorted(e, emanatingEdges);
         ++numberOfEdges;
     }
+
+    /**
+     * insertSorted
+     *
+     * a helper method for {@link #addEdge(NamedEdge)} that adds
+     * a given NamedEdge to a Vector of same in a position that keeps
+     * it in sorted order.
+     *
+     * Side effect:  also verifies that the list is already sorted
+     */
+    private void insertSorted(NamedEdge ne, Vector<NamedEdge> vec) {
+        boolean found = false;
+        int foundAt = 0;
+        boolean isSorted = true;  //innocent until proven guilty
+        String prevName = "";
+        for (int i = 0; i < vec.size(); ++i) {
+            NamedEdge current = vec.get(i);
+            if ((!found) && (current.getName().compareTo(ne.getName()) >= 0)) {
+                found = true;
+                foundAt = i;
+            }
+
+            //check for unsorted list (just in case)
+            if ((i > 0) && (prevName.compareTo(ne.getName()) > 0)) {
+                isSorted = false;  //this will trigger a full sort below
+            }
+            prevName = current.getName();
+        }//for
+
+        if (found) {
+            vec.insertElementAt(ne, foundAt);
+        } else {
+            vec.add(ne);  //add to end
+        }
+
+        //this should never be needed but it was fairly cheap to double-check
+        if (! isSorted) Collections.sort(vec);
+    }//insertSorted
 
     public void removeEdge(NamedEdge e) {
         Vertex start = e.V0();

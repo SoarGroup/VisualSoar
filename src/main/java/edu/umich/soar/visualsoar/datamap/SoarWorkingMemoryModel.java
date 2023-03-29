@@ -103,6 +103,11 @@ public class SoarWorkingMemoryModel {
      * Adds a triple to working memory
      */
     public void addTriple(SoarVertex v0, String attribute, SoarVertex v1) {
+        //DEBUG;  crashing here sometimes
+        if (v0 == null) {
+            boolean stop =true;
+        }
+
         if (!v0.allowsEmanatingEdges()) {
             throw new IllegalArgumentException("The First SoarVertex does not allow emanating edges");
         }
@@ -329,8 +334,6 @@ public class SoarWorkingMemoryModel {
         SoarVertex nameVertex = createNewEnumeration(name);
         addTriple(s, "type", type_state);
 
-        //TODO: I don't think this line of code is needed so I removed to see what would break
-        //createNewSoarId();
         if (superstate != null) {
             addTriple(s, "superstate", superstate);
         }

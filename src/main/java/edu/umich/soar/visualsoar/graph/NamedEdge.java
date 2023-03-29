@@ -7,6 +7,7 @@ import edu.umich.soar.visualsoar.parser.TripleUtils;
 import edu.umich.soar.visualsoar.util.QueueAsLinkedList;
 import edu.umich.soar.visualsoar.util.VSQueue;
 
+import java.util.Comparator;
 import java.util.Enumeration;
 
 /**
@@ -16,7 +17,7 @@ import java.util.Enumeration;
  * @version 0.5a Oct 1999
  */
 
-public class NamedEdge extends Edge {
+public class NamedEdge extends Edge implements Comparable<NamedEdge> {
     private static final long serialVersionUID = 20221225L;
 
 ///////////////////////////////////////////////////////////////////
@@ -351,4 +352,9 @@ public class NamedEdge extends Edge {
         lineNumber = number;
     }
 
+    /** satisfy the Comparable interface by comparing edge names */
+    @Override
+    public int compareTo(NamedEdge o) {
+        return this.name.compareTo(o.name);
+    }
 }

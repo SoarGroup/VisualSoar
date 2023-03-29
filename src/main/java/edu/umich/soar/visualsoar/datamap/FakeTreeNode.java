@@ -155,29 +155,39 @@ public class FakeTreeNode {
     //////////////////////////////////////////
 // Manipulators
 //////////////////////////////////////////
+    /** Adds a new child to this node and generates a TreeModelEvent that results the addition */
     public TreeModelEvent add(NamedEdge ne) {
         int[] indices = new int[1];
         FakeTreeNode aChild = new FakeTreeNode(swmm, ne);
         aChild.setParent(this);
+        indices[0] = insertSorted(ne, aChild);
+
+        return new TreeModelEvent(swmm, getTreePath().toArray(), indices, children.toArray());
+    }//add
+
+    /**
+     * insertSorted
+     *
+     * is a helper method for {@link #add(NamedEdge)}.  It inserts a new child in sorted order */
+    private int insertSorted(NamedEdge ne, FakeTreeNode aChild) {
         boolean found = false;
         int foundAt = 0;
-        for (int i = 0; i < children.size() && !found; ++i) {
+        for (int i = 0; i < children.size(); ++i) {
             NamedEdge current = getChildAt(i).getEdge();
             if (current.getName().compareTo(ne.getName()) >= 0) {
                 found = true;
                 foundAt = i;
+                break;
             }
         }
         if (found) {
             children.add(foundAt, aChild);
-            indices[0] = foundAt;
+            return foundAt;
         } else {
             children.add(aChild);
-            indices[0] = children.size() - 1;
+            return children.size() - 1;
         }
-
-        return new TreeModelEvent(swmm, getTreePath().toArray(), indices, children.toArray());
-    }
+    }//insertSorted
 
 
     public void setParent(FakeTreeNode ftn) {
