@@ -1558,7 +1558,7 @@ public class DataMapTree extends JTree implements ClipboardOwner {
             }
 
             if (getSelectionCount() > 1) {
-                MainFrame.getMainFrame().setFeedbackListData("Only one item may be dragged at a time");
+                MainFrame.getMainFrame().setStatusBarError("Only one item may be dragged at a time");
                 return;
             }
 

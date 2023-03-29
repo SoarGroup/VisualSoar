@@ -425,7 +425,7 @@ public class OperatorWindow extends JTree {
     }
 
     /**
-     * This prompts the user for a name for the suboperator, if the user returns a valid name then
+     * This prompts the user for a name for the sub-operator, if the user returns a valid name then
      * it inserts a new node into the tree
      */
     public void addSuboperator() {
@@ -478,7 +478,7 @@ public class OperatorWindow extends JTree {
             node.export(new File(projectFolder + File.separator + node + ".vse"));
 
             //Let the user know it was successful
-            MainFrame.getMainFrame().setFeedbackListData("Export Complete");
+            MainFrame.getMainFrame().setStatusBarMsg("Export Complete");
         } catch (IOException ioe) {
             JOptionPane.showMessageDialog(MainFrame.getMainFrame(),
                     "Error Writing File to Disk",
@@ -517,7 +517,7 @@ public class OperatorWindow extends JTree {
                 r.close();
 
                 //Inform user of success
-                MainFrame.getMainFrame().setFeedbackListData("Import Complete");
+                MainFrame.getMainFrame().setStatusBarMsg("Import Complete");
             }
 
 

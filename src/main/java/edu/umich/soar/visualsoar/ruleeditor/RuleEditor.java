@@ -833,7 +833,7 @@ public class RuleEditor extends CustomInternalFrame {
             }
         }
 
-        MainFrame.getMainFrame().setFeedbackListData("Replaced " + count + " occurrences of \"" + findString + "\" with \"" + replaceString + "\"");
+        MainFrame.getMainFrame().setStatusBarMsg("Replaced " + count + " occurrences of \"" + findString + "\" with \"" + replaceString + "\"");
     }
 
     /**
@@ -1796,11 +1796,12 @@ public class RuleEditor extends CustomInternalFrame {
          * @param completeMatches List of Strings representing possible attributes to be displayed
          */
         private void display(List<String> completeMatches) {
-            Vector<FeedbackListObject> flobjMatches = new Vector<>();
-            for (String match : completeMatches) {
-                flobjMatches.add(new FeedbackListObject(match));
+            if (completeMatches.size() == 0) {
+                MainFrame.getMainFrame().setStatusBarMsg("no auto-complete matches found");
             }
-            MainFrame.getMainFrame().setFeedbackListData(flobjMatches);
+            else {
+                MainFrame.getMainFrame().setStatusBarMsgList(completeMatches);
+            }
         }    // end of display()
 
 
@@ -1932,11 +1933,7 @@ public class RuleEditor extends CustomInternalFrame {
             editorPane.insert(addedCharacters, pos);
 
             //report all matches to the user
-            Vector<FeedbackListObject> feedbackList = new Vector<>();
-            for (String msg : completeMatches) {
-                feedbackList.add(new FeedbackListObject(msg));
-            }
-            MainFrame.getMainFrame().setFeedbackListData(feedbackList);
+            MainFrame.getMainFrame().setStatusBarMsgList(completeMatches);
 
         }//complete
 

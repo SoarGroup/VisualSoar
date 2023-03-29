@@ -60,7 +60,8 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 	private final TemplateManager d_templateManager = new TemplateManager();
 	private final JSplitPane operatorDesktopSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
 	public FeedbackList feedbackList = new FeedbackList();
-    String lastWindowViewOperation = "none"; // can also be "tile" or "cascade"
+    public JLabel statusBar = new JLabel("  Welcome to Visual Soar.");
+	String lastWindowViewOperation = "none"; // can also be "tile" or "cascade"
 
 	private JMenu soarRuntimeAgentMenu = null;
 	
@@ -166,7 +167,10 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
         feedbackDesktopSplit.setOneTouchExpandable(true);
         feedbackDesktopSplit.setDividerLocation( ((int) (d.getHeight() * .65)) );
 
-        contentPane.add(feedbackDesktopSplit, BorderLayout.CENTER);
+		Box vbox = Box.createVerticalBox();
+		contentPane.add(vbox);
+        vbox.add(feedbackDesktopSplit, BorderLayout.CENTER);
+		vbox.add(statusBar);
 
 		setJMenuBar(createMainMenu());
 		addWindowListener(
@@ -209,7 +213,9 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
     
     
 	/**
-     * Method updates the FeedBack list window
+     * Method updates the FeedBack list window.  If your message is a single string
+	 * consider using the status bar to display your message instead.
+	 *
      * @param v the vector list of feedback data
      */
 	public void setFeedbackListData(Vector<FeedbackListObject> v)
@@ -218,14 +224,39 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 	}
 
 	/**
-	 * Method updates the FeedBack list window to display a single message
+	 * Method updates the status bar text with a message
 	 */
-	public void setFeedbackListData(String msg)
+	public void setStatusBarMsg(String text)
 	{
-		Vector<FeedbackListObject> vec = new Vector<>();
-		vec.add(new FeedbackListObject(msg));
-		setFeedbackListData(vec);
+		//Extra spaces make text align better with feedback window above it
+		statusBar.setForeground(Color.black);
+		statusBar.setText("  " + text);
 	}
+
+	/**
+	 * Method updates the status bar text with list of strings.  These
+	 * are displayed on a single line.
+	 */
+	public void setStatusBarMsgList(List<String> msgs) {
+		if (msgs.size() == 0) return; //nop
+		StringBuilder sb = new StringBuilder();
+		for (String match : msgs) {
+			sb.append("   ");
+			sb.append(match);
+		}
+		statusBar.setText(sb.toString());
+	}
+
+	/**
+	 * Method updates the status bar text with a message that indicates a user error
+	 */
+	public void setStatusBarError(String text)
+	{
+		//Extra spaces make text align better with feedback window above it
+		statusBar.setForeground(Color.red);
+		statusBar.setText("  " + text);
+	}
+
 
 	/**
      * Gets the project TemplateManager
@@ -1057,7 +1088,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		public void actionPerformed(ActionEvent event) 
         {
 			perform();	
-			setFeedbackListData("DataMap and Project Saved");
+			setStatusBarMsg("DataMap and Project Saved");
 		}
 	}
 
@@ -1358,7 +1389,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		public void actionPerformed(ActionEvent event)
         {
 			perform();
-			setFeedbackListData("Export Finished");
+			setStatusBarMsg("Export Finished");
 		}
 	}
 	
@@ -2481,7 +2512,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		public void actionPerformed(ActionEvent e) 
         {
 			perform();
-			setFeedbackListData("Save Finished");
+			setStatusBarMsg("Save Finished");
 		}
 	}
 	
