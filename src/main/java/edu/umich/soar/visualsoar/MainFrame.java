@@ -102,6 +102,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
     Action viewKeyBindingsAction = new ViewKeyBindingsAction();
 	Action findInProjectAction = new FindInProjectAction();
     Action replaceInProjectAction = new ReplaceInProjectAction();
+	Action findAllProdsAction = new FindAllProdsAction();
 
 	// 3P
     Kernel m_Kernel = null ;
@@ -191,7 +192,8 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
         icons.add(tk.getImage(MainFrame.class.getResource("/vs.png")));
         icons.add(tk.getImage(MainFrame.class.getResource("/vs16.png")));
 		this.setIconImages(icons);
-	}
+
+	}//MainFrame ctor
 
 ////////////////////////////////////////
 // Methods
@@ -360,7 +362,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		exitItem.setMnemonic(KeyEvent.VK_X);
 		
 		return fileMenu;
-	}
+	}//createFileMenu
 	
 	/**
 	 * A helper function to create the edit menu
@@ -376,32 +378,44 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 
 		return editMenu;
 	}
-	
+
 	/**
 	 * A helper function to create the search menu
 	 * @return The search menu
 	 */
 	private JMenu createSearchMenu() 
     {
-		JMenu searchMenu = new JMenu("Search");
-
+		final JMenu searchMenu = new JMenu("Search");
+		// View Menu
 		JMenuItem findInProjectItem = new JMenuItem("Find in Project");
 		findInProjectItem.addActionListener(findInProjectAction);
-		findInProjectAction.addPropertyChangeListener(
-            new ActionButtonAssociation(findInProjectAction,findInProjectItem));
+		findInProjectItem.addPropertyChangeListener(
+				new ActionButtonAssociation(findInProjectAction,findInProjectItem));
+		searchMenu.add(findInProjectItem);
 
-        JMenuItem replaceInProjectItem = new JMenuItem("Replace in Project");
-        replaceInProjectItem.addActionListener(replaceInProjectAction);
-        replaceInProjectAction.addPropertyChangeListener(
-            new ActionButtonAssociation(replaceInProjectAction, replaceInProjectItem));
+		JMenuItem replaceInProjectItem = new JMenuItem("Replace in Project");
+		replaceInProjectItem.addActionListener(replaceInProjectAction);
+		replaceInProjectItem.addPropertyChangeListener(
+				new ActionButtonAssociation(replaceInProjectAction,replaceInProjectItem));
+		searchMenu.add(replaceInProjectItem);
 
-		searchMenu.add(findInProjectAction);
-        searchMenu.add(replaceInProjectAction);
-		searchMenu.setMnemonic(KeyEvent.VK_A);
+		JMenuItem findAllProdsItem = new JMenuItem("Find All Productions");
+		findAllProdsItem.addActionListener(findAllProdsAction);
+		findAllProdsItem.addPropertyChangeListener(
+				new ActionButtonAssociation(findAllProdsAction,findAllProdsItem));
+		searchMenu.add(findAllProdsItem);
 
+		searchMenu.setMnemonic('A');
+		findInProjectItem.setMnemonic(KeyEvent.VK_F);
+		findInProjectItem.setAccelerator(KeyStroke.getKeyStroke("control shift F"));
+		replaceInProjectItem.setMnemonic(KeyEvent.VK_R);
+		replaceInProjectItem.setAccelerator(KeyStroke.getKeyStroke("control shift R"));
+		findAllProdsItem.setMnemonic(KeyEvent.VK_D);
+		findAllProdsItem.setAccelerator(KeyStroke.getKeyStroke("control shift D"));
 
 		return searchMenu;
-	}
+
+	}//createSearchMenu
 
 	/**
 	 * A helper function to create the Datamap menu
@@ -498,7 +512,6 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		reTileWindowItem.addPropertyChangeListener(
             new ActionButtonAssociation(reTileWindowsAction,reTileWindowItem));
 		viewMenu.add(reTileWindowItem);
-		viewMenu.addSeparator();
 				
 		viewMenu.addMenuListener(
             new MenuListener() 
@@ -610,7 +623,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
         }
     }//OpenFile()
 
-    /**
+	/**
      * When the Soar Runtime|Agent menu is selected, this listener
      * populates the menu with the agents that exist in the kernel
      * we're currently connected to through SML.
@@ -777,7 +790,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
         MenuBar.add(createSoarRuntimeMenu());
 
 		MenuBar.add(createHelpMenu());
-		
+
 		return MenuBar;
 	}
 
@@ -976,12 +989,38 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
         searchDataMapCreateNoTestAction.setEnabled(areEnabled);
         searchDataMapNoTestNoCreateAction.setEnabled(areEnabled);    
         generateDataMapAction.setEnabled(areEnabled);
-		//checkCoverageAction.setEnabled(true);
 		closeProjectAction.setEnabled(areEnabled);
-		findInProjectAction.setEnabled(areEnabled);
-        replaceInProjectAction.setEnabled(areEnabled);
 		commitAction.setEnabled(areEnabled);
 		saveProjectAsAction.setEnabled(areEnabled);
+
+		/*
+		 * Note:  The following menu items are NOT in the list above and, thus, remain
+		 * enabled even when there is no project currently open.
+		 *  - (re)tile windows
+		 *  - find in project
+		 *  - replace in project
+		 *  - find all productions
+		 *
+		 * Why???  Because there's a quirky behavior in Swing:  When an action is
+		 * disabled, it's associated menu item's accelerator is also disabled as would
+		 * be expected.  However, when it is re-enabled the accelerator is not re-instated
+		 * UNTIL the menu is used manually by the user via the mouse.  It's an odd behavior
+		 * that seems to be a bug in Swing afaict. Apparently it's possible to workaround it
+		 * by having the menu ask for focus or resetting the accelerator.  I tried to
+		 * the former but it didn't work for me.  The latter seems inferior to the workaround
+		 * I've chosen (below).
+		 *
+		 * Here are some relevant Stack Overflow articles:
+		 *   https://stackoverflow.com/questions/22507505/keystroke-accelerator-not-working-after-disabling-jmenuitem
+		 *   https://stackoverflow.com/questions/71976058/accelerator-on-jmenuitem-doesnt-work-if-the-jmenu-is-not-open-but-only-a-few
+		 *
+		 * Since I would expect the user will be annoyed if certain hot keys don't work right
+		 * after a project is loaded, I've worked around this error by making the above actions
+		 * detect when there is no project currently open and just silently abort in their
+		 * actionPerformed() methods. Thus I can keep them (and they hotkeys) active at all times.
+		 *
+		 * -:AMN:  30 Mar 2023
+		 */
   	}
   	  	
 	
@@ -2440,7 +2479,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		public FindInProjectAction()
         {
   			super("Find in Project");
-			setEnabled(false);
+			setEnabled(true);  //see the comment in projectActionsEnable()
   		}
   	
         /**
@@ -2452,13 +2491,17 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
          */  		
 		public void actionPerformed(ActionEvent e) 
         {
+			//If the user invokes this action when no project is open just ignore it
+			//For more info on why this is necessary, see the comment in projectActionsEnable()
+			if (operatorWindow == null) return;
+
 			FindInProjectDialog theDialog =
                 new FindInProjectDialog(MainFrame.this,
                                         operatorWindow,
                                         (OperatorNode)operatorWindow.getModel().getRoot());
 			theDialog.setVisible(true);
 		}
-	}
+	}//class FindInProjectAction
 
 
     class ReplaceInProjectAction extends AbstractAction 
@@ -2468,7 +2511,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		public ReplaceInProjectAction()
         {
             super("Replace in Project");
-            setEnabled(false);
+            setEnabled(true);    //see the comment in projectActionsEnable()
         }
 
         /**
@@ -2480,15 +2523,60 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
          */
         public void actionPerformed(ActionEvent e) 
         {
-            ReplaceInProjectDialog replaceDialog =
+			//If the user invokes this action when no project is open just ignore it
+			//For more info on why this is necessary, see the comment in projectActionsEnable()
+			if (operatorWindow == null) return;
+
+			ReplaceInProjectDialog replaceDialog =
                 new ReplaceInProjectDialog(MainFrame.this,
                                            operatorWindow,
                                            (OperatorNode)operatorWindow.getModel().getRoot());
             replaceDialog.setVisible(true);
         }
-    }
+    }//class ReplaceInProjectAction
 
-	
+	/** action to find all productions in the project */
+	class FindAllProdsAction extends AbstractAction
+	{
+		private static final long serialVersionUID = 20230330L;
+
+		public FindAllProdsAction()
+		{
+			super("Find All Productions");
+			setEnabled(true);    //see the comment in projectActionsEnable()
+		}
+
+		public void actionPerformed(ActionEvent e)
+		{
+			//If the user invokes this action when no project is open just ignore it
+			//For more info on why this is necessary, see the comment in projectActionsEnable()
+			if (operatorWindow == null) return;
+
+			//Get all files
+			Enumeration<TreeNode> bfe = operatorWindow.breadthFirstEnumeration();
+			Vector<OperatorNode> vecNodes = new Vector<>(10, 50);
+			while(bfe.hasMoreElements())
+			{
+				vecNodes.add((OperatorNode)bfe.nextElement());
+			}
+
+			//Extract production names/locations from each file
+			Vector<FeedbackListObject> vecFeedback = new Vector<>();
+			for(OperatorNode opNode : vecNodes) {
+				Vector<String> prodNames = opNode.getProdNames();
+				for(String prodName : prodNames) {
+					int lineNo = opNode.getLineNumForString(prodName);
+					FeedbackListObject flobj = new FeedbackListObject(opNode, lineNo, prodName);
+					vecFeedback.add(flobj);
+				}
+			}
+
+			//Share the final list with the user
+			setFeedbackListData(vecFeedback);
+		}//actionPerformed
+	}//class FindAllProdsAction
+
+
 	class CommitAction extends PerformableAction 
     {
 		private static final long serialVersionUID = 20221225L;
@@ -2514,7 +2602,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 			perform();
 			setStatusBarMsg("Save Finished");
 		}
-	}
+	}//class CommitAction
 	
 	class SaveProjectAsAction extends AbstractAction 
     {
@@ -2696,7 +2784,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
             DesktopPane.performReTileAction();
             lastWindowViewOperation = "tile";
         }
-    }
+    }//class TileWindowsAction
 
     class CascadeAction extends AbstractAction 
     {
@@ -2712,6 +2800,6 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
             DesktopPane.performCascadeAction();
             lastWindowViewOperation = "cascade";
         }
-    }
-}	
+    }//class CascadeAction
+}//class MainFrame
 		
