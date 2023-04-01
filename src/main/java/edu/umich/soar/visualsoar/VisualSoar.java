@@ -1,4 +1,6 @@
 package edu.umich.soar.visualsoar;
+import edu.umich.soar.visualsoar.misc.Prefs;
+
 import java.io.File;
 import java.io.IOException;
 import javax.swing.JOptionPane;
@@ -15,6 +17,7 @@ public class VisualSoar {
 ///////////////////////////////////////////////////////////////////
 // Methods
 ///////////////////////////////////////////////////////////////////
+
 	/**
 	 * Since this class can be run this is the starting point, it constructs an instance of
 	 * of the MainFrame

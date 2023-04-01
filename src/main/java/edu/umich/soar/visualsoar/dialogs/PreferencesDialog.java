@@ -144,16 +144,32 @@ public class PreferencesDialog extends JDialog {
                 dispose();
 
                 //Set a new font size
-                int fontSize = Integer.parseInt(editorFontField.getText());
+                int fontSize = getFontSize();
                 if (fontSize != SoarDocument.getFontSize()) {
-                    fontSize = Math.max(SoarDocument.MIN_FONT_SIZE, fontSize);
-                    fontSize = Math.min(SoarDocument.MAX_FONT_SIZE, fontSize);
                     SoarDocument.setFontSize(fontSize);
+                    Prefs.editorFontSize.set(editorFontField.getText());
                 }
             }
         });
 
     }     // end of constructor
+
+    /** retrieves the font size from the dialog.  A separate method is
+     * needed to handle exceptions and enforce min/max rules.
+     */
+    private int getFontSize() {
+        int fontSize = SoarDocument.getFontSize();
+        try {
+            fontSize = Integer.parseInt(editorFontField.getText());
+        }
+        catch(NumberFormatException nfe) {
+            /* no action needed.  default will be used */
+        }
+        fontSize = Math.max(SoarDocument.MIN_FONT_SIZE, fontSize);
+        fontSize = Math.min(SoarDocument.MAX_FONT_SIZE, fontSize);
+
+        return fontSize;
+    }//getFontSize
 
     public void commitChanges() {
         TreeMap<Integer, Color> colorsToChange = colorPanel.getChanges();

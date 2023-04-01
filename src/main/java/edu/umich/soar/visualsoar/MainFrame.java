@@ -30,6 +30,8 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
 import java.awt.*;
 import java.awt.event.*;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.*;
 import java.util.List;
 import java.util.*;
@@ -121,19 +123,6 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		return m_Kernel.GetAgent(m_ActiveAgent) ;
 	}
 
-	public void reportResult(String result)
-	{
-		String[] lines = result.split("\n") ;
-		
-		Vector<FeedbackListObject> v = new Vector<>();
-
-		for (String line : lines) {
-			v.add(new FeedbackListObject(line));
-		}
-		
-		setFeedbackListData(v);
-	}
-	
 ////////////////////////////////////////
 // Constructors
 ////////////////////////////////////////
@@ -147,10 +136,12 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
     {
 		// Set the Title of the window
 		super(s);
-		
+
 		// Use Java toolkit to access user's screen size and set VisualSoar window to 90% of that size
         Toolkit tk = Toolkit.getDefaultToolkit();
         Dimension d = tk.getScreenSize();
+		int width = (int) (d.getWidth() * .9);
+		int height = (int) (d.getHeight() * .9);
 		setSize( ((int) (d.getWidth() * .9)), ((int) (d.getHeight() * .9)) );
 
 		setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
@@ -162,12 +153,14 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		JScrollPane sp = new JScrollPane(feedbackList);
 		sp.setBorder(new TitledBorder("Feedback"));
 
+		//Create the main desktop
 		JSplitPane feedbackDesktopSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
 		feedbackDesktopSplit.setTopComponent(operatorDesktopSplit);
         feedbackDesktopSplit.setBottomComponent(sp);
         feedbackDesktopSplit.setOneTouchExpandable(true);
         feedbackDesktopSplit.setDividerLocation( ((int) (d.getHeight() * .65)) );
 
+		//Add the desktop to the window with status bar at the bottom
 		Box vbox = Box.createVerticalBox();
 		contentPane.add(vbox);
         vbox.add(feedbackDesktopSplit, BorderLayout.CENTER);
@@ -1144,7 +1137,32 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		
 		projectActionsEnable(true);
 
-		operatorDesktopSplit.setDividerLocation(.30);
+		//Set the divider position
+		double position = Double.parseDouble(Prefs.dividerPosition.get());
+		operatorDesktopSplit.setDividerLocation(position);
+
+		//Whenever the user moves the divider, rememeber the user's preference
+		operatorDesktopSplit.addPropertyChangeListener(
+				JSplitPane.DIVIDER_LOCATION_PROPERTY,
+				new PropertyChangeListener() {
+					@Override
+					public void propertyChange(PropertyChangeEvent evt) {
+						//Retrieve the value as a double
+						String valStr = evt.getNewValue().toString();
+						int val = Integer.parseInt(valStr);
+
+						//Convert it to a fraction of window size
+						Toolkit tk = Toolkit.getDefaultToolkit();
+						Dimension d = tk.getScreenSize();
+						double proportion = (double)val / (double)d.getWidth();
+
+						//Save the new value to Prefs (if sane)
+						if ((proportion > 0.0) && (proportion < 1.0)) {
+							Prefs.dividerPosition.set("" + proportion);
+						}
+					}
+				}
+		);
 	}
 	
 	/**
@@ -1172,6 +1190,10 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 				// Unfortunately, FilenameFilters don't work on Windows XP, so I have
 				//  to set the file to *.vsa.  Yuck.
 				FileDialog fileChooser = new FileDialog(MainFrame.this, "Open Project", FileDialog.LOAD);
+				File dir = new File(Prefs.openFolder.get());
+				if ((dir.exists()) && (dir.canRead())) {
+					fileChooser.setDirectory(dir.getAbsolutePath());
+				}
 				fileChooser.setFilenameFilter(new FilenameFilter() {
 					public boolean accept(File dir, String name) {
 						return name.toLowerCase().endsWith("vsa");
@@ -1251,7 +1273,10 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
             {
                 JFileChooser fileChooser = new JFileChooser();
                 fileChooser.setFileFilter(new TextFileFilter());
-                fileChooser.setCurrentDirectory(new File(Prefs.openFolder.get()));
+				File dir = new File(Prefs.openFolder.get());
+				if ((dir.exists()) && (dir.canRead())) {
+					fileChooser.setCurrentDirectory(dir);
+				}
                 int state = fileChooser.showOpenDialog(MainFrame.this);
                 File file = fileChooser.getSelectedFile();
                 if(file != null && state == JFileChooser.APPROVE_OPTION) 
@@ -1671,8 +1696,32 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		soarRuntimeSendAllFilesAction.setEnabled(false) ;
 	}
 
+	/**
+	 * reportResult
+	 *
+	 * Used to report a multi-line result of a command to the user
+	 * in the feedback window.  This was originally created to display
+	 * the output from commands sent to the SoarJavaDebugger but
+	 * can be used for any similar output.
+	 *
+	 * @param result
+	 */
+	public void reportResult(String result)
+	{
+		String[] lines = result.split("\n") ;
 
-    /**
+		Vector<FeedbackListObject> v = new Vector<>();
+
+		for (String line : lines) {
+			v.add(new FeedbackListObject(line));
+		}
+
+		setFeedbackListData(v);
+	}//reportResult
+
+
+
+	/**
      * Handles Soar Runtime|Disconnect menu option
      * @author ThreePenny
      */
@@ -1692,9 +1741,9 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 			// Terminate the soar runtime
 			SoarRuntimeTerm();
 		}	
-	}
-	
-    // Handles the "Runtime|Send All Files" menu item
+	}//class SoarRuntimeTermAction
+
+	// Handles the "Runtime|Send All Files" menu item
     class SendAllFilesToSoarAction extends AbstractAction
     {
 		private static final long serialVersionUID = 20221225L;

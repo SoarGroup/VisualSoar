@@ -1,5 +1,8 @@
 package edu.umich.soar.visualsoar.misc;
 
+import edu.umich.soar.visualsoar.MainFrame;
+import edu.umich.soar.visualsoar.ruleeditor.SoarDocument;
+
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
@@ -12,7 +15,9 @@ public enum Prefs {
     autoSoarCompleteEnabled(true),
     sharedProjectFile(null),
     sharedProjectEnabled(false),
-    userName("User");
+    userName("User"),
+    editorFontSize("" + SoarDocument.DEFAULT_FONT_SIZE),
+    dividerPosition("0.1");
 
     private static final Preferences preferences = Preferences.userRoot().node("edu/umich/soar/visualsoar");
     private static final SyntaxColor[] colors = SyntaxColor.getDefaultSyntaxColors();

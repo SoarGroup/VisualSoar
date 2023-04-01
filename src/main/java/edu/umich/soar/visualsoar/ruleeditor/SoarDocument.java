@@ -35,9 +35,10 @@ public class SoarDocument extends DefaultStyledDocument {
     public SoarDocument() {
         colorTable = Prefs.getSyntaxColors().clone();
 
-        //set default font size
+        //set font size and style
         Style defaultStyle = this.getStyle("default");
         MutableAttributeSet attributeSet = new SimpleAttributeSet();
+        SoarDocument.fontSize = Integer.parseInt(Prefs.editorFontSize.get());
         StyleConstants.setFontSize(attributeSet, SoarDocument.fontSize);
         defaultStyle.addAttributes(attributeSet);
     }
