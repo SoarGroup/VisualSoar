@@ -23,6 +23,7 @@ public class CustomInternalFrame extends JInternalFrame {
       ----------------------------------------------------------------------
      */
     protected int type;
+    private boolean change = false;  //have the contents of this window been changed?
 
 
     public CustomInternalFrame(String title, boolean resizable, boolean closable,
@@ -43,27 +44,20 @@ public class CustomInternalFrame extends JInternalFrame {
     protected void setType(int t) {
         type = t;
     }
-        
+
+
+    public boolean isModified() {
+        return change;
+    }
+
+    //Allow user to mark a document as unchanged.
+    public void setModified(boolean b) {
+        change = b;
+    }
     /*======================================================================
       Public Methods
       ----------------------------------------------------------------------
      */
-
-    /**
-     * This method returns true if the content of the pane has been edited but
-     * not saved.  This default implementation should be overriden in any
-     * subclass if the window will contain data that needs to be saved.
-     */
-    public boolean isModified() {
-        return false;
-    }
-
-    /**
-     * Subclass can override this method to allow a user to mark the
-     * frame as modified.
-     */
-    public void setModified(boolean c) {
-    }
 
 
 }//CustomInternalFrame

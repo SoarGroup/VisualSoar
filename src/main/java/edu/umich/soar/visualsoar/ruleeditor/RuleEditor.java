@@ -51,7 +51,6 @@ public class RuleEditor extends CustomInternalFrame {
     private final EditorPane editorPane = new EditorPane();
     private final UndoManager undoManager = new CustomUndoManager();
     private String fileName;
-    private boolean change = false;
     private final JLabel lineNumberLabel = new JLabel("Line:");
     private final JLabel modifiedLabel = new JLabel("");
 
@@ -145,7 +144,7 @@ public class RuleEditor extends CustomInternalFrame {
         addInternalFrameListener(
                 new InternalFrameAdapter() {
                     public void internalFrameClosing(InternalFrameEvent e) {
-                        if (change) {
+                        if (isModified()) {
                             int answer = JOptionPane.showConfirmDialog(null, "Save Changes to " + fileName + "?",
                                     "Unsaved Changes", JOptionPane.YES_NO_CANCEL_OPTION);
                             if (answer == JOptionPane.CANCEL_OPTION) {
@@ -264,15 +263,15 @@ public class RuleEditor extends CustomInternalFrame {
         doc.addDocumentListener(
                 new DocumentListener() {
                     public void insertUpdate(DocumentEvent e) {
-                        if (!change) {
-                            change = true;
+                        if (! isModified()) {
+                            setModified(true);
                             modifiedLabel.setText("Modified");
                         }
                     }
 
                     public void removeUpdate(DocumentEvent e) {
-                        if (!change) {
-                            change = true;
+                        if (! isModified()) {
+                            setModified(true);
                             modifiedLabel.setText("Modified");
                         }
                     }
@@ -846,7 +845,7 @@ public class RuleEditor extends CustomInternalFrame {
         makeValidForParser();
         FileWriter fw = new FileWriter(fileName);
         editorPane.write(fw);
-        change = false;
+        setModified(false);
         modifiedLabel.setText("");
         fw.close();
     }
@@ -936,7 +935,7 @@ public class RuleEditor extends CustomInternalFrame {
         theReader.close();
 
         modifiedLabel.setText("");
-        change = false;
+        setModified(false);
 
         editorPane.colorSyntax();
     }
@@ -1258,7 +1257,7 @@ public class RuleEditor extends CustomInternalFrame {
                 // for more information
                 Boolean oldValue = (Boolean) e.getOldValue(),
                         newValue = (Boolean) e.getNewValue();
-                if (oldValue == Boolean.FALSE && newValue == Boolean.TRUE && change) {
+                if (oldValue == Boolean.FALSE && newValue == Boolean.TRUE && isModified()) {
                     int answer = JOptionPane.showConfirmDialog(internalFrame,
                             "Save Changes to " + fileName + "?",
                             "Unsaved Changes",
@@ -2348,15 +2347,6 @@ public class RuleEditor extends CustomInternalFrame {
         }
     }//CustomUndoManager
 
-    //Override the implementation in CustomInternalFrame
-    public boolean isModified() {
-        return change;
-    }
-
-    //Allow user to mark a document as unchanged.
-    public void setModified(boolean b) {
-        change = b;
-    }
 
 }//class RuleEditor
 
