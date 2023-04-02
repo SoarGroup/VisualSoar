@@ -23,10 +23,12 @@ JavaCC in the Visual Soar respository may not work?
    using it.
 
 Steps:
-1.  Download/install javacc.  Navigate to the folder that contains it.
+1.  Download/install javacc.  For me it was as simple as:
+        sudo apt-get install javacc
+    Once installed, navigate to the folder that contains it.
 
 2.  The installation should include a javacc script (likely javacc.bat on
-    Windows).  Run this and verify that you get a usage message.
+    Windows).  Run this command and verify that you get a usage message.
 
         ./javacc
 
