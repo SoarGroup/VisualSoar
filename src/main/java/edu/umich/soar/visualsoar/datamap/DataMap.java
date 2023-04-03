@@ -69,7 +69,7 @@ public class DataMap extends CustomInternalFrame {
 
         TreeModel soarTreeModel = new SoarWMTreeModelWrapper(swmm, siv, title);
         soarTreeModel.addTreeModelListener(new DataMapListenerModel());
-        dataMapTree = new DataMapTree(soarTreeModel, swmm);
+        dataMapTree = new DataMapTree(this, soarTreeModel, swmm);
         getContentPane().add(new JScrollPane(dataMapTree));
 
         dataMapTree.setCellRenderer(new DataMapTreeRenderer());
@@ -124,6 +124,17 @@ public class DataMap extends CustomInternalFrame {
 
     public int getId() {
         return id;
+    }
+
+    /** Since the datamap contents are auto-saved it can't remain modified for long.
+     */
+    @Override
+    public void setModified(boolean b) {
+        if (b) {
+            //briefly set modified so that app knows project has changed and auto-save will begin operation
+            super.setModified(true);
+            super.setModified(false);
+        }
     }
 
     public Vector<FeedbackListObject> searchTestDataMap(SoarIdentifierVertex in_siv, String dataMapName) {

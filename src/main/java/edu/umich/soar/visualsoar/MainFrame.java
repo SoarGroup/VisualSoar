@@ -979,13 +979,42 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 	 * sets the divider position (between the operator pane and the desktop)
 	 * based upon the last user setting.
 	 */
-	private void setDivider() {
+	private static boolean listenerSetup = false;  //avoid re-creating listener
+	private void dividerSetup() {
 		double position = Double.parseDouble(Prefs.dividerPosition.get());
 		if ((position < MIN_DIV_POS) || (position > MAX_DIV_POS)) {
 			position = DEFAULT_DIV_POS;
+			Prefs.dividerPosition.set("" + DEFAULT_DIV_POS);
 		}
 		operatorDesktopSplit.setDividerLocation(position);
-	}//setDivider
+
+		//Whenever the user moves the divider, remember the user's preference
+		if (! listenerSetup) {
+			operatorDesktopSplit.addPropertyChangeListener(
+					JSplitPane.DIVIDER_LOCATION_PROPERTY,
+					new PropertyChangeListener() {
+						@Override
+						public void propertyChange(PropertyChangeEvent evt) {
+							//Retrieve the value as a double
+							String valStr = evt.getNewValue().toString();
+							int val = Integer.parseInt(valStr);
+
+							//Convert it to a fraction of window size
+							Toolkit tk = Toolkit.getDefaultToolkit();
+							Dimension d = tk.getScreenSize();
+							double proportion = (double) val / (double) d.getWidth();
+
+							//Save the new value to Prefs (if sane)
+							if ((proportion >= MIN_DIV_POS) && (proportion <= MAX_DIV_POS)) {
+								Prefs.dividerPosition.set("" + proportion);
+								Prefs.flush();
+							}
+						}
+					}
+			);
+			listenerSetup = true;
+		}//listener setup
+	}//dividerSetup
 
 	/**
   	 * enables the corresponding actions for when a project is opened
@@ -1111,7 +1140,9 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 				SoarRuntimeTerm();
 								
 				dispose();
-				commitAction.perform();
+				if (CustomInternalFrame.hasEverChanged()) {
+					commitAction.perform();
+				}
 				System.exit(0);
 			}
 			catch (java.beans.PropertyVetoException pve) { /* ignore */ }
@@ -1158,32 +1189,8 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		
 		projectActionsEnable(true);
 
-		//Set the divider position
-		setDivider();
-
-		//Whenever the user moves the divider, rememeber the user's preference
-		operatorDesktopSplit.addPropertyChangeListener(
-				JSplitPane.DIVIDER_LOCATION_PROPERTY,
-				new PropertyChangeListener() {
-					@Override
-					public void propertyChange(PropertyChangeEvent evt) {
-						//Retrieve the value as a double
-						String valStr = evt.getNewValue().toString();
-						int val = Integer.parseInt(valStr);
-
-						//Convert it to a fraction of window size
-						Toolkit tk = Toolkit.getDefaultToolkit();
-						Dimension d = tk.getScreenSize();
-						double proportion = (double)val / (double)d.getWidth();
-
-						//Save the new value to Prefs (if sane)
-						if ((proportion < MIN_DIV_POS) || (proportion > MAX_DIV_POS)) {
-							Prefs.dividerPosition.set("" + proportion);
-							Prefs.flush();
-						}
-					}
-				}
-		);
+		//Set and monitor the divider position
+		dividerSetup();
 	}
 	
 	/**
@@ -1240,11 +1247,14 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 
 					projectActionsEnable(true);
 
-					//divider position
-					setDivider();
+					//Set and monitor the divider position
+					dividerSetup();
 
 					//Verify project integrity
 					verifyProjectAction.perform();
+
+					//Reset tracking whether any change has been made to this project
+					CustomInternalFrame.resetEverchanged();
 
 					//Set the title bar to include the project name
 					setTitle(file.getName().replaceAll(".vsa", ""));
@@ -1385,7 +1395,11 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 				projectActionsEnable(true);
                 exportAgentAction.perform();
 
-				setDivider();
+				//Set and monitor the divider position
+				dividerSetup();
+
+				//Reset tracking whether any change has been made to this project
+				CustomInternalFrame.resetEverchanged();
 
 				//Set the title bar to include the project name
                 setTitle(agentName);

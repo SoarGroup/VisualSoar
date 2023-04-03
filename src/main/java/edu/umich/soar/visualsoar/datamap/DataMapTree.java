@@ -54,6 +54,7 @@ public class DataMapTree extends JTree implements ClipboardOwner {
     ////////////////////////////////////////
     // DataMembers
     ////////////////////////////////////////
+    private DataMap parentWindow;  //the window displaying the contents of this tree to the user
     public static Clipboard clipboard = new Clipboard("Datamap Clipboard");
     private static DataMapTree s_DataMapTree;
 
@@ -361,8 +362,9 @@ public class DataMapTree extends JTree implements ClipboardOwner {
      *
      * @param model the model which specifies the contents of the tree.
      */
-    public DataMapTree(TreeModel model, SoarWorkingMemoryModel _swmm) {
+    public DataMapTree(DataMap initParent, TreeModel model, SoarWorkingMemoryModel _swmm) {
         super(model);
+        parentWindow = initParent;
         swmm = _swmm;
         s_DataMapTree = this;
 
@@ -526,8 +528,9 @@ public class DataMapTree extends JTree implements ClipboardOwner {
             } else {
                 System.err.println("I am barren");  //should never happen
             }
-        }
-    }
+            parentWindow.setModified(true);
+        }//if approved
+    }//addIdentifier
 
     /**
      * Add a Soar Enumeration Attribute to the datamap
@@ -555,8 +558,9 @@ public class DataMapTree extends JTree implements ClipboardOwner {
             } else {
                 System.err.println("I am barren"); //should never happen
             }
-        }
-    }
+            parentWindow.setModified(true);
+        }//if
+    }//addEnumeration
 
     /**
      * Add a Soar Integer Attribute to the datamap
@@ -589,8 +593,9 @@ public class DataMapTree extends JTree implements ClipboardOwner {
             } else {
                 System.err.println("I am barren");  //should never happen
             }
-        }
-    }
+            parentWindow.setModified(true);
+        }//if approved
+    }//addInteger
 
     /**
      * Add a Soar Float Attribute to the datamap
@@ -623,8 +628,9 @@ public class DataMapTree extends JTree implements ClipboardOwner {
             } else {
                 System.err.println("I am barren");  //should never happen
             }
-        }
-    }
+            parentWindow.setModified(true);
+        }//if approved
+    }//addFloat
 
     /**
      * Add a Soar String Attribute to the Datamap
@@ -650,8 +656,9 @@ public class DataMapTree extends JTree implements ClipboardOwner {
             } else {
                 System.err.println("I am barren");  //should never happen
             }
-        }
-    }
+            parentWindow.setModified(true);
+        }//if approved
+    }//addString
 
     /**
      * Opens the SearchDataMapDialog to search the datamap beginning at the
@@ -771,6 +778,7 @@ public class DataMapTree extends JTree implements ClipboardOwner {
             }
 
             swmm.addTriple(ne.V0(), componentName, v1);
+            parentWindow.setModified(true);
         }
     }   // end of changeTypeTo()
 
@@ -793,6 +801,7 @@ public class DataMapTree extends JTree implements ClipboardOwner {
                         JOptionPane.YES_NO_CANCEL_OPTION)) {
                     case JOptionPane.YES_OPTION:
                         swmm.removeTriple(ne.V0(), ne.getName(), ne.V1());
+                        parentWindow.setModified(true);
                         break;
                     case JOptionPane.CANCEL_OPTION:
                         return;
@@ -829,6 +838,7 @@ public class DataMapTree extends JTree implements ClipboardOwner {
             String newAttributeName = namedDialog.getText();
             swmm.removeTriple(ne.V0(), ne.getName(), ne.V1());
             swmm.addTriple(ne.V0(), newAttributeName, ne.V1());
+            parentWindow.setModified(true);
         }
     }
 
@@ -928,6 +938,7 @@ public class DataMapTree extends JTree implements ClipboardOwner {
                     SoarVertex child = swmm.createVertexCopy(data.getVertex(j));
                     swmm.addTriple(parent, data.getName(j), child);
                 }
+                parentWindow.setModified(true);
             }
         }
     }
@@ -970,6 +981,7 @@ public class DataMapTree extends JTree implements ClipboardOwner {
                 SoarVertex parent = ftn.getEnumeratingVertex();
                 SoarVertex child = data.getVertex(0);
                 swmm.addTriple(parent, data.getName(0), child);
+                parentWindow.setModified(true);
             }
         }
     }//link
@@ -1023,6 +1035,7 @@ public class DataMapTree extends JTree implements ClipboardOwner {
             swmm.notifyListenersOfRemove(ne);
             ne.setComment(newComment);
             swmm.notifyListenersOfAdd(ne);
+            parentWindow.setModified(true);
         }
     }
 
@@ -1049,6 +1062,7 @@ public class DataMapTree extends JTree implements ClipboardOwner {
             swmm.notifyListenersOfRemove(ne);
             ne.setComment("");
             swmm.notifyListenersOfAdd(ne);
+            parentWindow.setModified(true);
         }
 
 
@@ -1068,6 +1082,7 @@ public class DataMapTree extends JTree implements ClipboardOwner {
         ne.validate();
         swmm.notifyListenersOfRemove(ne);
         swmm.notifyListenersOfAdd(ne);
+        parentWindow.setModified(true);
         if (ftn.getChildCount() != 0) {
             expandPath(path);
         }
@@ -1094,6 +1109,7 @@ public class DataMapTree extends JTree implements ClipboardOwner {
         ne.validate();
         swmm.notifyListenersOfRemove(ne);
         swmm.notifyListenersOfAdd(ne);
+        parentWindow.setModified(true);
 
         while (!queue.isEmpty()) {
             SoarVertex w = queue.dequeue();

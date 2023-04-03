@@ -24,6 +24,7 @@ public class CustomInternalFrame extends JInternalFrame {
      */
     protected int type;
     private boolean change = false;  //have the contents of this window been changed?
+    private static boolean everChanged = false; //once set to true, stays true until a new project is loaded
 
 
     public CustomInternalFrame(String title, boolean resizable, boolean closable,
@@ -53,7 +54,14 @@ public class CustomInternalFrame extends JInternalFrame {
     //Allow user to mark a document as unchanged.
     public void setModified(boolean b) {
         change = b;
+        if (change) everChanged = true;
     }
+
+
+    //has any file in this project ever been changed?
+    public static boolean hasEverChanged() { return CustomInternalFrame.everChanged; }
+    public static void resetEverchanged() { CustomInternalFrame.everChanged = false; }
+
     /*======================================================================
       Public Methods
       ----------------------------------------------------------------------
