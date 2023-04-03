@@ -46,7 +46,15 @@ import java.util.*;
  */
 public class MainFrame extends JFrame implements Kernel.StringEventInterface
 {
+/////////////////////////////////////////
+// Constants
+/////////////////////////////////////////
 	private static final long serialVersionUID = 20221225L;
+
+	//This is for the divider between the operator pane and the desktop
+	public static final double MAX_DIV_POS = 0.95;
+	public static final double DEFAULT_DIV_POS = 0.1;
+	public static final double MIN_DIV_POS = 0.02;
 
 /////////////////////////////////////////
 // Static Members
@@ -966,7 +974,20 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
     {
   		return s_mainFrame;
   	}
-  	/**
+
+	/**
+	 * sets the divider position (between the operator pane and the desktop)
+	 * based upon the last user setting.
+	 */
+	private void setDivider() {
+		double position = Double.parseDouble(Prefs.dividerPosition.get());
+		if ((position < MIN_DIV_POS) || (position > MAX_DIV_POS)) {
+			position = DEFAULT_DIV_POS;
+		}
+		operatorDesktopSplit.setDividerLocation(position);
+	}//setDivider
+
+	/**
   	 * enables the corresponding actions for when a project is opened
   	 */
   	private void projectActionsEnable(boolean areEnabled) 
@@ -1138,8 +1159,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		projectActionsEnable(true);
 
 		//Set the divider position
-		double position = Double.parseDouble(Prefs.dividerPosition.get());
-		operatorDesktopSplit.setDividerLocation(position);
+		setDivider();
 
 		//Whenever the user moves the divider, rememeber the user's preference
 		operatorDesktopSplit.addPropertyChangeListener(
@@ -1157,8 +1177,9 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 						double proportion = (double)val / (double)d.getWidth();
 
 						//Save the new value to Prefs (if sane)
-						if ((proportion > 0.0) && (proportion < 1.0)) {
+						if ((proportion < MIN_DIV_POS) || (proportion > MAX_DIV_POS)) {
 							Prefs.dividerPosition.set("" + proportion);
+							Prefs.flush();
 						}
 					}
 				}
@@ -1219,8 +1240,8 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 
 					projectActionsEnable(true);
 
-					//%%%This value should be in preferences
-					operatorDesktopSplit.setDividerLocation(.30);
+					//divider position
+					setDivider();
 
 					//Verify project integrity
 					verifyProjectAction.perform();
@@ -1255,7 +1276,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		}
 	}
 
-    /**
+	/**
      * Open a text file unrelated to the project in a rule editor
      * Opened file is not necessarily part of project and not soar formatted
      */
@@ -1363,10 +1384,10 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 				
 				projectActionsEnable(true);
                 exportAgentAction.perform();
-				
-				operatorDesktopSplit.setDividerLocation(.30);
 
-                //Set the title bar to include the project name
+				setDivider();
+
+				//Set the title bar to include the project name
                 setTitle(agentName);
 			}
 		}

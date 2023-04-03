@@ -17,7 +17,7 @@ public enum Prefs {
     sharedProjectEnabled(false),
     userName("User"),
     editorFontSize("" + SoarDocument.DEFAULT_FONT_SIZE),
-    dividerPosition("0.1");
+    dividerPosition("" + MainFrame.DEFAULT_DIV_POS);
 
     private static final Preferences preferences = Preferences.userRoot().node("edu/umich/soar/visualsoar");
     private static final SyntaxColor[] colors = SyntaxColor.getDefaultSyntaxColors();
