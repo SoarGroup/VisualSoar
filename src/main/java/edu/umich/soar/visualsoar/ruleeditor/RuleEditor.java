@@ -1544,9 +1544,14 @@ public class RuleEditor extends CustomInternalFrame {
                         associatedNode,
                         prodVec,
                         errors);
-            } catch (ParseException | TokenMgrError pe) {
-                String errMsg = "Could not check productions due to syntax Error: " + pe.getMessage();
+            } catch (TokenMgrError tme) {
+                String errMsg = "Could not check productions due to syntax Error:";
+                errMsg += tme.getMessage();
                 vecErrors.add(new FeedbackListObject(errMsg));
+            } catch (ParseException pe) {
+                String errMsg = "Could not check productions due to syntax Error:";
+                vecErrors.add(new FeedbackListObject(errMsg));
+                vecErrors.add(associatedNode.parseParseException(pe));
             }
 
             if ((errors.isEmpty()) && (vecErrors.isEmpty())) {
