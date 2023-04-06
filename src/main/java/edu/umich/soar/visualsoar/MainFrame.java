@@ -999,10 +999,9 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 							String valStr = evt.getNewValue().toString();
 							int val = Integer.parseInt(valStr);
 
-							//Convert it to a fraction of window size
-							Toolkit tk = Toolkit.getDefaultToolkit();
-							Dimension d = tk.getScreenSize();
-							double proportion = (double) val / (double) d.getWidth();
+							//Convert it to a fraction of split pane's size
+							int paneWidth = operatorDesktopSplit.getWidth();
+							double proportion = (double) val / (double) paneWidth;
 
 							//Save the new value to Prefs (if sane)
 							if ((proportion >= MIN_DIV_POS) && (proportion <= MAX_DIV_POS)) {
