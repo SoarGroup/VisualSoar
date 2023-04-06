@@ -1741,6 +1741,17 @@ public class RuleEditor extends CustomInternalFrame {
             String textTyped = e.getActionCommand();
             int caretPos = editorPane.getCaretPosition();
 
+            //If there is text currently selected, adjust the caret position back
+            //to the beginning of the selection since it is about to be deleted
+            //(replaced) by what the user just typed.
+            String selText = editorPane.getSelectedText();
+            if (selText != null) {
+                caretPos -= selText.length();
+                if (caretPos < 0) {
+                    caretPos = 0;  //should never happen...but just in case
+                }
+            }
+
             if (textTyped.equals("\n")) {
                 (new DefaultEditorKit.InsertBreakAction()).actionPerformed(e);
                 caretPos++;
