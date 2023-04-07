@@ -2,6 +2,7 @@ package edu.umich.soar.visualsoar.ruleeditor;
 
 import edu.umich.soar.visualsoar.MainFrame;
 import edu.umich.soar.visualsoar.datamap.SoarWorkingMemoryModel;
+import edu.umich.soar.visualsoar.dialogs.EditCustomTemplatesDialog;
 import edu.umich.soar.visualsoar.dialogs.FindDialog;
 import edu.umich.soar.visualsoar.dialogs.FindReplaceDialog;
 import edu.umich.soar.visualsoar.graph.EnumerationVertex;
@@ -33,10 +34,9 @@ import java.beans.PropertyVetoException;
 import java.beans.VetoableChangeListener;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Iterator;
-import java.util.LinkedList;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 import java.util.List;
-import java.util.Vector;
 
 /**
  * This is the rule editor window
@@ -104,6 +104,7 @@ public class RuleEditor extends CustomInternalFrame {
     private final Action findAndReplaceAction = new FindAndReplaceAction();
 
     private final Action checkProductionsAction = new CheckProductionsAction();
+    private final Action editCustomTemplatesAction = new EditCustomTemplatesAction();
     private final Action tabCompleteAction = new TabCompleteAction();
 
 
@@ -1204,7 +1205,24 @@ public class RuleEditor extends CustomInternalFrame {
             currentTemplateItem.addActionListener(new InsertTemplateAction(t));
             parentMenu.add(currentTemplateItem);
         }
-    }
+
+        parentMenu.addSeparator();
+        JMenuItem customTemplatesItem = new JMenuItem("Edit Custom Templates...");
+        customTemplatesItem.addActionListener(editCustomTemplatesAction);
+        parentMenu.add(customTemplatesItem);
+
+        //user template list
+        Vector<String> customTemplates = Prefs.getCustomTemplates();
+        if (customTemplates.size() > 0) {
+            parentMenu.addSeparator();
+            for (String fn : customTemplates) {
+                JMenuItem currentTemplateItem = new JMenuItem(fn);  //TODO: give custom templates kinder names?
+                currentTemplateItem.addActionListener(new InsertCustomTemplateAction(fn));
+                parentMenu.add(currentTemplateItem);
+            }
+        }
+
+    }//initTemplatesMenu
 
     // 3P
     // Initializes the "Runtime" menu item and adds it to the given menubar
@@ -1605,6 +1623,75 @@ public class RuleEditor extends CustomInternalFrame {
             }
         }
     }
+
+    class EditCustomTemplatesAction extends AbstractAction {
+        private static final long serialVersionUID = 20230407L;
+
+        public EditCustomTemplatesAction() {
+            super("Edit Custom Templates...");
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            EditCustomTemplatesDialog ectDialog = new EditCustomTemplatesDialog(MainFrame.getMainFrame());
+            ectDialog.setVisible(true);
+        }
+    }
+
+    /**
+     * This class puts the contents of a given file into the text area.
+     */
+    class InsertCustomTemplateAction extends AbstractAction {
+        private static final long serialVersionUID = 20230407L;
+
+        private File file;
+
+        public InsertCustomTemplateAction(String initFN) {
+            super(initFN);
+            file = new File(initFN);
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            //Read the file contents
+            Scanner scanner = null;
+            String content = "Error Loading Custom Template";
+            try {
+                scanner = new Scanner(file, StandardCharsets.UTF_8.name());
+            } catch (FileNotFoundException ex) {
+
+            }
+            content = scanner.useDelimiter("\\A").next();
+            scanner.close();
+            content = content + " "; //add a space to guarantee '$' isn't the last char
+
+            //Do macro replacements
+            int startIndex = content.indexOf("$");
+            while(startIndex >= 0) {
+                int endIndex = content.indexOf("$",startIndex + 1);
+                if (endIndex == -1) break;
+                String macro = content.substring(startIndex+1, endIndex);
+                String replacement = null;
+                try {
+                    replacement = Template.lookupVariable(macro, RuleEditor.this);
+                } catch (TemplateInstantiationException ex) {
+                    replacement = "##invalid_template_macro##";
+                }
+                String before = content.substring(0, startIndex);
+                String after = content.substring(endIndex+1);
+                content = before + replacement + after;
+                startIndex = content.indexOf("$", startIndex);
+            }
+
+            //Remove the extra space that was added to the content (see above)
+            content = content.substring(0, content.length() - 1);
+
+            //Insert the contents into the RuleEditor
+            int pos = editorPane.getCaretPosition();
+            editorPane.insert(content, pos);
+            editorPane.setCaretPosition(pos + content.length());
+        }
+    }
+
+
 
     /**
      * This class comments (puts a # in the first position for every line) for the currently selected text

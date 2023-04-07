@@ -599,7 +599,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
     /**
      * This function opens a file (assumed to be a non-Soar file).
      */
-    void OpenFile(File file)
+    public void OpenFile(File file)
     {
         try
         {

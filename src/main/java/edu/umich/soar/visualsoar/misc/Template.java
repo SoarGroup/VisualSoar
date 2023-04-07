@@ -61,7 +61,7 @@ public class Template {
     /**
      * Constructor for a .vsoart template
      */
-    private Template(String name, String resource) {
+    public Template(String name, String resource) {
         this.resource = resource;
         this.name = name;
     }
@@ -130,8 +130,13 @@ public class Template {
                         }
                         varWriter.write(c);
                     }
-                    insertText.write(lookupVariable(varWriter.toString(),
-                            editor, offset));
+                    if ( (varWriter.toString().equals("caret"))
+                            || (varWriter.toString().equals("caret")) ) {
+                            caretOffset = offset;
+                    }
+                    else {
+                        insertText.write(lookupVariable(varWriter.toString(), editor));
+                    }
                 } else if (c == '\r') {
 
                 } else {
@@ -160,7 +165,7 @@ public class Template {
      * @param editor  The rule editor
      * @return the expanded macro
      */
-    private String lookupVariable(String varName, RuleEditor editor, int offset)
+    public static String lookupVariable(String varName, RuleEditor editor)
             throws TemplateInstantiationException {
         if (varName.equals("super-operator")) {
             return editor.getNode().getParent().toString();
@@ -179,9 +184,8 @@ public class Template {
             return root.toString();
         } else if (varName.equals("user")) {
             return System.getProperty("user.name", "user");
-        } else if (varName.equals("caret") || varName.equals("cursor")) {
-            caretOffset = offset;
-            return "";
+        } else if (varName.equals("")) {  //$$ becomes $
+            return "$";
         } else {
             throw new TemplateInstantiationException(
                     "Undefined template variable: " + varName);
