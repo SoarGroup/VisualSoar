@@ -2,19 +2,26 @@ package edu.umich.soar.visualsoar.dialogs;
 
 import edu.umich.soar.visualsoar.MainFrame;
 import edu.umich.soar.visualsoar.misc.Prefs;
+import edu.umich.soar.visualsoar.ruleeditor.RuleEditor;
 
 import javax.swing.*;
-import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
-import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.Vector;
 
+/**
+ * class EditCustomTemplatesDialog
+ *
+ * Allows the user to add/remove custom code templates.  This dialog is invoked
+ * by the Insert Template->Edit Custom Templates... option in the Rule Editor menu.
+ *
+ * @see edu.umich.soar.visualsoar.misc.Template
+ *
+ */
 public class EditCustomTemplatesDialog extends JFrame implements ActionListener {
     private static final long serialVersionUID = 20221225L;
 
@@ -28,9 +35,6 @@ public class EditCustomTemplatesDialog extends JFrame implements ActionListener 
     JButton closeButton = new JButton("Close");
     DefaultListModel<String> listModel = new DefaultListModel<>();
     JList<String> jlistTemplates = new JList<>(listModel);
-
-    //default template string
-    String defaultText = "# Any text you write in a template file is automatically inserted when\n# the template is selected from the Insert Template menu.  This\n# comment has been inserted to help you.  You should probably\n# remove it from this file after your template is written.\n#\n# Certain macros can be placed in your text and they will be\n# automatically replaced with the relevant text.\n#\n# The macros are:\n# - $super-operator$ = the super operator\n# - $operator$ = the current operator\n# - $production$ = the name of the production nearest to the cursor\n# - $date$ = today's date\n# - $time$ = the time right now\n# - $project$ or $agent$ = the name of the project\n# - $user$ = the current user name\n# - $caret$ or $cursor$ = indicates where where the cursor should be\n#   after the template is inserted (to be implemented...)\n#\n\nsp {$super-operator$*custom-template\n   (state <s> ^foo bar) \n-->\n   (<s> ^baz qux)\n}\n";
 
     public EditCustomTemplatesDialog(final MainFrame initOwner) {
         this.owner = initOwner;
@@ -122,54 +126,39 @@ public class EditCustomTemplatesDialog extends JFrame implements ActionListener 
 
     /** responds to the Add button */
     private void addTemplate() {
-        //user selects a .vsoart file for the new template
-        JFileChooser fileChooser = new JFileChooser();
-        FileNameExtensionFilter filter = new FileNameExtensionFilter("Visual Soar Template Files (*.vsoart)", "vsoart", "text");
-        fileChooser.setFileFilter(filter);
-        int returnVal = fileChooser.showOpenDialog(this);
-        if (returnVal != JFileChooser.APPROVE_OPTION) return;
+        String name = JOptionPane.showInputDialog("Template Name:");
+        if ((name == null) || (name.length() == 0)) return; //empty input is treated as "Cancel"
 
         //Make sure this template doesn't already exist
-        File file = fileChooser.getSelectedFile();
-        if (Prefs.getCustomTemplates().contains(file.getPath())) {
+        if (Prefs.getCustomTemplates().contains(name)) {
             JOptionPane.showMessageDialog(this,
-                    "Error:  " + file.getPath() + " is already in this list.");
+                    "Error:  '" + name + "' already exists.");
             return;
         }
 
-        //if the file is a new file, create it
-        if (!file.exists()) {
-            //create it
-            try {
-                file.createNewFile();
+        //Create a File to store the template
+        File templateFile = Prefs.addCustomTemplate(name);
+        if (templateFile == null) {
+            JOptionPane.showMessageDialog(this,
+                    "Error:  '" + name + "' could not be created.");
+            return;
+        }
 
-                //Add some default content to help the user
-                PrintWriter pw = new PrintWriter(file);
-                pw.print(defaultText);
-                pw.close();
-            }
-            catch(IOException ioe) {
-                JOptionPane.showMessageDialog(this,
-                        "Error:  " + file.getPath() + " could not be created.");
-                return;
-            }
-        }//file didn't exist
+        //Add the new template to the list in the dialog
+        this.listModel.addElement(name);
 
-        //Add the new template to the list and prefs
-        Prefs.addCustomTemplate(file.getPath());
-        this.listModel.addElement(file.getPath());
-
-        //TODO:  add this template to the menu for all open RuleEditors
+        //update all RuleEditor menus
+        resetMenus();
 
         //open an editor for the new template and close this dialog
-        editTemplate(file.getPath());
+        editTemplate(name);
     }//addTemplate
 
     /** responds to Edit button */
-    private void editTemplate(String filename) {
+    private void editTemplate(String name) {
         //create a File object for the selected file
-        if (filename == null) return; //ignore silly user
-        File file = new File(filename);
+        if (name == null) return; //ignore silly user
+        File file = Prefs.getCustomTemplateFile(name);
 
         //Sanity check:  file exists?
         if (!file.exists()) {
@@ -197,7 +186,21 @@ public class EditCustomTemplatesDialog extends JFrame implements ActionListener 
         Prefs.removeCustomTemplate(filename);
         this.listModel.removeElement(filename);
 
-        //TODO: update all RuleEditor menus
+        //update all RuleEditor menus
+        resetMenus();
     }//removeTemplate
+
+    /**
+     * resets the Insert Template menu for all open RuleEditor windows
+     */
+    private void resetMenus() {
+        JInternalFrame[] jif = owner.getDesktopPane().getAllFrames();
+        for (JInternalFrame jInternalFrame : jif) {
+            if (jInternalFrame instanceof RuleEditor) {
+                RuleEditor re = (RuleEditor) jInternalFrame;
+                re.reinitTemplatesMenu();
+            }
+        }
+    }//resetMenus
 
 }//class EditCustomTemplatesDialog

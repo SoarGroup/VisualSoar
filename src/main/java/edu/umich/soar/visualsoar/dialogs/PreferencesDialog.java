@@ -24,6 +24,7 @@ public class PreferencesDialog extends JDialog {
     private static final long serialVersionUID = 20221225L;
 
 
+
     JTabbedPane tabPane = new JTabbedPane(JTabbedPane.TOP);
     /**
      * Panel which contains the syntax color editing buttons

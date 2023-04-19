@@ -54,6 +54,9 @@ public class RuleEditor extends CustomInternalFrame {
     private final JLabel lineNumberLabel = new JLabel("Line:");
     private final JLabel modifiedLabel = new JLabel("");
 
+    //This needs to be updated periodically so it's an instance variable
+    private JMenu templateMenu = new JMenu("Insert Template");
+
 
     //For keeping track of find/replace operations
     private String findString = null;
@@ -1179,14 +1182,14 @@ public class RuleEditor extends CustomInternalFrame {
 
         ///////////////////////////////////////
         // Insert Template menu
-        JMenu templates = new JMenu("Insert Template");
-        initTemplatesMenu(MainFrame.getMainFrame().getTemplateManager().getRootTemplate(),
-                templates);
+        initTemplatesMenu(
+                MainFrame.getMainFrame().getTemplateManager().getRootTemplate(),
+                templateMenu);
 
         soarMenu.setMnemonic(KeyEvent.VK_O);
 
         menuBar.add(soarMenu);
-        menuBar.add(templates);
+        menuBar.add(templateMenu);
     }
 
     private void initTemplatesMenu(Template parentTemplate, JMenu parentMenu) {
@@ -1197,7 +1200,7 @@ public class RuleEditor extends CustomInternalFrame {
             return;
         }
 
-        // Add plain old templates...
+        // Add default templates...
         Iterator<Template> i = parentTemplate.getChildTemplates();
         while (i.hasNext()) {
             Template t = i.next();
@@ -1207,22 +1210,35 @@ public class RuleEditor extends CustomInternalFrame {
         }
 
         parentMenu.addSeparator();
+        //user template list
+        Vector<String> customTemplates = Prefs.getCustomTemplates();
+        if (customTemplates.size() > 0) {
+            for (String templateName : customTemplates) {
+                File ctFile = Prefs.getCustomTemplateFile(templateName);
+                if (ctFile != null) {
+                    JMenuItem currentTemplateItem = new JMenuItem(templateName);
+                    currentTemplateItem.addActionListener(new InsertCustomTemplateAction(ctFile.getAbsolutePath()));
+                    parentMenu.add(currentTemplateItem);
+                }
+            }
+            parentMenu.addSeparator();
+        }
+
+
         JMenuItem customTemplatesItem = new JMenuItem("Edit Custom Templates...");
         customTemplatesItem.addActionListener(editCustomTemplatesAction);
         parentMenu.add(customTemplatesItem);
 
-        //user template list
-        Vector<String> customTemplates = Prefs.getCustomTemplates();
-        if (customTemplates.size() > 0) {
-            parentMenu.addSeparator();
-            for (String fn : customTemplates) {
-                JMenuItem currentTemplateItem = new JMenuItem(fn);  //TODO: give custom templates kinder names?
-                currentTemplateItem.addActionListener(new InsertCustomTemplateAction(fn));
-                parentMenu.add(currentTemplateItem);
-            }
-        }
-
     }//initTemplatesMenu
+
+    /** this is called when custom templates are added/removed so the
+     * Insert Template menu can be rebuilt to reflect the change. */
+    public void reinitTemplatesMenu() {
+        this.templateMenu.removeAll();
+        initTemplatesMenu(
+                MainFrame.getMainFrame().getTemplateManager().getRootTemplate(),
+                templateMenu);
+    }
 
     // 3P
     // Initializes the "Runtime" menu item and adds it to the given menubar
@@ -1651,17 +1667,22 @@ public class RuleEditor extends CustomInternalFrame {
         }
 
         public void actionPerformed(ActionEvent e) {
-            //Read the file contents
+            //Open the file
             Scanner scanner = null;
-            String content = "Error Loading Custom Template";
+            String content = "#Error Loading Custom Template. ";
+            boolean error = false;
             try {
                 scanner = new Scanner(file, StandardCharsets.UTF_8.name());
             } catch (FileNotFoundException ex) {
-
+                error = true;
             }
-            content = scanner.useDelimiter("\\A").next();
-            scanner.close();
-            content = content + " "; //add a space to guarantee '$' isn't the last char
+
+            //Retrieve the data from the file
+            if (! error) {
+                content = scanner.useDelimiter("\\A").next();
+                scanner.close();
+                content = content + " "; //add a space to guarantee '$' isn't the last char
+            }
 
             //Do macro replacements
             int startIndex = content.indexOf("$");
