@@ -46,32 +46,8 @@ public enum Prefs {
 
     //Load custom templates
     static {
-        //Get a list of all template files (those with .vsoart extension)
-        File prefDir = getCustomTemplatesFolder();
-        String[] templates = prefDir.list(new FilenameFilter() {
-            @Override
-            public boolean accept(File dir, String name) {
-                return name.endsWith(".vsoart");
-            }
-        });
-
-        if (templates != null) {
-
-            int len = templates.length;
-            customTemplates.clear();
-            for (int i = 0; i < len; ++i) {
-                //trim away the path and extension
-                String name = templates[i];
-                int lastSlash = name.lastIndexOf(System.getProperty("file.separator"));
-                name = name.substring(lastSlash + 1);
-                int ext = name.lastIndexOf(".vsoart");
-                name = name.substring(0, ext);
-
-                //add to list
-                customTemplates.add(name);
-            }//for
-        }//if
-    }//load custom templates
+        loadCustomTemplates();
+    }
 
     public static SyntaxColor[] getSyntaxColors() {
         SyntaxColor[] temp = new SyntaxColor[colors.length];
@@ -128,6 +104,36 @@ public enum Prefs {
 
         return new File(prefDirName);
     }//getCustomTemplatesFolder
+
+    /** loads all the custom templates */
+    public static void loadCustomTemplates() {
+        //Get a list of all template files (those with .vsoart extension)
+        File prefDir = getCustomTemplatesFolder();
+        String[] templates = prefDir.list(new FilenameFilter() {
+            @Override
+            public boolean accept(File dir, String name) {
+                return name.endsWith(".vsoart");
+            }
+        });
+
+        //put the template names in Prefs.customTemplates
+        if (templates != null) {
+
+            int len = templates.length;
+            customTemplates.clear();
+            for (int i = 0; i < len; ++i) {
+                //trim away the path and extension
+                String name = templates[i];
+                int lastSlash = name.lastIndexOf(System.getProperty("file.separator"));
+                name = name.substring(lastSlash + 1);
+                int ext = name.lastIndexOf(".vsoart");
+                name = name.substring(0, ext);
+
+                //add to list
+                customTemplates.add(name);
+            }//for
+        }//if
+    }//loadCustomTemplates
 
     /** given the name of a custom template return the associated file.
      * This method doesn't guarantee the file exists or is accessible! */

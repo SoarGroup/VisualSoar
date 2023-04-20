@@ -32,6 +32,7 @@ public class EditCustomTemplatesDialog extends JFrame implements ActionListener 
     JButton addButton = new JButton("Add");
     JButton removeButton = new JButton("Remove");
     JButton editButton = new JButton("Edit");
+    JButton dirButton = new JButton("Set Template Folder");
     JButton closeButton = new JButton("Close");
     DefaultListModel<String> listModel = new DefaultListModel<>();
     JList<String> jlistTemplates = new JList<>(listModel);
@@ -39,6 +40,7 @@ public class EditCustomTemplatesDialog extends JFrame implements ActionListener 
     public EditCustomTemplatesDialog(final MainFrame initOwner) {
         this.owner = initOwner;
         Dimension margin = new Dimension(10, 10);
+        Dimension buttonSpacing = new Dimension(0, 5);
 
         //Fill the Frame with a panel
         JPanel contentPanel = new JPanel();
@@ -50,6 +52,7 @@ public class EditCustomTemplatesDialog extends JFrame implements ActionListener 
         Box closeButtonBox = Box.createHorizontalBox();
         contentPanel.add(Box.createRigidArea(margin));  //top margin
         contentPanel.add(mainBox);
+        contentPanel.add(Box.createRigidArea(margin));
         contentPanel.add(closeButtonBox);
         contentPanel.add(Box.createRigidArea(margin));  //bottom margin
 
@@ -63,16 +66,16 @@ public class EditCustomTemplatesDialog extends JFrame implements ActionListener 
 
         //The main box contains the three action buttons on right-hand side
         //These are arranged in GridLayout so they are all the same size
-        JPanel buttonPanel = new JPanel(new GridLayout(7, 1));
+        JPanel buttonPanel = new JPanel(new GridLayout(5, 1, 0, 10));
         buttonPanel.add(addButton);
-        buttonPanel.add(Box.createRigidArea(margin));
         buttonPanel.add(removeButton);
-        buttonPanel.add(Box.createRigidArea(margin));
         buttonPanel.add(editButton);
         mainBox.add(buttonPanel);
         mainBox.add(Box.createRigidArea(margin));  //right margin
 
         //the bottom of the dialog is just a close button flush right
+        closeButtonBox.add(Box.createRigidArea(margin)); //left margin
+        closeButtonBox.add(dirButton);
         closeButtonBox.add(Box.createHorizontalGlue());
         closeButtonBox.add(closeButton);
         closeButtonBox.add(Box.createRigidArea(margin)); //right margin
@@ -92,6 +95,7 @@ public class EditCustomTemplatesDialog extends JFrame implements ActionListener 
         addButton.addActionListener(this);
         removeButton.addActionListener(this);
         editButton.addActionListener(this);
+        dirButton.addActionListener(this);
         closeButton.addActionListener(this);
 
     }//ctor
@@ -122,7 +126,24 @@ public class EditCustomTemplatesDialog extends JFrame implements ActionListener 
         else if (e.getSource() == removeButton) {
             removeTemplate();
         }
+        else if (e.getSource() == dirButton) {
+            setTemplateFolder();
+        }
     }
+    /**
+     * resets the Insert Template menu for all open RuleEditor windows
+     * This is a helper method for the button event handler methods (below)
+     */
+    private void resetMenus() {
+        JInternalFrame[] jif = owner.getDesktopPane().getAllFrames();
+        for (JInternalFrame jInternalFrame : jif) {
+            if (jInternalFrame instanceof RuleEditor) {
+                RuleEditor re = (RuleEditor) jInternalFrame;
+                re.reinitTemplatesMenu();
+            }
+        }
+    }//resetMenus
+
 
     /** responds to the Add button */
     private void addTemplate() {
@@ -190,17 +211,34 @@ public class EditCustomTemplatesDialog extends JFrame implements ActionListener 
         resetMenus();
     }//removeTemplate
 
-    /**
-     * resets the Insert Template menu for all open RuleEditor windows
+    /** responds to 'Set Template Folder' button.  The user changes
+     * what folder contains the current custom templates.
      */
-    private void resetMenus() {
-        JInternalFrame[] jif = owner.getDesktopPane().getAllFrames();
-        for (JInternalFrame jInternalFrame : jif) {
-            if (jInternalFrame instanceof RuleEditor) {
-                RuleEditor re = (RuleEditor) jInternalFrame;
-                re.reinitTemplatesMenu();
+    private void setTemplateFolder() {
+        //Ask the user to select a new folder
+        JFileChooser dirChooser = new JFileChooser();
+        dirChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        dirChooser.setCurrentDirectory(Prefs.getCustomTemplatesFolder());
+        int result = dirChooser.showDialog(this, "Select");
+
+        //Verify the user's selection
+        if (result == JFileChooser.APPROVE_OPTION) {
+            File newFolder = dirChooser.getSelectedFile();
+            if (! newFolder.canWrite()) {
+                JOptionPane.showMessageDialog(this,"Unable to write to selected folder.");
+                return;
             }
-        }
-    }//resetMenus
+
+            //set the new value
+            String newFolderStr = newFolder.getAbsolutePath();
+            Prefs.customTemplateFolder.set(newFolderStr);
+
+            //Update templates list to reflect the new folder's contents
+            Prefs.loadCustomTemplates();
+            fillTemplateList();
+            resetMenus();
+
+        }//if
+    }//setTemplateFolder
 
 }//class EditCustomTemplatesDialog
