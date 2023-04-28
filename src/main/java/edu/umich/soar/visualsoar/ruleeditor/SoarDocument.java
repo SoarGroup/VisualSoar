@@ -24,13 +24,12 @@ public class SoarDocument extends DefaultStyledDocument {
     boolean inRHS = false; // Are we in the RHS of a production?
     private static int fontSize = DEFAULT_FONT_SIZE;
 
-    //A SoarDocument logs each last inserted text so that
+    //A SoarDocument logs each last inserted/removed text so that
     // RuleEditor.CustomUndoManager can decide whether that text is
-    // "significant" for the purposes of the CustomUndoableEvent
-    //In addition to starting as null, this string should be set to null
-    // whenever text is deleted.  This variable is set with a new
-    // value just BEFORE any new insert/remove.
+    // "significant" for the purposes of the CustomUndoableEvent.
+    // Only one of these variables should be non-null at any time
     private String lastInsertedText = null;
+    private String lastRemovedText = null;
 
     public SoarDocument() {
         colorTable = Prefs.getSyntaxColors().clone();
@@ -55,12 +54,17 @@ public class SoarDocument extends DefaultStyledDocument {
         return this.lastInsertedText;
     }
 
+    public String getLastRemovedText() {
+        return this.lastRemovedText;
+    }
+
     public void insertString(int offset,
                              String str,
                              AttributeSet a) throws BadLocationException {
 
         //Please see the big ass comment on this variable above
         this.lastInsertedText = str;
+        this.lastRemovedText = null;
 
         try {
             super.insertString(offset, str, a);
@@ -85,6 +89,7 @@ public class SoarDocument extends DefaultStyledDocument {
 
     public void remove(int offs, int len) throws BadLocationException {
         //please see the big ass comment on this variable above
+        this.lastRemovedText = this.getText(offs, len);
         this.lastInsertedText = null;
 
         super.remove(offs, len);

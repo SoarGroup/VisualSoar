@@ -54,8 +54,8 @@ public class RuleEditor extends CustomInternalFrame {
     private final JLabel lineNumberLabel = new JLabel("Line:");
     private final JLabel modifiedLabel = new JLabel("");
 
-    //This needs to be updated periodically so it's an instance variable
-    private JMenu templateMenu = new JMenu("Insert Template");
+    //This needs to be updated periodically, so it's an instance variable
+    private final JMenu templateMenu = new JMenu("Insert Template");
 
 
     //For keeping track of find/replace operations
@@ -120,6 +120,20 @@ public class RuleEditor extends CustomInternalFrame {
     private final Action sendExciseProductionToSoarAction = new SendExciseProductionToSoarAction();
 
     private final BackupThread backupThread;
+
+    /**
+     * Certain editing events need to treated as separate/significant by the
+     * Undo manager.  When these events happen there are "remembered" by an
+     * associated ugly global variable (below).
+     */
+    //user pasted multiple characters at once into the buffer
+    private boolean lastEditWasMultiChar = false;
+    //user saved the document
+    private boolean lastActionWasSave = true;
+    //last edit was insert
+    private boolean lastEditWasInsert = true;
+
+
     // Constructors
 
     /**
@@ -852,6 +866,9 @@ public class RuleEditor extends CustomInternalFrame {
         setModified(false);
         modifiedLabel.setText("");
         fw.close();
+
+        //for the Undo manager
+        RuleEditor.this.lastActionWasSave = true;
     }
 
     /**
@@ -1640,7 +1657,7 @@ public class RuleEditor extends CustomInternalFrame {
         }
     }
 
-    class EditCustomTemplatesAction extends AbstractAction {
+    static class EditCustomTemplatesAction extends AbstractAction {
         private static final long serialVersionUID = 20230407L;
 
         public EditCustomTemplatesAction() {
@@ -1659,7 +1676,7 @@ public class RuleEditor extends CustomInternalFrame {
     class InsertCustomTemplateAction extends AbstractAction {
         private static final long serialVersionUID = 20230407L;
 
-        private File file;
+        private final File file;
 
         public InsertCustomTemplateAction(String initFN) {
             super(initFN);
@@ -1690,7 +1707,7 @@ public class RuleEditor extends CustomInternalFrame {
                 int endIndex = content.indexOf("$",startIndex + 1);
                 if (endIndex == -1) break;
                 String macro = content.substring(startIndex+1, endIndex);
-                String replacement = null;
+                String replacement;
                 try {
                     replacement = Template.lookupVariable(macro, RuleEditor.this);
                 } catch (TemplateInstantiationException ex) {
@@ -2354,14 +2371,48 @@ public class RuleEditor extends CustomInternalFrame {
                 return;
             }
 
-            //Retrieve the text the user inserted for this edit
+            //Retrieve the text the user inserted or removed for this edit
+            //Also take note if it's an insert or delete
             SoarDocument doc = (SoarDocument) editorPane.getDocument();
             String lastText = doc.getLastInsertedText();
+            boolean wasInsert = (lastText != null);
+            if (! wasInsert) {
+                lastText = doc.getLastRemovedText();
+            }
 
-            //If the last edit was a remove it's not significant (I think)
-            if (lastText == null) return;
+            //If there has been neither a preceding insert nor a preceding remove
+            // then this edit is significant (I think)
+            if (lastText == null) {
+                this.significant = true;
+                return;
+            }
 
-            //If the last insertion was the end of a word/line/phrase or
+            //If the last insert/remove was a multi-character paste then
+            //this new insert/remove is significant
+            boolean sig = RuleEditor.this.lastEditWasMultiChar;
+            RuleEditor.this.lastEditWasMultiChar = (lastText.length() > 1);
+            if (sig) {
+                this.significant = true;
+                return;
+            }
+
+            //If the user just switched from insert to delete (or vice versa)
+            //then this edit is significant
+            boolean switched = (RuleEditor.this.lastEditWasInsert != wasInsert);
+            RuleEditor.this.lastEditWasInsert = wasInsert;
+            if (switched) {
+                this.significant = true;
+                return;
+            }
+
+            //the first edit after a user saves the document is significant
+            if (RuleEditor.this.lastActionWasSave) {
+                this.significant = true;
+                RuleEditor.this.lastActionWasSave = false;
+                return;
+            }
+
+            //If the last insertion/deletion was the end of a word/line/phrase or
             // a Soar coding element then it's significant  (see the SIG_CHARS
             //constant)
             for (char c : SIG_CHARS) {
@@ -2373,11 +2424,18 @@ public class RuleEditor extends CustomInternalFrame {
         }//ctor
 
         /**
-         * this is the only method whose behavior I've actually changed
+         * these are methods whose behavior I've actually changed
          */
         @Override
         public boolean isSignificant() {
             return this.significant;
+        }
+
+        //always allow undo.  This feels a bit dangerous but seems to be working
+        //When I used the parent's version it was rejecting valid undoes sometimes.
+        @Override
+        public boolean canUndo() {
+            return true;  //If this creates problems try going back to "return super.canUndo();"
         }
 
         //All the methods below just use the parent's functionality
@@ -2387,10 +2445,6 @@ public class RuleEditor extends CustomInternalFrame {
             this.parent.undo();
         }
 
-        @Override
-        public boolean canUndo() {
-            return this.parent.canUndo();
-        }
 
         @Override
         public void redo() throws CannotRedoException {
@@ -2440,7 +2494,7 @@ public class RuleEditor extends CustomInternalFrame {
      * to undo/redo.  In particular, it has an UndoManager that manages a series of
      * UndoableEvent objects.  However we have to subclass these two classes
      * (technically UndoableEvent is an interface not a class) in order to get
-     * the UndoManager to batch insigificant events together.
+     * the UndoManager to batch insignificant events together.
      * <p>
      * For example if you type "sp" you've created four undoable events: one for
      * each character and then one for each syntax highlight you've done to that
@@ -2452,7 +2506,7 @@ public class RuleEditor extends CustomInternalFrame {
      * syntax highlighting edits and creating exceptions.
      * <p>
      * I (Nuxoll) couldn't figure out how to fix that implementation, so I
-     * replaced it with something simpler (if uglier) version below (and above)
+     * replaced it with something simpler (if uglier) below (and above)
      * that seems to be working better.
      */
 
@@ -2464,10 +2518,22 @@ public class RuleEditor extends CustomInternalFrame {
             setLimit(10000); //This seems to be enough?
         }
 
+        @Override
         public boolean addEdit(UndoableEdit anEdit) {
             CustomUndoableEdit customEdit = new CustomUndoableEdit(anEdit);
 
             return super.addEdit(customEdit);
+        }
+
+        @Override
+        public void undo() {
+            super.undo();
+
+            //If the user clears the undo queue then treat the buffer as if
+            // it has just been saved
+            if (! this.canUndo()) {
+                RuleEditor.this.lastActionWasSave = true;
+            }
         }
     }//CustomUndoManager
 
