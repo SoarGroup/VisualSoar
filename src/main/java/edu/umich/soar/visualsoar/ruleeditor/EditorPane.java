@@ -134,6 +134,15 @@ public class EditorPane extends javax.swing.JEditorPane {
     }
 
     /**
+     * changes current read-only status
+     *
+     * @param status read-only=true  editable=false
+     */
+    public void setReadOnly(boolean status) {
+        ((SoarDocument)getDocument()).isReadOnly = status;
+    }
+
+    /**
      * Watches for right clicks in order to pop up the context menu.
      */
     class PopupListener extends MouseAdapter {

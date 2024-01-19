@@ -70,7 +70,14 @@ public class FeedbackList extends JList<FeedbackListObject> implements ActionLis
                         }
                         //right click:  context menu
                         else if (SwingUtilities.isRightMouseButton(e)) {
+                            //Two reasons for the "add to datamap" opton to be grayed out:
+                            //1.  the selected object isn't a WME
                             dmAddMenuItem.setEnabled(!selectedObj.isDataMapObject());
+                            //2.  project is read-only
+                            if (dmAddMenuItem.isEnabled()) {
+                                dmAddMenuItem.setEnabled(!MainFrame.getMainFrame().isReadOnly());
+                            }
+
                             rightClickContextMenu.show(e.getComponent(), e.getX(), e.getY());
                         }
                     }

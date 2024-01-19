@@ -62,6 +62,11 @@ public class DataMapTree extends JTree implements ClipboardOwner {
     public Action copyAction = new CopyAction();
     public Action pasteAction = new PasteAction();
     public Action linkAction = new LinkAction();
+
+    public static JMenuItem getAddEnumerationItem() {
+        return AddEnumerationItem;
+    }
+
     public Action searchAction = new SearchAction();
     public Action validateDataMapAction = new ValidateDataMapAction();
     public Action removeInvalidAction = new RemoveInvalidAction();
@@ -78,6 +83,8 @@ public class DataMapTree extends JTree implements ClipboardOwner {
     @SuppressWarnings("unused")  //not sure why IntelliJ thinks this is "unused"
     private final DropTarget dropTarget = new DropTarget(this,DnDConstants.ACTION_LINK | DnDConstants.ACTION_COPY_OR_MOVE,dtListener,true);
 
+    /** to support Read-Only mode */
+    public boolean isReadOnly = false;
 
     private final SoarWorkingMemoryModel swmm;
     private static final JPopupMenu contextMenu = new JPopupMenu();
@@ -448,6 +455,29 @@ public class DataMapTree extends JTree implements ClipboardOwner {
         return s_DataMapTree;
     }
 
+    /** helper method to disable all context menu items that modify the datamap and,
+     * thus, should not be accessible in read-only mode.*/
+    private static void disableContextMenuItemsForReadOnly() {
+        AddIdentifierItem.setEnabled(false);
+        AddEnumerationItem.setEnabled(false);
+        AddIntegerItem.setEnabled(false);
+        AddFloatItem.setEnabled(false);
+        AddStringItem.setEnabled(false);
+        CopyItem.setEnabled(false);
+        PasteItem.setEnabled(false);
+        LinkItem.setEnabled(false);
+        RemoveAttributeItem.setEnabled(false);
+        RenameAttributeItem.setEnabled(false);
+        EditValueItem.setEnabled(false);
+        EditCommentItem.setEnabled(false);
+        RemoveCommentItem.setEnabled(false);
+        ChangeToIdentifierItem.setEnabled(false);
+        ChangeToEnumerationItem.setEnabled(false);
+        ChangeToIntegerItem.setEnabled(false);
+        ChangeToFloatItem.setEnabled(false);
+        ChangeToStringItem.setEnabled(false);
+    }
+
     /**
      * Checks to see if x,y is a valid location on the screen, if it is then it
      * displays the context menu there.
@@ -483,6 +513,11 @@ public class DataMapTree extends JTree implements ClipboardOwner {
 
         // uneditable item
         EditValueItem.setEnabled(theVertex.isEditable());
+
+        // Disable menu items for read-only mode
+        if (isReadOnly) {
+            disableContextMenuItemsForReadOnly();
+        }
 
         if (ne != null) {
             if (ne.isGenerated()) {

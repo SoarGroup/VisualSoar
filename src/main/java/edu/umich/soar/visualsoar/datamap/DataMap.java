@@ -120,6 +120,15 @@ public class DataMap extends CustomInternalFrame {
         menuBar.add(validateMenu);
 
         setJMenuBar(menuBar);
+
+        //These are menu-items that are disabled in read-only mode
+        readOnlyDisabledMenuItems.add(copyItem);
+        readOnlyDisabledMenuItems.add(pasteItem);
+        readOnlyDisabledMenuItems.add(linkItem);
+        readOnlyDisabledMenuItems.add(removeItem);
+
+        //apply read-only mode if it's on for the project
+        setReadOnly(MainFrame.getMainFrame().isReadOnly());
     }
 
     public int getId() {
@@ -136,6 +145,34 @@ public class DataMap extends CustomInternalFrame {
             super.setModified(false);
         }
     }
+
+    /**
+     * configures the editor in/out of read-only mode
+     * @param status  read-only=true  editable=false
+     */
+    @Override
+    public void setReadOnly(boolean status) {
+
+        //enable/disable menu actions that change the contents
+        for(JMenuItem item : readOnlyDisabledMenuItems) {
+            item.setEnabled(! status);
+        }
+
+        //set same status for the associated soar document
+        dataMapTree.isReadOnly =  status;
+
+        //Update the title bar to show the status
+        String title = getTitle();
+        if (status) {
+            title = MainFrame.RO_LABEL + title;
+        }
+        else {
+            title = title.replace(MainFrame.RO_LABEL, "");
+        }
+        setTitle(title);
+    }//setReadOnly
+
+
 
     public Vector<FeedbackListObject> searchTestDataMap(SoarIdentifierVertex in_siv, String dataMapName) {
         return dataMapTree.searchTestDataMap(in_siv, dataMapName);

@@ -1,13 +1,14 @@
 package edu.umich.soar.visualsoar.misc;
 
 import javax.swing.*;
+import java.util.Vector;
 
 
 /**
  * This class extends JInternalFrame so we can keep some VisualSoar specific
  * information with it.
  */
-public class CustomInternalFrame extends JInternalFrame {
+public abstract class CustomInternalFrame extends JInternalFrame {
     private static final long serialVersionUID = 20221225L;
 
     /*======================================================================
@@ -25,6 +26,9 @@ public class CustomInternalFrame extends JInternalFrame {
     protected int type;
     private boolean change = false;  //have the contents of this window been changed?
     private static boolean everChanged = false; //once set to true, stays true until a new project is loaded
+
+    //These are menu items that must be disabled in read-only mode
+    protected Vector<JMenuItem> readOnlyDisabledMenuItems = new Vector<JMenuItem>();
 
 
     public CustomInternalFrame(String title, boolean resizable, boolean closable,
@@ -61,6 +65,14 @@ public class CustomInternalFrame extends JInternalFrame {
     //has any file in this project ever been changed?
     public static boolean hasEverChanged() { return CustomInternalFrame.everChanged; }
     public static void resetEverchanged() { CustomInternalFrame.everChanged = false; }
+
+    /**
+     * configures the editor in/out of read-only mode
+     * @param status  read-only=true  editable=false
+     */
+    public abstract void setReadOnly(boolean status);
+
+
 
     /*======================================================================
       Public Methods

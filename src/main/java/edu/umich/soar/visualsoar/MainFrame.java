@@ -74,6 +74,9 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 	String lastWindowViewOperation = "none"; // can also be "tile" or "cascade"
 
 	private JMenu soarRuntimeAgentMenu = null;
+
+	//Has the project been opened in read-only mode
+	private boolean isReadOnly = false;
 	
 ////////////////////////////////////////
 // Access to data members
@@ -91,6 +94,16 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 	PerformableAction exportAgentAction = new ExportAgentAction();
 	PerformableAction saveDataMapAndProjectAction = new SaveDataMapAndProjectAction();
 	Action preferencesAction = new PreferencesAction();
+
+	public static final String TOGGLE_RO_ON = "Turn On Read-Only...";
+	public static final String TOGGLE_RO_OFF = "Turn Off Read-Only...";
+	public static final String RO_LABEL = "Read-Only: ";
+
+	//Note:  these menu items must be an instance variable because they are changed in read-only mode
+	JMenuItem toggleReadOnlyItem = new JMenuItem(TOGGLE_RO_ON);
+	JMenuItem saveItem = new JMenuItem("Save");
+
+	Action toggleReadOnlyAction = new ToggleReadOnlyAction();
 	PerformableAction commitAction = new CommitAction();
 	Action exitAction = new ExitAction();
     Action cascadeAction = new CascadeAction();
@@ -290,6 +303,11 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
     }
 
 	/**
+	 * are we in read-only mode?
+	 */
+	public boolean isReadOnly() { return this.isReadOnly; }
+
+	/**
 	 * A helper function to create the file menu
 	 * @return The file menu
 	 */
@@ -309,7 +327,12 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		openProjectAction.addPropertyChangeListener(
             new ActionButtonAssociation(openProjectAction,openProjectItem));
 
-        JMenuItem openFileItem = new JMenuItem("Open File...");
+		JMenuItem openProjectReadOnlyItem = new JMenuItem("Open Project Read-Only...");
+		openProjectReadOnlyItem.addActionListener(openProjectAction);
+		openProjectAction.addPropertyChangeListener(
+				new ActionButtonAssociation(openProjectAction,openProjectReadOnlyItem));
+
+		JMenuItem openFileItem = new JMenuItem("Open File...");
         openFileItem.addActionListener(openFileAction);
         openFileAction.addPropertyChangeListener(
             new ActionButtonAssociation(openFileAction, openFileItem));
@@ -319,11 +342,10 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		closeProjectAction.addPropertyChangeListener(
             new ActionButtonAssociation(closeProjectAction,closeProjectItem));
 				
-		JMenuItem commitItem = new JMenuItem("Save");
-		commitItem.addActionListener(commitAction);
-        commitItem.setAccelerator(KeyStroke.getKeyStroke("control S"));
+		saveItem.addActionListener(commitAction);
+        saveItem.setAccelerator(KeyStroke.getKeyStroke("control S"));
 		commitAction.addPropertyChangeListener(
-            new ActionButtonAssociation(commitAction,commitItem));
+            new ActionButtonAssociation(commitAction, saveItem));
 				
 		JMenuItem exitItem = new JMenuItem("Exit");
 		exitItem.addActionListener(exitAction);
@@ -338,12 +360,13 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		//Add all the JMenuItem objects to the file menu
 		fileMenu.add(newProjectItem);
 		fileMenu.add(openProjectItem);
+		fileMenu.add(openProjectReadOnlyItem);
         fileMenu.add(openFileItem);
 		fileMenu.add(closeProjectItem);
 		
 		fileMenu.addSeparator();
 		
-		fileMenu.add(commitItem);
+		fileMenu.add(saveItem);
 		fileMenu.add(saveProjectAsItem);
 
 		fileMenu.addSeparator();
@@ -372,10 +395,14 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 	private JMenu createEditMenu() 
     {
 		JMenu editMenu = new JMenu("Edit");
-		
+
 		JMenuItem preferencesItem = new JMenuItem("Preferences...");
 		preferencesItem.addActionListener(preferencesAction);
 		editMenu.add(preferencesItem);
+
+		//Note:  toggleReadOnlyItem must be an instance var so its text can be changed "On" <--> "Off" to match the isReadOnly boolean
+		toggleReadOnlyItem.addActionListener(toggleReadOnlyAction);
+		editMenu.add(toggleReadOnlyItem);
 
 		return editMenu;
 	}
@@ -1016,12 +1043,62 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 	}//dividerSetup
 
 	/**
+	 * setReadOnly
+	 *
+	 * configures the UI to properly reflect a new read-only status of the project
+	 *
+	 * @param  status true=read-only  false=editable
+	 */
+	private void setReadOnly(boolean status) {
+		this.isReadOnly = status;
+
+		//Change the read-only status of all rule editor windows
+		CustomInternalFrame[] frames = DesktopPane.getAllCustomFrames();
+		for (CustomInternalFrame frame : frames) {
+			frame.setReadOnly(status);
+		}
+
+
+		//Set the project's title bar to reflect this status
+		String title = getTitle();
+		if (this.isReadOnly) {
+			toggleReadOnlyItem.setText(TOGGLE_RO_OFF);
+
+			//Add "Read-Only" prefix to the title bar
+			title = RO_LABEL + title;
+		}
+		else {
+			toggleReadOnlyItem.setText(TOGGLE_RO_ON);
+
+			//Remove "Read-Only" prefix from the title bar
+			title = title.replace(RO_LABEL, "");
+		}
+		setTitle(title);
+
+		//May not save the project in read-only mode
+		saveItem.setEnabled(! status);
+	}//readOnlySetup
+
+	/**
+	 * call this method when the user attempts to edit the project
+	 * when it is in read-only mode.  It notifies the user of
+	 * the error.
+	 */
+	public void rejectForReadOnly() {
+		setStatusBarMsg("You must turn off Read-Only mode to edit this project.");
+		getToolkit().beep();
+	}
+
+
+
+	/**
   	 * enables the corresponding actions for when a project is opened
   	 */
   	private void projectActionsEnable(boolean areEnabled) 
     {
   		// Enable various actions
 		saveAllFilesAction.setEnabled(areEnabled);
+		toggleReadOnlyItem.setEnabled(areEnabled);
 		loadTopStateDatamapAction.setEnabled(areEnabled);
 		checkAllProductionsAction.setEnabled(areEnabled);
 		checkSyntaxErrorsAction.setEnabled(areEnabled);
@@ -1059,7 +1136,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		 * Since I would expect the user will be annoyed if certain hot keys don't work right
 		 * after a project is loaded, I've worked around this error by making the above actions
 		 * detect when there is no project currently open and just silently abort in their
-		 * actionPerformed() methods. Thus I can keep them (and they hotkeys) active at all times.
+		 * actionPerformed() methods. Thus I can keep them (and their hotkeys) active at all times.
 		 *
 		 * -:AMN:  30 Mar 2023
 		 */
@@ -1190,6 +1267,10 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 
 		//Set and monitor the divider position
 		dividerSetup();
+
+		//Update the title to include the project name
+		setTitle(file.getName().replaceAll(".vsa", ""));
+
 	}
 	
 	/**
@@ -1257,6 +1338,9 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 
 					//Set the title bar to include the project name
 					setTitle(file.getName().replaceAll(".vsa", ""));
+
+					//Configure read-only status
+					setReadOnly(event.getActionCommand().contains("Read-Only"));
 				}
 			}
 			catch(FileNotFoundException fnfe)
@@ -1490,26 +1574,43 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 			setStatusBarMsg("Export Finished");
 		}
 	}
-	
+
 	/**
 	 * Creates and shows the preferences dialog
 	 */
 	static class PreferencesAction extends AbstractAction
-    {
+	{
 		private static final long serialVersionUID = 20221225L;
 
 		public PreferencesAction()
-        {
+		{
 			super("Preferences Action");
 		}
-		
-		public void actionPerformed(ActionEvent e) 
-        {
+
+		public void actionPerformed(ActionEvent e)
+		{
 			PreferencesDialog	theDialog = new PreferencesDialog(MainFrame.getMainFrame());
 			theDialog.setVisible(true);
 		}//actionPerformed()
 	}
-	
+	/**
+	 * Toggles the project in/out of Read-Only Mode
+	 */
+	class ToggleReadOnlyAction extends AbstractAction
+	{
+		private static final long serialVersionUID = 20240117L;
+
+		public ToggleReadOnlyAction()
+		{
+			super("Toggle Read-Only Action");
+			toggleReadOnlyItem.setEnabled(false);  //kept off until a project is loaded
+		}
+
+		public void actionPerformed(ActionEvent e) {
+			setReadOnly(!isReadOnly);
+		}//actionPerformed()
+	}
+
 	/**
 	 * This is where the user user wants some info about the authors
      * @see AboutDialog
@@ -2609,6 +2710,12 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 			//If the user invokes this action when no project is open just ignore it
 			//For more info on why this is necessary, see the comment in projectActionsEnable()
 			if (operatorWindow == null) return;
+
+			//If the project is in Read-Only mode reject the action
+			if (isReadOnly) {
+				rejectForReadOnly();
+				return;
+			}
 
 			ReplaceInProjectDialog replaceDialog =
                 new ReplaceInProjectDialog(MainFrame.this,

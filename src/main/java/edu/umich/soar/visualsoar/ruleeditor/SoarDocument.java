@@ -1,5 +1,6 @@
 package edu.umich.soar.visualsoar.ruleeditor;
 
+import edu.umich.soar.visualsoar.MainFrame;
 import edu.umich.soar.visualsoar.misc.Prefs;
 import edu.umich.soar.visualsoar.misc.SyntaxColor;
 import edu.umich.soar.visualsoar.parser.*;
@@ -30,6 +31,10 @@ public class SoarDocument extends DefaultStyledDocument {
     // Only one of these variables should be non-null at any time
     private String lastInsertedText = null;
     private String lastRemovedText = null;
+
+    /** to support Read-Only mode */
+    public boolean isReadOnly = false;
+
 
     public SoarDocument() {
         colorTable = Prefs.getSyntaxColors().clone();
@@ -62,6 +67,12 @@ public class SoarDocument extends DefaultStyledDocument {
                              String str,
                              AttributeSet a) throws BadLocationException {
 
+        //Enforce read-only mode
+        if (isReadOnly) {
+            MainFrame.getMainFrame().rejectForReadOnly();
+            return;
+        }
+
         //Please see the big ass comment on this variable above
         this.lastInsertedText = str;
         this.lastRemovedText = null;
@@ -88,6 +99,12 @@ public class SoarDocument extends DefaultStyledDocument {
     }//insertString()
 
     public void remove(int offs, int len) throws BadLocationException {
+        //Enforce read-only mode
+        if (isReadOnly) {
+            MainFrame.getMainFrame().rejectForReadOnly();
+            return;
+        }
+
         //please see the big ass comment on this variable above
         this.lastRemovedText = this.getText(offs, len);
         this.lastInsertedText = null;
@@ -99,6 +116,12 @@ public class SoarDocument extends DefaultStyledDocument {
 
 
     void replaceRange(String str, int start, int end) {
+        //Enforce read-only mode
+        if (isReadOnly) {
+            MainFrame.getMainFrame().rejectForReadOnly();
+            return;
+        }
+
         try {
             remove(start, end - start);
             insertString(start, str, null);
@@ -604,7 +627,7 @@ public class SoarDocument extends DefaultStyledDocument {
 
     /**
      * Justifies a chunk of text from in the rule editor.
-     * If nothing is highlighted, then justifies the entire document
+     * If nothing is highlighted, then justifies the entire docusment
      *
      * TODO:  This method should be refactored to make more manageable
      *
@@ -612,6 +635,12 @@ public class SoarDocument extends DefaultStyledDocument {
      * @param selectionEnd   the position of the end of the highlighted text
      */
     public void justifyDocument(int selectionStart, int selectionEnd) {
+
+        //Enforce read-only mode
+        if (isReadOnly) {
+            MainFrame.getMainFrame().rejectForReadOnly();
+            return;
+        }
 
         Content data = getContent();
 

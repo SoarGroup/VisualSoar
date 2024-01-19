@@ -406,6 +406,7 @@ public class FileNode extends OperatorNode implements java.io.Serializable {
             try {
                 ruleEditor = new RuleEditor(new java.io.File(getFileName()),
                         this);
+                ruleEditor.setReadOnly(MainFrame.getMainFrame().isReadOnly());
                 ruleEditor.setVisible(true);
                 pw.addRuleEditor(ruleEditor);
                 ruleEditor.setSelected(true);

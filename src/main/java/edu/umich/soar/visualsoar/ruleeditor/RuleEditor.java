@@ -133,7 +133,6 @@ public class RuleEditor extends CustomInternalFrame {
     //last edit was insert
     private boolean lastEditWasInsert = true;
 
-
     // Constructors
 
     /**
@@ -340,7 +339,38 @@ public class RuleEditor extends CustomInternalFrame {
                 });
         contextMenu.add(openDataMapItem);
 
+        //To support read-only mode
+        readOnlyDisabledMenuItems.add(cutSelectedTextItem);
+        readOnlyDisabledMenuItems.add(pasteTextItem);
+        readOnlyDisabledMenuItems.add(deleteSelectedTextItem);
+
     }
+
+    /**
+     * configures the editor in/out of read-only mode
+     * @param status  read-only=true  editable=false
+     */
+    @Override
+    public void setReadOnly(boolean status) {
+
+        //enable/disable menu actions that change the contents
+        for(JMenuItem item : readOnlyDisabledMenuItems) {
+            item.setEnabled(! status);
+        }
+
+        //set same status for the associated soar document
+        editorPane.setReadOnly(status);
+
+        //Update the title bar to show the status
+        String title = getTitle();
+        if (status) {
+            title = MainFrame.RO_LABEL + title;
+        }
+        else {
+            title = title.replace(MainFrame.RO_LABEL, "");
+        }
+        setTitle(title);
+    }//setReadOnly
 
     /**
      * A helper function to read in the data from a file into the editorPane so we don't have
@@ -1045,10 +1075,15 @@ public class RuleEditor extends CustomInternalFrame {
 
         fileMenu.setMnemonic(KeyEvent.VK_I);
         menuBar.add(fileMenu);
+
+        //To support read-only mode
+        readOnlyDisabledMenuItems.add(saveItem);
+        readOnlyDisabledMenuItems.add(revertToSavedItem);
     }
 
     private void initEditMenu(JMenuBar menuBar) {
         JMenu editMenu = new JMenu("Edit");
+
         JMenuItem undoItem = new JMenuItem("Undo");
         editMenu.add(undoItem);
         undoItem.addActionListener(undoAction);
@@ -1126,7 +1161,18 @@ public class RuleEditor extends CustomInternalFrame {
         commentOutItem.setMnemonic(KeyEvent.VK_SLASH);
         commentOutItem.setAccelerator(KeyStroke.getKeyStroke("control SLASH"));
 
+
         menuBar.add(editMenu);
+
+        //To support read-only mode
+        readOnlyDisabledMenuItems.add(undoItem);
+        readOnlyDisabledMenuItems.add(redoItem);
+        readOnlyDisabledMenuItems.add(cutItem);
+        readOnlyDisabledMenuItems.add(pasteItem);
+        readOnlyDisabledMenuItems.add(commentOutItem);
+        readOnlyDisabledMenuItems.add(uncommentOutItem);
+        readOnlyDisabledMenuItems.add(insertTextFromFileItem);
+        readOnlyDisabledMenuItems.add(reJustifyItem);
     }
 
     private void initSearchMenu(JMenuBar menuBar) {
@@ -1171,6 +1217,12 @@ public class RuleEditor extends CustomInternalFrame {
         replaceAndFindAgainItem.setAccelerator(KeyStroke.getKeyStroke("control H"));
 
         menuBar.add(searchMenu);
+
+        //To support read-only mode
+        readOnlyDisabledMenuItems.add(findAndReplaceItem);
+        readOnlyDisabledMenuItems.add(replaceItem);
+        readOnlyDisabledMenuItems.add(replaceAndFindAgainItem);
+        readOnlyDisabledMenuItems.add(replaceAllItem);
     }
 
     // 3P - Changes to this function were made to add the STI related menu items.
@@ -1207,6 +1259,9 @@ public class RuleEditor extends CustomInternalFrame {
 
         menuBar.add(soarMenu);
         menuBar.add(templateMenu);
+
+        //To support read-only mode
+        readOnlyDisabledMenuItems.add(tabCompleteItem);
     }
 
     private void initTemplatesMenu(Template parentTemplate, JMenu parentMenu) {
@@ -1245,6 +1300,9 @@ public class RuleEditor extends CustomInternalFrame {
         JMenuItem customTemplatesItem = new JMenuItem("Edit Custom Templates...");
         customTemplatesItem.addActionListener(editCustomTemplatesAction);
         parentMenu.add(customTemplatesItem);
+
+        //To support read-only mode
+        readOnlyDisabledMenuItems.add(parentMenu);
 
     }//initTemplatesMenu
 
