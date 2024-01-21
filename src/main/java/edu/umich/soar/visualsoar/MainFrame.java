@@ -2,6 +2,7 @@ package edu.umich.soar.visualsoar;
 
 import edu.umich.soar.visualsoar.datamap.DataMap;
 import edu.umich.soar.visualsoar.datamap.SoarWorkingMemoryModel;
+import edu.umich.soar.visualsoar.datamap.SoarWorkingMemoryReader;
 import edu.umich.soar.visualsoar.dialogs.*;
 import edu.umich.soar.visualsoar.graph.NamedEdge;
 import edu.umich.soar.visualsoar.misc.*;
@@ -112,6 +113,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 	PerformableAction verifyProjectAction = new VerifyProjectAction();
 	Action checkSyntaxErrorsAction = new CheckSyntaxErrorsAction();
 	Action loadTopStateDatamapAction = new LoadTopStateDatamapAction();
+	Action linkDataMapAction = new LinkDataMapAction();
 	PerformableAction checkAllProductionsAction = new CheckAllProductionsAction();
     Action searchDataMapCreateAction = new SearchDataMapCreateAction();
     Action searchDataMapTestAction = new SearchDataMapTestAction();
@@ -498,6 +500,13 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		searchDataMapNoTestNoCreateAction.addPropertyChangeListener(
             new ActionButtonAssociation(searchDataMapNoTestNoCreateAction,searchDataMapNoTestNoCreateItem));
 
+		JMenuItem linkDataMapItem = new JMenuItem("Link Items from Another Datamap");
+		linkDataMapItem.addActionListener(linkDataMapAction);
+		linkDataMapItem.addPropertyChangeListener(
+				new ActionButtonAssociation(linkDataMapAction,linkDataMapItem));
+
+
+
 		datamapMenu.add(topStateDatamapItem);
 		datamapMenu.addSeparator();
 		datamapMenu.add(checkAllProductionsItem);
@@ -510,7 +519,10 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
         datamapMenu.add(searchDataMapTestNoCreateItem);
         datamapMenu.add(searchDataMapCreateNoTestItem);
         datamapMenu.add(searchDataMapNoTestNoCreateItem);
-        datamapMenu.setMnemonic(KeyEvent.VK_D);
+		datamapMenu.addSeparator();
+		datamapMenu.add(linkDataMapItem);
+
+		datamapMenu.setMnemonic(KeyEvent.VK_D);
 
         return datamapMenu;
     }
@@ -1106,7 +1118,8 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
         searchDataMapCreateAction.setEnabled(areEnabled);
         searchDataMapTestNoCreateAction.setEnabled(areEnabled);
         searchDataMapCreateNoTestAction.setEnabled(areEnabled);
-        searchDataMapNoTestNoCreateAction.setEnabled(areEnabled);    
+        searchDataMapNoTestNoCreateAction.setEnabled(areEnabled);
+		linkDataMapAction.setEnabled(areEnabled);
         generateDataMapAction.setEnabled(areEnabled);
 		closeProjectAction.setEnabled(areEnabled);
 		commitAction.setEnabled(areEnabled);
@@ -1145,8 +1158,45 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 	
 /*########################################################################################
   Actions
-  ########################################################################################/*
-	
+  ########################################################################################*/
+
+	/**
+	 * ghettoFileChooser
+	 *
+	 * Uses a FileDialog to select a file with a specific extension
+	 * It's called "ghetto" because the original author of this code wrote
+	 * this about it:
+	 * 	  FIXME: This is totally ghetto
+	 * 	    Using a JFileChooser seems to cause hangs on OS X (10.4, at least)
+	 * 	    so I've converted the code to use a FileDialog instead
+	 * 	    Unfortunately, FilenameFilters don't work on Windows XP, so I have
+	 * 	    to set the file to *.vsa.  Yuck.
+	 *
+	 * It's quite possible JFileChooser no longer crashes OS/X but why fix
+	 * something that seems to be working fine?    -- Nuxoll, Jan 2024
+	 *
+	 * @param extension  a file extension to limit the selection to (e.g., "vsa"
+	 *
+	 * @return the file selected (or null if none)
+	 */
+	private File ghettoFileChooser(final String extension) {
+
+		FileDialog fileChooser = new FileDialog(MainFrame.this, "Open Project", FileDialog.LOAD);
+		File dir = new File(Prefs.openFolder.get());
+		if ((dir.exists()) && (dir.canRead())) {
+			fileChooser.setDirectory(dir.getAbsolutePath());
+		}
+		fileChooser.setFilenameFilter(new FilenameFilter() {
+			public boolean accept(File dir, String name) {
+				return name.toLowerCase().endsWith(extension);
+			}
+		});
+		fileChooser.setFile("*." + extension);
+		fileChooser.setVisible(true);
+		if (fileChooser.getFile() == null) return null;
+		return new File(fileChooser.getDirectory(), fileChooser.getFile());
+	}//ghettoFileChooser
+
 /**
 * Runs through all the Rule Editors in the Desktop Pane and tells them to save
 * themselves.
@@ -1292,29 +1342,10 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
         {
 			try 
             {
-				//FIXME: This is totally ghetto
-				// Using a JFileChooser seems to cause hangs on OS X (10.4, at least)
-				//  so I've converted the code to use a FileDialog instead
-				// Unfortunately, FilenameFilters don't work on Windows XP, so I have
-				//  to set the file to *.vsa.  Yuck.
-				FileDialog fileChooser = new FileDialog(MainFrame.this, "Open Project", FileDialog.LOAD);
-				File dir = new File(Prefs.openFolder.get());
-				if ((dir.exists()) && (dir.canRead())) {
-					fileChooser.setDirectory(dir.getAbsolutePath());
-				}
-				fileChooser.setFilenameFilter(new FilenameFilter() {
-					public boolean accept(File dir, String name) {
-						return name.toLowerCase().endsWith("vsa");
-					}
-				});
-				fileChooser.setFile("*.vsa");
-				fileChooser.setVisible(true);
-				if(fileChooser.getFile() != null) {
-					File file = new File(fileChooser.getDirectory(), fileChooser.getFile());
-					//if (file != null && state == JFileChooser.APPROVE_OPTION)
+				File file = ghettoFileChooser("vsa");
+				if(file != null) {
 					//Get rid of the old project (if it exists)
-					if (operatorWindow != null)
-					{
+					if (operatorWindow != null) {
 						MainFrame.getMainFrame().closeProjectAction.perform();
 					}
 
@@ -2158,7 +2189,6 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 
 	}//class LoadTopStateDatamapAction
 
-
 	/**
      * This action searches all productions in the project for syntax
      * errors only.   Operation status is displayed in a progress bar.
@@ -2654,6 +2684,53 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 
 		}//class UpdateThread
 	}//class GenerateDataMapAction
+
+	/**
+	 * class LinkDataMapAction
+	 *
+	 * This action loads a datamap from another project and allows the user to import
+	 * items from it.  These items are "linked" can not be edited via this project
+	 * but must be edited via the project they are imported from.
+	 *
+	 * @author Andrew Nuxoll
+	 * @version 21 Jan 2024
+	 */
+	class LinkDataMapAction extends AbstractAction
+	{
+		private static final long serialVersionUID = 20240121L;
+
+		public LinkDataMapAction()
+		{
+			super("Link Items from Another Datamap");
+			setEnabled(false);
+		}
+
+		public void actionPerformed(ActionEvent ae)
+		{
+			//The user selects a datamap file to import from
+			File dmFile = ghettoFileChooser("dm");
+			if (dmFile == null) return;
+			SoarWorkingMemoryModel SWMM = new SoarWorkingMemoryModel(false, dmFile.getName());
+
+			//TODO: Calculate a relative path to this .dm file (convert file sep too?)
+
+			//Calculate the name of the comment file
+			File dataMapFile = new File(dmFile.getAbsolutePath());
+			File commentFile = new File(dataMapFile.getParent() + File.separator + "comment.dm");
+
+			
+
+
+
+//			OperatorRootNode root = (OperatorRootNode)(operatorWindow.getModel().getRoot());
+//			SoarWorkingMemoryModel dataMap = MainFrame.this.operatorWindow.getDatamap();
+//			root.openDataMap(dataMap, MainFrame.this);
+		}
+
+	}//class LinkDataMapAction
+
+
+
 
 
 	class FindInProjectAction extends AbstractAction 

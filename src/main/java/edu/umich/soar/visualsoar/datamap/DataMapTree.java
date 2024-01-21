@@ -86,6 +86,9 @@ public class DataMapTree extends JTree implements ClipboardOwner {
     /** to support Read-Only mode */
     public boolean isReadOnly = false;
 
+    /** to support selecting datamap items to import */
+    public boolean isImportMode = false;
+
     private final SoarWorkingMemoryModel swmm;
     private static final JPopupMenu contextMenu = new JPopupMenu();
     private static final JMenuItem AddIdentifierItem = new JMenuItem("Add Identifier...");
