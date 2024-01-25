@@ -163,8 +163,6 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		// Use Java toolkit to access user's screen size and set VisualSoar window to 90% of that size
         Toolkit tk = Toolkit.getDefaultToolkit();
         Dimension d = tk.getScreenSize();
-		int width = (int) (d.getWidth() * .9);
-		int height = (int) (d.getHeight() * .9);
 		setSize( ((int) (d.getWidth() * .9)), ((int) (d.getHeight() * .9)) );
 
 		setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
@@ -256,7 +254,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 	 * are displayed on a single line.
 	 */
 	public void setStatusBarMsgList(List<String> msgs) {
-		if (msgs.size() == 0) return; //nop
+		if (msgs.isEmpty()) return; //nop
 		StringBuilder sb = new StringBuilder();
 		for (String match : msgs) {
 			sb.append("   ");
@@ -318,7 +316,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		JMenu fileMenu = new JMenu("File");
 
 		//First create a new JMenuItem object for each item in the menu and
-		//tie it to the its associated handler
+		//tie it to its associated handler
 		JMenuItem newProjectItem = new JMenuItem("New Project...");
 		newProjectItem.addActionListener(newProjectAction);
 		newProjectAction.addPropertyChangeListener(
@@ -591,7 +589,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
      */
     void checkForUnsavedProjectOnClose()
     {
-        //If the user has modifed files that have not been saved,
+        //If the user has modified files that have not been saved,
         //we need to ask the user what to do about it.
         if (isModified())
         {
@@ -671,8 +669,6 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
      */
 	class SoarRuntimeAgentMenuListener extends MenuAdapter
     {
-		private static final long serialVersionUID = 20221225L;
-
 		public void menuSelected(MenuEvent e)
         {
 			// Remove our existing items
@@ -849,7 +845,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
             }
             catch (java.beans.PropertyVetoException pve)
             {
-                //Unable to maximize window.  Oh well.
+                //Unable to maximize window.  Oh, well.
             }				
         }
 		else if ( (Prefs.autoTileEnabled.getBoolean())
@@ -878,7 +874,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
     
 	/**
 	 * Creates a rule window opening with the given file name
-	 * @param re the ruleeditor file that the rule editor should open
+	 * @param re the rule editor file that the rule editor should open
 	 */
 	public void addRuleEditor(RuleEditor re) 
     {
@@ -1139,7 +1135,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		 * UNTIL the menu is used manually by the user via the mouse.  It's an odd behavior
 		 * that seems to be a bug in Swing afaict. Apparently it's possible to workaround it
 		 * by having the menu ask for focus or resetting the accelerator.  I tried to
-		 * the former but it didn't work for me.  The latter seems inferior to the workaround
+		 * the former, but it didn't work for me.  The latter seems inferior to the workaround
 		 * I've chosen (below).
 		 *
 		 * Here are some relevant Stack Overflow articles:
@@ -1662,7 +1658,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
   	}
 
 	/**
-	 * This is where the user user wants a list of keybindings.  The action
+	 * This is where the user wants a list of keybindings.  The action
      * loads the docs/KeyBindings.txt file.
 	 */	
 	class ViewKeyBindingsAction extends AbstractAction 
@@ -1681,8 +1677,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
                 "<html>View VisualSoar key bindings help " +
                 "<a href=\"https://soar.eecs.umich.edu/articles/articles/documentation/76-visual-soar-key-bindings\">" +
                 "on the wiki</a>.<br />" +
-                "https://soar.eecs.umich.edu/articles/articles/documentation/76-visual-soar-key-bindings</html>" +
-                "",
+                "https://soar.eecs.umich.edu/articles/articles/documentation/76-visual-soar-key-bindings</html>",
                 "Key Bindings Help",
                 JOptionPane.INFORMATION_MESSAGE);
 		}
@@ -1870,7 +1865,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 	 * the output from commands sent to the SoarJavaDebugger but
 	 * can be used for any similar output.
 	 *
-	 * @param result
+	 * @param result  Text to display in feedback window
 	 */
 	public void reportResult(String result)
 	{
@@ -2235,7 +2230,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 				for(String prodName : prodNames) {
 					for(String allName : CheckSyntaxErrorsAction.this.allProdNames) {
 						if (allName.startsWith(prodName)) {
-							//We *may* have a name conflict but it's possible that
+							//We *may* have a name conflict, but it's possible that
 							//allName has a longer name.
 							//trim allName to just the name and check for match
 							String allNameOnly = allName.trim();
@@ -2271,9 +2266,9 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 					//This is the main parsing here
                     Vector<SoarProduction> prods = opNode.parseProductions();
 
-                    //Check for Supplmental Error:  Variable on RHS never
+                    //Check for Supplemental Error:  Variable on RHS never
 					// created or tested
-                    if ((prods != null) && (prods.size() > 0)) {
+                    if ((prods != null) && (!prods.isEmpty())) {
 						for (SoarProduction sprod : prods) {
 							FeedbackListObject flobj = SuppParseChecks.checkUndefinedVarRHS(opNode, sprod);
 							if (flobj != null) {
@@ -2555,7 +2550,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 
     /**
      * This class is responsible for comparing all productions in the project
-     * with the project's datamaps and 'fixing' any discrepencies
+     * with the project's datamaps and 'fixing' any discrepancies
      * by adding missing productions to the datamap.
      * Operation status is displayed in a progress bar.
      * Add productions in the datamap are displayed as green until the user validates them.
@@ -2698,6 +2693,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 	class LinkDataMapAction extends AbstractAction
 	{
 		private static final long serialVersionUID = 20240121L;
+		SoarWorkingMemoryModel swmm = null;
 
 		public LinkDataMapAction()
 		{
@@ -2705,27 +2701,69 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 			setEnabled(false);
 		}
 
-		public void actionPerformed(ActionEvent ae)
-		{
-			//The user selects a datamap file to import from
-			File dmFile = ghettoFileChooser("dm");
-			if (dmFile == null) return;
-			SoarWorkingMemoryModel SWMM = new SoarWorkingMemoryModel(false, dmFile.getName());
-
-			//TODO: Calculate a relative path to this .dm file (convert file sep too?)
-
+		/** reads the data in a given datamap file into this.swmm */
+		private void readDataIntoSWMM(File dmFile) {
 			//Calculate the name of the comment file
 			File dataMapFile = new File(dmFile.getAbsolutePath());
 			File commentFile = new File(dataMapFile.getParent() + File.separator + "comment.dm");
 
-			
+			//Create the swmm object
+			this.swmm = new SoarWorkingMemoryModel(false, dmFile.getName());
+
+			//Open the dm files for reading
+			Reader rDM;
+			try {
+				rDM = new FileReader(dataMapFile);
+			} catch (FileNotFoundException fnfe) {
+				setStatusBarMsg("Error opening " + dmFile.getName() + ": " + fnfe.getMessage());
+				return;
+			}
+			Reader rComment = null;
+			try {
+				if (commentFile.exists()) {
+					rComment = new FileReader(commentFile);
+				}
+			} catch (FileNotFoundException fnfe) {
+				setStatusBarMsg("Error opening " + commentFile.getName() + ": " + fnfe.getMessage());
+				return;
+			}
+
+			//Read the datamap into memory
+			try {
+				SoarWorkingMemoryReader.read(this.swmm, rDM, rComment);
+			} catch (IOException ioe) {
+				setStatusBarMsg("Unable to parse " + dmFile.getName() + ": " + ioe.getMessage());
+				return;
+			}
+
+			//Close the readers
+			try {
+				rDM.close();
+			} catch (IOException e) {
+				//nothing to do?
+			}
+			try {
+				if (rComment != null) rComment.close();
+			} catch (IOException e) {
+				//nothing to do?
+			}
+		}//readDataIntoSWMM
+
+		public void actionPerformed(ActionEvent ae) {
+			//The user selects a datamap file to import from
+			File dmFile = ghettoFileChooser("dm");
+			if (dmFile == null) return;
+
+			readDataIntoSWMM(dmFile);
+
+			DataMap dataMap = new DataMap(swmm, swmm.getTopstate(), "External Datamap: " + dmFile.getName());
+			dataMap.setReadOnly(true);
+			dataMap.setVisible(true);
+			addDataMap(dataMap);
+
+		}//actionPerformed
 
 
-
-//			OperatorRootNode root = (OperatorRootNode)(operatorWindow.getModel().getRoot());
-//			SoarWorkingMemoryModel dataMap = MainFrame.this.operatorWindow.getDatamap();
-//			root.openDataMap(dataMap, MainFrame.this);
-		}
 
 	}//class LinkDataMapAction
 
@@ -2912,11 +2950,11 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		 * copyAllFiles
 		 *
 		 * copies all files associated with the children of a given
-		 * OperatorNode.  This method recurses into all descendents (not just
+		 * OperatorNode.  This method recurses into all descendants (not just
 		 * direct children).
 		 *
 		 * Note:  I suspect there is a better way to recurse the file
-		 *        structure but I'm not seeing it.  (Nuxoll - 20 Aug '22)
+		 *        structure, but I'm not seeing it.  (Nuxoll - 20 Aug '22)
 		 *
 		 * @param oldFolder  folder to copy files from
 		 * @param newFolder  folder associated with the given node
