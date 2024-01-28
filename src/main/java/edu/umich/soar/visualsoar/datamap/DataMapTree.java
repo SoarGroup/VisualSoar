@@ -54,7 +54,7 @@ public class DataMapTree extends JTree implements ClipboardOwner {
     ////////////////////////////////////////
     // DataMembers
     ////////////////////////////////////////
-    private DataMap parentWindow;  //the window displaying the contents of this tree to the user
+    private final DataMap parentWindow;  //the window displaying the contents of this tree to the user
     public static Clipboard clipboard = new Clipboard("Datamap Clipboard");
     private static DataMapTree s_DataMapTree;
 
@@ -62,11 +62,6 @@ public class DataMapTree extends JTree implements ClipboardOwner {
     public Action copyAction = new CopyAction();
     public Action pasteAction = new PasteAction();
     public Action linkAction = new LinkAction();
-
-    public static JMenuItem getAddEnumerationItem() {
-        return AddEnumerationItem;
-    }
-
     public Action searchAction = new SearchAction();
     public Action validateDataMapAction = new ValidateDataMapAction();
     public Action removeInvalidAction = new RemoveInvalidAction();
@@ -76,18 +71,15 @@ public class DataMapTree extends JTree implements ClipboardOwner {
      */
     DragGestureListener dgListener = new DMTDragGestureListener();
 
-    /** Reference to the DropTargetListener for Drag and Drop operations, may be deleted in future. */
+    /** Reference to the DropTargetListener for Drag and Drop operations, may be deleted in the future. */
     DropTargetListener dtListener = new DMTDropTargetListener();
 
-    /** Reference to the DropTarget for Drag and Drop operations, may be deleted in future. */
+    /** Reference to the DropTarget for Drag and Drop operations, may be deleted in the future. */
     @SuppressWarnings("unused")  //not sure why IntelliJ thinks this is "unused"
     private final DropTarget dropTarget = new DropTarget(this,DnDConstants.ACTION_LINK | DnDConstants.ACTION_COPY_OR_MOVE,dtListener,true);
 
     /** to support Read-Only mode */
     public boolean isReadOnly = false;
-
-    /** to support selecting datamap items to import */
-    public boolean isImportMode = false;
 
     private final SoarWorkingMemoryModel swmm;
     private static final JPopupMenu contextMenu = new JPopupMenu();
@@ -370,9 +362,12 @@ public class DataMapTree extends JTree implements ClipboardOwner {
      * sets some data fields as well as specifying the custom cell renderer for
      * italicizing links and add the mouse adapter for right-clicking.
      *
-     * @param model the model which specifies the contents of the tree.
+     * @param initParent datamap window that displays this tree
+     * @param model      the model which specifies the contents of the tree.
+     * @param _swmm      datamap data (loaded from .dm file)
+     * @param forEditing set to 'true' to allow the user to edit the datamap
      */
-    public DataMapTree(DataMap initParent, TreeModel model, SoarWorkingMemoryModel _swmm) {
+    public DataMapTree(DataMap initParent, TreeModel model, SoarWorkingMemoryModel _swmm, boolean forEditing ) {
         super(model);
         parentWindow = initParent;
         swmm = _swmm;
@@ -380,6 +375,21 @@ public class DataMapTree extends JTree implements ClipboardOwner {
 
         getSelectionModel().setSelectionMode(TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION);
 
+        //When a datamap tree is being used to select nodes (i.e., import from foreign datamap)
+        //it should not respond to editing related events.
+        if (forEditing) {
+            setupEditingEventHandling();
+            displayGeneratedNodes();
+        }
+
+    }//ctor
+
+    /**
+     * setupEditingEventHandling
+     *
+     * activates mouse and keyboard event handling for editing the tree
+     */
+    public void setupEditingEventHandling() {
         DragSource.getDefaultDragSource().createDefaultDragGestureRecognizer(this, DnDConstants.ACTION_LINK | DnDConstants.ACTION_COPY_OR_MOVE, dgListener);
         setAutoscrolls(true);
 
@@ -445,10 +455,7 @@ public class DataMapTree extends JTree implements ClipboardOwner {
                 }
             }
         });
-
-        displayGeneratedNodes();
-
-    }     //  end of DataMapTree constructor
+    }//setupEditingEventHandling
 
 
     /**
@@ -514,7 +521,7 @@ public class DataMapTree extends JTree implements ClipboardOwner {
             AddStringItem.setEnabled(false);
         }
 
-        // uneditable item
+        // un-editable item
         EditValueItem.setEnabled(theVertex.isEditable());
 
         // Disable menu items for read-only mode
@@ -773,7 +780,7 @@ public class DataMapTree extends JTree implements ClipboardOwner {
             }//while
         }//while
 
-        if (vecErrors.size() == 0) {
+        if (vecErrors.isEmpty()) {
             vecErrors.add(new FeedbackListObject("No matches found."));
         }
 
@@ -1135,8 +1142,6 @@ public class DataMapTree extends JTree implements ClipboardOwner {
         VSQueue<SoarVertex> queue = new QueueAsLinkedList<>();
         int numberOfVertices = swmm.getNumberOfVertices();
         boolean[] visitedVertices = new boolean[numberOfVertices];
-        for (int i = 0; i < numberOfVertices; i++)
-            visitedVertices[i] = false;
 
         TreePath path = getSelectionPath();
         if (path == null) return;
@@ -1174,8 +1179,6 @@ public class DataMapTree extends JTree implements ClipboardOwner {
         VSQueue<SoarVertex> queue = new QueueAsLinkedList<>();
         int numberOfVertices = swmm.getNumberOfVertices();
         boolean[] visitedVertices = new boolean[numberOfVertices];
-        for (int i = 0; i < numberOfVertices; i++)
-            visitedVertices[i] = false;
 
         if (this.getModel().getRoot() instanceof FakeTreeNode) {
             FakeTreeNode root = (FakeTreeNode) getModel().getRoot();
@@ -1210,8 +1213,6 @@ public class DataMapTree extends JTree implements ClipboardOwner {
         VSQueue<SoarVertex> queue = new QueueAsLinkedList<>();
         int numberOfVertices = swmm.getNumberOfVertices();
         boolean[] visitedVertices = new boolean[numberOfVertices];
-        for (int i = 0; i < numberOfVertices; i++)
-            visitedVertices[i] = false;
 
         if (this.getModel().getRoot() instanceof FakeTreeNode) {
             FakeTreeNode root = (FakeTreeNode) getModel().getRoot();
@@ -1255,8 +1256,6 @@ public class DataMapTree extends JTree implements ClipboardOwner {
         VSQueue<SoarVertex> queue = new QueueAsLinkedList<>();
         int numberOfVertices = swmm.getNumberOfVertices();
         boolean[] visitedVertices = new boolean[numberOfVertices];
-        for (int i = 0; i < numberOfVertices; i++)
-            visitedVertices[i] = false;
 
         if (this.getModel().getRoot() instanceof FakeTreeNode) {
             FakeTreeNode root = (FakeTreeNode) getModel().getRoot();
@@ -1302,8 +1301,6 @@ public class DataMapTree extends JTree implements ClipboardOwner {
         VSQueue<SoarVertex> queue = new QueueAsLinkedList<>();
         int numberOfVertices = swmm.getNumberOfVertices();
         boolean[] visitedVertices = new boolean[numberOfVertices];
-        for (int i = 0; i < numberOfVertices; i++)
-            visitedVertices[i] = false;
 
         if (this.getModel().getRoot() instanceof FakeTreeNode) {
             FakeTreeNode root = (FakeTreeNode) getModel().getRoot();
@@ -1349,8 +1346,6 @@ public class DataMapTree extends JTree implements ClipboardOwner {
         VSQueue<SoarVertex> queue = new QueueAsLinkedList<>();
         int numberOfVertices = swmm.getNumberOfVertices();
         boolean[] visitedVertices = new boolean[numberOfVertices];
-        for (int i = 0; i < numberOfVertices; i++)
-            visitedVertices[i] = false;
 
         if (this.getModel().getRoot() instanceof FakeTreeNode) {
             FakeTreeNode root = (FakeTreeNode) getModel().getRoot();
@@ -1397,8 +1392,6 @@ public class DataMapTree extends JTree implements ClipboardOwner {
         VSQueue<SoarVertex> queue = new QueueAsLinkedList<>();
         int numberOfVertices = swmm.getNumberOfVertices();
         boolean[] visitedVertices = new boolean[numberOfVertices];
-        for (int i = 0; i < numberOfVertices; i++)
-            visitedVertices[i] = false;
 
         if (this.getModel().getRoot() instanceof FakeTreeNode) {
             FakeTreeNode root = (FakeTreeNode) getModel().getRoot();
@@ -1444,8 +1437,6 @@ public class DataMapTree extends JTree implements ClipboardOwner {
         VSQueue<SoarVertex> queue = new QueueAsLinkedList<>();
         int numberOfVertices = swmm.getNumberOfVertices();
         boolean[] visitedVertices = new boolean[numberOfVertices];
-        for (int i = 0; i < numberOfVertices; i++)
-            visitedVertices[i] = false;
 
         if (this.getModel().getRoot() instanceof FakeTreeNode) {
             FakeTreeNode root = (FakeTreeNode) getModel().getRoot();
@@ -1495,8 +1486,6 @@ public class DataMapTree extends JTree implements ClipboardOwner {
         boolean[] visitedVertices = new boolean[numberOfVertices];
         boolean edgeNotFound = true;
         int children;
-        for (int i = 0; i < numberOfVertices; i++)
-            visitedVertices[i] = false;
 
         if (this.getModel().getRoot() instanceof FakeTreeNode) {
             FakeTreeNode root = (FakeTreeNode) getModel().getRoot();
@@ -1551,8 +1540,6 @@ public class DataMapTree extends JTree implements ClipboardOwner {
         int numberOfVertices = swmm.getNumberOfVertices();
         boolean[] visitedVertices = new boolean[numberOfVertices];
         int children;
-        for (int i = 0; i < numberOfVertices; i++)
-            visitedVertices[i] = false;
 
         if (this.getModel().getRoot() instanceof FakeTreeNode) {
             FakeTreeNode root = (FakeTreeNode) getModel().getRoot();

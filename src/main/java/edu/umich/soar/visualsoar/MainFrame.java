@@ -1,5 +1,6 @@
 package edu.umich.soar.visualsoar;
 
+import edu.umich.soar.visualsoar.datamap.CheckBoxDataMap;
 import edu.umich.soar.visualsoar.datamap.DataMap;
 import edu.umich.soar.visualsoar.datamap.SoarWorkingMemoryModel;
 import edu.umich.soar.visualsoar.datamap.SoarWorkingMemoryReader;
@@ -2756,8 +2757,8 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 
 			readDataIntoSWMM(dmFile);
 
-			DataMap dataMap = new DataMap(swmm, swmm.getTopstate(), "External Datamap: " + dmFile.getName());
-			dataMap.setReadOnly(true);
+			//Create a datamap with checkboxes
+			CheckBoxDataMap dataMap = new CheckBoxDataMap(swmm, "External Datamap: " + dmFile.getName());
 			dataMap.setVisible(true);
 			addDataMap(dataMap);
 

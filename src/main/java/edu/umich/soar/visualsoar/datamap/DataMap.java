@@ -12,10 +12,8 @@ import javax.swing.event.InternalFrameAdapter;
 import javax.swing.event.InternalFrameEvent;
 import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeModelListener;
-import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
-import java.awt.*;
 import java.util.Vector;
 
 /**
@@ -28,12 +26,33 @@ import java.util.Vector;
 public class DataMap extends CustomInternalFrame {
     private static final long serialVersionUID = 20221225L;
 
-    private DataMapTree dataMapTree;
-    private int id;
+    protected DataMapTree dataMapTree;
+    private final int id;
 
 ////////////////////////////////////////
 // Constructors
 ////////////////////////////////////////
+
+    /**
+     * base ctor is only for use by child classes for minimal initialization
+     */
+    protected DataMap(SoarIdentifierVertex siv, String title) {
+        super("Datamap " + title, true, true, true, true);
+        setType(DATAMAP);
+        setBounds(0, 0, 250, 100);
+        id = siv.getValue();
+
+        // re-tile the internal frames after closing a window
+        setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+        addInternalFrameListener(
+                new InternalFrameAdapter() {
+                    public void internalFrameClosing(InternalFrameEvent e) {
+                        closeMyselfAndReTile();
+                    }
+                });
+
+
+    }//base ctor
 
     /**
      * Create a DataMap in an internal frame
@@ -41,46 +60,54 @@ public class DataMap extends CustomInternalFrame {
      * @param swmm  Working Memory - SoarWorkingMemoryModel
      * @param siv   the vertex that is the root of datamap
      * @param title the name of the datamap window, generally the name of the selected operator node
+     *
      * @see SoarWMTreeModelWrapper
      * @see DataMapTree
      */
     public DataMap(SoarWorkingMemoryModel swmm, SoarIdentifierVertex siv, String title) {
-        super("Datamap " + title, true, true, true, true);
-        setType(DATAMAP);
-        setBounds(0, 0, 250, 100);
-        id = siv.getValue();
-
-        // Retile the internal frames after closing a window
-        setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-        addInternalFrameListener(
-                new InternalFrameAdapter() {
-                    public void internalFrameClosing(InternalFrameEvent e) {
-
-                        MainFrame mf = MainFrame.getMainFrame();
-                        mf.getDesktopPane().dmRemove(id);
-                        dispose();
-
-                        if (Prefs.autoTileEnabled.getBoolean()) {
-                            mf.getDesktopPane().performTileAction();
-                        }
-                        mf.selectNewInternalFrame();
-                    }
-                });
+        this(siv, title);
 
         TreeModel soarTreeModel = new SoarWMTreeModelWrapper(swmm, siv, title);
         soarTreeModel.addTreeModelListener(new DataMapListenerModel());
-        dataMapTree = new DataMapTree(this, soarTreeModel, swmm);
-        getContentPane().add(new JScrollPane(dataMapTree));
 
+        dataMapTree = new DataMapTree(this, soarTreeModel, swmm, true);
         dataMapTree.setCellRenderer(new DataMapTreeRenderer());
 
+        //setup window controls
+        getContentPane().add(new JScrollPane(dataMapTree));
+        setupMenuBar();
+
+        //apply read-only mode if it's on for the project
+        setReadOnly(MainFrame.getMainFrame().isReadOnly());
+    }//ctor
+
+    /** this datamap window removes itself from the main frame and causes the remaining windows to be re-tiled */
+    protected void closeMyselfAndReTile() {
+        MainFrame mf = MainFrame.getMainFrame();
+        mf.getDesktopPane().dmRemove(id);
+        dispose();
+
+        if (Prefs.autoTileEnabled.getBoolean()) {
+            mf.getDesktopPane().performTileAction();
+        }
+        mf.selectNewInternalFrame();
+    }//closeMyselfAndReTile
+
+
+
+    /**
+     * setupMenuBar
+     *
+     * called by the ctor to initialize the menu for a datamap window
+     */
+    private void setupMenuBar() {
         JMenuBar menuBar = new JMenuBar();
         JMenu editMenu = new JMenu("Edit");
         JMenu validateMenu = new JMenu("Validation");
 
 /*		Too Dangerous, see DataMapTree.java
 
-		JMenuItem cutItem = new JMenuItem("Cut");		
+		JMenuItem cutItem = new JMenuItem("Cut");
 		editMenu.add(cutItem);
 		cutItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_X,Event.CTRL_MASK));
 		cutItem.addActionListener(dataMapTree.cutAction);
@@ -126,10 +153,7 @@ public class DataMap extends CustomInternalFrame {
         readOnlyDisabledMenuItems.add(pasteItem);
         readOnlyDisabledMenuItems.add(linkItem);
         readOnlyDisabledMenuItems.add(removeItem);
-
-        //apply read-only mode if it's on for the project
-        setReadOnly(MainFrame.getMainFrame().isReadOnly());
-    }
+    }//setupMenuBar
 
     public int getId() {
         return id;
@@ -202,69 +226,18 @@ public class DataMap extends CustomInternalFrame {
      * Selects (highlights and centers) the requested edge within the datamap.
      *
      * @param edge the requested NamedEdge to select
-     * @return true if success, false if could not find edge
      */
-    public boolean selectEdge(NamedEdge edge) {
+    public void selectEdge(NamedEdge edge) {
         FakeTreeNode node = dataMapTree.selectEdge(edge);
 
         if (node != null) {
             TreePath path = new TreePath(node.getTreePath().toArray());
             dataMapTree.scrollPathToVisible(path);
             dataMapTree.setSelectionPath(path);
-
-            return true;
         } else {
             JOptionPane.showMessageDialog(null, "Could not find a matching FakeTreeNode in the datamap");
-            return false;
         }
     }
-
-    /**
-     * This class customizes the look of the DataMap Tree.
-     * It is responsible for changing the color of the text of nodes
-     * generated by the datamap generator.
-     */
-    private static class DataMapTreeRenderer extends DefaultTreeCellRenderer {
-        private static final long serialVersionUID = 20221225L;
-
-        public DataMapTreeRenderer() {
-        }
-
-        public Component getTreeCellRendererComponent(
-                JTree tree,
-                Object value,
-                boolean sel,
-                boolean expanded,
-                boolean leaf,
-                int row,
-                boolean hasFocus) {
-
-            super.getTreeCellRendererComponent(
-                    tree, value, sel,
-                    expanded, leaf, row,
-                    hasFocus);
-
-
-            if (isGeneratedNode(value)) {
-                setForeground(Color.green.darker().darker());
-            }
-
-            return this;
-        }
-
-        protected boolean isGeneratedNode(Object value) {
-            if (value instanceof FakeTreeNode) {
-                FakeTreeNode node = (FakeTreeNode) value;
-                NamedEdge ne = node.getEdge();
-                if (ne != null) {
-                    return ne.isGenerated();
-                }
-            }
-            return false;
-        }   // end of isGeneratedNode() member function
-
-
-    }   // end of DataMapRenderer class
 
     private class DataMapListenerModel implements TreeModelListener {
         public void treeNodesChanged(TreeModelEvent e) {
