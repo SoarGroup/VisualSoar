@@ -1,9 +1,16 @@
 package edu.umich.soar.visualsoar.datamap;
 
+import edu.umich.soar.visualsoar.MainFrame;
+import edu.umich.soar.visualsoar.graph.NamedEdge;
+import edu.umich.soar.visualsoar.graph.SoarIdentifierVertex;
+import edu.umich.soar.visualsoar.operatorwindow.OperatorWindow;
+
 import javax.swing.*;
 import javax.swing.tree.TreeCellRenderer;
 import java.awt.*;
+import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.HashSet;
 
 /**
  * class CheckBoxDataMapTreeRenderer
@@ -18,6 +25,11 @@ public class CheckBoxDataMapTreeRenderer implements TreeCellRenderer {
     //Each node in the tree has an associated checkbox object stored here
     private final HashMap<FakeTreeNode, JCheckBox> boxes = new HashMap<>();
 
+    //This is a set of named edges that emanate from the root of the current
+    // project's top-level datamap. It's populated in the ctor and used to
+    // detect items in the foreign datamap that conflict with the project
+    private final HashSet<String> nativeEdges = new HashSet<>();
+
     //These colors are used for highlighting
     Color selectionForeground, selectionBackground;
     //These colors are the regular appearance
@@ -31,7 +43,23 @@ public class CheckBoxDataMapTreeRenderer implements TreeCellRenderer {
         textForeground = UIManager.getColor("Tree.textForeground");
         textBackground = UIManager.getColor("Tree.textBackground");
 
+        populateNativeEdgesSet();
     }//ctor
+
+    /** populate this.{@link #nativeEdges } */
+    private void populateNativeEdgesSet() {
+        //Load the native datamap into a SWMM
+        OperatorWindow opWin = MainFrame.getMainFrame().getOperatorWindow();
+        SoarWorkingMemoryModel nativeSWMM = opWin.getDatamap();
+
+        //Retrieve the attributes of all WMEs whose parent is the root
+        SoarIdentifierVertex root = nativeSWMM.getTopstate();
+        Enumeration<NamedEdge> e = nativeSWMM.emanatingEdges(root);
+        while (e.hasMoreElements()) {
+            String eStr = e.nextElement().getName();
+            this.nativeEdges.add(eStr);
+        }
+    }//populateNativeFTNSet
 
     //Toggle the checkbox associated with a tree node
     public void toggle(FakeTreeNode ftn) {
@@ -61,14 +89,20 @@ public class CheckBoxDataMapTreeRenderer implements TreeCellRenderer {
         FakeTreeNode ftn = (FakeTreeNode) value;
 
         //If the node is not at level 1 (child of the root) then it's not allowed to have
-        //a checkbox
+        //a checkbox.  This was a simplifying design decision we made at first implementation.
+        //In the future, this restriction could be relaxed
         FakeTreeNode parent = ftn.getParent();
         if ((parent == null) || (! parent.isRoot())) {
             return makeJLabelComponent(ftn, false);
         }
 
-        //TODO:  check to see if this node has a name conflict with the current top-state?
-        //       this is tricky because you may want multiple non-leaf WMEs with the same name.
+        //check to see if this node has a name conflict with the native datamap
+        //While it's possible the user intends to import a different entry
+        //with the same name it's unlikely and I've made a design decision to
+        //ban that here
+        if (nativeEdges.contains(ftn.getEdge().toString())) {
+            return makeJLabelComponent(ftn, true);
+        }
 
         //Create/find a JCheckBox for this tree node
         return makeJCheckBoxComponent(ftn);
