@@ -351,6 +351,9 @@ public class CustomDesktopPane extends JDesktopPane {
         return dataMaps.containsKey(dm.getId());
     }
 
+    /** how many datamap windows are currently open? */
+    public int numDataMaps() { return dataMaps.size(); }
+
     /**
      * Adds a dataMap to the hashtable of datamaps that are open within the desktop
      *

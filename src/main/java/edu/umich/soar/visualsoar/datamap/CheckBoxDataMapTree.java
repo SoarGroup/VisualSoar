@@ -32,6 +32,17 @@ public class CheckBoxDataMapTree extends DataMapTree implements MouseListener {
         addMouseListener(this);
     }//ctor
 
+    /** tick all checkboxes in this tree */
+    public void selectAll() {
+        renderer.selectAll();
+    }//selectAll
+
+    /** un-tick all checkboxes in this tree */
+    public void selectNone() {
+        renderer.selectNone();
+    }//selectNone
+
+
     /** When the user clicks on a node in the tree, toggle its checkbox */
     @Override
     public void mousePressed(MouseEvent e) {

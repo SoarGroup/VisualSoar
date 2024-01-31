@@ -59,7 +59,12 @@ public class CheckBoxDataMap extends DataMap {
         selectAllButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                //TODO
+                if (! (dataMapTree instanceof CheckBoxDataMapTree)) {
+                    return; // should never happen!
+                }
+                CheckBoxDataMapTree cbdmt = (CheckBoxDataMapTree)dataMapTree;
+                cbdmt.selectAll();
+                repaint();
             }
         });
 
@@ -67,7 +72,12 @@ public class CheckBoxDataMap extends DataMap {
         selectNoneButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                //TODO
+                if (! (dataMapTree instanceof CheckBoxDataMapTree)) {
+                    return; // should never happen!
+                }
+                CheckBoxDataMapTree cbdmt = (CheckBoxDataMapTree)dataMapTree;
+                cbdmt.selectNone();
+                repaint();
             }
         });
 

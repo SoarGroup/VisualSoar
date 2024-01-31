@@ -499,7 +499,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		searchDataMapNoTestNoCreateAction.addPropertyChangeListener(
             new ActionButtonAssociation(searchDataMapNoTestNoCreateAction,searchDataMapNoTestNoCreateItem));
 
-		JMenuItem linkDataMapItem = new JMenuItem("Link Items from Another Datamap");
+		JMenuItem linkDataMapItem = new JMenuItem("Link Entries from Another Project's  Datamap");
 		linkDataMapItem.addActionListener(linkDataMapAction);
 		linkDataMapItem.addPropertyChangeListener(
 				new ActionButtonAssociation(linkDataMapAction,linkDataMapItem));
@@ -2702,8 +2702,43 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 			setEnabled(false);
 		}
 
-		/** reads the data in a given datamap file into this.swmm */
-		private void readDataIntoSWMM(File dmFile) {
+		/**
+		 * getDMFile
+		 *
+		 * Given a project's .vsa file, this method returns its .dm file or null if doesn't exist
+		 */
+		public File getDMFile(File vsaFile) {
+			//What is the file name (no path, no ext) of this project
+			String projName = vsaFile.getName();
+			projName = projName.substring(0, projName.length() - 4);  //chop off .vsa
+
+			//construct what the .dm filename should be
+			String dmPath = vsaFile.getAbsolutePath();
+			dmPath = dmPath.substring(0, dmPath.length() - 4); //chop off .vsa
+			dmPath += File.separatorChar + projName + ".dm";
+
+			//verify it's there
+			File dmFile = new File(dmPath);
+			if (!dmFile.exists()) {
+				setStatusBarMsg("Could not find datamap file for this project.  Expected:  " + dmFile.getName());
+				return null;
+			}
+
+			return dmFile;
+		}//getDMFile
+
+		/**
+		 * reads the data in a given project (.vsa) file into this.swmm
+		 *
+		 * @return 'false' if it fails to load.  'true' otherwise.
+		 */
+		private boolean readDataIntoSWMM(File vsaFile) {
+			//Calculate the name of the .dm file for this project
+			File dmFile = getDMFile(vsaFile);
+			if (dmFile == null) {
+				return false;
+			}
+
 			//Calculate the name of the comment file
 			File dataMapFile = new File(dmFile.getAbsolutePath());
 			File commentFile = new File(dataMapFile.getParent() + File.separator + "comment.dm");
@@ -2717,7 +2752,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 				rDM = new FileReader(dataMapFile);
 			} catch (FileNotFoundException fnfe) {
 				setStatusBarMsg("Error opening " + dmFile.getName() + ": " + fnfe.getMessage());
-				return;
+				return false;
 			}
 			Reader rComment = null;
 			try {
@@ -2726,7 +2761,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 				}
 			} catch (FileNotFoundException fnfe) {
 				setStatusBarMsg("Error opening " + commentFile.getName() + ": " + fnfe.getMessage());
-				return;
+				return false;
 			}
 
 			//Read the datamap into memory
@@ -2734,7 +2769,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 				SoarWorkingMemoryReader.read(this.swmm, rDM, rComment);
 			} catch (IOException ioe) {
 				setStatusBarMsg("Unable to parse " + dmFile.getName() + ": " + ioe.getMessage());
-				return;
+				return false;
 			}
 
 			//Close the readers
@@ -2748,14 +2783,22 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 			} catch (IOException e) {
 				//nothing to do?
 			}
+
+			return true;
 		}//readDataIntoSWMM
 
 		public void actionPerformed(ActionEvent ae) {
+			//Only one datamap window can be open at a time
+			if (DesktopPane.numDataMaps() > 0) {
+				setStatusBarMsg("Can not import from foreign datamap while local datamap is being edited.");
+				return;
+			}
+
 			//The user selects a datamap file to import from
-			File dmFile = ghettoFileChooser("dm");
+			File dmFile = ghettoFileChooser("vsa");
 			if (dmFile == null) return;
 
-			readDataIntoSWMM(dmFile);
+			if (! readDataIntoSWMM(dmFile)) return;
 
 			//Create a datamap with checkboxes
 			CheckBoxDataMap dataMap = new CheckBoxDataMap(swmm, "External Datamap: " + dmFile.getName());

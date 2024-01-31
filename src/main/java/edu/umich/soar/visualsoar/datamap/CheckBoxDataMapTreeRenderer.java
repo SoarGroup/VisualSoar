@@ -197,4 +197,20 @@ public class CheckBoxDataMapTreeRenderer implements TreeCellRenderer {
 
     }//makeJLabelComponent
 
+    /** tick all the checkboxes in this.boxes */
+    public void selectAll() {
+        for(JCheckBox box : this.boxes.values()) {
+            box.setSelected(true);
+            box.invalidate();
+        }
+    }
+
+    /** untick all the checkboxes in this.boxes */
+    public void selectNone() {
+        for(JCheckBox box : this.boxes.values()) {
+            box.setSelected(false);
+            box.invalidate();
+        }
+    }
+
 }//class CheckBoxDataMapTreeRenderer
