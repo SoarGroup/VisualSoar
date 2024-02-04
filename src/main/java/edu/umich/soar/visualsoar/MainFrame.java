@@ -35,6 +35,8 @@ import java.awt.event.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.*;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.*;
 
@@ -2730,29 +2732,29 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		/**
 		 * reads the data in a given project (.vsa) file into this.swmm
 		 *
-		 * @return 'false' if it fails to load.  'true' otherwise.
+		 * @return the foreign datamap file name (or null on failure)
 		 */
-		private boolean readDataIntoSWMM(File vsaFile) {
+		private String readDataIntoSWMM(File vsaFile) {
 			//Calculate the name of the .dm file for this project
-			File dmFile = getDMFile(vsaFile);
-			if (dmFile == null) {
-				return false;
+			File dataMapFile = getDMFile(vsaFile);
+			if (dataMapFile == null) {
+				System.err.println("Error: null vsa file given to readDataIntoSWMM on foreign datamap import.");
+				return null;
 			}
 
 			//Calculate the name of the comment file
-			File dataMapFile = new File(dmFile.getAbsolutePath());
 			File commentFile = new File(dataMapFile.getParent() + File.separator + "comment.dm");
 
 			//Create the swmm object
-			this.swmm = new SoarWorkingMemoryModel(false, dmFile.getName());
+			this.swmm = new SoarWorkingMemoryModel(false, dataMapFile.getName());
 
 			//Open the dm files for reading
 			Reader rDM;
 			try {
 				rDM = new FileReader(dataMapFile);
 			} catch (FileNotFoundException fnfe) {
-				setStatusBarMsg("Error opening " + dmFile.getName() + ": " + fnfe.getMessage());
-				return false;
+				setStatusBarError("Error opening " + dataMapFile.getName() + ": " + fnfe.getMessage());
+				return null;
 			}
 			Reader rComment = null;
 			try {
@@ -2760,16 +2762,16 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 					rComment = new FileReader(commentFile);
 				}
 			} catch (FileNotFoundException fnfe) {
-				setStatusBarMsg("Error opening " + commentFile.getName() + ": " + fnfe.getMessage());
-				return false;
+				setStatusBarError("Error opening " + commentFile.getName() + ": " + fnfe.getMessage());
+				return null;
 			}
 
 			//Read the datamap into memory
 			try {
 				SoarWorkingMemoryReader.read(this.swmm, rDM, rComment);
 			} catch (IOException ioe) {
-				setStatusBarMsg("Unable to parse " + dmFile.getName() + ": " + ioe.getMessage());
-				return false;
+				setStatusBarError("Unable to parse " + dataMapFile.getName() + ": " + ioe.getMessage());
+				return null;
 			}
 
 			//Close the readers
@@ -2784,7 +2786,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 				//nothing to do?
 			}
 
-			return true;
+			return dataMapFile.getAbsolutePath();
 		}//readDataIntoSWMM
 
 		public void actionPerformed(ActionEvent ae) {
@@ -2795,13 +2797,14 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 			}
 
 			//The user selects a datamap file to import from
-			File dmFile = ghettoFileChooser("vsa");
-			if (dmFile == null) return;
+			File vsaFile = ghettoFileChooser("vsa");
+			if (vsaFile == null) return;
 
-			if (! readDataIntoSWMM(dmFile)) return;
+			String dmFilename = readDataIntoSWMM(vsaFile);
+			if (dmFilename == null) return;
 
 			//Create a datamap with checkboxes
-			CheckBoxDataMap dataMap = new CheckBoxDataMap(swmm, "External Datamap: " + dmFile.getName());
+			CheckBoxDataMap dataMap = new CheckBoxDataMap(swmm, dmFilename);
 			dataMap.setVisible(true);
 			addDataMap(dataMap);
 

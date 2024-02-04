@@ -2,6 +2,7 @@ package edu.umich.soar.visualsoar.datamap;
 
 import edu.umich.soar.visualsoar.MainFrame;
 import edu.umich.soar.visualsoar.dialogs.*;
+import edu.umich.soar.visualsoar.graph.ForeignVertex;
 import edu.umich.soar.visualsoar.graph.NamedEdge;
 import edu.umich.soar.visualsoar.graph.SoarIdentifierVertex;
 import edu.umich.soar.visualsoar.graph.SoarVertex;
@@ -54,7 +55,7 @@ public class DataMapTree extends JTree implements ClipboardOwner {
     ////////////////////////////////////////
     // DataMembers
     ////////////////////////////////////////
-    private final DataMap parentWindow;  //the window displaying the contents of this tree to the user
+    protected final DataMap parentWindow;  //the window displaying the contents of this tree to the user
     public static Clipboard clipboard = new Clipboard("Datamap Clipboard");
     private static DataMapTree s_DataMapTree;
 
@@ -81,7 +82,7 @@ public class DataMapTree extends JTree implements ClipboardOwner {
     /** to support Read-Only mode */
     public boolean isReadOnly = false;
 
-    private final SoarWorkingMemoryModel swmm;
+    protected final SoarWorkingMemoryModel swmm;
     private static final JPopupMenu contextMenu = new JPopupMenu();
     private static final JMenuItem AddIdentifierItem = new JMenuItem("Add Identifier...");
     private static final JMenuItem AddEnumerationItem = new JMenuItem("Add Enumeration...");
@@ -465,27 +466,28 @@ public class DataMapTree extends JTree implements ClipboardOwner {
         return s_DataMapTree;
     }
 
-    /** helper method to disable all context menu items that modify the datamap and,
+    /** helper method to en/disable all context menu items that modify the datamap and,
      * thus, should not be accessible in read-only mode.*/
-    private static void disableContextMenuItemsForReadOnly() {
-        AddIdentifierItem.setEnabled(false);
-        AddEnumerationItem.setEnabled(false);
-        AddIntegerItem.setEnabled(false);
-        AddFloatItem.setEnabled(false);
-        AddStringItem.setEnabled(false);
-        CopyItem.setEnabled(false);
-        PasteItem.setEnabled(false);
-        LinkItem.setEnabled(false);
-        RemoveAttributeItem.setEnabled(false);
-        RenameAttributeItem.setEnabled(false);
-        EditValueItem.setEnabled(false);
-        EditCommentItem.setEnabled(false);
-        RemoveCommentItem.setEnabled(false);
-        ChangeToIdentifierItem.setEnabled(false);
-        ChangeToEnumerationItem.setEnabled(false);
-        ChangeToIntegerItem.setEnabled(false);
-        ChangeToFloatItem.setEnabled(false);
-        ChangeToStringItem.setEnabled(false);
+    private static void setContextMenuItemsToAllowChanges(boolean changeOk) {
+        AddIdentifierItem.setEnabled(changeOk);
+        AddEnumerationItem.setEnabled(changeOk);
+        AddIntegerItem.setEnabled(changeOk);
+        AddFloatItem.setEnabled(changeOk);
+        AddStringItem.setEnabled(changeOk);
+        CopyItem.setEnabled(changeOk);
+        PasteItem.setEnabled(changeOk);
+        LinkItem.setEnabled(changeOk);
+        RemoveAttributeItem.setEnabled(changeOk);
+        RenameAttributeItem.setEnabled(changeOk);
+        EditValueItem.setEnabled(changeOk);
+        EditCommentItem.setEnabled(changeOk);
+        RemoveCommentItem.setEnabled(changeOk);
+        ChangeTypeSubMenu.setEnabled(changeOk);
+        ChangeToIdentifierItem.setEnabled(changeOk);
+        ChangeToEnumerationItem.setEnabled(changeOk);
+        ChangeToIntegerItem.setEnabled(changeOk);
+        ChangeToFloatItem.setEnabled(changeOk);
+        ChangeToStringItem.setEnabled(changeOk);
     }
 
     /**
@@ -506,13 +508,22 @@ public class DataMapTree extends JTree implements ClipboardOwner {
 
         ChangeTypeSubMenu.setEnabled(ftn.getChildCount() == 0);
 
-        if (theVertex.allowsEmanatingEdges()) {
-            AddIdentifierItem.setEnabled(true);
-            AddEnumerationItem.setEnabled(true);
-            AddIntegerItem.setEnabled(true);
-            AddFloatItem.setEnabled(true);
-            AddStringItem.setEnabled(true);
-        } else {
+        //Start out giving full permissions
+        setContextMenuItemsToAllowChanges(true);
+
+        //Most restrictive:  read-only
+        if (isReadOnly) {
+            setContextMenuItemsToAllowChanges(false);
+        }
+
+        //almost as restrictive as read-only:  foreign nodes
+        else if (theVertex instanceof ForeignVertex) {
+            setContextMenuItemsToAllowChanges(false);
+            RemoveAttributeItem.setEnabled(true); //the only edit allowed
+        }
+
+        //some restrictions:  leaf nodes
+        else if (! theVertex.allowsEmanatingEdges()) {
             // can't add any edges
             AddIdentifierItem.setEnabled(false);
             AddEnumerationItem.setEnabled(false);
@@ -523,11 +534,6 @@ public class DataMapTree extends JTree implements ClipboardOwner {
 
         // un-editable item
         EditValueItem.setEnabled(theVertex.isEditable());
-
-        // Disable menu items for read-only mode
-        if (isReadOnly) {
-            disableContextMenuItemsForReadOnly();
-        }
 
         if (ne != null) {
             if (ne.isGenerated()) {
@@ -704,6 +710,7 @@ public class DataMapTree extends JTree implements ClipboardOwner {
             parentWindow.setModified(true);
         }//if approved
     }//addString
+
 
     /**
      * Opens the SearchDataMapDialog to search the datamap beginning at the

@@ -1,10 +1,17 @@
 package edu.umich.soar.visualsoar.datamap;
 
+import edu.umich.soar.visualsoar.MainFrame;
+import edu.umich.soar.visualsoar.operatorwindow.OperatorRootNode;
+import edu.umich.soar.visualsoar.operatorwindow.OperatorWindow;
+
 import javax.swing.*;
 import javax.swing.tree.TreeModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * class CheckBoxDataMap
@@ -15,11 +22,26 @@ import java.awt.event.ActionListener;
  *
  * @see CheckBoxDataMapTree
  * @see CheckBoxDataMapTreeRenderer
+ *
+ * @author Andrew Nuxoll
+ * @version Created: Jan 2024
  */
 public class CheckBoxDataMap extends DataMap {
 
-    public CheckBoxDataMap(SoarWorkingMemoryModel swmm, String title) {
-        super(swmm.getTopstate(), title);
+    // This is the _relative_ path of the .dm file from this project's root folder
+    // A relative path is used so that VS can be more flexible searching for the file
+    // on different computers.
+    private final String foreignDMFilename;
+
+    /**
+     * CheckBoxDataMap ctor
+     *
+     * @param swmm  the SWMM for the foreign datamap
+     * @param foreignDMFilename the filename where the foreign datamap was loaded from
+     */
+    public CheckBoxDataMap(SoarWorkingMemoryModel swmm, String foreignDMFilename) {
+        super(swmm.getTopstate(), "External Datamap: " + foreignDMFilename);
+        this.foreignDMFilename = calcRelativePath(foreignDMFilename);
 
         TreeModel soarTreeModel = new SoarWMTreeModelWrapper(swmm, swmm.getTopstate(), title);
         this.dataMapTree = new CheckBoxDataMapTree(this, soarTreeModel, swmm);
@@ -31,6 +53,33 @@ public class CheckBoxDataMap extends DataMap {
         contents.add(scrollPane);
         setupImportButtons(contents);
     }//ctor
+
+    /** calculate the relative path from this project's root to a given filename */
+    private String calcRelativePath(String foreignDMFilename) {
+        OperatorWindow operatorWindow = MainFrame.getMainFrame().getOperatorWindow();
+        OperatorRootNode root = (OperatorRootNode)(operatorWindow.getModel().getRoot());
+        if (root == null) {
+            System.err.println("Error: Couldn't find the top level project node"); //should never happen
+            return null;
+        }
+        String projectFilename = root.getProjectFile() ;	// Includes .vsa
+
+        //Calculate the root folder of this project
+        File localVSA = new File(projectFilename);
+        int fnLen = localVSA.getName().length();
+        String basePathName = localVSA.getAbsolutePath();
+        basePathName = basePathName.substring(0, basePathName.length() - fnLen);
+
+        //Now calculate the relative path to the foreign DM
+        Path dmPath = Paths.get(foreignDMFilename);
+        Path basePath = Paths.get(basePathName);
+        Path relPath = basePath.relativize(dmPath);
+
+        return relPath.toString();
+    }//calcRelativePath
+
+    /** accessor */
+    public String getForeignDMFilename() { return this.foreignDMFilename; }
 
     /**
      * setupImportButtons
@@ -93,7 +142,12 @@ public class CheckBoxDataMap extends DataMap {
         importButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                //TODO:  TBD do crazy stuff here.  :o
+                if (! (dataMapTree instanceof CheckBoxDataMapTree)) {
+                    return; // should never happen!
+                }
+                CheckBoxDataMapTree cbdmt = (CheckBoxDataMapTree)dataMapTree;
+                cbdmt.importFromForeignDataMap();
+                closeMyselfAndReTile();
             }
         });
     }//setupImportButtons

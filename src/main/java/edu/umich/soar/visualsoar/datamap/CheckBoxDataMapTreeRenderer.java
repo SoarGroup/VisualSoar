@@ -11,14 +11,18 @@ import java.awt.*;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Vector;
 
 /**
  * class CheckBoxDataMapTreeRenderer
  *
  * adds a checkbox to the nodes in a datamap tree node
  *
- * Initial code taken from
+ * Heavily modified from this initial code
  * <a href="http://www.java2s.com/Code/Java/Swing-JFC/CheckBoxNodeTreeSample.htm">this example</a>.
+ *
+ * @author Andrew Nuxoll
+ * @version Created: Jan 2024
  */
 public class CheckBoxDataMapTreeRenderer implements TreeCellRenderer {
 
@@ -98,9 +102,9 @@ public class CheckBoxDataMapTreeRenderer implements TreeCellRenderer {
 
         //check to see if this node has a name conflict with the native datamap
         //While it's possible the user intends to import a different entry
-        //with the same name it's unlikely and I've made a design decision to
+        //with the same name it's unlikely, and I've made a design decision to
         //ban that here
-        if (nativeEdges.contains(ftn.getEdge().toString())) {
+        if (nativeEdges.contains(ftn.getEdge().getName())) {
             return makeJLabelComponent(ftn, true);
         }
 
@@ -211,6 +215,23 @@ public class CheckBoxDataMapTreeRenderer implements TreeCellRenderer {
             box.setSelected(false);
             box.invalidate();
         }
+
+    }
+
+    /** @return a list of all level 1 entries checked by the user.
+     * Child nodes are, by implication, also selected but are not returned
+     * by this method.
+     */
+    public Vector<FakeTreeNode> getAllSelectedEntries() {
+        Vector<FakeTreeNode> result = new Vector<>();
+        for(FakeTreeNode ftn : this.boxes.keySet()) {
+            JCheckBox box = this.boxes.get(ftn);
+            if (box.isSelected()) {
+                result.add(ftn);
+            }
+        }
+
+        return result;
     }
 
 }//class CheckBoxDataMapTreeRenderer

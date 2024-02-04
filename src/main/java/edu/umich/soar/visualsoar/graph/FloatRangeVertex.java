@@ -24,21 +24,25 @@ public class FloatRangeVertex extends SoarVertex {
         calculateRep();
     }
 
-    //////////////////////////////////////////
+//////////////////////////////////////////
 // Accessors
 //////////////////////////////////////////	
+    @Override
     public SoarVertex copy(int newId) {
         return new FloatRangeVertex(newId, low, high);
     }
 
+    @Override
     public boolean allowsEmanatingEdges() {
         return false;
     }
 
+    @Override
     public boolean isEditable() {
         return true;
     }
 
+    @Override
     public boolean isValid(String s) {
         try {
             float f = Float.parseFloat(s);
@@ -48,6 +52,7 @@ public class FloatRangeVertex extends SoarVertex {
         }
     }
 
+    @Override
     public String toString() {
         return rep;
     }
@@ -70,6 +75,7 @@ public class FloatRangeVertex extends SoarVertex {
         return false;
     }
 
+    @Override
     public void write(java.io.Writer w) throws java.io.IOException {
         w.write("FLOAT_RANGE " + number + " " + low + " " + high + '\n');
     }

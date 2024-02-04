@@ -13,8 +13,50 @@ import java.util.Vector;
  *
  * @author Brad Jones
  */
-
 public class SoarWorkingMemoryReader {
+
+    /**
+     * reads one SoarVertex object from a file
+     *
+     * Note:  will recurse for foreign nodes
+     */
+    private static SoarVertex readVertex(Reader fr) throws IOException {
+        String type = ReaderUtils.getWord(fr);
+        SoarVertex vertexToAdd = null;
+        int id = ReaderUtils.getInteger(fr);
+
+        //Special Case;  Foreign Node
+        if (type.equals("FOREIGN")) {
+            String foreignDM = ReaderUtils.getWord(fr);
+            SoarVertex foreignSV = readVertex(fr);  //recurse to read foreign vertex
+            return new ForeignVertex(id, foreignDM, foreignSV);
+        }
+
+        if (type.equals("SOAR_ID")) {
+            vertexToAdd = new SoarIdentifierVertex(id);
+        } else if (type.equals("ENUMERATION")) {
+            int enumerationSize = ReaderUtils.getInteger(fr);
+            Vector<String> v = new Vector<>();
+            for (int j = 0; j < enumerationSize; ++j)
+                v.add(ReaderUtils.getWord(fr));
+            vertexToAdd = new EnumerationVertex(id, v);
+        } else if (type.equals("INTEGER_RANGE")) {
+            vertexToAdd = new IntegerRangeVertex(id, ReaderUtils.getInteger(fr), ReaderUtils.getInteger(fr));
+        } else if (type.equals("INTEGER")) {
+            vertexToAdd = new IntegerRangeVertex(id, Integer.MIN_VALUE, Integer.MAX_VALUE);
+        } else if (type.equals("FLOAT_RANGE")) {
+            vertexToAdd = new FloatRangeVertex(id, ReaderUtils.getFloat(fr), ReaderUtils.getFloat(fr));
+        } else if (type.equals("FLOAT")) {
+            vertexToAdd = new FloatRangeVertex(id, Float.NEGATIVE_INFINITY, Float.POSITIVE_INFINITY);
+        } else if (type.equals("STRING")) {
+            vertexToAdd = new StringVertex(id);
+        } else {
+            System.err.println("Unknown type: please update SoarWorking Memory Reader constructor :" + type);
+        }
+        return vertexToAdd;
+    }
+
+
     /**
      * This function reads a description of soars working memory
      * from a file and re-creates the datamap
@@ -34,41 +76,18 @@ public class SoarWorkingMemoryReader {
             String rootType = ReaderUtils.getWord(fr);
             SoarIdentifierVertex topState = null;
 
-			if (rootType.equals("SOAR_ID")) {
-				topState = new SoarIdentifierVertex(ReaderUtils.getInteger(fr));
-			} else {
-				System.err.println("Root type must be Soar id");
-			}
+            if (rootType.equals("SOAR_ID")) {
+                topState = new SoarIdentifierVertex(ReaderUtils.getInteger(fr));
+            } else {
+                System.err.println("Root type must be Soar id");
+            }
 
             swmm.setTopstate(topState);
 
 
             // Get the rest of the vertices
             for (int i = 1; i < numberOfVertices; ++i) {
-                String type = ReaderUtils.getWord(fr);
-                SoarVertex vertexToAdd = null;
-                int id = ReaderUtils.getInteger(fr);
-                if (type.equals("SOAR_ID")) {
-                    vertexToAdd = new SoarIdentifierVertex(id);
-                } else if (type.equals("ENUMERATION")) {
-                    int enumerationSize = ReaderUtils.getInteger(fr);
-                    Vector<String> v = new Vector<>();
-                    for (int j = 0; j < enumerationSize; ++j)
-                        v.add(ReaderUtils.getWord(fr));
-                    vertexToAdd = new EnumerationVertex(id, v);
-                } else if (type.equals("INTEGER_RANGE")) {
-                    vertexToAdd = new IntegerRangeVertex(id, ReaderUtils.getInteger(fr), ReaderUtils.getInteger(fr));
-                } else if (type.equals("INTEGER")) {
-                    vertexToAdd = new IntegerRangeVertex(id, Integer.MIN_VALUE, Integer.MAX_VALUE);
-                } else if (type.equals("FLOAT_RANGE")) {
-                    vertexToAdd = new FloatRangeVertex(id, ReaderUtils.getFloat(fr), ReaderUtils.getFloat(fr));
-                } else if (type.equals("FLOAT")) {
-                    vertexToAdd = new FloatRangeVertex(id, Float.NEGATIVE_INFINITY, Float.POSITIVE_INFINITY);
-                } else if (type.equals("STRING")) {
-                    vertexToAdd = new StringVertex(id);
-                } else {
-                    System.err.println("Unknown type: please update SoarWorking Memory Reader constructor :" + type);
-                }
+                SoarVertex vertexToAdd = readVertex(fr);
                 swmm.addVertex(vertexToAdd);
             }
 
