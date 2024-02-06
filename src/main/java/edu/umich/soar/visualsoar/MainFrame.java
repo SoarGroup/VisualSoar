@@ -1544,7 +1544,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 				for (JInternalFrame frame : frames) {
 					frame.setClosed(true);
 				}
-				commitAction.perform();
+				if (! isReadOnly()) commitAction.perform();
 				operatorDesktopSplit.setLeftComponent(null);
 
 				projectActionsEnable(false);
