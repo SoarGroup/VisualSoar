@@ -420,6 +420,26 @@ public abstract class OperatorNode extends VSTreeNode implements java.io.Seriali
     }//enableContextMenuItems
 
     /**
+     * disables context menu items that shouldn't be available when project is read-only
+     */
+    private void disableContextMenuItemsForReadOnlyMode() {
+        addSuboperatorItem.setEnabled(false);
+        addFileItem.setEnabled(false);
+        addTopFolderItem.setEnabled(false);
+        impasseSubMenu.setEnabled(false);
+        //openRulesItem is ok
+        //openDataMapItem is ok
+        //searchItem is ok
+        replaceItem.setEnabled(false);
+        deleteItem.setEnabled(false);
+        renameItem.setEnabled(false);
+        //exportItem is ok
+        importItem.setEnabled(false);
+        generateDataMapItem.setEnabled(false);
+        //checkChildrenAgainstDataMapItem is ok
+    }
+
+    /**
      * displays the context menu
      *
      * @param c the owner of the context menu, should be the OperatorWindow
@@ -430,6 +450,7 @@ public abstract class OperatorNode extends VSTreeNode implements java.io.Seriali
      */
     public void showContextMenu(Component c, int x, int y) {
         enableContextMenuItems();
+        if (MainFrame.getMainFrame().isReadOnly()) disableContextMenuItemsForReadOnlyMode();
         contextMenu.show(c, x, y);
     }
 
