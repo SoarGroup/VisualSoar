@@ -5,7 +5,6 @@ import edu.umich.soar.visualsoar.datamap.SoarWorkingMemoryModel;
 import edu.umich.soar.visualsoar.misc.FeedbackListObject;
 
 import javax.swing.*;
-import java.awt.*;
 import java.io.*;
 import java.util.Vector;
 
@@ -58,7 +57,7 @@ public class FolderNode extends OperatorNode implements java.io.Serializable {
     }
 
     /**
-     * This returns the the full path from the parent
+     * This returns the full path from the parent
      */
     protected String getFullPathName() {
 
@@ -69,7 +68,7 @@ public class FolderNode extends OperatorNode implements java.io.Serializable {
 
     /**
      * this tells the JTree to always render this like it
-     * it has children
+     * has children
      *
      * @return false
      */
@@ -104,13 +103,13 @@ public class FolderNode extends OperatorNode implements java.io.Serializable {
     }
 
     /**
-     * This is the function that gets called when you want to add a suboperator
+     * This is the function that gets called when you want to add a sub-operator
      * to this node
      *
      * @param swmm            the tree model for which this node is currently a member
      * @param newOperatorName the name of the new operator to add
      */
-    public OperatorNode addSuboperator(OperatorWindow operatorWindow,
+    public OperatorNode addSubOperator(OperatorWindow operatorWindow,
                                        SoarWorkingMemoryModel swmm,
                                        String newOperatorName) throws IOException {
 
@@ -158,10 +157,10 @@ public class FolderNode extends OperatorNode implements java.io.Serializable {
         sourceChildren();
 
         //Automatically create an elaborations file.  Impasses do not have files
-        //associated with them directly so we have to add an elaborations file
+        //associated with them directly, so we have to add an elaborations file
         //to the impasse (making it a high level operator) immediately.  I'm not
         //sure if this is the best place for this code design-wise.  But it does
-        //work so I'm leaving it here for the time being.  -:AMN: 20 Oct 03
+        //work, so I'm leaving it here for the time being.  -:AMN: 20 Oct 03
         try {
 
             ion.firstTimeAdd(operatorWindow, swmm);
@@ -187,52 +186,24 @@ public class FolderNode extends OperatorNode implements java.io.Serializable {
         } catch (IOException ioe) { /* shrug */ }
     }
 
+    @Override
+    protected void enableContextMenuItems() {
+        super.enableContextMenuItems();
 
-    /**
-     * This adjusts the context menu so that only the valid commands
-     * are displayed
-     *
-     * @param c the owner of the context menu, should be the OperatorWindow
-     * @param x the horizontal position on the screen where the context menu
-     *          should be displayed
-     * @param y the vertical position on the screen where the context menu
-     *          should be displayed
-     */
-    public void showContextMenu(Component c, int x, int y) {
+        exportItem.setEnabled(false);
+        renameItem.setEnabled(false);
+        addTopFolderItem.setEnabled(false);
+        openRulesItem.setEnabled(false);
+        openDataMapItem.setEnabled(false);
+        deleteItem.setEnabled(false);
 
         if (name.equals("elaborations")) {
-
             addSuboperatorItem.setEnabled(false);
-            addFileItem.setEnabled(true);
-            openRulesItem.setEnabled(false);
-            openDataMapItem.setEnabled(false);
-            deleteItem.setEnabled(false);
-            renameItem.setEnabled(false);
-            impasseSubMenu.setEnabled(true);
-        } else if (name.equals("common")) {
-
-            addSuboperatorItem.setEnabled(true);
-            addFileItem.setEnabled(true);
-            openRulesItem.setEnabled(false);
-            openDataMapItem.setEnabled(false);
-            deleteItem.setEnabled(true);
-            renameItem.setEnabled(false);
-            impasseSubMenu.setEnabled(true);
-        } else {
-
-            addSuboperatorItem.setEnabled(true);
-            addFileItem.setEnabled(true);
-            openRulesItem.setEnabled(false);
-            openDataMapItem.setEnabled(false);
-            deleteItem.setEnabled(false);
-            renameItem.setEnabled(false);
-            impasseSubMenu.setEnabled(true);
         }
-        exportItem.setEnabled(false);
-        importItem.setEnabled(true);
-        checkChildrenAgainstDataMapItem.setEnabled(true);
-        contextMenu.show(c, x, y);
-    }
+
+        addTopFolderItem.setVisible(false);
+
+    }//enableContextMenuItems
 
     /**
      * Given a Writer this writes out a description of the folder node
@@ -301,7 +272,7 @@ public class FolderNode extends OperatorNode implements java.io.Serializable {
 
     public void source(Writer w) throws IOException {
 
-        String LINE = System.getProperty("line.separator");
+        String LINE = System.lineSeparator();
         w.write("pushd " + folderName + LINE +
                 "source " + folderName + "_source.soar" + LINE +
                 "popd" + LINE);

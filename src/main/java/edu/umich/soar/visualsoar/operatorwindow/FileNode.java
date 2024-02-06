@@ -8,7 +8,6 @@ import edu.umich.soar.visualsoar.ruleeditor.RuleEditor;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultTreeModel;
-import java.awt.*;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -81,15 +80,6 @@ public class FileNode extends OperatorNode implements java.io.Serializable {
         operatorWindow.addChild(this, fon);
         sourceChildren();
     }
-
-    public void setRuleEditor(RuleEditor re) {
-        ruleEditor = re;
-    }
-
-    public RuleEditor getRuleEditor() {
-        return this.ruleEditor;
-    }
-
 
     /**
      * The user wants to rename this node
@@ -165,49 +155,32 @@ public class FileNode extends OperatorNode implements java.io.Serializable {
                 sw.write(s + "\n");
                 s = lnr.readLine();
             }
-            w.write("" + lines + "\n");
+            w.write(lines + "\n");
             w.write(sw + "\n");
         } else {
-            w.write("" + ruleEditor.getNumberOfLines() + "\n");
+            w.write(ruleEditor.getNumberOfLines() + "\n");
             w.write(ruleEditor.getAllText() + "\n");
         }
     }
 
-    /**
-     * This adjusts the context menu so that only the valid commands
-     * are displayed
-     *
-     * @param c the owner of the context menu, should be the OperatorWindow
-     * @param x the horizontal position on the screen where the context menu
-     *          should be displayed
-     * @param y the vertical position on the screen where the context menu
-     *          should be displayed
-     */
-    public void showContextMenu(Component c, int x, int y) {
+    @Override
+    protected void enableContextMenuItems() {
+        super.enableContextMenuItems();
+        addSuboperatorItem.setEnabled(false);
+        addFileItem.setEnabled(false);
+        addTopFolderItem.setEnabled(false);
+        openDataMapItem.setEnabled(false);
+        impasseSubMenu.setEnabled(false);
+        checkChildrenAgainstDataMapItem.setEnabled(false);
+
         if (name.equals("elaborations")) {
-            addSuboperatorItem.setEnabled(false);
-            addFileItem.setEnabled(false);
-            openRulesItem.setEnabled(true);
-            openDataMapItem.setEnabled(false);
             deleteItem.setEnabled(getParent().getChildCount() == 1);
             renameItem.setEnabled(false);
-            exportItem.setEnabled(true);
-            impasseSubMenu.setEnabled(false);
-            checkChildrenAgainstDataMapItem.setEnabled(false);
-        } else  //not elaborations
-        {
-            addSuboperatorItem.setEnabled(false);
-            addFileItem.setEnabled(false);
-            openRulesItem.setEnabled(true);
-            openDataMapItem.setEnabled(false);
-            deleteItem.setEnabled(true);
-            renameItem.setEnabled(true);
-            exportItem.setEnabled(true);
-            impasseSubMenu.setEnabled(false);
-            checkChildrenAgainstDataMapItem.setEnabled(false);
         }
-        contextMenu.show(c, x, y);
-    }
+
+        addTopFolderItem.setVisible(false);
+
+    }//enableContextMenuItems
 
     /**
      * Removes the selected file from the tree if it is allowed
@@ -245,6 +218,7 @@ public class FileNode extends OperatorNode implements java.io.Serializable {
 
             java.io.Reader r = new java.io.FileReader(getFileName());
             SoarParser aParser = new SoarParser(r);
+
             Vector<SoarProduction> v = aParser.VisualSoarFile();
             r.close();
             return v;
@@ -279,18 +253,18 @@ public class FileNode extends OperatorNode implements java.io.Serializable {
         }
 
         //Now check for datamap issues
-        if ((parsedProds != null) && (parsedProds.size() > 0)) {
+        if ((parsedProds != null) && (!parsedProds.isEmpty())) {
             //Use a temp vector so that vecErrors doesn't get cleared
             //TODO:  is temp vector really needed?
             Vector<FeedbackListObject> tmpErrors = new Vector<>();
             OperatorWindow ow = MainFrame.getMainFrame().getOperatorWindow();
             ow.checkProductions((OperatorNode) getParent(), this, parsedProds, tmpErrors);
-            if (tmpErrors.size() > 0) {
+            if (!tmpErrors.isEmpty()) {
                 vecErrors.addAll(tmpErrors);
             }
         }
 
-        return (vecErrors.size() > 0);
+        return (!vecErrors.isEmpty());
 
 
     }//CheckAgainstDatamap
@@ -360,7 +334,7 @@ public class FileNode extends OperatorNode implements java.io.Serializable {
             // I didn't think this was worth checking for.  -:AMN: 29 Sep 2022
 
             String prodName = text.substring(start, end).trim();
-            if (prodName.length() > 0) {
+            if (!prodName.isEmpty()) {
                 result.add(prodName);
             }
         }//while
@@ -466,7 +440,7 @@ public class FileNode extends OperatorNode implements java.io.Serializable {
     }
 
     public void source(Writer w) throws IOException {
-        String LINE = System.getProperty("line.separator");
+        String LINE = System.lineSeparator();
         w.write("source " + fileAssociation + LINE);
     }
 

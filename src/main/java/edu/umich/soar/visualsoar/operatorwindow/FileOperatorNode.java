@@ -4,7 +4,6 @@ import edu.umich.soar.visualsoar.datamap.SoarWorkingMemoryModel;
 import edu.umich.soar.visualsoar.graph.SoarIdentifierVertex;
 import edu.umich.soar.visualsoar.misc.FeedbackListObject;
 
-import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
@@ -15,7 +14,7 @@ import java.util.Vector;
  * FileOperatorNode class is for File Operators.
  * Similar to SoarOperatorNode in every way other than
  * writing to disk and does not have a datamap associated
- * with itself, instead, it uses the datamap of its' Operator parent
+ * with itself, instead, it uses the datamap of its Operator parent
  * Supports sub-filing.
  */
 @SuppressWarnings("unused")
@@ -34,7 +33,7 @@ public class FileOperatorNode extends SoarOperatorNode {
     }
 
     /**
-     * this creates a highlevel operator with the given name, file, folder and
+     * this creates a high level operator with the given name, file, folder and
      * dataMapId
      */
     public FileOperatorNode(String inName, int inId, String inFileName, String inFolderName, SoarIdentifierVertex inDataMapId) {
@@ -58,7 +57,7 @@ public class FileOperatorNode extends SoarOperatorNode {
 
 
     /**
-     * File Operator Nodes do not own their own datamaps, so therefore, it is
+     * File Operator Nodes do not own their own datamaps, therefore, it is
      * redundant to search the datamap associated with a FileOperatorNode.
      */
     public void searchTestDataMap(SoarWorkingMemoryModel swmm, Vector<FeedbackListObject> errors) {
@@ -75,43 +74,6 @@ public class FileOperatorNode extends SoarOperatorNode {
 
     public void searchNoTestNoCreateDatamap(SoarWorkingMemoryModel swmm, Vector<FeedbackListObject> errors) {
     }
-
-
-    /**
-     * This adjusts the context menu so that only the valid commands
-     * are displayed
-     *
-     * @param c the owner of the context menu, should be the OperatorWindow
-     * @param x the horizontal position on the screen where the context menu should
-     *          be displayed
-     * @param y the vertical position on the screen where the context menu should
-     *          be displayed
-     */
-    public void showContextMenu(Component c, int x, int y) {
-        if (isHighLevel) {
-            addSuboperatorItem.setEnabled(true);
-            addFileItem.setEnabled(true);
-            openRulesItem.setEnabled(true);
-            openDataMapItem.setEnabled(false);
-            deleteItem.setEnabled(true);
-            renameItem.setEnabled(true);
-            exportItem.setEnabled(true);
-            impasseSubMenu.setEnabled(true);
-            checkChildrenAgainstDataMapItem.setEnabled(true);
-        } else {
-            addSuboperatorItem.setEnabled(true);
-            addFileItem.setEnabled(true);
-            openRulesItem.setEnabled(true);
-            openDataMapItem.setEnabled(false);
-            deleteItem.setEnabled(true);
-            renameItem.setEnabled(true);
-            exportItem.setEnabled(true);
-            impasseSubMenu.setEnabled(true);
-            checkChildrenAgainstDataMapItem.setEnabled(false);
-        }
-        contextMenu.show(c, x, y);
-    }
-
 
     /*
      * This represents the set of actions that should be preformed when an
@@ -136,7 +98,7 @@ public class FileOperatorNode extends SoarOperatorNode {
         }
         dataMapIdNumber = dataMapId.getValue();
 
-        // Make this node highlevel
+        // Make this node high level
         isHighLevel = true;
 
         //Add the folder

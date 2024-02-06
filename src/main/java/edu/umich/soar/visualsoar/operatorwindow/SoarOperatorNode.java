@@ -6,11 +6,9 @@ import edu.umich.soar.visualsoar.datamap.SoarWorkingMemoryModel;
 import edu.umich.soar.visualsoar.graph.NamedEdge;
 import edu.umich.soar.visualsoar.graph.SoarIdentifierVertex;
 import edu.umich.soar.visualsoar.graph.SoarVertex;
-import edu.umich.soar.visualsoar.misc.FeedbackListObject;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultTreeModel;
-import java.awt.*;
 import java.io.*;
 import java.util.Enumeration;
 import java.util.Vector;
@@ -55,40 +53,22 @@ public class SoarOperatorNode extends FileNode {
         return isHighLevel;
     }
 
-    /**
-     * This adjusts the context menu so that only the valid commands
-     * are displayed
-     *
-     * @param c the owner of the context menu, should be the OperatorWindow
-     * @param x the horizontal position on the screen where the context menu
-     *          should be displayed
-     * @param y the vertical position on the screen where the context menu
-     *          should be displayed
-     */
-    public void showContextMenu(Component c, int x, int y) {
+    @Override
+    protected void enableContextMenuItems() {
+        super.enableContextMenuItems();
+
+        addSuboperatorItem.setEnabled(true);
+        addFileItem.setEnabled(true);
+        deleteItem.setEnabled(true);
+        renameItem.setEnabled(true);
+        impasseSubMenu.setEnabled(true);
+
         if (isHighLevel) {
-            addSuboperatorItem.setEnabled(true);
-            addFileItem.setEnabled(true);
-            openRulesItem.setEnabled(true);
             openDataMapItem.setEnabled(true);
-            deleteItem.setEnabled(true);
-            renameItem.setEnabled(true);
-            exportItem.setEnabled(true);
-            impasseSubMenu.setEnabled(true);
             checkChildrenAgainstDataMapItem.setEnabled(true);
-        } else {
-            addSuboperatorItem.setEnabled(true);
-            addFileItem.setEnabled(true);
-            openRulesItem.setEnabled(true);
-            openDataMapItem.setEnabled(false);
-            deleteItem.setEnabled(true);
-            renameItem.setEnabled(true);
-            exportItem.setEnabled(true);
-            impasseSubMenu.setEnabled(true);
-            checkChildrenAgainstDataMapItem.setEnabled(false);
         }
-        contextMenu.show(c, x, y);
-    }
+
+    }//enableContextMenuItems
 
 
     /**
@@ -272,11 +252,11 @@ public class SoarOperatorNode extends FileNode {
     }//rename
 
     /**
-     * This is the function that gets called when you want to add a suboperator to this node
+     * This is the function that gets called when you want to add a sub-operator to this node
      *
      * @param newOperatorName the name of the new operator to add
      */
-    public OperatorNode addSuboperator(OperatorWindow operatorWindow,
+    public OperatorNode addSubOperator(OperatorWindow operatorWindow,
                                        SoarWorkingMemoryModel swmm,
                                        String newOperatorName) throws IOException {
         if (!isHighLevel) {
@@ -306,7 +286,7 @@ public class SoarOperatorNode extends FileNode {
         notifyLinksOfUpdate(operatorWindow);
         sourceChildren();
         return this;
-    }//addSuboperator
+    }//addSubOperator
 
     /**
      * This is the function that gets called when you want to add a sub Impasse Operator to this node
@@ -435,7 +415,7 @@ public class SoarOperatorNode extends FileNode {
     }
 
     /**
-     * This opens/shows a dataMap with this nodes associated Data Map File
+     * This opens/shows a dataMap with the node's associated Data Map File
      */
     public void openDataMap(SoarWorkingMemoryModel swmm, MainFrame pw) {
 
@@ -589,7 +569,7 @@ public class SoarOperatorNode extends FileNode {
     public void source(Writer w) throws IOException {
         super.source(w);
         if (isHighLevel) {
-            String LINE = System.getProperty("line.separator");
+            String LINE = System.lineSeparator();
             w.write("pushd " + folderName + LINE +
                     "source " + folderName + "_source.soar" + LINE +
                     "popd" + LINE);
@@ -621,23 +601,4 @@ public class SoarOperatorNode extends FileNode {
         }
     }
 
-    public void searchTestDataMap(SoarWorkingMemoryModel swmm,
-                                  Vector<FeedbackListObject> errors) {
-    }
-
-    public void searchCreateDataMap(SoarWorkingMemoryModel swmm,
-                                    Vector<FeedbackListObject> errors) {
-    }
-
-    public void searchTestNoCreateDataMap(SoarWorkingMemoryModel swmm,
-                                          Vector<FeedbackListObject> errors) {
-    }
-
-    public void searchCreateNoTestDataMap(SoarWorkingMemoryModel swmm,
-                                          Vector<FeedbackListObject> errors) {
-    }
-
-    public void searchNoTestNoCreateDataMap(SoarWorkingMemoryModel swmm,
-                                            Vector<FeedbackListObject> errors) {
-    }
 }

@@ -444,7 +444,7 @@ public class OperatorWindow extends JTree {
             OperatorNode parent = (OperatorNode) tp.getLastPathComponent();
 
             try {
-                parent = parent.addSuboperator(this, WorkingMemory, s);
+                parent = parent.addSubOperator(this, WorkingMemory, s);
 
                 if (parent != null) {
                     tp = new TreePath(parent.getPath());
@@ -607,6 +607,41 @@ public class OperatorWindow extends JTree {
             }
         }
     }
+
+    /**
+     * Adds a folder object.  The files/operators within it are tested
+     * against the top-state data map.
+     */
+    public void addTopFolder() {
+        //Ask the user to enter a name for this folder
+        String s;
+        NameDialog theDialog = new NameDialog(MainFrame.getMainFrame());
+        theDialog.setTitle("Enter Folder Name");
+        theDialog.setVisible(true);
+        if (! theDialog.wasApproved()) return;
+
+        s = theDialog.getText();
+        getModel();  //unnecessary?
+        TreePath tp = getSelectionPath();
+        if (tp == null) {
+            return; //should never happen
+        }
+        OperatorNode parent = (OperatorNode) tp.getLastPathComponent();
+
+//        try {
+//            //TODO:  Add a folder here
+////            parent.addFileOperator(this, WorkingMemory, s);
+//
+//            if (parent.getChildCount() != 0) {
+//                expandPath(tp);
+//            }
+//        } catch (IOException ioe) {
+//            JOptionPane.showMessageDialog(MainFrame.getMainFrame(),
+//                    "Could not create file, name may be invalid",
+//                    "I/O Error", JOptionPane.ERROR_MESSAGE);
+//        }
+
+    }//addTopFolder
 
 
     /**

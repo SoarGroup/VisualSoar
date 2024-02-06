@@ -70,7 +70,7 @@ public class NameDialog extends JDialog {
             public void actionPerformed(ActionEvent e) {
                 nameText = namePanel.getText();
 
-                if (nameText.length() == 0) {
+                if (nameText.isEmpty()) {
                     JOptionPane.showMessageDialog(NameDialog.this,
                             "Names cannot have length zero",
                             "Invalid Name", JOptionPane.ERROR_MESSAGE);
@@ -81,6 +81,10 @@ public class NameDialog extends JDialog {
                 } else if (!OperatorWindow.operatorNameIsValid(nameText)) {
                     JOptionPane.showMessageDialog(NameDialog.this,
                             "Names may only contain letters, numbers, hyphens, and underscores",
+                            "Invalid Name", JOptionPane.ERROR_MESSAGE);
+                } else if (nameText.equals("elaborations")) {
+                    JOptionPane.showMessageDialog(NameDialog.this,
+                            "The file name 'elaborations' is reserved by Visual Soar",
                             "Invalid Name", JOptionPane.ERROR_MESSAGE);
                 } else {
                     approved = true;

@@ -46,6 +46,7 @@ public abstract class OperatorNode extends VSTreeNode implements java.io.Seriali
 ////////////////////////////////////////////////////////////////////
     static protected JPopupMenu contextMenu = new JPopupMenu();
     static protected JMenuItem addSuboperatorItem = new JMenuItem("Add a Suboperator...");
+    static protected JMenuItem addTopFolderItem = new JMenuItem("Add a Top-Level Folder...");
     static protected JMenuItem addFileItem = new JMenuItem("Add a File...");
 
     static protected JMenu impasseSubMenu = new JMenu("Add an Impasse...");
@@ -71,6 +72,14 @@ public abstract class OperatorNode extends VSTreeNode implements java.io.Seriali
             public void actionPerformed(ActionEvent e) {
                 OperatorWindow ow = (OperatorWindow) contextMenu.getInvoker();
                 ow.addSuboperator();
+            }
+        });
+
+        contextMenu.add(addTopFolderItem);
+        addTopFolderItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                OperatorWindow ow = (OperatorWindow) contextMenu.getInvoker();
+                ow.addTopFolder();
             }
         });
 
@@ -381,10 +390,37 @@ public abstract class OperatorNode extends VSTreeNode implements java.io.Seriali
     }
 
     /**
-     * This is an abstract method that must be implemented by
-     * every concrete subclass, this method enables and disables
-     * methods on the context menu depending on whether
-     * the node clicked upon supports that operation
+     * enableContextMenuItems
+     *
+     * is a helper method to enable or disable the relevant context menu items.
+     * It's up to each subclass to override this method to adjust the settings
+     * as needed.
+     *
+     * Here in the root class (OperatorNode) everything is turned on
+     * by default.
+     */
+    protected void enableContextMenuItems() {
+        //This gets turned invisible sometimes so have it visible by default here
+        addTopFolderItem.setVisible(true);
+
+        addSuboperatorItem.setEnabled(true);
+        addFileItem.setEnabled(true);
+        addTopFolderItem.setEnabled(true);
+        impasseSubMenu.setEnabled(true);
+        openRulesItem.setEnabled(true);
+        openDataMapItem.setEnabled(true);
+        searchItem.setEnabled(true);
+        replaceItem.setEnabled(true);
+        deleteItem.setEnabled(true);
+        renameItem.setEnabled(true);
+        exportItem.setEnabled(true);
+        importItem.setEnabled(true);
+        generateDataMapItem.setEnabled(true);
+        checkChildrenAgainstDataMapItem.setEnabled(true);
+    }//enableContextMenuItems
+
+    /**
+     * displays the context menu
      *
      * @param c the owner of the context menu, should be the OperatorWindow
      * @param x the horizontal position on the screen where the context menu should
@@ -392,7 +428,10 @@ public abstract class OperatorNode extends VSTreeNode implements java.io.Seriali
      * @param y the vertical position on the screen where the context menu should
      *          be displayed
      */
-    public abstract void showContextMenu(Component c, int x, int y);
+    public void showContextMenu(Component c, int x, int y) {
+        enableContextMenuItems();
+        contextMenu.show(c, x, y);
+    }
 
     /**
      * just returns the name of the node
@@ -555,7 +594,7 @@ public abstract class OperatorNode extends VSTreeNode implements java.io.Seriali
      *
      * @param newOperatorName the name of the new operator to add
      */
-    public OperatorNode addSuboperator(OperatorWindow operatorWindow, SoarWorkingMemoryModel swmm, String newOperatorName) throws IOException {
+    public OperatorNode addSubOperator(OperatorWindow operatorWindow, SoarWorkingMemoryModel swmm, String newOperatorName) throws IOException {
         System.err.println("addSuboperator: This should never get called");
         return null;
     }

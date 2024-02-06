@@ -4,7 +4,6 @@ import edu.umich.soar.visualsoar.datamap.DataMap;
 import edu.umich.soar.visualsoar.datamap.SoarWorkingMemoryModel;
 import edu.umich.soar.visualsoar.misc.FeedbackListObject;
 
-import java.awt.*;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Vector;
@@ -104,43 +103,12 @@ public class ImpasseOperatorNode extends SoarOperatorNode {
         }
     }
 
-    /**
-     * This adjusts the context menu so that only the valid commands
-     * are displayed
-     *
-     * @param c the owner of the context menu, should be the OperatorWindow
-     * @param x the horizontal position on the screen where the context menu should
-     *          be displayed
-     * @param y the vertical position on the screen where the context menu should
-     *          be displayed
-     */
-    public void showContextMenu(Component c, int x, int y) {
+    @Override
+    protected void enableContextMenuItems() {
+        super.enableContextMenuItems();
+        renameItem.setEnabled(false);
+    }//enableContextMenuItems
 
-        if (isHighLevel) {
-
-            addSuboperatorItem.setEnabled(true);
-            addFileItem.setEnabled(true);
-            openRulesItem.setEnabled(true);
-            openDataMapItem.setEnabled(true);
-            deleteItem.setEnabled(true);
-            renameItem.setEnabled(false);
-            exportItem.setEnabled(true);
-            impasseSubMenu.setEnabled(true);
-            checkChildrenAgainstDataMapItem.setEnabled(true);
-        } else {
-
-            addSuboperatorItem.setEnabled(true);
-            addFileItem.setEnabled(true);
-            openRulesItem.setEnabled(true);
-            openDataMapItem.setEnabled(false);
-            deleteItem.setEnabled(true);
-            renameItem.setEnabled(false);
-            exportItem.setEnabled(true);
-            impasseSubMenu.setEnabled(true);
-            checkChildrenAgainstDataMapItem.setEnabled(false);
-        }
-        contextMenu.show(c, x, y);
-    }
 
 
     /**

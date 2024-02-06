@@ -7,7 +7,6 @@ import edu.umich.soar.visualsoar.graph.NamedEdge;
 import edu.umich.soar.visualsoar.graph.SoarVertex;
 import edu.umich.soar.visualsoar.misc.FeedbackListObject;
 
-import java.awt.*;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Enumeration;
@@ -86,57 +85,6 @@ class OperatorOperatorNode extends SoarOperatorNode {
         if (isHighLevel()) {
             DataMap dataMap = new DataMap(swmm, dataMapId, toString());
             errors.addAll(dataMap.searchNoTestNoCreateDataMap(dataMapId, toString()));
-        }
-    }
-
-    /**
-     * This adjusts the context menu so that only the valid commands
-     * are displayed
-     *
-     * @param c the owner of the context menu, should be the OperatorWindow
-     * @param x the horizontal position on the screen where the context menu should
-     *          be displayed
-     * @param y the vertical position on the screen where the context menu should
-     *          be displayed
-     */
-    public void showContextMenu(Component c, int x, int y) {
-        if (isHighLevel) {
-            addSuboperatorItem.setEnabled(true);
-            addFileItem.setEnabled(true);
-            openRulesItem.setEnabled(true);
-            openDataMapItem.setEnabled(true);
-            deleteItem.setEnabled(true);
-            renameItem.setEnabled(true);
-            exportItem.setEnabled(true);
-            impasseSubMenu.setEnabled(true);
-            checkChildrenAgainstDataMapItem.setEnabled(true);
-        } else {
-            addSuboperatorItem.setEnabled(true);
-            addFileItem.setEnabled(true);
-            openRulesItem.setEnabled(true);
-            openDataMapItem.setEnabled(false);
-            deleteItem.setEnabled(true);
-            renameItem.setEnabled(true);
-            exportItem.setEnabled(true);
-            impasseSubMenu.setEnabled(true);
-            checkChildrenAgainstDataMapItem.setEnabled(false);
-        }
-        contextMenu.show(c, x, y);
-    }
-
-
-    /**
-     * Given a Writer this writes out a description of the soar operator node
-     * that can be read back in later
-     *
-     * @param w the writer
-     * @throws IOException if there is an error writing to the writer
-     */
-    public void exportDesc(Writer w) throws IOException {
-        if (isHighLevel) {
-            w.write("HLOPERATOR " + name + " " + dataMapIdNumber);
-        } else {
-            w.write("OPERATOR " + name);
         }
     }
 

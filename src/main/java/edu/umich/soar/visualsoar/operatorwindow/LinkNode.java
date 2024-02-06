@@ -3,7 +3,6 @@ package edu.umich.soar.visualsoar.operatorwindow;
 import edu.umich.soar.visualsoar.datamap.SoarWorkingMemoryModel;
 
 import javax.swing.tree.TreeNode;
-import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
@@ -61,8 +60,8 @@ public class LinkNode extends FileNode {
     }
 
 
-    public OperatorNode addSuboperator(OperatorWindow operatorWindow, SoarWorkingMemoryModel swmm, String newOperatorName) throws IOException {
-        return linkedToNode.addSuboperator(operatorWindow, swmm, newOperatorName);
+    public OperatorNode addSubOperator(OperatorWindow operatorWindow, SoarWorkingMemoryModel swmm, String newOperatorName) throws IOException {
+        return linkedToNode.addSubOperator(operatorWindow, swmm, newOperatorName);
     }
 
     public void addFile(OperatorWindow operatorWindow, String newFileName) throws IOException {
@@ -89,18 +88,18 @@ public class LinkNode extends FileNode {
         w.write("LINK " + name + " " + fileAssociation + " " + linkedToNode.getId() + " " + id);
     }
 
-    public void showContextMenu(Component c, int x, int y) {
+    @Override
+    protected void enableContextMenuItems() {
+        super.enableContextMenuItems();
+
         addSuboperatorItem.setEnabled(true);
-        addFileItem.setEnabled(false);
-        openRulesItem.setEnabled(true);
         openDataMapItem.setEnabled(true);
         deleteItem.setEnabled(true);
         renameItem.setEnabled(false);
-        exportItem.setEnabled(true);
-        impasseSubMenu.setEnabled(false);
         checkChildrenAgainstDataMapItem.setEnabled(true);
-        contextMenu.show(c, x, y);
-    }
+
+    }//enableContextMenuItems
+
 
     public void exportDesc(Writer w) throws IOException {
         w.write("OPERATOR " + name);

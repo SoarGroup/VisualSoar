@@ -9,7 +9,6 @@ import edu.umich.soar.visualsoar.misc.FeedbackListObject;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultTreeModel;
-import java.awt.*;
 import java.io.*;
 import java.util.Vector;
 
@@ -85,13 +84,13 @@ public class OperatorRootNode extends FolderNode implements java.io.Serializable
     }
 
     /**
-     * Adds a suboperator underneath this root node
+     * Adds a sub-operator underneath this root node
      *
      * @param swmm            the Working Memory Model so that we can add corresponding entries to the datamap
      * @param newOperatorName the name of the operator being added
      */
-    public OperatorNode addSuboperator(OperatorWindow operatorWindow, SoarWorkingMemoryModel swmm, String newOperatorName) throws IOException {
-        super.addSuboperator(operatorWindow, swmm, newOperatorName);
+    public OperatorNode addSubOperator(OperatorWindow operatorWindow, SoarWorkingMemoryModel swmm, String newOperatorName) throws IOException {
+        super.addSubOperator(operatorWindow, swmm, newOperatorName);
 
         SoarVertex oper = swmm.createNewSoarId();
         SoarVertex operName = swmm.createNewEnumeration(newOperatorName);
@@ -123,28 +122,13 @@ public class OperatorRootNode extends FolderNode implements java.io.Serializable
         return fullPathStart + File.separator + folderName;
     }
 
-    /**
-     * This adjusts the context menu so that only the valid commands
-     * are displayed
-     *
-     * @param c the owner of the context menu, should be the OperatorWindow
-     * @param x the horizontal position on the screen where the context menu should
-     *          be displayed
-     * @param y the vertical position on the screen where the context menu should
-     *          be displayed
-     */
-    public void showContextMenu(Component c, int x, int y) {
-        addSuboperatorItem.setEnabled(true);
-        addFileItem.setEnabled(true);
-        openRulesItem.setEnabled(false);
-        openDataMapItem.setEnabled(true);
-        deleteItem.setEnabled(false);
-        renameItem.setEnabled(false);
-        exportItem.setEnabled(false);
-        impasseSubMenu.setEnabled(true);
-        checkChildrenAgainstDataMapItem.setEnabled(true);
-        contextMenu.show(c, x, y);
-    }
+    @Override
+    protected void enableContextMenuItems() {
+        super.enableContextMenuItems();
+        addTopFolderItem.setVisible(true);
+        addTopFolderItem.setEnabled(true);
+
+    }//enableContextMenuItems
 
     /**
      * This opens/shows a dataMap with this node's associated Data Map File
@@ -208,7 +192,7 @@ public class OperatorRootNode extends FolderNode implements java.io.Serializable
             //Update the instance variables identifying this project
             rename(operatorWindow, newName, newPath);
 
-            //Create a subfolder for the .dm file
+            //Create a sub-folder for the .dm file
             String newDataFolderName = newPath + File.separator + newName;
             File newDataFolder = new File(newDataFolderName);
             if (!newDataFolder.exists()) {
