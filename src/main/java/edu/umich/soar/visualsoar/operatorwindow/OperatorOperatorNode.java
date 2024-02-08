@@ -18,7 +18,7 @@ import java.util.Vector;
  * Similar to SoarOperatorNode in every way other than
  * writing to disk.
  **/
-class OperatorOperatorNode extends SoarOperatorNode {
+public class OperatorOperatorNode extends SoarOperatorNode {
     private static final long serialVersionUID = 20221225L;
 
 

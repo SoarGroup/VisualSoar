@@ -609,37 +609,47 @@ public class OperatorWindow extends JTree {
     }
 
     /**
-     * Adds a folder object.  The files/operators within it are tested
+     * Adds a deletable folder object.  The files/operators within it are tested
      * against the top-state data map.
+     *
+     * @author Andrew Nuxoll
+     * added 07 Feb 2024
      */
     public void addTopFolder() {
         //Ask the user to enter a name for this folder
-        String s;
         NameDialog theDialog = new NameDialog(MainFrame.getMainFrame());
         theDialog.setTitle("Enter Folder Name");
         theDialog.setVisible(true);
         if (! theDialog.wasApproved()) return;
 
-        s = theDialog.getText();
-        getModel();  //unnecessary?
+        //get the node in the operator pane tree that this was invoked upon
+        //Note:  at the time this code was written, it should only be invoked
+        //       on the root node, but I'm trying to be flexible for possible
+        //       future expansion.
+        String folderName = theDialog.getText();
         TreePath tp = getSelectionPath();
         if (tp == null) {
             return; //should never happen
         }
         OperatorNode parent = (OperatorNode) tp.getLastPathComponent();
 
-//        try {
-//            //TODO:  Add a folder here
-////            parent.addFileOperator(this, WorkingMemory, s);
-//
-//            if (parent.getChildCount() != 0) {
-//                expandPath(tp);
-//            }
-//        } catch (IOException ioe) {
-//            JOptionPane.showMessageDialog(MainFrame.getMainFrame(),
-//                    "Could not create file, name may be invalid",
-//                    "I/O Error", JOptionPane.ERROR_MESSAGE);
-//        }
+        //Try to create the new folder on the drive
+        String folderPath = parent.getFullPathName() + File.separator + folderName;
+        File newFolderFile = new File(folderPath);
+        if (! newFolderFile.mkdir()) {
+            JOptionPane.showMessageDialog(MainFrame.getMainFrame(),
+                    "Unable to create folder: " + folderPath,
+                    "Creation Error",
+                    JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        //Now add the folder node to the Operator Pane
+        FolderNode folderNode = createFolderNode(folderName, newFolderFile.getName());
+        this.addChild(parent, folderNode);
+
+        //TODO: redraw the operator pane so the new folder appears
+
 
     }//addTopFolder
 
@@ -793,7 +803,19 @@ public class OperatorWindow extends JTree {
                     selNode + "?", "Confirm Delete", JOptionPane.YES_NO_OPTION)) {
                 selNode.delete(this);
             }
-        } else {
+        }
+        else if ((selNode instanceof FolderNode)) {
+            //Refuse to delete folders that contain files
+            if (selNode.children().hasMoreElements()) {
+                JOptionPane.showMessageDialog(MainFrame.getMainFrame(),
+                        "A non-empty folder may not be deleted.",
+                        "Can't Delete",
+                        JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            selNode.delete(this);
+        }
+        else {
             getToolkit().beep();
         }
     }
@@ -935,7 +957,7 @@ public class OperatorWindow extends JTree {
                         WorkingMemory.checkGenerateSingleEntry(siv, sp, opNode, errToFix);
 
                 //The errs list should not be empty
-                if (errs.size() == 0) {
+                if (errs.isEmpty()) {
                     errs.add(new FeedbackListObject(opNode, errToFix.getLine(),
                             "Datamap entry operation failed."));
                 }

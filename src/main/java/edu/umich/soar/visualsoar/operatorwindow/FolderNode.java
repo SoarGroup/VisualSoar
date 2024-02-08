@@ -201,6 +201,11 @@ public class FolderNode extends OperatorNode implements java.io.Serializable {
             addSuboperatorItem.setEnabled(false);
         }
 
+        //non-special folders may be deleted
+        if ( (!name.equals("elaborations")) && (!name.equals("all")) ) {
+            deleteItem.setEnabled(true);
+        }
+
         addTopFolderItem.setVisible(false);
 
     }//enableContextMenuItems

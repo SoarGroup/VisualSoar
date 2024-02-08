@@ -86,6 +86,10 @@ public class NameDialog extends JDialog {
                     JOptionPane.showMessageDialog(NameDialog.this,
                             "The file name 'elaborations' is reserved by Visual Soar",
                             "Invalid Name", JOptionPane.ERROR_MESSAGE);
+                } else if (nameText.equals("all")) {
+                    JOptionPane.showMessageDialog(NameDialog.this,
+                            "The file name 'all' is reserved by Visual Soar",
+                            "Invalid Name", JOptionPane.ERROR_MESSAGE);
                 } else {
                     approved = true;
                     dispose();
