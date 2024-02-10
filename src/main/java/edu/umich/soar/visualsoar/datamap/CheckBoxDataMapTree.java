@@ -11,8 +11,7 @@ import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.Vector;
 
 /**
@@ -58,42 +57,73 @@ public class CheckBoxDataMapTree extends DataMapTree implements MouseListener {
     /**
      * addForeignSubTree       <!-- RECURSIVE -->
      *
-     * creates ForeignVertex objects for a given foreignFTN and all its descendants.  These
+     * creates ForeignVertex objects for a given parentForeignFTN and all its descendants.  These
      * are added to the given result vector _unless_ their id is in the seenSoFar list.
      *
+     * @param localSWMM  the SWMM for this project's datamap
+     * @param foreignDM  the relative path the .dm file for the foreign datamap
+     * @param parentForeignFTN an FTN from the foreign datamap.  The children of this FTN will be added to the local
+     *                   datamap as {@link ForeignVertex} objects and their children will be added recursively.
+     * @param foreignSV  the local vertex representing the parent FTN's value in the local SWMM.  It's represented
+     *                   locally as a ForeignVertex.
+     * @param seenSoFar  a mapping of the foreign IDs of all {@link SoarIdentifierVertex} objects seen so far from
+     *                   the foreign datamap to the ForeignVertex objects added to this project's datamap.  This is
+     *                   used to handle links in the foreign database and to avoid infinite recursion (e.g., base case).
+     * @param addedFTNs  as the recursion proceeds, it keeps a list of all new {@link ForeignVertex}-based FTNs that
+     *                   have been added to the datamap, so they can be reported to the user at the end.
+     *
+     * @author Andrew Nuxoll
+     * created:  Feb 2024
      */
     private void addForeignSubTree(SoarWorkingMemoryModel localSWMM,
                                    String foreignDM,
-                                   FakeTreeNode foreignFTN,
+                                   FakeTreeNode parentForeignFTN,
                                    ForeignVertex foreignSV,
-                                   HashSet<FakeTreeNode> seenSoFar) {
+                                   HashMap<Integer, ForeignVertex> seenSoFar,
+                                   Vector<FakeTreeNode> addedFTNs) {
 
-        //For each child FTN of the foreignFTN...
-        int numChildren = foreignFTN.getChildCount();
+        //For each child FTN of the parentForeignFTN...
+        int numChildren = parentForeignFTN.getChildCount();
         for(int i = 0; i < numChildren; ++i) {
-            FakeTreeNode childFTN = foreignFTN.getChildAt(i);
-
-            //Skip any we've seen so far to avoid loops
-            if (seenSoFar.contains(childFTN)) continue;
-            seenSoFar.add(childFTN);
+            FakeTreeNode childFTN = parentForeignFTN.getChildAt(i);
 
             //Extract the child SoarVertex from the foreign DM
             NamedEdge neChild = childFTN.getEdge();
             SoarVertex foreignChildSV = neChild.V1();
 
-            //To avoid insanity, skip any foreign vertexes.
+            //To avoid insanity, skip any foreign vertexes in the foreign datamap.
             if (foreignChildSV instanceof ForeignVertex) continue;
 
-            //Add the foreign child to the local SWMM
-            int newId = localSWMM.getNextVertexId();
-            ForeignVertex childFV = new ForeignVertex(newId, foreignDM, foreignChildSV);
-            localSWMM.addVertex(childFV);
+            //If this child has been seen before (copy/link in datamap) retrieve its associated ForeignVertex
+            ForeignVertex childFV = null;
+            int childId = foreignChildSV.getValue();
+            if (foreignChildSV instanceof SoarIdentifierVertex) {
+                childFV = seenSoFar.get(childId);
+            }
+
+            //If we've not seen this SIV before, create a new ForeignVertex in the local SWMM
+            boolean newForeignVertex = (childFV == null);
+            if (newForeignVertex) {
+                int newId = localSWMM.getNextVertexId();
+                childFV = new ForeignVertex(newId, foreignDM, foreignChildSV);
+                localSWMM.addVertex(childFV);
+            }
+
+            //Add the new entry in the local datamap
             localSWMM.addTriple(foreignSV, neChild.getName(), childFV);
 
-            //If it's not a leaf node recurse to add its subtree
-            if (childFTN.getChildCount() > 0) {
-                addForeignSubTree(localSWMM, foreignDM, childFTN, childFV, seenSoFar);
+            //Record the addition to report to the user later
+            addedFTNs.add(childFTN);
+
+            //If this is a new ForeignVertex, then record the associated foreign SIV and recurse to add its children
+            if (newForeignVertex) {
+                seenSoFar.put(childId, childFV);
+
+                if (childFTN.getChildCount() > 0) {
+                    addForeignSubTree(localSWMM, foreignDM, childFTN, childFV, seenSoFar, addedFTNs);
+                }
             }
+
         }//for
 
     }//addForeignSubTree
@@ -126,8 +156,13 @@ public class CheckBoxDataMapTree extends DataMapTree implements MouseListener {
         SoarWorkingMemoryModel localSWMM = MainFrame.getMainFrame().getOperatorWindow().getDatamap();
         SoarVertex localRoot = localSWMM.getTopstate();
 
+        //This is a mapping from foreign SoarIdentifierVertex ids to ForeignVertex objects
+        HashMap<Integer, ForeignVertex> seenSoFar = new HashMap<>();
+
+        //We want to track all FTNs that were added, so we can report to the user
+        Vector<FakeTreeNode> addedFTNs = new Vector<>(level1FTNs);
+
         //Create the ForeignVertex objs and add to local SWMM
-        HashSet<FakeTreeNode> seenSoFar = new HashSet<>(level1FTNs);
         for(FakeTreeNode ftn : level1FTNs) {
             //extract the SoarVertex from the foreign datamap
             NamedEdge ne = ftn.getEdge();
@@ -142,23 +177,27 @@ public class CheckBoxDataMapTree extends DataMapTree implements MouseListener {
             localSWMM.addVertex(fv);
             localSWMM.addTriple(localRoot, ne.getName(), fv);
 
+            //record the mapping from foreign SIV id to ForeignVertex object
+            if (foreignSV instanceof SoarIdentifierVertex) {
+                seenSoFar.put(foreignSV.getValue(), fv);
+            }
+
             //Build out the entire foreign subtree recursively
             if (ftn.getChildCount() > 0) {
-                addForeignSubTree(localSWMM, foreignDM, ftn, fv, seenSoFar);
+                addForeignSubTree(localSWMM, foreignDM, ftn, fv, seenSoFar, addedFTNs);
             }
         }//for
 
         //Report the success to the user
         Vector<FeedbackListObject> msgs = new Vector<>();
-        msgs.add(new FeedbackListObject("The following WMEs were imported from " + foreignDM));
-        for(FakeTreeNode ftn : seenSoFar) {
-            msgs.add(new FeedbackListObject("   " + ftn.getEdge().toString()));
+        msgs.add(new FeedbackListObject("The following entries were imported from " + foreignDM));
+        for(FakeTreeNode ftn : addedFTNs) {
+            msgs.add(new FeedbackListObject("   " + ftn.stringPath()));
         }
         if (msgs.size() > 4) {
             msgs.add(new FeedbackListObject("Total: " + seenSoFar.size() + " new entries"));
         }
         MainFrame.getMainFrame().setFeedbackListData(msgs);
-
 
     }//importFromForeignDataMap
 

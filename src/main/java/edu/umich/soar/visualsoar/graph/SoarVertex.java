@@ -4,10 +4,15 @@ import javax.swing.*;
 
 /**
  * This class is the base class for all Soar Working memory
- * vertices
+ * vertices.  The known subclasses are:
+ * {@link SoarIdentifierVertex},
+ * {@link IntegerRangeVertex},
+ * {@link FloatRangeVertex},
+ * {@link EnumerationVertex},
+ * {@link ForeignVertex}
  *
  * @author Brad Jones
- * @version 0.9a 6/5/00
+ * Created: 05 Jun 2000
  */
 
 public abstract class SoarVertex extends Vertex {

@@ -31,7 +31,7 @@ public class FakeTreeNode {
     // the vertex from which emanating edges are considered children
     private final SoarVertex enumeratingVertex;
 
-    // a reference to the graph structure so we can extract the information as needed
+    // a reference to the graph structure, so we can extract the information as needed
     private final SoarWorkingMemoryModel swmm;
 
     // the parent of this node, can be null
@@ -150,6 +150,30 @@ public class FakeTreeNode {
     public String toString() {
         return representation;
     }
+
+    /**
+     * @return a String representing this node in the tree via a path to root.
+     * Example:  "<s> ^io.input-link.block.on-top"
+     */
+    public String stringPath() {
+        NamedEdge myEdge = getEdge();
+        if (myEdge == null) return "<s>";
+        String result = getParent().stringPath();
+        if (result.equals("<s>")) {
+            result += " ^";
+        }
+        else {
+            result += ".";
+        }
+
+        result = result + myEdge.getName();
+
+        if (this.isLeaf()) {
+            result += myEdge.V1().toString();
+        }
+
+        return result;
+    }//stringPath
 
 
     //////////////////////////////////////////
