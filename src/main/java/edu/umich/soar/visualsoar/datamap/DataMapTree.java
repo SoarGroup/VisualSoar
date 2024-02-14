@@ -6,7 +6,9 @@ import edu.umich.soar.visualsoar.graph.ForeignVertex;
 import edu.umich.soar.visualsoar.graph.NamedEdge;
 import edu.umich.soar.visualsoar.graph.SoarIdentifierVertex;
 import edu.umich.soar.visualsoar.graph.SoarVertex;
-import edu.umich.soar.visualsoar.misc.FeedbackListObject;
+import edu.umich.soar.visualsoar.misc.FeedbackEntryDatamap;
+import edu.umich.soar.visualsoar.misc.FeedbackEntryOpNode;
+import edu.umich.soar.visualsoar.misc.FeedbackListEntry;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorNode;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorWindow;
 import edu.umich.soar.visualsoar.parser.ParseException;
@@ -25,8 +27,10 @@ import java.awt.*;
 import java.awt.datatransfer.*;
 import java.awt.dnd.*;
 import java.awt.event.*;
+import java.io.File;
 import java.io.IOException;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Vector;
 
 /**
@@ -72,14 +76,20 @@ public class DataMapTree extends JTree implements ClipboardOwner {
      */
     DragGestureListener dgListener = new DMTDragGestureListener();
 
-    /** Reference to the DropTargetListener for Drag and Drop operations, may be deleted in the future. */
+    /**
+     * Reference to the DropTargetListener for Drag and Drop operations, may be deleted in the future.
+     */
     DropTargetListener dtListener = new DMTDropTargetListener();
 
-    /** Reference to the DropTarget for Drag and Drop operations, may be deleted in the future. */
+    /**
+     * Reference to the DropTarget for Drag and Drop operations, may be deleted in the future.
+     */
     @SuppressWarnings("unused")  //not sure why IntelliJ thinks this is "unused"
-    private final DropTarget dropTarget = new DropTarget(this,DnDConstants.ACTION_LINK | DnDConstants.ACTION_COPY_OR_MOVE,dtListener,true);
+    private final DropTarget dropTarget = new DropTarget(this, DnDConstants.ACTION_LINK | DnDConstants.ACTION_COPY_OR_MOVE, dtListener, true);
 
-    /** to support Read-Only mode */
+    /**
+     * to support Read-Only mode
+     */
     public boolean isReadOnly = false;
 
     protected final SoarWorkingMemoryModel swmm;
@@ -368,7 +378,7 @@ public class DataMapTree extends JTree implements ClipboardOwner {
      * @param _swmm      datamap data (loaded from .dm file)
      * @param forEditing set to 'true' to allow the user to edit the datamap
      */
-    public DataMapTree(DataMap initParent, TreeModel model, SoarWorkingMemoryModel _swmm, boolean forEditing ) {
+    public DataMapTree(DataMap initParent, TreeModel model, SoarWorkingMemoryModel _swmm, boolean forEditing) {
         super(model);
         parentWindow = initParent;
         swmm = _swmm;
@@ -387,7 +397,7 @@ public class DataMapTree extends JTree implements ClipboardOwner {
 
     /**
      * setupEditingEventHandling
-     *
+     * <p>
      * activates mouse and keyboard event handling for editing the tree
      */
     public void setupEditingEventHandling() {
@@ -466,8 +476,10 @@ public class DataMapTree extends JTree implements ClipboardOwner {
         return s_DataMapTree;
     }
 
-    /** helper method to en/disable all context menu items that modify the datamap and,
-     * thus, should not be accessible in read-only mode.*/
+    /**
+     * helper method to en/disable all context menu items that modify the datamap and,
+     * thus, should not be accessible in read-only mode.
+     */
     private static void setContextMenuItemsToAllowChanges(boolean changeOk) {
         AddIdentifierItem.setEnabled(changeOk);
         AddEnumerationItem.setEnabled(changeOk);
@@ -523,7 +535,7 @@ public class DataMapTree extends JTree implements ClipboardOwner {
         }
 
         //some restrictions:  leaf nodes
-        else if (! theVertex.allowsEmanatingEdges()) {
+        else if (!theVertex.allowsEmanatingEdges()) {
             // can't add any edges
             AddIdentifierItem.setEnabled(false);
             AddEnumerationItem.setEnabled(false);
@@ -747,8 +759,8 @@ public class DataMapTree extends JTree implements ClipboardOwner {
         TreePath path = getSelectionPath();
         if (path == null) return;
         //Must use 'Object' because this vector will contain both Strings and
-        //FeedbackListObjects
-        Vector<FeedbackListObject> vecErrors = new Vector<>();
+        //FeedbackListEntry objects
+        Vector<FeedbackListEntry> vecErrors = new Vector<>();
 
         OperatorWindow operatorWindow = MainFrame.getMainFrame().getOperatorWindow();
         Enumeration<TreeNode> bfe = operatorWindow.breadthFirstEnumeration();
@@ -758,7 +770,7 @@ public class DataMapTree extends JTree implements ClipboardOwner {
             try {
                 parsedProds = opNode.parseProductions();
             } catch (ParseException pe) {
-                vecErrors.add(new FeedbackListObject("Unable to search productions due to parse error"));
+                vecErrors.add(new FeedbackListEntry("Unable to search productions due to parse error"));
                 vecErrors.add(opNode.parseParseException(pe));
             } catch (TokenMgrError | IOException tme) {
                 tme.printStackTrace();
@@ -779,7 +791,7 @@ public class DataMapTree extends JTree implements ClipboardOwner {
                     //Make sure the caller has requested this match
                     if (((bTest) && (trip.isCondition()))
                             || ((bCreate) && (!trip.isCondition()))) {
-                        vecErrors.add(new FeedbackListObject(opNode,
+                        vecErrors.add(new FeedbackEntryOpNode(opNode,
                                 trip.getLine(),
                                 sp.getName()));
                     }
@@ -788,7 +800,7 @@ public class DataMapTree extends JTree implements ClipboardOwner {
         }//while
 
         if (vecErrors.isEmpty()) {
-            vecErrors.add(new FeedbackListObject("No matches found."));
+            vecErrors.add(new FeedbackListEntry("No matches found."));
         }
 
         MainFrame.getMainFrame().setFeedbackListData(vecErrors);
@@ -937,20 +949,18 @@ public class DataMapTree extends JTree implements ClipboardOwner {
     }
 
     private void pasteCopyVertices(CopyVertexVector data) {
-        TreePath          path = getSelectionPath();
-        FakeTreeNode        ftn;
+        TreePath path = getSelectionPath();
+        FakeTreeNode ftn;
 
         if (data == null) return;
-        if (path == null)
-        {
+        if (path == null) {
             return;
         }
 
-        ftn = (FakeTreeNode)path.getLastPathComponent();
-        for (int j = 0; j < data.size(); j++)
-        {
-            SoarVertex  parent = ftn.getEnumeratingVertex();
-            SoarVertex  child = swmm.createVertexCopy(data.getVertex(j));
+        ftn = (FakeTreeNode) path.getLastPathComponent();
+        for (int j = 0; j < data.size(); j++) {
+            SoarVertex parent = ftn.getEnumeratingVertex();
+            SoarVertex child = swmm.createVertexCopy(data.getVertex(j));
             swmm.addTriple(parent, data.getName(j), child);
         }
     }
@@ -1178,37 +1188,92 @@ public class DataMapTree extends JTree implements ClipboardOwner {
         }   // while queue is not empty, examine each vertex in it
     } // end of validateAll()
 
+    /**
+     * check that the SWMM's root note is a FakeTreeNode and, if not, report this to the user.
+     * @return false if the SWMM's root is invalid  */
+    private boolean verifyRoot() {
+        //This should never happen
+        if (! (this.getModel().getRoot() instanceof FakeTreeNode)) {
+            JOptionPane.showMessageDialog(null,
+                    "Working Memory Model is corrupted.  Validation impossible",
+                    "DataMap Generator",
+                    JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+        return true;
+    }//verifyRoot
+
+    private void validateForeignSubtree(SoarWorkingMemoryModel fSWMM, ForeignVertex fv) {
+        //TODO
+    }//validateForeignSubtree
+
+    /**
+     * validateAllForeignEntries
+     * <p>
+     * scans all entries in the datamap that are links to entries in a foreign datamap
+     * to verify that they still exist in that foreign datamap
+     */
+    public void validateAllForeignEntries() {
+        if (! verifyRoot()) return;
+
+        //A mapping of filenames to foreign SWMMs so they can be loaded once and cached as needed
+        HashMap<String, SoarWorkingMemoryModel> foreignSWMMs = new HashMap<>();
+
+        //Iterate over every level 1 vertex to find ForeignVertex roots, then validate them
+        FakeTreeNode root = (FakeTreeNode) getModel().getRoot();
+        Enumeration<NamedEdge> edges = swmm.emanatingEdges(root.getEnumeratingVertex());
+        while (edges.hasMoreElements()) {
+            NamedEdge theEdge = edges.nextElement();
+            if (theEdge.V1() instanceof ForeignVertex) {
+                ForeignVertex fv = (ForeignVertex)theEdge.V1();
+
+                //See if the foreign SWMM has already been loaded
+                SoarWorkingMemoryModel fSWMM = foreignSWMMs.get(fv.getForeignDMName());
+                if (fSWMM == null) {
+                    //SWMM needs to be loaded.  Does the associated .dm file still exist?
+                    File foreignDMFile = new File(fv.getForeignDMName());
+                    if (!foreignDMFile.exists()) {
+
+                    }
+                }
+
+                validateForeignSubtree(fSWMM, fv);
+            }
+        }
+    }//validateAllForeignEntries
+
 
     /**
      * Validates the entire datamap
      */
     public void validateDataMap() {
+        if (! verifyRoot()) return;
         VSQueue<SoarVertex> queue = new QueueAsLinkedList<>();
         int numberOfVertices = swmm.getNumberOfVertices();
         boolean[] visitedVertices = new boolean[numberOfVertices];
 
-        if (this.getModel().getRoot() instanceof FakeTreeNode) {
-            FakeTreeNode root = (FakeTreeNode) getModel().getRoot();
-            queue.enqueue(root.getEnumeratingVertex());
-            while (!queue.isEmpty()) {
-                SoarVertex w = queue.dequeue();
+        //Iterate over every vertex that can be reached from the root
+        FakeTreeNode root = (FakeTreeNode) getModel().getRoot();
+        queue.enqueue(root.getEnumeratingVertex());
+        while (!queue.isEmpty()) {
+            SoarVertex w = queue.dequeue();
 
-                visitedVertices[w.getValue()] = true;
-                if (w.allowsEmanatingEdges()) {
-                    Enumeration<NamedEdge> edges = swmm.emanatingEdges(w);
-                    while (edges.hasMoreElements()) {
-                        NamedEdge theEdge = edges.nextElement();
-                        theEdge.validate();
-                        swmm.notifyListenersOfRemove(theEdge);
-                        swmm.notifyListenersOfAdd(theEdge);
-                        if (!visitedVertices[theEdge.V1().getValue()]) {
-                            visitedVertices[w.getValue()] = true;
-                            queue.enqueue(theEdge.V1());
-                        }   // if haven't visited this vertex, add to the queue
-                    } // while looking at all of the edges of the vertex
-                }
-            }   // while queue is not empty, examine each vertex in it
-        }
+            visitedVertices[w.getValue()] = true;
+            if (w.allowsEmanatingEdges()) {
+                Enumeration<NamedEdge> edges = swmm.emanatingEdges(w);
+                while (edges.hasMoreElements()) {
+                    NamedEdge theEdge = edges.nextElement();
+                    theEdge.validate();
+                    swmm.notifyListenersOfRemove(theEdge);
+                    swmm.notifyListenersOfAdd(theEdge);
+                    if (!visitedVertices[theEdge.V1().getValue()]) {
+                        visitedVertices[w.getValue()] = true;
+                        queue.enqueue(theEdge.V1());
+                    }   // if haven't visited this vertex, add to the queue
+                } // while looking at all of the edges of the vertex
+            } // if this vertex has children
+        }   // while queue is not empty, examine each vertex in it
+
         JOptionPane.showMessageDialog(null, "Validation of DataMap completed", "DataMap Generator", JOptionPane.INFORMATION_MESSAGE);
     }     // end of validateDataMap()
 
@@ -1258,8 +1323,8 @@ public class DataMapTree extends JTree implements ClipboardOwner {
      * by a production and that are not in the output link.
      * Returns feedback list information
      */
-    public Vector<FeedbackListObject> searchTestDataMap(SoarIdentifierVertex in_siv, String dataMapName) {
-        Vector<FeedbackListObject> errors = new Vector<>();
+    public Vector<FeedbackListEntry> searchTestDataMap(SoarIdentifierVertex in_siv, String dataMapName) {
+        Vector<FeedbackListEntry> errors = new Vector<>();
         VSQueue<SoarVertex> queue = new QueueAsLinkedList<>();
         int numberOfVertices = swmm.getNumberOfVertices();
         boolean[] visitedVertices = new boolean[numberOfVertices];
@@ -1282,7 +1347,7 @@ public class DataMapTree extends JTree implements ClipboardOwner {
                                 && !edgeName.equals("top-state") && !edgeName.equals("operator") && !edgeName.equals("input-link") && !edgeName.equals("item")
                                 && !edgeName.equals("impasse") && !edgeName.equals("superstate") && !edgeName.equals("io") && !edgeName.equals("attribute")
                                 && !edgeName.equals("choices") && !edgeName.equals("type") && !edgeName.equals("quiescence")) {
-                            errors.add(new FeedbackListObject(theEdge, in_siv, dataMapName, ", was never tested in the productions of this agent."));
+                            errors.add(new FeedbackEntryDatamap(theEdge, in_siv, dataMapName, ", was never tested in the productions of this agent."));
                             theEdge.setErrorNoted();
                         }
 
@@ -1303,8 +1368,8 @@ public class DataMapTree extends JTree implements ClipboardOwner {
      * by a production and that are not in the input link.
      * Returns feedback list information
      */
-    public Vector<FeedbackListObject> searchCreateDataMap(SoarIdentifierVertex in_siv, String dataMapName) {
-        Vector<FeedbackListObject> errors = new Vector<>();
+    public Vector<FeedbackListEntry> searchCreateDataMap(SoarIdentifierVertex in_siv, String dataMapName) {
+        Vector<FeedbackListEntry> errors = new Vector<>();
         VSQueue<SoarVertex> queue = new QueueAsLinkedList<>();
         int numberOfVertices = swmm.getNumberOfVertices();
         boolean[] visitedVertices = new boolean[numberOfVertices];
@@ -1327,7 +1392,7 @@ public class DataMapTree extends JTree implements ClipboardOwner {
                                 && !edgeName.equals("top-state") && !edgeName.equals("operator") && !edgeName.equals("output-link") && !edgeName.equals("item")
                                 && !edgeName.equals("impasse") && !edgeName.equals("superstate") && !edgeName.equals("io") && !edgeName.equals("attribute")
                                 && !edgeName.equals("choices") && !edgeName.equals("type") && !edgeName.equals("quiescence")) {
-                            errors.add(new FeedbackListObject(theEdge, in_siv, dataMapName, ", was never created by the productions of this agent."));
+                            errors.add(new FeedbackEntryDatamap(theEdge, in_siv, dataMapName, ", was never created by the productions of this agent."));
                             theEdge.setErrorNoted();
                         }
 
@@ -1348,8 +1413,8 @@ public class DataMapTree extends JTree implements ClipboardOwner {
      * by a production and that are not in the input link.
      * Returns feedback list information
      */
-    public Vector<FeedbackListObject> searchTestNoCreateDataMap(SoarIdentifierVertex in_siv, String dataMapName) {
-        Vector<FeedbackListObject> errors = new Vector<>();
+    public Vector<FeedbackListEntry> searchTestNoCreateDataMap(SoarIdentifierVertex in_siv, String dataMapName) {
+        Vector<FeedbackListEntry> errors = new Vector<>();
         VSQueue<SoarVertex> queue = new QueueAsLinkedList<>();
         int numberOfVertices = swmm.getNumberOfVertices();
         boolean[] visitedVertices = new boolean[numberOfVertices];
@@ -1372,7 +1437,7 @@ public class DataMapTree extends JTree implements ClipboardOwner {
                                 && !edgeName.equals("top-state") && !edgeName.equals("operator") && !edgeName.equals("output-link") && !edgeName.equals("item")
                                 && !edgeName.equals("impasse") && !edgeName.equals("superstate") && !edgeName.equals("io") && !edgeName.equals("attribute")
                                 && !edgeName.equals("choices") && !edgeName.equals("type") && !edgeName.equals("quiescence")) {
-                            errors.add(new FeedbackListObject(theEdge, in_siv, dataMapName, ", was tested but never created by the productions of this agent."));
+                            errors.add(new FeedbackEntryDatamap(theEdge, in_siv, dataMapName, ", was tested but never created by the productions of this agent."));
                             theEdge.setErrorNoted();
                         }
 
@@ -1394,8 +1459,8 @@ public class DataMapTree extends JTree implements ClipboardOwner {
      * by a production and that are not in the input link.
      * Returns feedback list information
      */
-    public Vector<FeedbackListObject> searchCreateNoTestDataMap(SoarIdentifierVertex in_siv, String dataMapName) {
-        Vector<FeedbackListObject> errors = new Vector<>();
+    public Vector<FeedbackListEntry> searchCreateNoTestDataMap(SoarIdentifierVertex in_siv, String dataMapName) {
+        Vector<FeedbackListEntry> errors = new Vector<>();
         VSQueue<SoarVertex> queue = new QueueAsLinkedList<>();
         int numberOfVertices = swmm.getNumberOfVertices();
         boolean[] visitedVertices = new boolean[numberOfVertices];
@@ -1418,7 +1483,7 @@ public class DataMapTree extends JTree implements ClipboardOwner {
                                 && !edgeName.equals("top-state") && !edgeName.equals("operator") && !edgeName.equals("output-link") && !edgeName.equals("item")
                                 && !edgeName.equals("impasse") && !edgeName.equals("superstate") && !edgeName.equals("io") && !edgeName.equals("attribute")
                                 && !edgeName.equals("choices") && !edgeName.equals("type") && !edgeName.equals("quiescence")) {
-                            errors.add(new FeedbackListObject(theEdge, in_siv, dataMapName, ", was tested but never created by the productions of this agent."));
+                            errors.add(new FeedbackEntryDatamap(theEdge, in_siv, dataMapName, ", was tested but never created by the productions of this agent."));
                             theEdge.setErrorNoted();
                         }
 
@@ -1439,8 +1504,8 @@ public class DataMapTree extends JTree implements ClipboardOwner {
      * by a production and that are not in the input link.
      * Returns feedback list information
      */
-    public Vector<FeedbackListObject> searchNoTestNoCreateDataMap(SoarIdentifierVertex in_siv, String dataMapName) {
-        Vector<FeedbackListObject> errors = new Vector<>();
+    public Vector<FeedbackListEntry> searchNoTestNoCreateDataMap(SoarIdentifierVertex in_siv, String dataMapName) {
+        Vector<FeedbackListEntry> errors = new Vector<>();
         VSQueue<SoarVertex> queue = new QueueAsLinkedList<>();
         int numberOfVertices = swmm.getNumberOfVertices();
         boolean[] visitedVertices = new boolean[numberOfVertices];
@@ -1463,7 +1528,7 @@ public class DataMapTree extends JTree implements ClipboardOwner {
                                 && !edgeName.equals("top-state") && !edgeName.equals("operator") && !edgeName.equals("output-link") && !edgeName.equals("item")
                                 && !edgeName.equals("impasse") && !edgeName.equals("superstate") && !edgeName.equals("io") && !edgeName.equals("attribute")
                                 && !edgeName.equals("choices") && !edgeName.equals("type") && !edgeName.equals("quiescence")) {
-                            errors.add(new FeedbackListObject(theEdge, in_siv, dataMapName, ", was tested but never created by the productions of this agent."));
+                            errors.add(new FeedbackEntryDatamap(theEdge, in_siv, dataMapName, ", was tested but never created by the productions of this agent."));
                             theEdge.setErrorNoted();
                         }
 
@@ -1632,73 +1697,55 @@ public class DataMapTree extends JTree implements ClipboardOwner {
 
     /**
      * class DMTDropTargetListener
-     *
-     *
      */
-    class DMTDropTargetListener implements DropTargetListener
-    {
+    class DMTDropTargetListener implements DropTargetListener {
         public void dragEnter(DropTargetDragEvent dtde) {
         }
-        public void dragExit(DropTargetEvent dte)
-        {
+
+        public void dragExit(DropTargetEvent dte) {
             // reset cursor back to normal
             Cursor defaultCursor = new Cursor(Cursor.DEFAULT_CURSOR);
             DataMapTree.getDataMapTree().setCursor(defaultCursor);
         }
 
-        public void dragOver(DropTargetDragEvent dtde)
-        {
+        public void dragOver(DropTargetDragEvent dtde) {
 
             int action = dtde.getDropAction();
             Point loc = dtde.getLocation();
-            int x = (int)loc.getX(), y = (int)loc.getY();
+            int x = (int) loc.getX(), y = (int) loc.getY();
             TreePath path = getPathForLocation(x, y);
-            if (path != null)
-            {
+            if (path != null) {
                 clearSelection();
                 setSelectionPath(path);
-                if(isDropOK(x,y,action))
-                {
-                    if(action == DnDConstants.ACTION_LINK)
-                    {
+                if (isDropOK(x, y, action)) {
+                    if (action == DnDConstants.ACTION_LINK) {
                         Cursor cursor = DragSource.DefaultLinkDrop;
                         DataMapTree.getDataMapTree().setCursor(cursor);
                         dtde.acceptDrag(DnDConstants.ACTION_LINK);
-                    }
-                    else if(action == DnDConstants.ACTION_COPY)
-                    {
+                    } else if (action == DnDConstants.ACTION_COPY) {
                         Cursor cursor = DragSource.DefaultCopyDrop;
                         DataMapTree.getDataMapTree().setCursor(cursor);
                         dtde.acceptDrag(DnDConstants.ACTION_COPY);
-                    }
-                    else
-                    {
+                    } else {
                         Cursor cursor = DragSource.DefaultMoveDrop;
                         DataMapTree.getDataMapTree().setCursor(cursor);
                         dtde.acceptDrag(DnDConstants.ACTION_MOVE);
                     }
                 }   // if drop ok
-                else
-                {
+                else {
                     Cursor cursor;
-                    if(action == DnDConstants.ACTION_LINK)
-                    {
+                    if (action == DnDConstants.ACTION_LINK) {
                         cursor = DragSource.DefaultLinkNoDrop;
-                    }
-                    else if(action == DnDConstants.ACTION_COPY)
-                    {
+                    } else if (action == DnDConstants.ACTION_COPY) {
                         cursor = DragSource.DefaultCopyNoDrop;
-                    }
-                    else
-                    {
+                    } else {
                         cursor = DragSource.DefaultMoveNoDrop;
                     }
                     DataMapTree.getDataMapTree().setCursor(cursor);
                     dtde.rejectDrag();
                 }
             }   // if path ok
-            else
-            {
+            else {
                 Cursor cursor = DragSource.DefaultCopyNoDrop;
                 DataMapTree.getDataMapTree().setCursor(cursor);
                 dtde.rejectDrag();
@@ -1710,25 +1757,20 @@ public class DataMapTree extends JTree implements ClipboardOwner {
 
         /**
          * drop
-         *
+         * <p>
          * Gets called when the user releases the mouse in a drag-and-drop
          * operation in a datamap window.
-         *
          */
-        public void drop(DropTargetDropEvent e)
-        {
+        public void drop(DropTargetDropEvent e) {
             //Verify that drop is acceptable
             Point loc = e.getLocation();
-            int x = (int)loc.getX(), y = (int)loc.getY();
+            int x = (int) loc.getX(), y = (int) loc.getY();
 
             //action will be one of:  copy, move or link
             int action = e.getDropAction();
-            if (isDropOK(x, y, action))
-            {
+            if (isDropOK(x, y, action)) {
                 e.acceptDrop(action);
-            }
-            else
-            {
+            } else {
                 e.rejectDrop();
                 return;
             }
@@ -1751,12 +1793,9 @@ public class DataMapTree extends JTree implements ClipboardOwner {
                 DataFlavor[] flavors = e.getCurrentDataFlavors();
                 DataFlavor chosen = flavors[0];
                 Vector data;  //This must be a raw vector (see TransferrableVertex.getTransferData)
-                try
-                {
-                    data = (Vector)e.getTransferable().getTransferData(chosen);
-                }
-                catch(Throwable t)
-                {
+                try {
+                    data = (Vector) e.getTransferable().getTransferData(chosen);
+                } catch (Throwable t) {
                     t.printStackTrace();
                     e.dropComplete(false);
                     return;
@@ -1775,13 +1814,10 @@ public class DataMapTree extends JTree implements ClipboardOwner {
 
                 //If we are moving a node, we have to first make sure that we're
                 //not creating a loop.
-                if ((action & DnDConstants.ACTION_MOVE) != 0)
-                {
-                    for(int i = 0; i < path.getPathCount(); i++)
-                    {
-                        SoarVertex v = ((FakeTreeNode)path.getPath()[i]).getEnumeratingVertex();
-                        if (dataVertex.equals(v))
-                        {
+                if ((action & DnDConstants.ACTION_MOVE) != 0) {
+                    for (int i = 0; i < path.getPathCount(); i++) {
+                        SoarVertex v = ((FakeTreeNode) path.getPath()[i]).getEnumeratingVertex();
+                        if (dataVertex.equals(v)) {
                             e.rejectDrop();
                             return;
                         }
@@ -1789,11 +1825,10 @@ public class DataMapTree extends JTree implements ClipboardOwner {
                 }
 
                 //Perform the drop
-                swmm.addTriple(vertex,(String)data.get(1),dataVertex);
-                if(action == DnDConstants.ACTION_MOVE)
-                {
-                    NamedEdge ne = (NamedEdge)data.get(2);
-                    swmm.removeTriple(ne.V0(),ne.getName(), ne.V1());
+                swmm.addTriple(vertex, (String) data.get(1), dataVertex);
+                if (action == DnDConstants.ACTION_MOVE) {
+                    NamedEdge ne = (NamedEdge) data.get(2);
+                    swmm.removeTriple(ne.V0(), ne.getName(), ne.V1());
                 }
 
             }
@@ -1805,8 +1840,7 @@ public class DataMapTree extends JTree implements ClipboardOwner {
          * helper method for {@link #dragOver} and {@link #drop} to
          * determine if a given coordinate is a valid drop destination
          */
-        boolean isDropOK(int x, int y, int action)
-        {
+        boolean isDropOK(int x, int y, int action) {
             TreePath path = getPathForLocation(x, y);
             if (path == null) {
                 return false;
@@ -1815,9 +1849,8 @@ public class DataMapTree extends JTree implements ClipboardOwner {
                 return false;
             }
 
-            if (action == DnDConstants.ACTION_LINK || action == DnDConstants.ACTION_MOVE || action == DnDConstants.ACTION_COPY)
-            {
-                FakeTreeNode ftn = (FakeTreeNode)path.getLastPathComponent();
+            if (action == DnDConstants.ACTION_LINK || action == DnDConstants.ACTION_MOVE || action == DnDConstants.ACTION_COPY) {
+                FakeTreeNode ftn = (FakeTreeNode) path.getLastPathComponent();
                 return !ftn.isLeaf();
             }
             return false;

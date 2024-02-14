@@ -4,7 +4,7 @@ import edu.umich.soar.visualsoar.MainFrame;
 import edu.umich.soar.visualsoar.graph.NamedEdge;
 import edu.umich.soar.visualsoar.graph.SoarIdentifierVertex;
 import edu.umich.soar.visualsoar.misc.CustomInternalFrame;
-import edu.umich.soar.visualsoar.misc.FeedbackListObject;
+import edu.umich.soar.visualsoar.misc.FeedbackListEntry;
 import edu.umich.soar.visualsoar.misc.Prefs;
 
 import javax.swing.*;
@@ -198,23 +198,23 @@ public class DataMap extends CustomInternalFrame {
 
 
 
-    public Vector<FeedbackListObject> searchTestDataMap(SoarIdentifierVertex in_siv, String dataMapName) {
+    public Vector<FeedbackListEntry> searchTestDataMap(SoarIdentifierVertex in_siv, String dataMapName) {
         return dataMapTree.searchTestDataMap(in_siv, dataMapName);
     }
 
-    public Vector<FeedbackListObject> searchCreateDataMap(SoarIdentifierVertex in_siv, String dataMapName) {
+    public Vector<FeedbackListEntry> searchCreateDataMap(SoarIdentifierVertex in_siv, String dataMapName) {
         return dataMapTree.searchCreateDataMap(in_siv, dataMapName);
     }
 
-    public Vector<FeedbackListObject> searchTestNoCreateDataMap(SoarIdentifierVertex in_siv, String dataMapName) {
+    public Vector<FeedbackListEntry> searchTestNoCreateDataMap(SoarIdentifierVertex in_siv, String dataMapName) {
         return dataMapTree.searchTestNoCreateDataMap(in_siv, dataMapName);
     }
 
-    public Vector<FeedbackListObject> searchCreateNoTestDataMap(SoarIdentifierVertex in_siv, String dataMapName) {
+    public Vector<FeedbackListEntry> searchCreateNoTestDataMap(SoarIdentifierVertex in_siv, String dataMapName) {
         return dataMapTree.searchCreateNoTestDataMap(in_siv, dataMapName);
     }
 
-    public Vector<FeedbackListObject> searchNoTestNoCreateDataMap(SoarIdentifierVertex in_siv, String dataMapName) {
+    public Vector<FeedbackListEntry> searchNoTestNoCreateDataMap(SoarIdentifierVertex in_siv, String dataMapName) {
         return dataMapTree.searchNoTestNoCreateDataMap(in_siv, dataMapName);
     }
 

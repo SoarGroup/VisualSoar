@@ -1,7 +1,8 @@
 package edu.umich.soar.visualsoar.dialogs;
 
 import edu.umich.soar.visualsoar.MainFrame;
-import edu.umich.soar.visualsoar.misc.FeedbackListObject;
+import edu.umich.soar.visualsoar.misc.FeedbackEntryOpNode;
+import edu.umich.soar.visualsoar.misc.FeedbackListEntry;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorNode;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorWindow;
 import edu.umich.soar.visualsoar.ruleeditor.RuleEditor;
@@ -60,7 +61,7 @@ public class ReplaceInProjectDialog extends JDialog {
      */
     ReplacePanel replacePanel = new ReplacePanel();
     FindReplaceButtonPanel buttonPanel = new FindReplaceButtonPanel();
-    Vector<FeedbackListObject> v = new Vector<>();
+    Vector<FeedbackListEntry> v = new Vector<>();
 
     /**
      * Dialog that searches through all the files within a project for a string
@@ -167,7 +168,7 @@ public class ReplaceInProjectDialog extends JDialog {
                                             line = line.toLowerCase();
                                         }
                                         if (line.contains(toFind)) {
-                                            v.add(new FeedbackListObject(current,
+                                            v.add(new FeedbackEntryOpNode(current,
                                                     lnr.getLineNumber(),
                                                     "Replaced " + toFind + " with " + toReplace + ".",
                                                     toReplace));
@@ -185,7 +186,7 @@ public class ReplaceInProjectDialog extends JDialog {
 
                         if (v.isEmpty()) {
                             String msg = toFind + " not found in project";
-                            v.add(new FeedbackListObject(msg));
+                            v.add(new FeedbackListEntry(msg));
                         }
 
 

@@ -1,17 +1,17 @@
 package edu.umich.soar.visualsoar.datamap;
 
+import edu.umich.soar.visualsoar.MainFrame;
 import edu.umich.soar.visualsoar.graph.*;
 import edu.umich.soar.visualsoar.util.ReaderUtils;
 
-import java.io.IOException;
-import java.io.Reader;
+import java.io.*;
 import java.util.Vector;
 
 /**
- * This class has one function read, which reads a representation of soar working memory
- * from a file and re-creates the DataMap
+ * This class contains utilities for reading datamap data from files
  *
  * @author Brad Jones
+ * @author Andrew Nuxoll
  */
 public class SoarWorkingMemoryReader {
 
@@ -114,4 +114,100 @@ public class SoarWorkingMemoryReader {
             throw ioe;
         }
     }
-}
+
+    /**
+     * reads the data in a given datamap (.dm) file into a given SWMM object
+     * (which is expected to be empty)
+     *
+     * @return the foreign datamap file name (or null on failure)
+     */
+    public static String readDataIntoSWMM(File dataMapFile, SoarWorkingMemoryModel swmm) {
+        //Calculate the name of the comment file
+        File commentFile = new File(dataMapFile.getParent() + File.separator + "comment.dm");
+
+        //Open the dm files for reading
+        Reader rDM;
+        try {
+            rDM = new FileReader(dataMapFile);
+        } catch (FileNotFoundException fnfe) {
+            MainFrame.getMainFrame().setStatusBarError("Error opening " + dataMapFile.getName() + ": " + fnfe.getMessage());
+            return null;
+        }
+        Reader rComment = null;
+        try {
+            if (commentFile.exists()) {
+                rComment = new FileReader(commentFile);
+            }
+        } catch (FileNotFoundException fnfe) {
+            MainFrame.getMainFrame().setStatusBarError("Error opening " + commentFile.getName() + ": " + fnfe.getMessage());
+            return null;
+        }
+
+        //Read the datamap into memory
+        try {
+            SoarWorkingMemoryReader.read(swmm, rDM, rComment);
+        } catch (IOException ioe) {
+            MainFrame.getMainFrame().setStatusBarError("Unable to parse " + dataMapFile.getName() + ": " + ioe.getMessage());
+            return null;
+        }
+
+        //Close the readers
+        try {
+            rDM.close();
+        } catch (IOException e) {
+            //nothing to do?
+        }
+        try {
+            if (rComment != null) rComment.close();
+        } catch (IOException e) {
+            //nothing to do?
+        }
+
+        return dataMapFile.getAbsolutePath();
+    }//readDataIntoSWMM
+
+    /**
+     * getDMFile
+     *
+     * Given a project's .vsa file, this method returns its .dm file or null if doesn't exist
+     */
+    public static File getDMFile(File vsaFile) {
+        //What is the file name (no path, no ext) of this project
+        String projName = vsaFile.getName();
+        projName = projName.substring(0, projName.length() - 4);  //chop off .vsa
+
+        //construct what the .dm filename should be
+        String dmPath = vsaFile.getAbsolutePath();
+        dmPath = dmPath.substring(0, dmPath.length() - 4); //chop off .vsa
+        dmPath += File.separatorChar + projName + ".dm";
+
+        //verify it's there
+        File dmFile = new File(dmPath);
+        if (!dmFile.exists()) {
+            MainFrame.getMainFrame().setStatusBarMsg("Could not find datamap file for this project.  Expected:  " + dmFile.getName());
+            return null;
+        }
+
+        return dmFile;
+    }//getDMFile
+
+
+
+    /**
+     * reads the data in a given project (.vsa) file into this.swmm
+     *
+     * @return the foreign datamap file name (or null on failure)
+     */
+    public static String readDataIntoSWMMfromVSA(File vsaFile, SoarWorkingMemoryModel swmm) {
+        //Calculate the name of the .dm file for this project
+        File dataMapFile = getDMFile(vsaFile);
+        if (dataMapFile == null) {
+            System.err.println("Error: null vsa file given to readDataIntoSWMM on foreign datamap import.");
+            return null;
+        }
+
+        return readDataIntoSWMM(dataMapFile, swmm);
+
+    }//readDataIntoSWMMfromVSA
+
+}//class SoarWOrkingMemoryReader

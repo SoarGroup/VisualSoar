@@ -53,4 +53,17 @@ public class ForeignVertex extends SoarVertex {
     public String toString() {
         return foreignSV.toString();
     }
+
+    /** the relative path to the foreign datamap file (.dm)
+     * that this ForeignVertex object refers to */
+    public String getForeignDMName() {
+        return this.foreignDM;
+    }
+
+    /** a copy of the SoarVertex object in the foreign datamap
+     * that this ForeignVertex refers to */
+    public SoarVertex getLinkedSoarVertex() {
+        return this.foreignSV;
+    }
+
 }//class ForeignVertex

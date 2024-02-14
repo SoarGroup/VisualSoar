@@ -9,7 +9,8 @@ import edu.umich.soar.visualsoar.dialogs.NameDialog;
 import edu.umich.soar.visualsoar.dialogs.ReplaceInProjectDialog;
 import edu.umich.soar.visualsoar.graph.SoarIdentifierVertex;
 import edu.umich.soar.visualsoar.graph.SoarVertex;
-import edu.umich.soar.visualsoar.misc.FeedbackListObject;
+import edu.umich.soar.visualsoar.misc.FeedbackEntryOpNode;
+import edu.umich.soar.visualsoar.misc.FeedbackListEntry;
 import edu.umich.soar.visualsoar.parser.ParseException;
 import edu.umich.soar.visualsoar.parser.SoarProduction;
 import edu.umich.soar.visualsoar.parser.TokenMgrError;
@@ -334,8 +335,8 @@ public class OperatorWindow extends JTree {
      * Returns the number of children associated with the root node / project node.
      */
     public int getChildCount() {
-        DefaultMutableTreeNode dmtn = (DefaultMutableTreeNode) getModel().getRoot();
-        return dmtn.getChildCount();
+        DefaultMutableTreeNode node = (DefaultMutableTreeNode) getModel().getRoot();
+        return node.getChildCount();
     }
 
 
@@ -428,7 +429,7 @@ public class OperatorWindow extends JTree {
      * This prompts the user for a name for the sub-operator, if the user returns a valid name then
      * it inserts a new node into the tree
      */
-    public void addSuboperator() {
+    public void addSubOperator() {
         String s;
         NameDialog theDialog = new NameDialog(MainFrame.getMainFrame());
         theDialog.setTitle("Enter Operator Name");
@@ -455,7 +456,7 @@ public class OperatorWindow extends JTree {
                 }
             } catch (IOException ioe) {
                 JOptionPane.showMessageDialog(MainFrame.getMainFrame(),
-                        "Could not create suboperator, name may be invalid",
+                        "Could not create sub-operator, name may be invalid",
                         "I/O Error", JOptionPane.ERROR_MESSAGE);
             }
         }
@@ -699,7 +700,7 @@ public class OperatorWindow extends JTree {
     public void checkProductions(OperatorNode parent,
                                  OperatorNode child,
                                  Vector<SoarProduction> productions,
-                                 List<FeedbackListObject> errors) {
+                                 List<FeedbackListEntry> errors) {
 
         // Find the state that these productions should be checked against
         SoarIdentifierVertex siv = parent.getStateIdVertex();
@@ -831,7 +832,7 @@ public class OperatorWindow extends JTree {
             return; //should never happen
         }
         OperatorNode selNode = (OperatorNode) tp.getLastPathComponent();
-        Vector<FeedbackListObject> vecErrors = new Vector<>();
+        Vector<FeedbackListEntry> vecErrors = new Vector<>();
         Vector<SoarProduction> parsedProductions;
         Enumeration<TreeNode> prodEnum = selNode.children();
         while (prodEnum.hasMoreElements()) {
@@ -842,15 +843,15 @@ public class OperatorWindow extends JTree {
                     MainFrame.getMainFrame().getOperatorWindow().checkProductions(selNode, currentNode, parsedProductions, vecErrors);
                 }
             } catch (ParseException pe) {
-                vecErrors.add(new FeedbackListObject("Unable to check productions due to parse error"));
+                vecErrors.add(new FeedbackListEntry("Unable to check productions due to parse error"));
                 vecErrors.add(currentNode.parseParseException(pe));
             } catch (IOException ioe) {
                 String msg = currentNode.getFileName() + "(1): " + " Error reading file.";
-                vecErrors.add(new FeedbackListObject(msg));
+                vecErrors.add(new FeedbackListEntry(msg));
             }
         }//while
         if (vecErrors.isEmpty()) {
-            vecErrors.add(new FeedbackListObject("No errors detected in children."));
+            vecErrors.add(new FeedbackListEntry("No errors detected in children."));
         }
         MainFrame.getMainFrame().setFeedbackListData(vecErrors);
     }
@@ -865,11 +866,11 @@ public class OperatorWindow extends JTree {
      *                       passed in then the currently selected node will be used.
      * @param parseErrors    parse errors discovered during generation
      * @param vecGenerations new datamap entries that were generated provided as a
-     *                       list of FeedbackListObjects for easy reporting
+     *                       list of FeedbackListEntry objects for easy reporting
      */
     public void generateDataMap(OperatorNode opNode,
-                                Vector<FeedbackListObject> parseErrors,
-                                Vector<FeedbackListObject> vecGenerations) {
+                                Vector<FeedbackListEntry> parseErrors,
+                                Vector<FeedbackListEntry> vecGenerations) {
         if (opNode == null) {
             TreePath tp = getSelectionPath();
             if (tp == null) {
@@ -883,7 +884,7 @@ public class OperatorWindow extends JTree {
         try {
             parsedProds = opNode.parseProductions();
         } catch (ParseException pe) {
-            parseErrors.add(new FeedbackListObject("Unable to generate datamap due to parse error"));
+            parseErrors.add(new FeedbackListEntry("Unable to generate datamap due to parse error"));
             parseErrors.add(opNode.parseParseException(pe));
         } catch (TokenMgrError | IOException tme) {
             tme.printStackTrace();
@@ -922,11 +923,11 @@ public class OperatorWindow extends JTree {
      *
      * @param errToFix error to fix (user has selected this)
      */
-    public void generateDataMapForOneError(FeedbackListObject errToFix,
-                                           Vector<FeedbackListObject> vecGenerations) {
+    public void generateDataMapForOneError(FeedbackEntryOpNode errToFix,
+                                           Vector<FeedbackListEntry> vecGenerations) {
         OperatorNode opNode = errToFix.getNode();
         if (opNode == null) {
-            vecGenerations.add(new FeedbackListObject("No operator associated with this entry."));
+            vecGenerations.add(new FeedbackListEntry("No operator associated with this entry."));
             return;
         }
 
@@ -936,7 +937,7 @@ public class OperatorWindow extends JTree {
             parsedProds = opNode.parseProductions();
         } catch (Exception e) {
             //should never happen...
-            vecGenerations.add(new FeedbackListObject("Unable to generate datamap entry due to parse error."));
+            vecGenerations.add(new FeedbackListEntry("Unable to generate datamap entry due to parse error."));
             return;
         }
 
@@ -953,12 +954,12 @@ public class OperatorWindow extends JTree {
             SoarProduction sp = prodEnum.nextElement();
             //we only care about the production that caused the error
             if (errToFix.getMessage().startsWith(sp.getName())) {
-                Vector<FeedbackListObject> errs =
+                Vector<FeedbackListEntry> errs =
                         WorkingMemory.checkGenerateSingleEntry(siv, sp, opNode, errToFix);
 
                 //The errs list should not be empty
                 if (errs.isEmpty()) {
-                    errs.add(new FeedbackListObject(opNode, errToFix.getLine(),
+                    errs.add(new FeedbackEntryOpNode(opNode, errToFix.getLine(),
                             "Datamap entry operation failed."));
                 }
 
@@ -1434,7 +1435,7 @@ public class OperatorWindow extends JTree {
                               String stringToFind,
                               boolean matchCase) {
         Enumeration<TreeNode> bfe = opNode.breadthFirstEnumeration();
-        Vector<FeedbackListObject> vecErrs = new Vector<>();
+        Vector<FeedbackListEntry> vecErrs = new Vector<>();
 
         if (!matchCase) {
             stringToFind = stringToFind.toLowerCase();
@@ -1453,10 +1454,10 @@ public class OperatorWindow extends JTree {
                             line = line.toLowerCase();
                         }
                         if (line.contains(stringToFind)) {
-                            vecErrs.add(new FeedbackListObject(current,
-                                    lnr.getLineNumber(),
-                                    line,
-                                    stringToFind));
+                            vecErrs.add(new FeedbackEntryOpNode(current,
+                                        lnr.getLineNumber(),
+                                        line,
+                                        stringToFind));
                         }
                         line = lnr.readLine();
                     }
@@ -1470,7 +1471,7 @@ public class OperatorWindow extends JTree {
         }
 
         if (vecErrs.isEmpty()) {
-            vecErrs.add(new FeedbackListObject(stringToFind + " not found in project"));
+            vecErrs.add(new FeedbackListEntry(stringToFind + " not found in project"));
         }
 
         MainFrame.getMainFrame().setFeedbackListData(vecErrs);
@@ -2023,9 +2024,9 @@ public class OperatorWindow extends JTree {
     }
 
     /**
-     * Writes out the default productions in the top-state.soar file
+     * Writes out the default productions in the "top-state.soar" file
      *
-     * @param fileToWriteTo the top-state.soar file
+     * @param fileToWriteTo the "top-state.soar" file
      * @param topStateName  the name of the project/top state
      */
     private void writeOutTopStateElabs(File fileToWriteTo, String topStateName) throws IOException {

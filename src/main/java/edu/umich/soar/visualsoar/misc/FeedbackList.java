@@ -23,15 +23,15 @@ import java.util.Vector;
  */
 
 
-public class FeedbackList extends JList<FeedbackListObject> implements ActionListener {
+public class FeedbackList extends JList<FeedbackListEntry> implements ActionListener {
     private static final long serialVersionUID = 20221225L;
 
 ///////////////////////////////////////////////////////////////////
 // Instance Variables
 ///////////////////////////////////////////////////////////////////
 
-    DefaultListModel<FeedbackListObject> dlm = new DefaultListModel<>();
-    FeedbackListObject selectedObj = null;  //currently selected object in the list
+    DefaultListModel<FeedbackListEntry> dlm = new DefaultListModel<>();
+    FeedbackListEntry selectedObj = null;  //currently selected object in the list
     JPopupMenu rightClickContextMenu;
     JMenuItem gotoSourceMenuItem = new JMenuItem("See Related Source Code or Datamap Entry");
     JMenuItem dmAddMenuItem = new JMenuItem("Add Non-Validated Support to Datamap");
@@ -58,21 +58,21 @@ public class FeedbackList extends JList<FeedbackListObject> implements ActionLis
                     public void mouseClicked(MouseEvent e) {
                         //record currently selected object
                         int index = locationToIndex(e.getPoint());
-                        if (dlm.getElementAt(index).hasNode()) {
-                            //user may not select messages with no associated node
-                            //as context operations would fail on such objects
-                            selectedObj = dlm.getElementAt(index);
+                        selectedObj = dlm.getElementAt(index);
+
+                        //double click:  the feedback entry object handles this
+                        if (e.getClickCount() == 2) {
+                            selectedObj.react();
                         }
 
-                        //double click:  go to associated source code
-                        if (e.getClickCount() == 2) {
-                            loadAssociatedSourceCode();
-                        }
                         //right click:  context menu
                         else if (SwingUtilities.isRightMouseButton(e)) {
-                            //Two reasons for the "add to datamap" opton to be grayed out:
-                            //1.  the selected object isn't a WME
-                            dmAddMenuItem.setEnabled(!selectedObj.isDataMapObject());
+                            //There are two possible reasons for the "add to datamap" opton to be grayed out:
+
+                            //1.  the selected entry is not associated with Soar source code
+                            boolean isOpNodeEntry = (selectedObj instanceof FeedbackEntryOpNode);
+                            dmAddMenuItem.setEnabled(isOpNodeEntry);
+
                             //2.  project is read-only
                             if (dmAddMenuItem.isEnabled()) {
                                 dmAddMenuItem.setEnabled(!MainFrame.getMainFrame().isReadOnly());
@@ -96,64 +96,31 @@ public class FeedbackList extends JList<FeedbackListObject> implements ActionLis
      */
     @Override
     public void actionPerformed(ActionEvent action) {
+        if (selectedObj != null) selectedObj.react();
         if (action.getSource().equals(gotoSourceMenuItem)) {
-            loadAssociatedSourceCode();
+            selectedObj.react();
         } else if (action.getSource().equals(dmAddMenuItem)) {
+            //This should only happen with "check against the datamap" errors
+            if (! (selectedObj instanceof FeedbackEntryOpNode)) return; //should not happen!
+            FeedbackEntryOpNode entry = (FeedbackEntryOpNode)selectedObj;
+
+            //Create a non-validated datamap entry to resolve this issue
             OperatorWindow opWin = MainFrame.getMainFrame().getOperatorWindow();
-            Vector<FeedbackListObject> vecErrors = new Vector<>();
-            opWin.generateDataMapForOneError(selectedObj, vecErrors);
+            Vector<FeedbackListEntry> vecErrors = new Vector<>();
+            opWin.generateDataMapForOneError(entry, vecErrors);
             MainFrame.getMainFrame().setFeedbackListData(vecErrors);
         }
     }
 
     /**
-     * loadAssociatedSourceCode
-     * <p>
-     * loads the associated source code file and highlights the line that
-     * caused the feedback for the currently selected feedback list object
-     */
-    private void loadAssociatedSourceCode() {
-        if (this.selectedObj == null) return;  //nothing to do
-
-        if (!this.selectedObj.isDataMapObject()) {
-            this.selectedObj.DisplayFile();
-        } else {
-            // check to see if datamap already opened
-            DataMap dm = MainFrame.getMainFrame().getDesktopPane().dmGetDataMap(this.selectedObj.getDataMapId());
-
-            // Only open a new window if the window does not already exist
-            if (dm != null) {
-                try {
-                    if (dm.isIcon()) {
-                        dm.setIcon(false);
-                    }
-                    dm.setSelected(true);
-                    dm.moveToFront();
-                } catch (java.beans.PropertyVetoException pve) {
-                    System.err.println("Guess we can't do that");
-                }
-            } else {
-                dm = this.selectedObj.createDataMap(MainFrame.getMainFrame().getOperatorWindow().getDatamap());
-                MainFrame mf = MainFrame.getMainFrame();
-                mf.addDataMap(dm);
-                mf.getDesktopPane().dmAddDataMap(this.selectedObj.getDataMapId(), dm);
-                dm.setVisible(true);
-            }
-            // Highlight the proper node within the datamap
-            dm.selectEdge(this.selectedObj.getEdge());
-        }
-
-    }//loadAssociatedSourceCode
-
-    /**
      * Override the default implementation.  We want to update the
      * DefaultListModel class we're using here.
      */
-    public void setListData(Vector<? extends FeedbackListObject> v) {
+    public void setListData(Vector<? extends FeedbackListEntry> v) {
         dlm.removeAllElements();
         //dlm has no "addAll" method so roll our own
         dlm.ensureCapacity(v.size());
-        for (FeedbackListObject flobj : v) {
+        for (FeedbackListEntry flobj : v) {
             dlm.addElement(flobj);
         }
 
@@ -178,9 +145,9 @@ public class FeedbackList extends JList<FeedbackListObject> implements ActionLis
 
 
     /**
-     * class FeedbackCellRenderer displays a FeedbackListObject's text as a clickable label in an appropriate color
+     * class FeedbackCellRenderer displays a FeedbackListEntry's text as a clickable label in an appropriate color
      */
-    static class FeedbackCellRenderer extends JLabel implements ListCellRenderer<FeedbackListObject> {
+    static class FeedbackCellRenderer extends JLabel implements ListCellRenderer<FeedbackListEntry> {
         private static final long serialVersionUID = 20221225L;
 
         private static final Border EMPTY_BORDER = BorderFactory.createEmptyBorder(2, 2, 2, 2);
@@ -193,23 +160,23 @@ public class FeedbackList extends JList<FeedbackListObject> implements ActionLis
         }
 
         public Component getListCellRendererComponent(JList list,
-                                                      FeedbackListObject value,
+                                                      FeedbackListEntry entry,
                                                       int index,
                                                       boolean isSelected,
                                                       boolean cellHasFocus) {
-            setText(value.toString());
+            setText(entry.toString());
+            setForeground(list.getForeground());
+            setBackground(list.getBackground());
+
+            //special fonts and colors
             if (isSelected) {
                 setForeground(list.getSelectionForeground());
                 setBackground(list.getSelectionBackground());
-            } else if (value.hasNode()) {
-                if (value.isError()) {
-                    setForeground(FEEDBACK_ERROR_COLOR);
-                } else {
-                    setForeground(FEEDBACK_MSG_COLOR);
-                }
-            } else {
-                setForeground(list.getForeground());
-                setBackground(list.getBackground());
+            } else if (entry.isError()) {
+                setForeground(FEEDBACK_ERROR_COLOR);
+            }
+            else if (entry instanceof FeedbackEntryOpNode) {
+                setForeground(FEEDBACK_MSG_COLOR);
             }
 
 

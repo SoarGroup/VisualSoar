@@ -5,7 +5,7 @@ import edu.umich.soar.visualsoar.graph.ForeignVertex;
 import edu.umich.soar.visualsoar.graph.NamedEdge;
 import edu.umich.soar.visualsoar.graph.SoarIdentifierVertex;
 import edu.umich.soar.visualsoar.graph.SoarVertex;
-import edu.umich.soar.visualsoar.misc.FeedbackListObject;
+import edu.umich.soar.visualsoar.misc.FeedbackListEntry;
 
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
@@ -189,13 +189,13 @@ public class CheckBoxDataMapTree extends DataMapTree implements MouseListener {
         }//for
 
         //Report the success to the user
-        Vector<FeedbackListObject> msgs = new Vector<>();
-        msgs.add(new FeedbackListObject("The following entries were imported from " + foreignDM));
+        Vector<FeedbackListEntry> msgs = new Vector<>();
+        msgs.add(new FeedbackListEntry("The following entries were imported from " + foreignDM));
         for(FakeTreeNode ftn : addedFTNs) {
-            msgs.add(new FeedbackListObject("   " + ftn.stringPath()));
+            msgs.add(new FeedbackListEntry("   " + ftn.stringPath()));
         }
         if (msgs.size() > 4) {
-            msgs.add(new FeedbackListObject("Total: " + seenSoFar.size() + " new entries"));
+            msgs.add(new FeedbackListEntry("Total: " + seenSoFar.size() + " new entries"));
         }
         MainFrame.getMainFrame().setFeedbackListData(msgs);
 

@@ -57,7 +57,7 @@ public class SoarOperatorNode extends FileNode {
     protected void enableContextMenuItems() {
         super.enableContextMenuItems();
 
-        addSuboperatorItem.setEnabled(true);
+        addSubOperatorItem.setEnabled(true);
         addFileItem.setEnabled(true);
         deleteItem.setEnabled(true);
         renameItem.setEnabled(true);

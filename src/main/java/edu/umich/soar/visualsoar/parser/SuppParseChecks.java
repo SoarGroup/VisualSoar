@@ -1,6 +1,7 @@
 package edu.umich.soar.visualsoar.parser;
 
-import edu.umich.soar.visualsoar.misc.FeedbackListObject;
+import edu.umich.soar.visualsoar.misc.FeedbackEntryOpNode;
+import edu.umich.soar.visualsoar.misc.FeedbackListEntry;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorNode;
 import edu.umich.soar.visualsoar.ruleeditor.RuleEditor;
 
@@ -32,11 +33,11 @@ public class SuppParseChecks {
      * extracts the variable name from a SimpleTest object and places
      * it in the given vector (if found).
      */
-    private static void getSimpleTestVarName(Vector<String> vars, SimpleTest stest) {
+    private static void getSimpleTestVarName(Vector<String> vars, SimpleTest sTest) {
         //disjunctions can't have a variable
-        if (stest.isDisjunctionTest()) return;
+        if (sTest.isDisjunctionTest()) return;
 
-        SingleTest singleTest = stest.getRelationalTest().getSingleTest();
+        SingleTest singleTest = sTest.getRelationalTest().getSingleTest();
         if (singleTest.isConstant()) return;
         vars.add(singleTest.getVariable().getString());
     }//getSimpleTestVarName
@@ -53,12 +54,12 @@ public class SuppParseChecks {
             ConjunctiveTest cjTest = test.getConjunctiveTest();
             Iterator<SimpleTest> stIter = cjTest.getSimpleTests();
             while (stIter.hasNext()) {
-                SimpleTest stest = stIter.next();
-                getSimpleTestVarName(vars, stest);
+                SimpleTest sTest = stIter.next();
+                getSimpleTestVarName(vars, sTest);
             }
         } else {
-            SimpleTest stest = test.getSimpleTest();
-            getSimpleTestVarName(vars, stest);
+            SimpleTest sTest = test.getSimpleTest();
+            getSimpleTestVarName(vars, sTest);
         }
     }//getAttrTestVarNames
 
@@ -71,11 +72,11 @@ public class SuppParseChecks {
      * <p>
      * Warning:  recursive method
      */
-    private static void getPCondVarNames(Vector<String> vars, PositiveCondition pcond) {
+    private static void getPCondVarNames(Vector<String> vars, PositiveCondition pCond) {
         //A PCond can be a conjunction of conditions...
-        if (pcond.isConjunction()) {
+        if (pCond.isConjunction()) {
             //Recurse into the conjunction
-            Iterator<Condition> conjIter = pcond.getConjunction();
+            Iterator<Condition> conjIter = pCond.getConjunction();
             while (conjIter.hasNext()) {
                 Condition cond = conjIter.next();
                 getPCondVarNames(vars, cond.getPositiveCondition());
@@ -84,10 +85,10 @@ public class SuppParseChecks {
         }
 
         //Identifier
-        vars.add(pcond.getConditionForOneIdentifier().getVariable().getString());
+        vars.add(pCond.getConditionForOneIdentifier().getVariable().getString());
 
         //attribute-value tests
-        Iterator<AttributeValueTest> avIter = pcond.getConditionForOneIdentifier().getAttributeValueTests();
+        Iterator<AttributeValueTest> avIter = pCond.getConditionForOneIdentifier().getAttributeValueTests();
         while (avIter.hasNext()) {
             AttributeValueTest avt = avIter.next();
 
@@ -122,12 +123,12 @@ public class SuppParseChecks {
             ConjunctiveTest cjTest = test.getConjunctiveTest();
             Iterator<SimpleTest> stIter = cjTest.getSimpleTests();
             while (stIter.hasNext()) {
-                SimpleTest stest = stIter.next();
-                getSimpleTestVarName(vars, stest);
+                SimpleTest sTest = stIter.next();
+                getSimpleTestVarName(vars, sTest);
             }
         } else {
-            SimpleTest stest = test.getSimpleTest();
-            getSimpleTestVarName(vars, stest);
+            SimpleTest sTest = test.getSimpleTest();
+            getSimpleTestVarName(vars, sTest);
         }
     }//getValTestVarNames
 
@@ -141,8 +142,8 @@ public class SuppParseChecks {
         Vector<String> lhsVars = new Vector<>();
         Iterator<Condition> condIter = prod.getConditionSide().getConditions();
         while (condIter.hasNext()) {
-            PositiveCondition pcond = condIter.next().getPositiveCondition();
-            getPCondVarNames(lhsVars, pcond);
+            PositiveCondition pCond = condIter.next().getPositiveCondition();
+            getPCondVarNames(lhsVars, pCond);
         }//while
 
         return lhsVars;
@@ -152,17 +153,17 @@ public class SuppParseChecks {
      * checkUndefinedVarRHS
      * <p>
      * This method reviews a parsed productions for the case where
-     * a variable is being used as an idenifier on the RHS but that
+     * a variable is being used as an identifier on the RHS but that
      * variable has neither been matched on LHS nor created on the RHS.
      * <p>
-     * The Soar Parser apparently doesn't check for this so I'm doing
+     * The Soar Parser apparently doesn't check for this, so I'm doing
      * it manually here.
      *
      * @param opNode the file containing this production
      * @param prod   a SoarProduction object to inspect
-     * @return null if no error found or a FeedbackListObject otherwise
+     * @return null if no error found or a FeedbackListEntry otherwise
      */
-    public static FeedbackListObject checkUndefinedVarRHS(OperatorNode opNode, SoarProduction prod) throws ParseException {
+    public static FeedbackListEntry checkUndefinedVarRHS(OperatorNode opNode, SoarProduction prod) throws ParseException {
         Vector<String> createdVars = getLHSVarNames(prod);
         //Used vars are saved as Pair so their line number can be referenced
         Vector<Pair> usedVars = new Vector<>();
@@ -207,7 +208,7 @@ public class SuppParseChecks {
         for (Pair p : usedVars) {
             if (createdVars.contains(p.getString())) continue;
             String errString = "Variable " + p.getString() + " is used on the RHS but is never tested or created.";
-            return new FeedbackListObject(opNode, p.getLine(), errString);
+            return new FeedbackEntryOpNode(opNode, p.getLine(), errString);
         }
 
         return null;
@@ -217,7 +218,7 @@ public class SuppParseChecks {
     /**
      * findMissingBracePositions
      * <p>
-     * given the text of some Soar code, this method indentifies
+     * given the text of some Soar code, this method identifies
      * if there is an unmatched brace at the end of any of its productions.
      * This is a syntax error that can be fixed automatically for the user.
      *
@@ -241,7 +242,7 @@ public class SuppParseChecks {
         }
         prodStarts.add(text.length()); //add end of file to support loop below
 
-        //Iterate over each sub-section of the text that contains a production
+        //Iterate over each subsection of the text that contains a production
         for(int pos = 0; pos < prodStarts.size() - 1; ++pos) {
             int start = prodStarts.get(pos);
             int end = prodStarts.get(pos + 1) - 1;
@@ -327,12 +328,12 @@ public class SuppParseChecks {
      * inserts closing braces at given positions.  This is meant to be used
      * with the return value of {@link #findMissingBracePositions}
      *
-     * @param text           the to to insert them
+     * @param text           the text to insert them into
      * @param bracePositions where to insert them
      * @return the revised text
      */
     public static String insertBraces(String text, Vector<Integer> bracePositions) {
-        if (bracePositions.size() > 0) {
+        if (!bracePositions.isEmpty()) {
             int offset = 0;
             for (int i : bracePositions) {
                 String before = text.substring(0, i + offset);
@@ -366,14 +367,14 @@ public class SuppParseChecks {
             byte[] bytes = Files.readAllBytes(fPath);
             fileContent = new String(bytes);
         } catch (IOException e) {
-            //quiet fail.  This inot important enough to do anything about it
+            //quiet fail.  This is not important enough to do anything about it
             //and likely to be caught by other parts of VisualSoar.
             return;
         }
 
         //insert braces as needed
         Vector<Integer> bracePositions = findMissingBracePositions(fileContent);
-        if (bracePositions.size() > 0) {
+        if (!bracePositions.isEmpty()) {
             fileContent = insertBraces(fileContent, bracePositions);
 
             //Write back the file

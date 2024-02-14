@@ -4,7 +4,8 @@ import edu.umich.soar.visualsoar.MainFrame;
 import edu.umich.soar.visualsoar.datamap.SoarWorkingMemoryModel;
 import edu.umich.soar.visualsoar.dialogs.FileAlreadyExistsDialog;
 import edu.umich.soar.visualsoar.graph.SoarIdentifierVertex;
-import edu.umich.soar.visualsoar.misc.FeedbackListObject;
+import edu.umich.soar.visualsoar.misc.FeedbackEntryOpNode;
+import edu.umich.soar.visualsoar.misc.FeedbackListEntry;
 import edu.umich.soar.visualsoar.parser.ParseException;
 import edu.umich.soar.visualsoar.parser.SoarProduction;
 import edu.umich.soar.visualsoar.parser.TokenMgrError;
@@ -22,7 +23,7 @@ import java.util.Vector;
 
 /**
  * This is the basis class for which all operator nodes are
- * derived. Known sub-classes:
+ * derived. Known subclasses:
  *
  * @author Brad Jones
  * @version 0.5a 5 Aug 1999
@@ -45,7 +46,7 @@ public abstract class OperatorNode extends VSTreeNode implements java.io.Seriali
 // Data Members
 ////////////////////////////////////////////////////////////////////
     static protected JPopupMenu contextMenu = new JPopupMenu();
-    static protected JMenuItem addSuboperatorItem = new JMenuItem("Add a Suboperator...");
+    static protected JMenuItem addSubOperatorItem = new JMenuItem("Add a Sub-Operator...");
     static protected JMenuItem addTopFolderItem = new JMenuItem("Add a Top-Level Folder...");
     static protected JMenuItem addFileItem = new JMenuItem("Add a File...");
 
@@ -67,11 +68,11 @@ public abstract class OperatorNode extends VSTreeNode implements java.io.Seriali
     static protected JMenuItem generateDataMapItem = new JMenuItem("Generate Datamap Entries for this File");
 
     static {
-        contextMenu.add(addSuboperatorItem);
-        addSuboperatorItem.addActionListener(new ActionListener() {
+        contextMenu.add(addSubOperatorItem);
+        addSubOperatorItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 OperatorWindow ow = (OperatorWindow) contextMenu.getInvoker();
-                ow.addSuboperator();
+                ow.addSubOperator();
             }
         });
 
@@ -199,8 +200,8 @@ public abstract class OperatorNode extends VSTreeNode implements java.io.Seriali
         contextMenu.add(generateDataMapItem);
         generateDataMapItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent ae) {
-                Vector<FeedbackListObject> parseErrors = new Vector<>();
-                Vector<FeedbackListObject> vecGenerations = new Vector<>();
+                Vector<FeedbackListEntry> parseErrors = new Vector<>();
+                Vector<FeedbackListEntry> vecGenerations = new Vector<>();
 
                 //Generate the new entries
                 OperatorWindow ow = (OperatorWindow) contextMenu.getInvoker();
@@ -285,36 +286,36 @@ public abstract class OperatorNode extends VSTreeNode implements java.io.Seriali
 
     /**
      * Given a parse exception discovered in this node, this function converts
-     * it into a FeedbackListObject that can be placed in the feedback window.
+     * it into a FeedbackListEntry that can be placed in the feedback window.
      *
      * @param node the OperatorNode that contains the parse error
      * @param pe   the ParseException to parse
-     * @return the generated FeedbackListObject
+     * @return the generated FeedbackListEntry
      */
-    public static FeedbackListObject parseParseException(OperatorNode node,
-                                                         ParseException pe) {
+    public static FeedbackListEntry parseParseException(OperatorNode node,
+                                                        ParseException pe) {
         String parseError = pe.toString();
-        //Strip away unncessary full qualifiers on class name
+        //Strip away unnecessary full qualifiers on class name
         parseError = parseError.replace("edu.umich.soar.visualsoar.", "");
         int lineNum = getLineNumFromErr(parseError);
-        return new FeedbackListObject(node, lineNum, parseError, true);
+        return new FeedbackEntryOpNode(node, lineNum, parseError, true);
     }
 
     /**
      * non-static version of the above that uses 'this' for the opNode
      */
-    public FeedbackListObject parseParseException(ParseException pe) {
+    public FeedbackListEntry parseParseException(ParseException pe) {
         return parseParseException(this, pe);
     }
 
     /**
      * Given a lexical error discovered in this node, this function converts
-     * it into a FeedbackListObject that can be placed in the feedback window.
+     * it into a FeedbackListEntry that can be placed in the feedback window.
      *
      * @param tme the TokeMgrError to parse
-     * @return the generated FeedbackListObject
+     * @return the generated FeedbackListEntry
      */
-    public FeedbackListObject parseTokenMgrError(TokenMgrError tme) {
+    public FeedbackListEntry parseTokenMgrError(TokenMgrError tme) {
         String parseError = tme.toString();
 
         //Extract the line number
@@ -330,7 +331,7 @@ public abstract class OperatorNode extends VSTreeNode implements java.io.Seriali
         //Build the full error string
         String errString = getFileName() + lineNumStr + parseError;
 
-        return new FeedbackListObject(this, lineNum, errString, tokenString);
+        return new FeedbackEntryOpNode(this, lineNum, errString, tokenString);
     }
 
 
@@ -341,7 +342,7 @@ public abstract class OperatorNode extends VSTreeNode implements java.io.Seriali
         return null;
     }
 
-    public boolean CheckAgainstDatamap(Vector<FeedbackListObject> vecErrors) throws IOException {
+    public boolean CheckAgainstDatamap(Vector<FeedbackListEntry> vecErrors) throws IOException {
         return false;           // no datamap errors found
     }
 
@@ -403,7 +404,7 @@ public abstract class OperatorNode extends VSTreeNode implements java.io.Seriali
         //This gets turned invisible sometimes so have it visible by default here
         addTopFolderItem.setVisible(true);
 
-        addSuboperatorItem.setEnabled(true);
+        addSubOperatorItem.setEnabled(true);
         addFileItem.setEnabled(true);
         addTopFolderItem.setEnabled(true);
         impasseSubMenu.setEnabled(true);
@@ -423,7 +424,7 @@ public abstract class OperatorNode extends VSTreeNode implements java.io.Seriali
      * disables context menu items that shouldn't be available when project is read-only
      */
     private void disableContextMenuItemsForReadOnlyMode() {
-        addSuboperatorItem.setEnabled(false);
+        addSubOperatorItem.setEnabled(false);
         addFileItem.setEnabled(false);
         addTopFolderItem.setEnabled(false);
         impasseSubMenu.setEnabled(false);
@@ -470,7 +471,7 @@ public abstract class OperatorNode extends VSTreeNode implements java.io.Seriali
         File[] children = theFile.listFiles();
 
         //Recursive case:
-        if ((children != null) && (children.length > 0)) {
+        if (children != null) {
             for (File child : children) {
                 recursiveDelete(child);
             }
@@ -616,7 +617,7 @@ public abstract class OperatorNode extends VSTreeNode implements java.io.Seriali
      * @param newOperatorName the name of the new operator to add
      */
     public OperatorNode addSubOperator(OperatorWindow operatorWindow, SoarWorkingMemoryModel swmm, String newOperatorName) throws IOException {
-        System.err.println("addSuboperator: This should never get called");
+        System.err.println("addSubOperator: This should never get called");
         return null;
     }
 
@@ -763,7 +764,7 @@ public abstract class OperatorNode extends VSTreeNode implements java.io.Seriali
         final String TAB = "\t";
 
         // This hash table is used to associate pointers with id's
-        // given a pointer you can lookup the id for the that node
+        // given a pointer you can look up the id for the that node
         // this is used for parent id lookup
         Hashtable<OperatorNode, Integer> ht = new Hashtable<>();
         int nodeID = 0;
@@ -830,15 +831,15 @@ public abstract class OperatorNode extends VSTreeNode implements java.io.Seriali
 
     public abstract void copyStructures(File folderToWriteTo) throws IOException;
 
-    public abstract void searchTestDataMap(SoarWorkingMemoryModel swmm, Vector<FeedbackListObject> errors);
+    public abstract void searchTestDataMap(SoarWorkingMemoryModel swmm, Vector<FeedbackListEntry> errors);
 
-    public abstract void searchCreateDataMap(SoarWorkingMemoryModel swmm, Vector<FeedbackListObject> errors);
+    public abstract void searchCreateDataMap(SoarWorkingMemoryModel swmm, Vector<FeedbackListEntry> errors);
 
-    public abstract void searchTestNoCreateDataMap(SoarWorkingMemoryModel swmm, Vector<FeedbackListObject> errors);
+    public abstract void searchTestNoCreateDataMap(SoarWorkingMemoryModel swmm, Vector<FeedbackListEntry> errors);
 
-    public abstract void searchCreateNoTestDataMap(SoarWorkingMemoryModel swmm, Vector<FeedbackListObject> errors);
+    public abstract void searchCreateNoTestDataMap(SoarWorkingMemoryModel swmm, Vector<FeedbackListEntry> errors);
 
-    public abstract void searchNoTestNoCreateDataMap(SoarWorkingMemoryModel swmm, Vector<FeedbackListObject> errors);
+    public abstract void searchNoTestNoCreateDataMap(SoarWorkingMemoryModel swmm, Vector<FeedbackListEntry> errors);
 
     public abstract void source(Writer w) throws IOException;
 

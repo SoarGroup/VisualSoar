@@ -2,7 +2,7 @@ package edu.umich.soar.visualsoar.operatorwindow;
 
 import edu.umich.soar.visualsoar.datamap.SoarWorkingMemoryModel;
 import edu.umich.soar.visualsoar.graph.SoarIdentifierVertex;
-import edu.umich.soar.visualsoar.misc.FeedbackListObject;
+import edu.umich.soar.visualsoar.misc.FeedbackListEntry;
 
 import java.io.File;
 import java.io.IOException;
@@ -60,19 +60,19 @@ public class FileOperatorNode extends SoarOperatorNode {
      * File Operator Nodes do not own their own datamaps, therefore, it is
      * redundant to search the datamap associated with a FileOperatorNode.
      */
-    public void searchTestDataMap(SoarWorkingMemoryModel swmm, Vector<FeedbackListObject> errors) {
+    public void searchTestDataMap(SoarWorkingMemoryModel swmm, Vector<FeedbackListEntry> errors) {
     }
 
-    public void searchCreateDatamap(SoarWorkingMemoryModel swmm, Vector<FeedbackListObject> errors) {
+    public void searchCreateDatamap(SoarWorkingMemoryModel swmm, Vector<FeedbackListEntry> errors) {
     }
 
-    public void searchTestNoCreateDatamap(SoarWorkingMemoryModel swmm, Vector<FeedbackListObject> errors) {
+    public void searchTestNoCreateDatamap(SoarWorkingMemoryModel swmm, Vector<FeedbackListEntry> errors) {
     }
 
-    public void searchCreateNoTestDatamap(SoarWorkingMemoryModel swmm, Vector<FeedbackListObject> errors) {
+    public void searchCreateNoTestDatamap(SoarWorkingMemoryModel swmm, Vector<FeedbackListEntry> errors) {
     }
 
-    public void searchNoTestNoCreateDatamap(SoarWorkingMemoryModel swmm, Vector<FeedbackListObject> errors) {
+    public void searchNoTestNoCreateDatamap(SoarWorkingMemoryModel swmm, Vector<FeedbackListEntry> errors) {
     }
 
     /*

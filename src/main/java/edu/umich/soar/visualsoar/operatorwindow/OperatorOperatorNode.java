@@ -5,7 +5,7 @@ import edu.umich.soar.visualsoar.datamap.SoarWorkingMemoryModel;
 import edu.umich.soar.visualsoar.graph.EnumerationVertex;
 import edu.umich.soar.visualsoar.graph.NamedEdge;
 import edu.umich.soar.visualsoar.graph.SoarVertex;
-import edu.umich.soar.visualsoar.misc.FeedbackListObject;
+import edu.umich.soar.visualsoar.misc.FeedbackListEntry;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -44,7 +44,7 @@ public class OperatorOperatorNode extends SoarOperatorNode {
         isHighLevel = true;
     }
 
-    public void searchTestDataMap(SoarWorkingMemoryModel swmm, Vector<FeedbackListObject> errors) {
+    public void searchTestDataMap(SoarWorkingMemoryModel swmm, Vector<FeedbackListEntry> errors) {
         // if high-level, then search datamap
         if (isHighLevel()) {
             DataMap dataMap = new DataMap(swmm, dataMapId, toString());
@@ -53,7 +53,7 @@ public class OperatorOperatorNode extends SoarOperatorNode {
     }
 
     public void searchCreateDataMap(SoarWorkingMemoryModel swmm,
-                                    Vector<FeedbackListObject> errors) {
+                                    Vector<FeedbackListEntry> errors) {
         // if high-level, then search datamap
         if (isHighLevel()) {
             DataMap dataMap = new DataMap(swmm, dataMapId, toString());
@@ -62,7 +62,7 @@ public class OperatorOperatorNode extends SoarOperatorNode {
     }
 
     public void searchTestNoCreateDataMap(SoarWorkingMemoryModel swmm,
-                                          Vector<FeedbackListObject> errors) {
+                                          Vector<FeedbackListEntry> errors) {
         // if high-level, then search datamap
         if (isHighLevel()) {
             DataMap dataMap = new DataMap(swmm, dataMapId, toString());
@@ -71,7 +71,7 @@ public class OperatorOperatorNode extends SoarOperatorNode {
     }
 
     public void searchCreateNoTestDataMap(SoarWorkingMemoryModel swmm,
-                                          Vector<FeedbackListObject> errors) {
+                                          Vector<FeedbackListEntry> errors) {
         // if high-level, then search datamap
         if (isHighLevel()) {
             DataMap dataMap = new DataMap(swmm, dataMapId, toString());
@@ -80,7 +80,7 @@ public class OperatorOperatorNode extends SoarOperatorNode {
     }
 
     public void searchNoTestNoCreateDataMap(SoarWorkingMemoryModel swmm,
-                                            Vector<FeedbackListObject> errors) {
+                                            Vector<FeedbackListEntry> errors) {
         // if high-level, then search datamap
         if (isHighLevel()) {
             DataMap dataMap = new DataMap(swmm, dataMapId, toString());

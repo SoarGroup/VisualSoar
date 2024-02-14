@@ -1,7 +1,7 @@
 package edu.umich.soar.visualsoar.datamap;
 
 import edu.umich.soar.visualsoar.graph.*;
-import edu.umich.soar.visualsoar.misc.FeedbackListObject;
+import edu.umich.soar.visualsoar.misc.FeedbackListEntry;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorNode;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorWindow;
 import edu.umich.soar.visualsoar.parser.SoarProduction;
@@ -524,7 +524,7 @@ public class SoarWorkingMemoryModel {
      * @see DefaultCheckerErrorHandler
      * @see DataMapChecker#check
      */
-    public List<FeedbackListObject> checkProduction(OperatorNode current, SoarIdentifierVertex sv, SoarProduction sp) {
+    public List<FeedbackListEntry> checkProduction(OperatorNode current, SoarIdentifierVertex sv, SoarProduction sp) {
         TriplesExtractor triplesExtractor = new TriplesExtractor(sp);
         DefaultCheckerErrorHandler dceh = new DefaultCheckerErrorHandler(current, sp.getName(), sp.getStartLine());
         DataMapChecker.check(this, sv, triplesExtractor, dceh);
@@ -545,7 +545,7 @@ public class SoarWorkingMemoryModel {
      * @see DefaultCheckerErrorHandler
      * @see DataMapChecker#complete
      */
-    public Vector<FeedbackListObject> checkGenerateProduction(SoarIdentifierVertex sv, SoarProduction sp, OperatorNode current) {
+    public Vector<FeedbackListEntry> checkGenerateProduction(SoarIdentifierVertex sv, SoarProduction sp, OperatorNode current) {
         TriplesExtractor triplesExtractor = new TriplesExtractor(sp);
         DefaultCheckerErrorHandler dceh = new DefaultCheckerErrorHandler(current, sp.getName(), sp.getStartLine());
         DataMapChecker.complete(this, sv, triplesExtractor, dceh, current);
@@ -560,10 +560,10 @@ public class SoarWorkingMemoryModel {
      *
      * @author Andrew Nuxoll (27 Nov 2022)
      */
-    public Vector<FeedbackListObject> checkGenerateSingleEntry(SoarIdentifierVertex sv,
-                                                               SoarProduction sp,
-                                                               OperatorNode current,
-                                                               FeedbackListObject errToFix) {
+    public Vector<FeedbackListEntry> checkGenerateSingleEntry(SoarIdentifierVertex sv,
+                                                              SoarProduction sp,
+                                                              OperatorNode current,
+                                                              FeedbackListEntry errToFix) {
         //Find the triple associated with this error
         TriplesExtractor triplesExtractor = new TriplesExtractor(sp);
         DefaultCheckerErrorHandler dceh = new DefaultCheckerErrorHandler(current, sp.getName(), sp.getStartLine());

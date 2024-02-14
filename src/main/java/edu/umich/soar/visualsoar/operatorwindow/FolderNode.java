@@ -2,7 +2,7 @@ package edu.umich.soar.visualsoar.operatorwindow;
 
 import edu.umich.soar.visualsoar.MainFrame;
 import edu.umich.soar.visualsoar.datamap.SoarWorkingMemoryModel;
-import edu.umich.soar.visualsoar.misc.FeedbackListObject;
+import edu.umich.soar.visualsoar.misc.FeedbackListEntry;
 
 import javax.swing.*;
 import java.io.*;
@@ -198,7 +198,7 @@ public class FolderNode extends OperatorNode implements java.io.Serializable {
         deleteItem.setEnabled(false);
 
         if (name.equals("elaborations")) {
-            addSuboperatorItem.setEnabled(false);
+            addSubOperatorItem.setEnabled(false);
         }
 
         //non-special folders may be deleted
@@ -307,23 +307,23 @@ public class FolderNode extends OperatorNode implements java.io.Serializable {
     }
 
     public void searchTestDataMap(SoarWorkingMemoryModel swmm,
-                                  Vector<FeedbackListObject> errors) {
+                                  Vector<FeedbackListEntry> errors) {
     }
 
     public void searchCreateDataMap(SoarWorkingMemoryModel swmm,
-                                    Vector<FeedbackListObject> errors) {
+                                    Vector<FeedbackListEntry> errors) {
     }
 
     public void searchTestNoCreateDataMap(SoarWorkingMemoryModel swmm,
-                                          Vector<FeedbackListObject> errors) {
+                                          Vector<FeedbackListEntry> errors) {
     }
 
     public void searchCreateNoTestDataMap(SoarWorkingMemoryModel swmm,
-                                          Vector<FeedbackListObject> errors) {
+                                          Vector<FeedbackListEntry> errors) {
     }
 
     public void searchNoTestNoCreateDataMap(SoarWorkingMemoryModel swmm,
-                                            Vector<FeedbackListObject> errors) {
+                                            Vector<FeedbackListEntry> errors) {
     }
 
 }

@@ -5,7 +5,7 @@ import edu.umich.soar.visualsoar.datamap.DataMap;
 import edu.umich.soar.visualsoar.datamap.SoarWorkingMemoryModel;
 import edu.umich.soar.visualsoar.graph.SoarIdentifierVertex;
 import edu.umich.soar.visualsoar.graph.SoarVertex;
-import edu.umich.soar.visualsoar.misc.FeedbackListObject;
+import edu.umich.soar.visualsoar.misc.FeedbackListEntry;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultTreeModel;
@@ -222,27 +222,27 @@ public class OperatorRootNode extends FolderNode implements java.io.Serializable
         sourceRecursive();
     }
 
-    public void searchTestDataMap(SoarWorkingMemoryModel swmm, Vector<FeedbackListObject> errors) {
+    public void searchTestDataMap(SoarWorkingMemoryModel swmm, Vector<FeedbackListEntry> errors) {
         DataMap dataMap = new DataMap(swmm, swmm.getTopstate(), "");
         errors.addAll(dataMap.searchTestDataMap(swmm.getTopstate(), toString()));
     }
 
-    public void searchCreateDataMap(SoarWorkingMemoryModel swmm, Vector<FeedbackListObject> errors) {
+    public void searchCreateDataMap(SoarWorkingMemoryModel swmm, Vector<FeedbackListEntry> errors) {
         DataMap dataMap = new DataMap(swmm, swmm.getTopstate(), "");
         errors.addAll(dataMap.searchCreateDataMap(swmm.getTopstate(), toString()));
     }
 
-    public void searchTestNoCreateDataMap(SoarWorkingMemoryModel swmm, Vector<FeedbackListObject> errors) {
+    public void searchTestNoCreateDataMap(SoarWorkingMemoryModel swmm, Vector<FeedbackListEntry> errors) {
         DataMap dataMap = new DataMap(swmm, swmm.getTopstate(), "");
         errors.addAll(dataMap.searchTestNoCreateDataMap(swmm.getTopstate(), toString()));
     }
 
-    public void searchCreateNoTestDataMap(SoarWorkingMemoryModel swmm, Vector<FeedbackListObject> errors) {
+    public void searchCreateNoTestDataMap(SoarWorkingMemoryModel swmm, Vector<FeedbackListEntry> errors) {
         DataMap dataMap = new DataMap(swmm, swmm.getTopstate(), "");
         errors.addAll(dataMap.searchCreateNoTestDataMap(swmm.getTopstate(), toString()));
     }
 
-    public void searchNoTestNoCreateDataMap(SoarWorkingMemoryModel swmm, Vector<FeedbackListObject> errors) {
+    public void searchNoTestNoCreateDataMap(SoarWorkingMemoryModel swmm, Vector<FeedbackListEntry> errors) {
         DataMap dataMap = new DataMap(swmm, swmm.getTopstate(), "");
         errors.addAll(dataMap.searchNoTestNoCreateDataMap(swmm.getTopstate(), toString()));
     }

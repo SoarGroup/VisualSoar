@@ -716,11 +716,20 @@ public class RuleEditor extends CustomInternalFrame {
             return null;
         }
 
-        // Now go through the editor text trying to find the end
-        // of the name.  Right now we currently define the end
-        // to be a space, newline, or '('.
-        //
-        // TODO: Is this the correct way to find the name?
+        int nEndPos = findEndOfName(nFirstOpenBrace, text);
+
+        // Return the name to the caller
+        return text.substring(nStartPos, nEndPos);
+    }
+
+    /**
+     * Go through the editor text trying to find the end of the name.
+     * Right now we currently define the end to be a space, newline, or '('.
+     *
+     * TODO: Is this the correct/best way to do this??
+     */
+
+    private static int findEndOfName(int nFirstOpenBrace, String text) {
         int nCurrentSearchIndex = nFirstOpenBrace + 1;
         while (nCurrentSearchIndex < text.length()) {
             // See if we have found a character which ends the name
@@ -735,11 +744,8 @@ public class RuleEditor extends CustomInternalFrame {
         }
 
         // Last character in the name
-        int nEndPos = nCurrentSearchIndex;
-
-        // Return the name to the caller
-        return text.substring(nStartPos, nEndPos);
-    }
+        return nCurrentSearchIndex;
+    }//findEndOfName
 
     // 3P
     //This method returns the production name that the cursor is currently over.
@@ -776,21 +782,7 @@ public class RuleEditor extends CustomInternalFrame {
         // to be a space, newline, or '('.
         //
         // TODO: Is this the correct way to find the name?
-        int nCurrentSearchIndex = nFirstOpenBrace + 1;
-        while (nCurrentSearchIndex < text.length()) {
-            // See if we have found a character which ends the name
-            if (text.charAt(nCurrentSearchIndex) == ' ' ||
-                    text.charAt(nCurrentSearchIndex) == '\n' ||
-                    text.charAt(nCurrentSearchIndex) == '(') {
-                break;
-            }
-
-            // Go to the next character
-            nCurrentSearchIndex++;
-        }
-
-        // Last character in the name
-        int nEndPos = nCurrentSearchIndex;
+        int nEndPos = findEndOfName(nFirstOpenBrace, text);
 
         // Return the name to the caller
         return text.substring(nStartPos, nEndPos);
@@ -1284,14 +1276,12 @@ public class RuleEditor extends CustomInternalFrame {
         parentMenu.addSeparator();
         //user template list
         Vector<String> customTemplates = Prefs.getCustomTemplates();
-        if (customTemplates.size() > 0) {
+        if (!customTemplates.isEmpty()) {
             for (String templateName : customTemplates) {
                 File ctFile = Prefs.getCustomTemplateFile(templateName);
-                if (ctFile != null) {
-                    JMenuItem currentTemplateItem = new JMenuItem(templateName);
-                    currentTemplateItem.addActionListener(new InsertCustomTemplateAction(ctFile.getAbsolutePath()));
-                    parentMenu.add(currentTemplateItem);
-                }
+                JMenuItem currentTemplateItem = new JMenuItem(templateName);
+                currentTemplateItem.addActionListener(new InsertCustomTemplateAction(ctFile.getAbsolutePath()));
+                parentMenu.add(currentTemplateItem);
             }
             parentMenu.addSeparator();
         }
@@ -1644,8 +1634,8 @@ public class RuleEditor extends CustomInternalFrame {
         }
 
         public void actionPerformed(ActionEvent ae) {
-            List<FeedbackListObject> errors = new LinkedList<>();
-            Vector<FeedbackListObject> vecErrors = new Vector<>();
+            List<FeedbackListEntry> errors = new LinkedList<>();
+            Vector<FeedbackListEntry> vecErrors = new Vector<>();
 
             try {
                 Vector<SoarProduction> prodVec = parseProductions();
@@ -1656,16 +1646,16 @@ public class RuleEditor extends CustomInternalFrame {
             } catch (TokenMgrError tme) {
                 String errMsg = "Could not check productions due to syntax Error:";
                 errMsg += tme.getMessage();
-                vecErrors.add(new FeedbackListObject(errMsg));
+                vecErrors.add(new FeedbackListEntry(errMsg));
             } catch (ParseException pe) {
                 String errMsg = "Could not check productions due to syntax Error:";
-                vecErrors.add(new FeedbackListObject(errMsg));
+                vecErrors.add(new FeedbackListEntry(errMsg));
                 vecErrors.add(associatedNode.parseParseException(pe));
             }
 
             if ((errors.isEmpty()) && (vecErrors.isEmpty())) {
                 String msg = "No errors detected in " + getFile();
-                vecErrors.add(new FeedbackListObject(msg));
+                vecErrors.add(new FeedbackListEntry(msg));
             } else {
                 EnumerationIteratorWrapper e =
                         new EnumerationIteratorWrapper(errors.iterator());
@@ -1675,10 +1665,10 @@ public class RuleEditor extends CustomInternalFrame {
                         String numberString =
                                 errorString.substring(errorString.indexOf("(") + 1,
                                         errorString.indexOf(")"));
-                        vecErrors.add(new FeedbackListObject(associatedNode,
-                                Integer.parseInt(numberString),
-                                errorString,
-                                true));
+                        vecErrors.add(new FeedbackEntryOpNode(associatedNode,
+                                                              Integer.parseInt(numberString),
+                                                              errorString,
+                                                       true));
                     } catch (NumberFormatException nfe) {
                         System.out.println("Never happen");
                     }
@@ -1801,10 +1791,10 @@ public class RuleEditor extends CustomInternalFrame {
         }
 
         private boolean isCommentedOut(String text) {
-            if (text.length() == 0) return false;
+            if (text.isEmpty()) return false;
             String[] lines = text.split("[\r\n]+");
             for (String line : lines) {
-                if (line.trim().length() == 0) return false;
+                if (line.trim().isEmpty()) return false;
                 if (line.trim().charAt(0) != '#') return false;
             }
             return true;
@@ -1818,7 +1808,7 @@ public class RuleEditor extends CustomInternalFrame {
                 return; //shouldn't happen...
             }
             String selectedText = editorPane.getSelectedText();
-            if ((selectedText == null) || (selectedText.length() == 0)) {
+            if ((selectedText == null) || (selectedText.isEmpty())) {
                 return; //also shouldn't happen
             }
 
@@ -1994,7 +1984,7 @@ public class RuleEditor extends CustomInternalFrame {
          * @param completeMatches List of Strings representing possible attributes to be displayed
          */
         private void display(List<String> completeMatches) {
-            if (completeMatches.size() == 0) {
+            if (completeMatches.isEmpty()) {
                 MainFrame.getMainFrame().setStatusBarMsg("no auto-complete matches found");
             }
             else {
@@ -2096,7 +2086,7 @@ public class RuleEditor extends CustomInternalFrame {
 
 
         private void complete(int pos, String userType, List<String> completeMatches) {
-            if (completeMatches.size() == 0) {
+            if (completeMatches.isEmpty()) {
                 return;
             }
 
@@ -2178,7 +2168,7 @@ public class RuleEditor extends CustomInternalFrame {
             matches = dataMap.matches(dataMap.getTopstate(), sp, "<$$>");
         }
         List<String> completeMatches = new LinkedList<>();
-        //Warning: This iterator can't be given a parameter.  See my note
+        //Ignore Compiler Warning: This iterator can't be given a parameter.  See my note
         // below and in DataMapMatcher.addConstraint() -:AMN:
         Iterator i = matches.iterator();
         while (i.hasNext()) {

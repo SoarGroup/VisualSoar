@@ -2,7 +2,7 @@ package edu.umich.soar.visualsoar.operatorwindow;
 
 import edu.umich.soar.visualsoar.MainFrame;
 import edu.umich.soar.visualsoar.datamap.SoarWorkingMemoryModel;
-import edu.umich.soar.visualsoar.misc.FeedbackListObject;
+import edu.umich.soar.visualsoar.misc.FeedbackListEntry;
 import edu.umich.soar.visualsoar.parser.*;
 import edu.umich.soar.visualsoar.ruleeditor.RuleEditor;
 
@@ -166,7 +166,7 @@ public class FileNode extends OperatorNode implements java.io.Serializable {
     @Override
     protected void enableContextMenuItems() {
         super.enableContextMenuItems();
-        addSuboperatorItem.setEnabled(false);
+        addSubOperatorItem.setEnabled(false);
         addFileItem.setEnabled(false);
         addTopFolderItem.setEnabled(false);
         openDataMapItem.setEnabled(false);
@@ -238,14 +238,14 @@ public class FileNode extends OperatorNode implements java.io.Serializable {
      *
      * @param vecErrors any errors found are <em>added</em> to this vector
      */
-    public boolean CheckAgainstDatamap(Vector<FeedbackListObject> vecErrors) throws IOException {
+    public boolean CheckAgainstDatamap(Vector<FeedbackListEntry> vecErrors) throws IOException {
         Vector<SoarProduction> parsedProds = new Vector<>();
 
         //First:  is the code syntactically correct?
         try {
             parsedProds = parseProductions();
         } catch (ParseException pe) {
-            vecErrors.add(new FeedbackListObject("Unable to check productions due to parse error"));
+            vecErrors.add(new FeedbackListEntry("Unable to check productions due to parse error"));
             vecErrors.add(this.parseParseException(pe));
             return true;
         } catch (TokenMgrError tme) {
@@ -256,7 +256,7 @@ public class FileNode extends OperatorNode implements java.io.Serializable {
         if ((parsedProds != null) && (!parsedProds.isEmpty())) {
             //Use a temp vector so that vecErrors doesn't get cleared
             //TODO:  is temp vector really needed?
-            Vector<FeedbackListObject> tmpErrors = new Vector<>();
+            Vector<FeedbackListEntry> tmpErrors = new Vector<>();
             OperatorWindow ow = MainFrame.getMainFrame().getOperatorWindow();
             ow.checkProductions((OperatorNode) getParent(), this, parsedProds, tmpErrors);
             if (!tmpErrors.isEmpty()) {
@@ -451,23 +451,23 @@ public class FileNode extends OperatorNode implements java.io.Serializable {
     }
 
     public void searchTestDataMap(SoarWorkingMemoryModel swmm,
-                                  Vector<FeedbackListObject> errors) {
+                                  Vector<FeedbackListEntry> errors) {
     }
 
     public void searchCreateDataMap(SoarWorkingMemoryModel swmm,
-                                    Vector<FeedbackListObject> errors) {
+                                    Vector<FeedbackListEntry> errors) {
     }
 
     public void searchTestNoCreateDataMap(SoarWorkingMemoryModel swmm,
-                                          Vector<FeedbackListObject> errors) {
+                                          Vector<FeedbackListEntry> errors) {
     }
 
     public void searchCreateNoTestDataMap(SoarWorkingMemoryModel swmm,
-                                          Vector<FeedbackListObject> errors) {
+                                          Vector<FeedbackListEntry> errors) {
     }
 
     public void searchNoTestNoCreateDataMap(SoarWorkingMemoryModel swmm,
-                                            Vector<FeedbackListObject> errors) {
+                                            Vector<FeedbackListEntry> errors) {
     }
 
 }

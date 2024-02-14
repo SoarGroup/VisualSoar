@@ -35,8 +35,6 @@ import java.awt.event.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.*;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.*;
 
@@ -237,7 +235,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 	 *
      * @param v the vector list of feedback data
      */
-	public void setFeedbackListData(Vector<FeedbackListObject> v)
+	public void setFeedbackListData(Vector<FeedbackListEntry> v)
     {
 		feedbackList.setListData(v);
 	}
@@ -1161,8 +1159,8 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 
 	/**
 	 * ghettoFileChooser
-	 *
-	 * Uses a FileDialog to select a file with a specific extension
+	 * <p>
+	 * Uses a FileDialog to select a file with a .vsa extension
 	 * It's called "ghetto" because the original author of this code wrote
 	 * this about it:
 	 * 	  FIXME: This is totally ghetto
@@ -1170,15 +1168,13 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 	 * 	    so I've converted the code to use a FileDialog instead
 	 * 	    Unfortunately, FilenameFilters don't work on Windows XP, so I have
 	 * 	    to set the file to *.vsa.  Yuck.
-	 *
+	 * <p>
 	 * It's quite possible JFileChooser no longer crashes OS/X but why fix
 	 * something that seems to be working fine?    -- Nuxoll, Jan 2024
 	 *
-	 * @param extension  a file extension to limit the selection to (e.g., "vsa"
-	 *
 	 * @return the file selected (or null if none)
 	 */
-	private File ghettoFileChooser(final String extension) {
+	private File ghettoFileChooser() {
 
 		FileDialog fileChooser = new FileDialog(MainFrame.this, "Open Project", FileDialog.LOAD);
 		File dir = new File(Prefs.openFolder.get());
@@ -1187,10 +1183,10 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		}
 		fileChooser.setFilenameFilter(new FilenameFilter() {
 			public boolean accept(File dir, String name) {
-				return name.toLowerCase().endsWith(extension);
+				return name.toLowerCase().endsWith("vsa");
 			}
 		});
-		fileChooser.setFile("*." + extension);
+		fileChooser.setFile("*.vsa");
 		fileChooser.setVisible(true);
 		if (fileChooser.getFile() == null) return null;
 		return new File(fileChooser.getDirectory(), fileChooser.getFile());
@@ -1341,7 +1337,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
         {
 			try 
             {
-				File file = ghettoFileChooser("vsa");
+				File file = ghettoFileChooser();
 				if(file != null) {
 					//Get rid of the old project (if it exists)
 					if (operatorWindow != null) {
@@ -1874,10 +1870,10 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 	{
 		String[] lines = result.split("\n") ;
 
-		Vector<FeedbackListObject> v = new Vector<>();
+		Vector<FeedbackListEntry> v = new Vector<>();
 
 		for (String line : lines) {
-			v.add(new FeedbackListObject(line));
+			v.add(new FeedbackListEntry(line));
 		}
 
 		setFeedbackListData(v);
@@ -2000,7 +1996,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		JProgressBar progressBar;
 		JDialog progressDialog;
         Vector<OperatorNode> vecEntities;
-        Vector<FeedbackListObject> vecErrors = new Vector<>();
+        Vector<FeedbackListEntry> vecErrors = new Vector<>();
         int entityNum = 0;
 
         public UpdateThread(Vector<OperatorNode> v, String title)
@@ -2049,7 +2045,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
         /**
          * Override this function in your subclass.  It scans the given entity
          * for errors and places them in the vecErrors vector.  vecErrors can
-         * either contain Strings or FeedbackListObjects
+         * either contain Strings or FeedbackListEntry objects
          * @param o object to scan
          * @return true if any errors were found
          */
@@ -2073,7 +2069,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 
                 if(!anyErrors)
                 {
-                    vecErrors.add(new FeedbackListObject("There were no errors detected in this project."));
+                    vecErrors.add(new FeedbackListEntry("There were no errors detected in this project."));
                 }
                 setFeedbackListData(vecErrors);
                 SwingUtilities.invokeLater(finish);
@@ -2140,7 +2136,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
                 {
                 	String msg = "Error!  Project Corrupted:  Unable to open file: "
 								+ opNode.getFileName();
-                    vecErrors.add(new FeedbackListObject(msg));
+                    vecErrors.add(new FeedbackListEntry(msg));
                     return true;
                 }
                     
@@ -2148,7 +2144,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
                 {
 					String msg ="Error!  Unable to write to file: "
 								+ opNode.getFileName();
-							vecErrors.add(new FeedbackListObject(msg));
+							vecErrors.add(new FeedbackListEntry(msg));
                     return true;
                 }
 
@@ -2247,7 +2243,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 								//Construct and add a FeedbackListObj
 								String errStr = "Warning: " + allName + " name conflicts with " + prodName + " in " + opNode.getFileName();
 								int lineNo = opNode.getLineNumForString(prodName);
-								FeedbackListObject flobj = new FeedbackListObject(opNode, lineNo, errStr);
+								FeedbackListEntry flobj = new FeedbackEntryOpNode(opNode, lineNo, errStr);
 								vecErrors.add(flobj);
 							}
 						}
@@ -2273,7 +2269,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 					// created or tested
                     if ((prods != null) && (!prods.isEmpty())) {
 						for (SoarProduction sprod : prods) {
-							FeedbackListObject flobj = SuppParseChecks.checkUndefinedVarRHS(opNode, sprod);
+							FeedbackListEntry flobj = SuppParseChecks.checkUndefinedVarRHS(opNode, sprod);
 							if (flobj != null) {
 								vecErrors.add(flobj);
 								return true;
@@ -2429,7 +2425,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
         //This function performs the actual error check
         //The datamap associated with the given operator node is scanned and a
         //list of errors is placed in the given Vector.
-        abstract public void searchDatamap(OperatorNode opNode, Vector<FeedbackListObject> v);
+        abstract public void searchDatamap(OperatorNode opNode, Vector<FeedbackListEntry> v);
         
 		class DatamapTestThread extends UpdateThread 
         {
@@ -2452,14 +2448,14 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
                 //For the first run, do a normal production check
                 if (numChecks < numNodes)
                 {
-                    Vector<FeedbackListObject> v = new Vector<>();
+                    Vector<FeedbackListEntry> v = new Vector<>();
                     boolean rc = opNode.CheckAgainstDatamap(v);
                     if (rc)
                     {
                     	String msg = "WARNING:  datamap errors were found in "
 									+ opNode.getFileName()
 									+ "'s productions.  This may invalidate the current scan.";
-                        vecErrors.add(new FeedbackListObject(msg));
+                        vecErrors.add(new FeedbackListEntry(msg));
                     }
 
                     numChecks++;
@@ -2467,7 +2463,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
                 }//if
 
                 //For the second run, do the requested datamap scan
-                Vector<FeedbackListObject> v = new Vector<>();
+                Vector<FeedbackListEntry> v = new Vector<>();
                 searchDatamap(opNode, v);
                 numChecks++;
                 
@@ -2491,7 +2487,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
     {
 		private static final long serialVersionUID = 20221225L;
 
-		public void searchDatamap(OperatorNode opNode, Vector<FeedbackListObject> v)
+		public void searchDatamap(OperatorNode opNode, Vector<FeedbackListEntry> v)
         {
             opNode.searchTestDataMap(operatorWindow.getDatamap(), v);
         }//searchDatamap
@@ -2505,7 +2501,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
     {
 		private static final long serialVersionUID = 20221225L;
 
-		public void searchDatamap(OperatorNode opNode, Vector<FeedbackListObject> v)
+		public void searchDatamap(OperatorNode opNode, Vector<FeedbackListEntry> v)
         {
             opNode.searchCreateDataMap(operatorWindow.getDatamap(), v);
         }//searchDatamap
@@ -2518,7 +2514,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
     {
 		private static final long serialVersionUID = 20221225L;
 
-		public void searchDatamap(OperatorNode opNode, Vector<FeedbackListObject> v)
+		public void searchDatamap(OperatorNode opNode, Vector<FeedbackListEntry> v)
         {
             opNode.searchTestNoCreateDataMap(operatorWindow.getDatamap(), v);
         }//searchDatamap
@@ -2531,7 +2527,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
     {
 		private static final long serialVersionUID = 20221225L;
 
-		public void searchDatamap(OperatorNode opNode, Vector<FeedbackListObject> v)
+		public void searchDatamap(OperatorNode opNode, Vector<FeedbackListEntry> v)
         {
             opNode.searchCreateNoTestDataMap(operatorWindow.getDatamap(), v);
         }//searchDatamap
@@ -2544,7 +2540,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
     {
 		private static final long serialVersionUID = 20221225L;
 
-		public void searchDatamap(OperatorNode opNode, Vector<FeedbackListObject> v)
+		public void searchDatamap(OperatorNode opNode, Vector<FeedbackListEntry> v)
         {
             opNode.searchNoTestNoCreateDataMap(operatorWindow.getDatamap(), v);
         }//searchDatamap
@@ -2599,11 +2595,11 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 			int value, min;
 			 
 
-			Vector<FeedbackListObject> errors = new Vector<>();
+			Vector<FeedbackListEntry> errors = new Vector<>();
 			int repCount = 0;
 			Enumeration<TreeNode> bfe = operatorWindow.breadthFirstEnumeration();
 			OperatorNode current;
-			Vector<FeedbackListObject> vecErrors = new Vector<>();
+			Vector<FeedbackListEntry> vecErrors = new Vector<>();
 
 			public UpdateThread() 
             {
@@ -2704,90 +2700,6 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 			setEnabled(false);
 		}
 
-		/**
-		 * getDMFile
-		 *
-		 * Given a project's .vsa file, this method returns its .dm file or null if doesn't exist
-		 */
-		public File getDMFile(File vsaFile) {
-			//What is the file name (no path, no ext) of this project
-			String projName = vsaFile.getName();
-			projName = projName.substring(0, projName.length() - 4);  //chop off .vsa
-
-			//construct what the .dm filename should be
-			String dmPath = vsaFile.getAbsolutePath();
-			dmPath = dmPath.substring(0, dmPath.length() - 4); //chop off .vsa
-			dmPath += File.separatorChar + projName + ".dm";
-
-			//verify it's there
-			File dmFile = new File(dmPath);
-			if (!dmFile.exists()) {
-				setStatusBarMsg("Could not find datamap file for this project.  Expected:  " + dmFile.getName());
-				return null;
-			}
-
-			return dmFile;
-		}//getDMFile
-
-		/**
-		 * reads the data in a given project (.vsa) file into this.swmm
-		 *
-		 * @return the foreign datamap file name (or null on failure)
-		 */
-		private String readDataIntoSWMM(File vsaFile) {
-			//Calculate the name of the .dm file for this project
-			File dataMapFile = getDMFile(vsaFile);
-			if (dataMapFile == null) {
-				System.err.println("Error: null vsa file given to readDataIntoSWMM on foreign datamap import.");
-				return null;
-			}
-
-			//Calculate the name of the comment file
-			File commentFile = new File(dataMapFile.getParent() + File.separator + "comment.dm");
-
-			//Create the swmm object
-			this.swmm = new SoarWorkingMemoryModel(false, dataMapFile.getName());
-
-			//Open the dm files for reading
-			Reader rDM;
-			try {
-				rDM = new FileReader(dataMapFile);
-			} catch (FileNotFoundException fnfe) {
-				setStatusBarError("Error opening " + dataMapFile.getName() + ": " + fnfe.getMessage());
-				return null;
-			}
-			Reader rComment = null;
-			try {
-				if (commentFile.exists()) {
-					rComment = new FileReader(commentFile);
-				}
-			} catch (FileNotFoundException fnfe) {
-				setStatusBarError("Error opening " + commentFile.getName() + ": " + fnfe.getMessage());
-				return null;
-			}
-
-			//Read the datamap into memory
-			try {
-				SoarWorkingMemoryReader.read(this.swmm, rDM, rComment);
-			} catch (IOException ioe) {
-				setStatusBarError("Unable to parse " + dataMapFile.getName() + ": " + ioe.getMessage());
-				return null;
-			}
-
-			//Close the readers
-			try {
-				rDM.close();
-			} catch (IOException e) {
-				//nothing to do?
-			}
-			try {
-				if (rComment != null) rComment.close();
-			} catch (IOException e) {
-				//nothing to do?
-			}
-
-			return dataMapFile.getAbsolutePath();
-		}//readDataIntoSWMM
 
 		public void actionPerformed(ActionEvent ae) {
 			//Only one datamap window can be open at a time
@@ -2797,10 +2709,12 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 			}
 
 			//The user selects a datamap file to import from
-			File vsaFile = ghettoFileChooser("vsa");
+			File vsaFile = ghettoFileChooser();
 			if (vsaFile == null) return;
 
-			String dmFilename = readDataIntoSWMM(vsaFile);
+			//read the data from the foreign datamap into a local SWMM object
+			this.swmm = new SoarWorkingMemoryModel(false, vsaFile.getName());
+			String dmFilename = SoarWorkingMemoryReader.readDataIntoSWMMfromVSA(vsaFile, this.swmm);
 			if (dmFilename == null) return;
 
 			//Create a datamap with checkboxes
@@ -2913,12 +2827,12 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 			}
 
 			//Extract production names/locations from each file
-			Vector<FeedbackListObject> vecFeedback = new Vector<>();
+			Vector<FeedbackListEntry> vecFeedback = new Vector<>();
 			for(OperatorNode opNode : vecNodes) {
 				Vector<String> prodNames = opNode.getProdNames();
 				for(String prodName : prodNames) {
 					int lineNo = opNode.getLineNumForString(prodName);
-					FeedbackListObject flobj = new FeedbackListObject(opNode, lineNo, prodName);
+					FeedbackListEntry flobj = new FeedbackEntryOpNode(opNode, lineNo, prodName);
 					vecFeedback.add(flobj);
 				}
 			}

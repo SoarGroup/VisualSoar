@@ -2,7 +2,7 @@ package edu.umich.soar.visualsoar.operatorwindow;
 
 import edu.umich.soar.visualsoar.datamap.DataMap;
 import edu.umich.soar.visualsoar.datamap.SoarWorkingMemoryModel;
-import edu.umich.soar.visualsoar.misc.FeedbackListObject;
+import edu.umich.soar.visualsoar.misc.FeedbackListEntry;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -48,7 +48,7 @@ public class ImpasseOperatorNode extends SoarOperatorNode {
      * for any portions of the datamap that were not tested by any productions
      * and are not located within the output-link.
      */
-    public void searchTestDataMap(SoarWorkingMemoryModel swmm, Vector<FeedbackListObject> errors) {
+    public void searchTestDataMap(SoarWorkingMemoryModel swmm, Vector<FeedbackListEntry> errors) {
         // if high-level, then search datamap
         if (isHighLevel()) {
 
@@ -57,7 +57,7 @@ public class ImpasseOperatorNode extends SoarOperatorNode {
         }
     }
 
-    public void searchCreateDataMap(SoarWorkingMemoryModel swmm, Vector<FeedbackListObject> errors) {
+    public void searchCreateDataMap(SoarWorkingMemoryModel swmm, Vector<FeedbackListEntry> errors) {
 
         // if high-level, then search datamap
         if (isHighLevel()) {
@@ -68,7 +68,7 @@ public class ImpasseOperatorNode extends SoarOperatorNode {
     }
 
     public void searchTestNoCreateDataMap(SoarWorkingMemoryModel swmm,
-                                          Vector<FeedbackListObject> errors) {
+                                          Vector<FeedbackListEntry> errors) {
 
         // if high-level, then search datamap
         if (isHighLevel()) {
@@ -80,7 +80,7 @@ public class ImpasseOperatorNode extends SoarOperatorNode {
     }
 
     public void searchCreateNoTestDataMap(SoarWorkingMemoryModel swmm,
-                                          Vector<FeedbackListObject> errors) {
+                                          Vector<FeedbackListEntry> errors) {
 
         // if high-level, then search datamap
         if (isHighLevel()) {
@@ -92,7 +92,7 @@ public class ImpasseOperatorNode extends SoarOperatorNode {
     }
 
     public void searchNoTestNoCreateDataMap(SoarWorkingMemoryModel swmm,
-                                            Vector<FeedbackListObject> errors) {
+                                            Vector<FeedbackListEntry> errors) {
 
         // if high-level, then search datamap
         if (isHighLevel()) {

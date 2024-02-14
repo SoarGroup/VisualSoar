@@ -92,7 +92,7 @@ public class LinkNode extends FileNode {
     protected void enableContextMenuItems() {
         super.enableContextMenuItems();
 
-        addSuboperatorItem.setEnabled(true);
+        addSubOperatorItem.setEnabled(true);
         openDataMapItem.setEnabled(true);
         deleteItem.setEnabled(true);
         renameItem.setEnabled(false);
