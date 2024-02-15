@@ -7,6 +7,7 @@ import edu.umich.soar.visualsoar.graph.NamedEdge;
 import edu.umich.soar.visualsoar.graph.SoarIdentifierVertex;
 import edu.umich.soar.visualsoar.graph.SoarVertex;
 import edu.umich.soar.visualsoar.misc.FeedbackEntryDatamap;
+import edu.umich.soar.visualsoar.misc.FeedbackEntryForeignDatamap;
 import edu.umich.soar.visualsoar.misc.FeedbackEntryOpNode;
 import edu.umich.soar.visualsoar.misc.FeedbackListEntry;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorNode;
@@ -1203,6 +1204,51 @@ public class DataMapTree extends JTree implements ClipboardOwner {
         return true;
     }//verifyRoot
 
+    /**
+     * findOrLoadForeignDatamap
+     *
+     * is a helper method for {@link #validateAllForeignEntries} that retrieves a {@link SoarWorkingMemoryModel}
+     * object for the V1() vertex on a given {@link NamedEdge}.  If it's already been loaded it's returned,
+     * otherwise it's loaded and added to the cache.
+     *
+     * Caveat: theEdge.V1() must be a {@link ForeignVertex}!  The method does not double-check this.
+     *
+     * @param theEdge       the NamedEdge that refers to the external datamap
+     * @param cache         external datamaps that have already been loaded
+     * @param vecIssues     if the load fails, a message is placed here as a side effect
+     *
+     * @return the loaded datamap or null on failure
+     */
+    private SoarWorkingMemoryModel findOrLoadForeignDatamap(NamedEdge theEdge,
+                                                            HashMap<String, SoarWorkingMemoryModel> cache,
+                                                            Vector<FeedbackEntryForeignDatamap> vecIssues) {
+        //Try to retrieve it from the HashMap
+        ForeignVertex fv = (ForeignVertex)theEdge.V1();
+        SoarWorkingMemoryModel fSWMM = cache.get(fv.getForeignDMName());
+        if (fSWMM != null) return fSWMM;
+
+        //SWMM needs to be loaded.  Does the associated .dm file still exist?
+        File foreignDMFile = new File(fv.getForeignDMName());
+        if (! foreignDMFile.exists()) {
+            vecIssues.add(new FeedbackEntryForeignDatamap(swmm, null, theEdge, null, FeedbackEntryForeignDatamap.ERR_DM_FILE_UNREADABLE));
+            return null;
+        }
+
+        //The .dm file exists, can it be read?
+        SoarWorkingMemoryModel foreignSWMM = new SoarWorkingMemoryModel(false, foreignDMFile.getName());
+        SoarWorkingMemoryReader.readDataIntoSWMM(foreignDMFile, foreignSWMM);
+        if (foreignSWMM == null) {
+            vecIssues.add(new FeedbackEntryForeignDatamap(swmm, null, theEdge, null, FeedbackEntryForeignDatamap.ERR_DM_FILE_UNREADABLE));
+            return null;
+        }
+
+        //Hooray!  Cache our successful read for future use
+        cache.put(fv.getForeignDMName(), foreignSWMM);
+
+        return fSWMM;
+
+    }//findOrLoadForeignDatamap
+
     private void validateForeignSubtree(SoarWorkingMemoryModel fSWMM, ForeignVertex fv) {
         //TODO
     }//validateForeignSubtree
@@ -1216,10 +1262,13 @@ public class DataMapTree extends JTree implements ClipboardOwner {
     public void validateAllForeignEntries() {
         if (! verifyRoot()) return;
 
+        //Any issues found are recorded here
+        Vector<FeedbackEntryForeignDatamap> vecIssues = new Vector<>();
+
         //A mapping of filenames to foreign SWMMs so they can be loaded once and cached as needed
         HashMap<String, SoarWorkingMemoryModel> foreignSWMMs = new HashMap<>();
 
-        //Iterate over every level 1 vertex to find ForeignVertex roots, then validate them
+        //Iterate over every level 1 vertex to find ForeignVertex roots, then validate their sub-trees
         FakeTreeNode root = (FakeTreeNode) getModel().getRoot();
         Enumeration<NamedEdge> edges = swmm.emanatingEdges(root.getEnumeratingVertex());
         while (edges.hasMoreElements()) {
@@ -1228,14 +1277,8 @@ public class DataMapTree extends JTree implements ClipboardOwner {
                 ForeignVertex fv = (ForeignVertex)theEdge.V1();
 
                 //See if the foreign SWMM has already been loaded
-                SoarWorkingMemoryModel fSWMM = foreignSWMMs.get(fv.getForeignDMName());
-                if (fSWMM == null) {
-                    //SWMM needs to be loaded.  Does the associated .dm file still exist?
-                    File foreignDMFile = new File(fv.getForeignDMName());
-                    if (!foreignDMFile.exists()) {
-
-                    }
-                }
+                SoarWorkingMemoryModel fSWMM = findOrLoadForeignDatamap(theEdge, foreignSWMMs, vecIssues);
+                if (fSWMM == null) continue;
 
                 validateForeignSubtree(fSWMM, fv);
             }
