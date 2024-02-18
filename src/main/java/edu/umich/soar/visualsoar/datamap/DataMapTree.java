@@ -6,11 +6,9 @@ import edu.umich.soar.visualsoar.graph.ForeignVertex;
 import edu.umich.soar.visualsoar.graph.NamedEdge;
 import edu.umich.soar.visualsoar.graph.SoarIdentifierVertex;
 import edu.umich.soar.visualsoar.graph.SoarVertex;
-import edu.umich.soar.visualsoar.misc.FeedbackEntryDatamap;
-import edu.umich.soar.visualsoar.misc.FeedbackEntryForeignDatamap;
-import edu.umich.soar.visualsoar.misc.FeedbackEntryOpNode;
-import edu.umich.soar.visualsoar.misc.FeedbackListEntry;
+import edu.umich.soar.visualsoar.misc.*;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorNode;
+import edu.umich.soar.visualsoar.operatorwindow.OperatorRootNode;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorWindow;
 import edu.umich.soar.visualsoar.parser.ParseException;
 import edu.umich.soar.visualsoar.parser.SoarProduction;
@@ -119,6 +117,7 @@ public class DataMapTree extends JTree implements ClipboardOwner {
 
     private static final JMenuItem ValidateEntryItem = new JMenuItem("Validate Entry");
     private static final JMenuItem ValidateAllItem = new JMenuItem("Validate All");
+    private static final JMenuItem ReimportSubtree = new JMenuItem("Re-Import Subtree");
 
     private static final JMenu ChangeTypeSubMenu = new JMenu("Change Datamap Type...");
     private static final JMenuItem ChangeToIdentifierItem = new JMenuItem("to Identifier");
@@ -166,6 +165,7 @@ public class DataMapTree extends JTree implements ClipboardOwner {
 
         contextMenu.add(ValidateEntryItem);
         contextMenu.add(ValidateAllItem);
+        contextMenu.add(ReimportSubtree);
 
 
         ChangeTypeSubMenu.add(ChangeToIdentifierItem);
@@ -365,6 +365,14 @@ public class DataMapTree extends JTree implements ClipboardOwner {
                         dmt.validateAll();
                     }
                 });
+
+        ReimportSubtree.addActionListener(
+                new ActionListener() {
+                    public void actionPerformed(ActionEvent e) {
+                        DataMapTree dmt = (DataMapTree) contextMenu.getInvoker();
+                        dmt.reimportSubtree();
+                    }
+                });
     }//static
 
 
@@ -533,6 +541,9 @@ public class DataMapTree extends JTree implements ClipboardOwner {
         else if (theVertex instanceof ForeignVertex) {
             setContextMenuItemsToAllowChanges(false);
             RemoveAttributeItem.setEnabled(true); //the only edit allowed
+
+            //If this is a level-1 foreign subtree it can be re-imported
+            ReimportSubtree.setEnabled(ftn.getParent().isRoot());
         }
 
         //some restrictions:  leaf nodes
@@ -1227,30 +1238,227 @@ public class DataMapTree extends JTree implements ClipboardOwner {
         SoarWorkingMemoryModel fSWMM = cache.get(fv.getForeignDMName());
         if (fSWMM != null) return fSWMM;
 
-        //SWMM needs to be loaded.  Does the associated .dm file still exist?
-        File foreignDMFile = new File(fv.getForeignDMName());
+        //SWMM needs to be loaded.  Since the path is relative, we need to append it to the location of our .vsa file
+        String projRoot = ((OperatorRootNode) MainFrame.getMainFrame().getOperatorWindow().getModel().getRoot()).getFullPathStart();
+        String foreignDMFullPath = projRoot + File.separator + fv.getForeignDMName();
+
+        //Does the foreign .dm file still exist?
+        File foreignDMFile = new File(foreignDMFullPath);
         if (! foreignDMFile.exists()) {
             vecIssues.add(new FeedbackEntryForeignDatamap(swmm, null, theEdge, null, FeedbackEntryForeignDatamap.ERR_DM_FILE_UNREADABLE));
             return null;
         }
 
         //The .dm file exists, can it be read?
-        SoarWorkingMemoryModel foreignSWMM = new SoarWorkingMemoryModel(false, foreignDMFile.getName());
-        SoarWorkingMemoryReader.readDataIntoSWMM(foreignDMFile, foreignSWMM);
-        if (foreignSWMM == null) {
+        fSWMM = new SoarWorkingMemoryModel(false, foreignDMFile.getName());
+        String dmName = SoarWorkingMemoryReader.readDataIntoSWMM(foreignDMFile, fSWMM);
+        if (dmName == null) {
             vecIssues.add(new FeedbackEntryForeignDatamap(swmm, null, theEdge, null, FeedbackEntryForeignDatamap.ERR_DM_FILE_UNREADABLE));
             return null;
         }
 
         //Hooray!  Cache our successful read for future use
-        cache.put(fv.getForeignDMName(), foreignSWMM);
+        cache.put(fv.getForeignDMName(), fSWMM);
 
         return fSWMM;
 
     }//findOrLoadForeignDatamap
 
-    private void validateForeignSubtree(SoarWorkingMemoryModel fSWMM, ForeignVertex fv) {
-        //TODO
+    /** overloaded version of the above that needs fewer params */
+    private SoarWorkingMemoryModel findOrLoadForeignDatamap(NamedEdge theEdge) {
+        HashMap<String, SoarWorkingMemoryModel> cache = new HashMap<>();
+        Vector<FeedbackEntryForeignDatamap> vecIssues = new Vector<>();
+        return findOrLoadForeignDatamap(theEdge, cache, vecIssues);
+    }
+
+    /**
+     * addForeignSubTree       <!-- RECURSIVE -->
+     * <p>
+     * creates ForeignVertex objects for a given parentForeignFTN and all its descendants.  These
+     * are added to the given result vector _unless_ their id is in the seenSoFar list.
+     *
+     * @param localSWMM        the SWMM for this project's datamap
+     * @param foreignSWMM     the SWMM from the other (external) project's datamap
+     * @param foreignSV       a SoarVertex foreign datamap.  The emanating edge of this vertex will be added to the local
+     *                         datamap as {@link ForeignVertex} objects and its children will be added recursively.
+     * @param localSV          the local ForesignVertex object that is linked to the given foreignSV
+     * @param seenSoFar        a mapping of the foreign IDs of all {@link SoarIdentifierVertex} objects seen so far from
+     *                         the foreign datamap to the ForeignVertex objects added to this project's datamap.  This is
+     *                         used to handle links in the foreign database and to avoid infinite recursion (e.g., base case).
+     * @param stringRep        is a String representation of foreignSV as a path from the root.
+     *                                Example:  "<s> ^io.input-link.block.on-top"
+     *                         When making the initial this method pass in a string of the form:  "<s> ^foo"
+     * @param addedEntries     as the recursion proceeds, it keeps a list of all new {@link ForeignVertex}-based
+     *                         entries that have been added to the datamap, so they can be reported to the
+     *                         user at the end.
+     * @author Andrew Nuxoll
+     * created:  Feb 2024
+     */
+    protected void addForeignSubTree(SoarWorkingMemoryModel localSWMM,
+                                     SoarWorkingMemoryModel foreignSWMM,
+                                     SoarVertex foreignSV,
+                                     ForeignVertex localSV,
+                                     HashMap<Integer, ForeignVertex> seenSoFar,
+                                     String stringRep,
+                                     Vector<String> addedEntries) {
+
+        //base case: foreign vertex is a leaf node
+        if (! foreignSV.allowsEmanatingEdges()) {
+            return;
+        }
+
+        Enumeration<NamedEdge> iter = foreignSWMM.emanatingEdges(foreignSV);
+        while(iter.hasMoreElements()) {
+            //Extract the child SoarVertex from the foreign DM
+            NamedEdge neChild = iter.nextElement();
+            SoarVertex foreignChildSV = neChild.V1();
+
+            //To avoid insanity, skip any foreign vertexes in the foreign datamap.
+            if (foreignChildSV instanceof ForeignVertex) continue;
+
+            //If this child has been seen before (due to copy/link in datamap) retrieve its associated ForeignVertex
+            ForeignVertex childFV = null;
+            int childId = foreignChildSV.getValue();
+            if (foreignChildSV instanceof SoarIdentifierVertex) {
+                childFV = seenSoFar.get(childId);  //this will most often return null
+            }
+
+            //If we've not seen this SoarIdVertex before, create a new ForeignVertex in the local SWMM
+            boolean newForeignVertex = (childFV == null);  //this will usually be true
+            if (newForeignVertex) {
+                int newId = localSWMM.getNextVertexId();
+                childFV = new ForeignVertex(newId, localSV.getForeignDMName(), foreignChildSV);
+                localSWMM.addVertex(childFV);
+            }
+
+            //Add the new entry in the local datamap
+            localSWMM.addTriple(localSV, neChild.getName(), childFV);
+
+            //Record the addition to report to the user later
+            String childRep = stringRep + "." + neChild;
+            addedEntries.add(childRep);
+
+            //If this is a new ForeignVertex, then record the associated foreign SIV and recurse to add its children
+            if (newForeignVertex) {
+                seenSoFar.put(childId, childFV);
+
+                if (foreignChildSV.allowsEmanatingEdges()) {
+                    addForeignSubTree(localSWMM, foreignSWMM, neChild.V1(), childFV, seenSoFar, childRep, addedEntries);
+                }
+            }
+
+        }//for
+
+    }//addForeignSubTree
+
+
+    /**
+     * getForeignSoarVertex
+     *
+     * attempts to retrieve the SoarVertex in a foreign datamap thar
+     * corresponds to a ForeignVertex object in the local datamap
+     *
+     * @return null on failure
+     */
+    protected SoarVertex getForeignSoarVertex(SoarWorkingMemoryModel fSWMM, ForeignVertex fv) {
+        SoarVertex foreignSV = fSWMM.getVertexForId(fv.getCopyOfForeignSoarVertex().getValue());
+        boolean found = false;
+        if (foreignSV != null) {
+            //Verify that this foreign vertex still has the right name and is at level 1
+            SoarVertex root = fSWMM.getTopstate();
+            Enumeration<NamedEdge> foreignLevel1Edges = fSWMM.emanatingEdges(root);
+            while (foreignLevel1Edges.hasMoreElements()) {
+                NamedEdge foreignNE = foreignLevel1Edges.nextElement();
+                SoarVertex cand = foreignNE.V1();
+                if (cand.getValue() == foreignSV.getValue()) {
+                    found = true;
+                }
+            }
+        }
+        if (!found) {
+            return null;
+        }
+        return foreignSV;
+    }//getForeignSoarVertex
+
+    /**
+         * This method re-imports a subtree of ForeignVertex objects from the associated database
+         * by simply deleting it and reloading it.
+         */
+    public void reimportSubtree() {
+        //Get the FTN and NamedEdge that correspond to the user's selection
+        TreePath path = getSelectionPath();
+        if (path == null) return;
+        FakeTreeNode ftn = ((FakeTreeNode) path.getLastPathComponent());
+        if (ftn == null) return;
+        NamedEdge ne = ftn.getEdge();
+
+        //Sanity check
+        if (! (ne.V1() instanceof ForeignVertex)) {
+            //This should never happen
+            JOptionPane.showMessageDialog(this, "Can not re-import non-foreign vertex", "Cannot re-import", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        //Load the foreign datamap that it refers to
+        ForeignVertex fv = (ForeignVertex)ne.V1();
+        SoarWorkingMemoryModel fSWMM = findOrLoadForeignDatamap(ne);
+        if (fSWMM == null) {
+            JOptionPane.showMessageDialog(this, "Unable to load foreign datamap.  Can not find: " + fv.getForeignDMName() + ".  Has it been moved or deleted?", "Cannot Re-Import", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        //Retrieve the SoarVertex that fv is referring to and init the seenSoFar list for
+        //the addForeignSubTree() method call (below)
+        SoarVertex foreignSV = getForeignSoarVertex(fSWMM, fv);
+        if (foreignSV == null) {
+            JOptionPane.showMessageDialog(this, "Unable to find the corresponding entry in" + fv.getForeignDMName() +".  Has it been deleted?" , "Cannot Re-Import", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        //Delete the old subtree
+        swmm.removeTriple(ne.V0(), ne.getName(), ne.V1());
+        parentWindow.setModified(true);
+
+        //re-load the subtree
+        HashMap<Integer, ForeignVertex> seenSoFar = new HashMap<>();
+        seenSoFar.put(foreignSV.getValue(), fv);
+        String rep = "    <s> ^" + ne.getName(); //added spaces help formatting later
+        Vector<String> addedEntries = new Vector<>();
+        addForeignSubTree(this.swmm,  fSWMM, foreignSV, fv, seenSoFar, rep, addedEntries);
+
+        //Report the results to the user
+        addedEntries.add(0, "The following " + addedEntries.size() + " entries were imported from " + fv.getForeignDMName() + ":");
+        MainFrame.getMainFrame().setFeedbackListWithStrings(addedEntries);
+
+    }//reimportSubtree
+
+    /**
+     * TODO: validateForeignSubtree
+     *       to be implemented.  See validateAllForeignEntries() below.
+     *
+     *       check out  addForeignSubTree() for hints on how to traverse SWMMs with ForeignVertexes.
+     *       You likely will need to create a HashMap cache of FTNs that are children of one vertex
+     *       so you can find them quickly when looking for a match from the other vertex.
+     *       This may require a sixth parameter.
+     *
+     * This method compares a subtree from a foreign datamap to a subtree from a local datamap.
+     * Mismatches are recorded in a given list.
+     *
+     * @param fSWMM
+     * @param foreignSV
+     * @param localSWMM
+     * @param localFV
+     * @param vecIssues
+     *
+     */
+    private void validateForeignSubtree(SoarWorkingMemoryModel fSWMM,
+                                        SoarVertex foreignSV,
+                                        SoarWorkingMemoryModel localSWMM,
+                                        ForeignVertex localFV,
+                                        Vector<FeedbackEntryForeignDatamap> vecIssues ) {
+        //TODO (see method comment)
+
     }//validateForeignSubtree
 
     /**
@@ -1258,6 +1466,11 @@ public class DataMapTree extends JTree implements ClipboardOwner {
      * <p>
      * scans all entries in the datamap that are links to entries in a foreign datamap
      * to verify that they still exist in that foreign datamap
+     *
+     * TODO:  complete this method and link it to {@link #validateAll()}
+     *        I aborted this effort when I saw it would take a few hours to do
+     *        and I'm not sure it's worth the time investment rather than just let the human
+     *        re-import.
      */
     public void validateAllForeignEntries() {
         if (! verifyRoot()) return;
@@ -1268,7 +1481,7 @@ public class DataMapTree extends JTree implements ClipboardOwner {
         //A mapping of filenames to foreign SWMMs so they can be loaded once and cached as needed
         HashMap<String, SoarWorkingMemoryModel> foreignSWMMs = new HashMap<>();
 
-        //Iterate over every level 1 vertex to find ForeignVertex roots, then validate their sub-trees
+        //Iterate over every level 1 vertex to find ForeignVertex roots, then validate their subtrees
         FakeTreeNode root = (FakeTreeNode) getModel().getRoot();
         Enumeration<NamedEdge> edges = swmm.emanatingEdges(root.getEnumeratingVertex());
         while (edges.hasMoreElements()) {
@@ -1276,11 +1489,12 @@ public class DataMapTree extends JTree implements ClipboardOwner {
             if (theEdge.V1() instanceof ForeignVertex) {
                 ForeignVertex fv = (ForeignVertex)theEdge.V1();
 
-                //See if the foreign SWMM has already been loaded
+                //See if the foreign SWMM has already been loaded (This will add to vecIssues if it returns null.)
                 SoarWorkingMemoryModel fSWMM = findOrLoadForeignDatamap(theEdge, foreignSWMMs, vecIssues);
                 if (fSWMM == null) continue;
 
-                validateForeignSubtree(fSWMM, fv);
+                //TODO
+                //validateForeignSubtree(....);
             }
         }
     }//validateAllForeignEntries

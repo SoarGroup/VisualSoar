@@ -57,11 +57,6 @@ public class DataMapTreeRenderer extends DefaultTreeCellRenderer {
                 return false;
             }
 
-            //TODO DEBUG REMOVE
-            if (ne.getName().equals("nuxtest")) {
-                int foo =3;
-            }
-
             SoarVertex sv = ne.V1();
             return (sv instanceof ForeignVertex);
         }

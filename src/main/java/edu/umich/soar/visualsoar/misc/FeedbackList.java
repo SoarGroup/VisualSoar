@@ -1,7 +1,6 @@
 package edu.umich.soar.visualsoar.misc;
 
 import edu.umich.soar.visualsoar.MainFrame;
-import edu.umich.soar.visualsoar.datamap.DataMap;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorWindow;
 
 import javax.swing.*;
@@ -115,6 +114,11 @@ public class FeedbackList extends JList<FeedbackListEntry> implements ActionList
     /**
      * Override the default implementation.  We want to update the
      * DefaultListModel class we're using here.
+     *
+     * Important Note:  You may be tempted to create an overloaded
+     * version of this method that takes a Vector<String>.  Unfortunately,
+     * if you do this, it creates a compile error: "ambiguous method call"
+     *
      */
     public void setListData(Vector<? extends FeedbackListEntry> v) {
         dlm.removeAllElements();

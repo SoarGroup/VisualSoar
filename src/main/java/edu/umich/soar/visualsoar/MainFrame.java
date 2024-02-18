@@ -235,10 +235,22 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 	 *
      * @param v the vector list of feedback data
      */
-	public void setFeedbackListData(Vector<FeedbackListEntry> v)
-    {
+	public void setFeedbackListData(Vector<FeedbackListEntry> v) {
 		feedbackList.setListData(v);
 	}
+
+
+	/**
+	 * alternative version that displays multiple strings
+	 */
+	public void setFeedbackListWithStrings(Vector<String> msgs) {
+		Vector<FeedbackListEntry> vec = new Vector<>();
+		for(String s : msgs) {
+			vec.add(new FeedbackListEntry(s));
+		}
+		setFeedbackListData(vec);
+	}
+
 
 	/**
 	 * Method updates the status bar text with a message

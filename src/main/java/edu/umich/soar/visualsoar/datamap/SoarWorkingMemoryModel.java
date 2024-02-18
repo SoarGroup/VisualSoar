@@ -165,11 +165,9 @@ public class SoarWorkingMemoryModel {
         return rep.emanatingEdges(v);
     }
 
-    /////////////////
     public Enumeration<NamedEdge> getEdges() {
         return rep.edges();
     }
-//////////////
 
     /**
      * Returns the number of vertices contained in working memory
