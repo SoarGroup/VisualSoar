@@ -1287,7 +1287,7 @@ public class DataMapTree extends JTree implements ClipboardOwner {
      *                         used to handle links in the foreign database and to avoid infinite recursion (e.g., base case).
      * @param stringRep        is a String representation of foreignSV as a path from the root.
      *                                Example:  "<s> ^io.input-link.block.on-top"
-     *                         When making the initial this method pass in a string of the form:  "<s> ^foo"
+     *                         When making the initial call to this method use a string of the form:  "<s> ^foo"
      * @param addedEntries     as the recursion proceeds, it keeps a list of all new {@link ForeignVertex}-based
      *                         entries that have been added to the datamap, so they can be reported to the
      *                         user at the end.

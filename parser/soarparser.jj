@@ -81,6 +81,9 @@ TOKEN:
 	 |<PERIOD:		".">
 	 |<PLUS:		"+">
 	 |<QMARK:		"?">
+	 |<ATPLUS:		"@+">
+	 |<ATMINUS:		"@-">
+	 |<BANGAT:		"!@">
      |<RBRACE:		"}">
 	 |<RPAREN:		")">
 	 |<TILDE:		"~">
@@ -426,6 +429,19 @@ int relation() :
 	|<EQUAL> {
 		return RelationalTest.EQ;
 	}
+	|<ATSIGN> {
+		return RelationalTest.AT;
+	}
+	|<ATPLUS> {
+		return RelationalTest.ATPLUS;
+	}
+	|<ATMINUS> {
+		return RelationalTest.ATMINUS;
+	}
+	|<BANGAT> {
+		return RelationalTest.BANGAT;
+	}
+        
 }
 
 // Ok

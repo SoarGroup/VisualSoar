@@ -59,31 +59,37 @@ public interface SoarParserConstants {
   /** RegularExpression Id. */
   int QMARK = 36;
   /** RegularExpression Id. */
-  int RBRACE = 37;
+  int ATPLUS = 37;
   /** RegularExpression Id. */
-  int RPAREN = 38;
+  int ATMINUS = 38;
   /** RegularExpression Id. */
-  int TILDE = 39;
+  int BANGAT = 39;
   /** RegularExpression Id. */
-  int LSQBRACKET = 40;
+  int RBRACE = 40;
   /** RegularExpression Id. */
-  int RSQBRACKET = 41;
+  int RPAREN = 41;
   /** RegularExpression Id. */
-  int QUOTE = 42;
+  int TILDE = 42;
   /** RegularExpression Id. */
-  int PRODTYPE = 43;
+  int LSQBRACKET = 43;
   /** RegularExpression Id. */
-  int VARIABLE = 44;
+  int RSQBRACKET = 44;
   /** RegularExpression Id. */
-  int INTEGER_CONST = 45;
+  int QUOTE = 45;
   /** RegularExpression Id. */
-  int SYMBOLIC_CONST = 46;
+  int PRODTYPE = 46;
   /** RegularExpression Id. */
-  int FLOATING_POINT_CONST = 47;
+  int VARIABLE = 47;
   /** RegularExpression Id. */
-  int EXPONENT = 48;
+  int INTEGER_CONST = 48;
   /** RegularExpression Id. */
-  int TCL_PREPROCESS = 49;
+  int SYMBOLIC_CONST = 49;
+  /** RegularExpression Id. */
+  int FLOATING_POINT_CONST = 50;
+  /** RegularExpression Id. */
+  int EXPONENT = 51;
+  /** RegularExpression Id. */
+  int TCL_PREPROCESS = 52;
 
   /** Lexical state. */
   int DEFAULT = 0;
@@ -129,6 +135,9 @@ public interface SoarParserConstants {
     "\".\"",
     "\"+\"",
     "\"?\"",
+    "\"@+\"",
+    "\"@-\"",
+    "\"!@\"",
     "\"}\"",
     "\")\"",
     "\"~\"",

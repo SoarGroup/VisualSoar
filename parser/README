@@ -30,10 +30,10 @@ Steps:
 2.  The installation should include a javacc script (likely javacc.bat on
     Windows).  Run this command and verify that you get a usage message.
 
-        ./javacc
+        javacc
 
 3.  Run the javacc script on soarparser.jj.
-        ./javacc xxx/VisualSoar/parser/soarparser.jj
+        javacc xxx/VisualSoar/parser/soarparser.jj
 
     (where "xxx" is the directory that contains the Visual Soar repository.)
 

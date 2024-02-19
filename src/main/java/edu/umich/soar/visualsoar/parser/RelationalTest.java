@@ -10,6 +10,12 @@ public class RelationalTest {
     public static final int GT = 5;
     public static final int EQ = 6;
 
+    //used for long-term identifier predicates
+    public static final int AT = 7;
+    public static final int ATPLUS = 8;
+    public static final int ATMINUS = 9;
+    public static final int BANGAT = 10;
+
     // Data Members
     private final int d_relation;
     private final SingleTest d_singleTest;
