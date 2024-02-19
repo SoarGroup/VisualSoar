@@ -162,7 +162,7 @@ public class RuleEditor extends CustomInternalFrame {
                 new InternalFrameAdapter() {
                     public void internalFrameClosing(InternalFrameEvent e) {
                         if (isModified()) {
-                            int answer = JOptionPane.showConfirmDialog(null, "Save Changes to " + fileName + "?",
+                            int answer = JOptionPane.showConfirmDialog(MainFrame.getMainFrame(), "Save Changes to " + fileName + "?",
                                     "Unsaved Changes", JOptionPane.YES_NO_CANCEL_OPTION);
                             if (answer == JOptionPane.CANCEL_OPTION) {
                                 return;

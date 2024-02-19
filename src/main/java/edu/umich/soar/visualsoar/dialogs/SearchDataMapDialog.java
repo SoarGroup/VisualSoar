@@ -171,7 +171,7 @@ public class SearchDataMapDialog extends JDialog {
                 if (foundftn != null) {
                     dmt.highlightEdge(foundftn);
                 } else {
-                    JOptionPane.showMessageDialog(null, "No more instances found");
+                    JOptionPane.showMessageDialog(MainFrame.getMainFrame(), "No more instances found");
                 }
 
                 if (!buttonPanel.keepDialog.isSelected()) {

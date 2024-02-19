@@ -359,7 +359,8 @@ public class ReplaceInProjectDialog extends JDialog {
         }   // end of while, either found string or no more strings in project
 
         if (!bfe.hasMoreElements() && !searchingRuleEditor && !outputToFeedbackList) {
-            JOptionPane.showMessageDialog(null, "No more instances of " + toFind + " found in project", "End of Search", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(MainFrame.getMainFrame(),
+                    "No more instances of " + toFind + " found in project", "End of Search", JOptionPane.INFORMATION_MESSAGE);
         }
 
     }                // end of findInProject()

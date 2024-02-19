@@ -61,7 +61,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 /////////////////////////////////////////
 // Static Members
 /////////////////////////////////////////
-	private static MainFrame s_mainFrame;
+	private static MainFrame s_mainFrame = null;
 
 ////////////////////////////////////////
 // Data Members
@@ -2643,7 +2643,10 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
                 checkNodes();
                 repCount = 0;
 
-                JOptionPane.showMessageDialog(null, "DataMap Generation Completed", "DataMap Generator", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(s_mainFrame,
+						"DataMap Generation Completed",
+						"DataMap Generator",
+						JOptionPane.INFORMATION_MESSAGE);
 			}
 
 			private void updateProgressBar(int value) 

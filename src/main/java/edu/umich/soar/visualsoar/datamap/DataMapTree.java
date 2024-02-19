@@ -929,7 +929,7 @@ public class DataMapTree extends JTree implements ClipboardOwner {
             scrollPathToVisible(path);
             setSelectionPath(path);
         } else {
-            JOptionPane.showMessageDialog(null, "Could not find a matching wme in the datamap");
+            JOptionPane.showMessageDialog(MainFrame.getMainFrame(), "Could not find a matching wme in the datamap");
         }
     }
 
@@ -1206,7 +1206,7 @@ public class DataMapTree extends JTree implements ClipboardOwner {
     private boolean verifyRoot() {
         //This should never happen
         if (! (this.getModel().getRoot() instanceof FakeTreeNode)) {
-            JOptionPane.showMessageDialog(null,
+            JOptionPane.showMessageDialog(MainFrame.getMainFrame(),
                     "Working Memory Model is corrupted.  Validation impossible",
                     "DataMap Generator",
                     JOptionPane.ERROR_MESSAGE);
@@ -1531,7 +1531,8 @@ public class DataMapTree extends JTree implements ClipboardOwner {
             } // if this vertex has children
         }   // while queue is not empty, examine each vertex in it
 
-        JOptionPane.showMessageDialog(null, "Validation of DataMap completed", "DataMap Generator", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(MainFrame.getMainFrame(),
+                "Validation of DataMap completed", "DataMap Generator", JOptionPane.INFORMATION_MESSAGE);
     }     // end of validateDataMap()
 
 
@@ -1568,7 +1569,10 @@ public class DataMapTree extends JTree implements ClipboardOwner {
                 }
             }   // while queue is not empty, examine each vertex in it
         }
-        JOptionPane.showMessageDialog(null, "Removal of all invalid datamap entries completed", "DataMap Generator", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(MainFrame.getMainFrame(),
+                "Removal of all invalid datamap entries completed",
+                "DataMap Generator",
+                JOptionPane.INFORMATION_MESSAGE);
     }     // end of removeInvalid()
 
 

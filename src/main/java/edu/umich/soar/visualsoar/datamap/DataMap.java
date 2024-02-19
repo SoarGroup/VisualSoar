@@ -235,7 +235,7 @@ public class DataMap extends CustomInternalFrame {
             dataMapTree.scrollPathToVisible(path);
             dataMapTree.setSelectionPath(path);
         } else {
-            JOptionPane.showMessageDialog(null, "Could not find a matching FakeTreeNode in the datamap");
+            JOptionPane.showMessageDialog(MainFrame.getMainFrame(), "Could not find a matching FakeTreeNode in the datamap");
         }
     }
 
