@@ -68,7 +68,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 ////////////////////////////////////////
 	private OperatorWindow operatorWindow;
 
-	private final CustomDesktopPane DesktopPane = new CustomDesktopPane();
+	private final CustomDesktopPane desktopPane = new CustomDesktopPane();
 	private final TemplateManager d_templateManager = new TemplateManager();
 	private final JSplitPane operatorDesktopSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
 	public FeedbackList feedbackList = new FeedbackList();
@@ -169,7 +169,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 
 		Container contentPane = getContentPane();
-		operatorDesktopSplit.setRightComponent(DesktopPane);
+		operatorDesktopSplit.setRightComponent(desktopPane);
 		operatorDesktopSplit.setOneTouchExpandable(true);
 
 		JScrollPane sp = new JScrollPane(feedbackList);
@@ -220,7 +220,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
      */
     public boolean isModified()
     {
-        CustomInternalFrame[] frames = DesktopPane.getAllCustomFrames();
+        CustomInternalFrame[] frames = desktopPane.getAllCustomFrames();
 		for (CustomInternalFrame frame : frames) {
 			if (frame.isModified()) return true;
 		}
@@ -312,7 +312,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
      */
     public CustomDesktopPane getDesktopPane() 
     {
-        return DesktopPane;
+        return desktopPane;
     }
 
 	/**
@@ -578,7 +578,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
           	 	
                 public void menuSelected(MenuEvent e) 
                     {
-                        JInternalFrame[] frames = DesktopPane.getAllFrames();
+                        JInternalFrame[] frames = desktopPane.getAllFrames();
 						for (JInternalFrame frame : frames) {
 							JMenuItem menuItem = new JMenuItem(frame.getTitle());
 							menuItem.addActionListener(new WindowMenuListener(frame));
@@ -635,7 +635,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
             if (selectedValue.equals(buttons[1]))
             {
                 //Make all files as unchanged
-                CustomInternalFrame[] frames = DesktopPane.getAllCustomFrames();
+                CustomInternalFrame[] frames = desktopPane.getAllCustomFrames();
 				for (CustomInternalFrame frame : frames) {
 					frame.setModified(false);
 				}
@@ -849,7 +849,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
      */
     void setJIFShape(JInternalFrame newJIF)
     {
-        JInternalFrame currJIF = DesktopPane.getSelectedFrame();
+        JInternalFrame currJIF = desktopPane.getSelectedFrame();
         if ( (currJIF != null) && (currJIF.isMaximum()) )
         {
             try
@@ -864,11 +864,11 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		else if ( (Prefs.autoTileEnabled.getBoolean())
                   || (lastWindowViewOperation.equals("tile")) )
         {
-			DesktopPane.performTileAction();
+			desktopPane.performTileAction();
 		}
         else if (lastWindowViewOperation.equals("cascade"))
         {
-            DesktopPane.performCascadeAction();
+            desktopPane.performCascadeAction();
 		}
         else if (currJIF != null)
         {
@@ -891,9 +891,9 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 	 */
 	public void addRuleEditor(RuleEditor re) 
     {
-		DesktopPane.add(re);
+		desktopPane.add(re);
 		re.moveToFront();
-		DesktopPane.revalidate();
+		desktopPane.revalidate();
         setJIFShape(re);
 	}
 
@@ -904,15 +904,15 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 	 */
 	public void addDataMap(DataMap dm) 
     {
-        if (!DesktopPane.hasDataMap(dm))
+        if (!desktopPane.hasDataMap(dm))
         {
-            DesktopPane.add(dm);
-            DesktopPane.revalidate();
+            desktopPane.add(dm);
+            desktopPane.revalidate();
             setJIFShape(dm);
         }
         else
         {
-            dm = DesktopPane.dmGetDataMap(dm.getId());
+            dm = desktopPane.dmGetDataMap(dm.getId());
         }
 
         try
@@ -955,7 +955,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
      */
     public void selectNewInternalFrame()
     {
-        JInternalFrame[] jif = DesktopPane.getAllFrames();
+        JInternalFrame[] jif = desktopPane.getAllFrames();
 		for(int i = jif.length-1; i >= 0; i--)
         {
             if(jif[i].isShowing()) 
@@ -1074,7 +1074,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		this.isReadOnly = status;
 
 		//Change the read-only status of all rule editor windows
-		CustomInternalFrame[] frames = DesktopPane.getAllCustomFrames();
+		CustomInternalFrame[] frames = desktopPane.getAllCustomFrames();
 		for (CustomInternalFrame frame : frames) {
 			frame.setReadOnly(status);
 		}
@@ -1163,8 +1163,17 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		 * -:AMN:  30 Mar 2023
 		 */
   	}
-  	  	
-	
+
+	/**
+	 * opens the top-state datamap in a window.  If it's already open, the existing window will be used.
+	 */
+	public void openTopStateDatamap() {
+		OperatorRootNode root = (OperatorRootNode)(operatorWindow.getModel().getRoot());
+		SoarWorkingMemoryModel dataMap = MainFrame.this.operatorWindow.getDatamap();
+		root.openDataMap(dataMap, MainFrame.this);
+	}
+
+
 /*########################################################################################
   Actions
   ########################################################################################*/
@@ -1221,7 +1230,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
         {
 			try
             {
-				JInternalFrame[] jif = DesktopPane.getAllFrames();
+				JInternalFrame[] jif = desktopPane.getAllFrames();
 				for (JInternalFrame jInternalFrame : jif) {
 					if (jInternalFrame instanceof RuleEditor) {
 						RuleEditor re = (RuleEditor) jInternalFrame;
@@ -1260,7 +1269,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		}
 		public void actionPerformed(ActionEvent event) 
         {
-			JInternalFrame[] frames = DesktopPane.getAllFrames();
+			JInternalFrame[] frames = desktopPane.getAllFrames();
 			Prefs.flush();
 			try 
             {
@@ -1546,7 +1555,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
         {
             checkForUnsavedProjectOnClose();
 
-			JInternalFrame[] frames = DesktopPane.getAllFrames();
+			JInternalFrame[] frames = desktopPane.getAllFrames();
 			try 
             {
 				for (JInternalFrame frame : frames) {
@@ -2188,9 +2197,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 
 		public void actionPerformed(ActionEvent ae)
 		{
-			OperatorRootNode root = (OperatorRootNode)(operatorWindow.getModel().getRoot());
-			SoarWorkingMemoryModel dataMap = MainFrame.this.operatorWindow.getDatamap();
-			root.openDataMap(dataMap, MainFrame.this);
+			openTopStateDatamap();
 		}
 
 	}//class LoadTopStateDatamapAction
@@ -2679,7 +2686,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 
                 //Instruct all open datamap windows to display
                 //the newly generated nodes
-                JInternalFrame[] jif = DesktopPane.getAllFrames();
+                JInternalFrame[] jif = desktopPane.getAllFrames();
 				for (JInternalFrame jInternalFrame : jif) {
 					if (jInternalFrame instanceof DataMap) {
 						DataMap dm = (DataMap) jInternalFrame;
@@ -2718,7 +2725,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 
 		public void actionPerformed(ActionEvent ae) {
 			//Only one datamap window can be open at a time
-			if (DesktopPane.numDataMaps() > 0) {
+			if (desktopPane.numDataMaps() > 0) {
 				setStatusBarMsg("Can not import from foreign datamap while local datamap is being edited.");
 				return;
 			}
@@ -3008,7 +3015,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 
 					copyAllFiles(oldProjPath, newProjPath, root);
 
-                    JInternalFrame[] jif = DesktopPane.getAllFrames();
+                    JInternalFrame[] jif = desktopPane.getAllFrames();
 					for (JInternalFrame jInternalFrame : jif) {
 						if (jInternalFrame instanceof RuleEditor) {
 							RuleEditor oldRuleEditor = (RuleEditor) jInternalFrame;
@@ -3046,7 +3053,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 
         public void actionPerformed(ActionEvent e) 
         {
-            DesktopPane.performTileAction();
+            desktopPane.performTileAction();
             lastWindowViewOperation = "tile";
         }
     }
@@ -3062,7 +3069,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 
         public void actionPerformed(ActionEvent e) 
         {
-            DesktopPane.performReTileAction();
+            desktopPane.performReTileAction();
             lastWindowViewOperation = "tile";
         }
     }//class TileWindowsAction
@@ -3078,7 +3085,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 
         public void actionPerformed(ActionEvent e) 
         {
-            DesktopPane.performCascadeAction();
+            desktopPane.performCascadeAction();
             lastWindowViewOperation = "cascade";
         }
     }//class CascadeAction

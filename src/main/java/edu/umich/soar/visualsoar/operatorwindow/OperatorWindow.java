@@ -49,7 +49,7 @@ public class OperatorWindow extends JTree {
     /**
      * @serial a reference to the project file
      */
-    private SoarWorkingMemoryModel WorkingMemory;
+    private SoarWorkingMemoryModel workingMemory;
     private final boolean closed = false;
     private static OperatorWindow s_OperatorWindow;
 
@@ -133,7 +133,7 @@ public class OperatorWindow extends JTree {
         s_OperatorWindow = this;
         if (is_new) {
             setModel(defaultProject(projectName, new File(projectFileName)));
-            WorkingMemory = new SoarWorkingMemoryModel(true, projectName);
+            workingMemory = new SoarWorkingMemoryModel(true, projectName);
         }
     }
 
@@ -147,7 +147,7 @@ public class OperatorWindow extends JTree {
     public OperatorWindow(File in_file) throws NumberFormatException, IOException {
         this();
         s_OperatorWindow = this;
-        WorkingMemory = new SoarWorkingMemoryModel(false, null);
+        workingMemory = new SoarWorkingMemoryModel(false, null);
         openHierarchy(in_file);
     }
 
@@ -445,7 +445,7 @@ public class OperatorWindow extends JTree {
             OperatorNode parent = (OperatorNode) tp.getLastPathComponent();
 
             try {
-                parent = parent.addSubOperator(this, WorkingMemory, s);
+                parent = parent.addSubOperator(this, workingMemory, s);
 
                 if (parent != null) {
                     tp = new TreePath(parent.getPath());
@@ -514,7 +514,7 @@ public class OperatorWindow extends JTree {
             File file = fileChooser.getSelectedFile();
             if (file != null && state == JFileChooser.APPROVE_OPTION) {
                 Reader r = new FileReader(file);
-                node.importFunc(new FileReader(file), this, WorkingMemory);
+                node.importFunc(new FileReader(file), this, workingMemory);
                 r.close();
 
                 //Inform user of success
@@ -596,7 +596,7 @@ public class OperatorWindow extends JTree {
             OperatorNode parent = (OperatorNode) tp.getLastPathComponent();
 
             try {
-                parent.addFileOperator(this, WorkingMemory, s);
+                parent.addFileOperator(this, workingMemory, s);
 
                 if (parent.getChildCount() != 0) {
                     expandPath(tp);
@@ -671,7 +671,7 @@ public class OperatorWindow extends JTree {
         OperatorNode parent = (OperatorNode) tp.getLastPathComponent();
 
         try {
-            parent = parent.addImpasseOperator(this, WorkingMemory, s);
+            parent = parent.addImpasseOperator(this, workingMemory, s);
 
             if (parent != null) {
                 tp = new TreePath(parent.getPath());
@@ -705,13 +705,13 @@ public class OperatorWindow extends JTree {
         // Find the state that these productions should be checked against
         SoarIdentifierVertex siv = parent.getStateIdVertex();
         if (siv == null) {
-            siv = WorkingMemory.getTopstate();
+            siv = workingMemory.getTopstate();
         }
         Enumeration<SoarProduction> prodEnum = productions.elements();
 
         while (prodEnum.hasMoreElements()) {
             SoarProduction sp = prodEnum.nextElement();
-            errors.addAll(WorkingMemory.checkProduction(child, siv, sp));
+            errors.addAll(workingMemory.checkProduction(child, siv, sp));
         }
     }
 
@@ -736,7 +736,7 @@ public class OperatorWindow extends JTree {
             return; //should never happen
         }
         OperatorNode selNode = (OperatorNode) tp.getLastPathComponent();
-        selNode.openDataMap(WorkingMemory, MainFrame.getMainFrame());
+        selNode.openDataMap(workingMemory, MainFrame.getMainFrame());
     }
 
     /**
@@ -780,7 +780,7 @@ public class OperatorWindow extends JTree {
      * @see SoarWorkingMemoryModel
      */
     public SoarWorkingMemoryModel getDatamap() {
-        return WorkingMemory;
+        return workingMemory;
     }
 
     /**
@@ -899,14 +899,14 @@ public class OperatorWindow extends JTree {
         OperatorNode parentNode = (OperatorNode) opNode.getParent();
         SoarIdentifierVertex siv = parentNode.getStateIdVertex();
         if (siv == null) {
-            siv = WorkingMemory.getTopstate();
+            siv = workingMemory.getTopstate();
         }
 
         //Generate the new datamap entries
         Enumeration<SoarProduction> prodEnum = parsedProds.elements();
         while (prodEnum.hasMoreElements()) {
             SoarProduction sp = prodEnum.nextElement();
-            vecGenerations.addAll(WorkingMemory.checkGenerateProduction(siv, sp, opNode));
+            vecGenerations.addAll(workingMemory.checkGenerateProduction(siv, sp, opNode));
         }
 
         //Verify our changes worked
@@ -945,7 +945,7 @@ public class OperatorWindow extends JTree {
         OperatorNode parentNode = (OperatorNode) opNode.getParent();
         SoarIdentifierVertex siv = parentNode.getStateIdVertex();
         if (siv == null) {
-            siv = WorkingMemory.getTopstate();
+            siv = workingMemory.getTopstate();
         }
 
         //Generate the new datamap entries
@@ -955,7 +955,7 @@ public class OperatorWindow extends JTree {
             //we only care about the production that caused the error
             if (errToFix.getMessage().startsWith(sp.getName())) {
                 Vector<FeedbackListEntry> errs =
-                        WorkingMemory.checkGenerateSingleEntry(siv, sp, opNode, errToFix);
+                        workingMemory.checkGenerateSingleEntry(siv, sp, opNode, errToFix);
 
                 //The errs list should not be empty
                 if (errs.isEmpty()) {
@@ -1031,10 +1031,10 @@ public class OperatorWindow extends JTree {
         // If a comment file exists, then make sure that it gets read in by the reader.
         if (commentFile.exists()) {
             Reader rComment = new FileReader(commentFile);
-            SoarWorkingMemoryReader.read(WorkingMemory, r, rComment);
+            SoarWorkingMemoryReader.read(workingMemory, r, rComment);
             rComment.close();
         } else {
-            SoarWorkingMemoryReader.read(WorkingMemory, r, null);
+            SoarWorkingMemoryReader.read(workingMemory, r, null);
         }
         r.close();
         restoreStateIds();
@@ -1068,10 +1068,10 @@ public class OperatorWindow extends JTree {
         // If a comment file exists, then make sure that it gets read in by the reader.
         if (commentFile.exists()) {
             Reader rComment = new FileReader(commentFile);
-            SoarWorkingMemoryReader.read(WorkingMemory, r, rComment);
+            SoarWorkingMemoryReader.read(workingMemory, r, rComment);
             rComment.close();
         } else {
-            SoarWorkingMemoryReader.read(WorkingMemory, r, null);
+            SoarWorkingMemoryReader.read(workingMemory, r, null);
         }
         r.close();
         restoreStateIds();
@@ -1103,10 +1103,10 @@ public class OperatorWindow extends JTree {
         // If a comment file exists, then make sure that it gets read in by the reader.
         if (commentFile.exists()) {
             Reader rComment = new FileReader(commentFile);
-            SoarWorkingMemoryReader.read(WorkingMemory, r, rComment);
+            SoarWorkingMemoryReader.read(workingMemory, r, rComment);
             rComment.close();
         } else {
-            SoarWorkingMemoryReader.read(WorkingMemory, r, null);
+            SoarWorkingMemoryReader.read(workingMemory, r, null);
         }
         r.close();
         restoreStateIds();
@@ -1139,10 +1139,10 @@ public class OperatorWindow extends JTree {
 
         if (commentFile.exists()) {
             Reader rComment = new FileReader(commentFile);
-            SoarWorkingMemoryReader.read(WorkingMemory, r, rComment);
+            SoarWorkingMemoryReader.read(workingMemory, r, rComment);
             rComment.close();
         } else {
-            SoarWorkingMemoryReader.read(WorkingMemory, r, null);
+            SoarWorkingMemoryReader.read(workingMemory, r, null);
         }
         r.close();
         restoreStateIds();
@@ -1177,10 +1177,10 @@ public class OperatorWindow extends JTree {
 
         if (commentFile.exists()) {
             Reader rComment = new FileReader(commentFile);
-            SoarWorkingMemoryReader.read(WorkingMemory, r, rComment);
+            SoarWorkingMemoryReader.read(workingMemory, r, rComment);
             rComment.close();
         } else {
-            SoarWorkingMemoryReader.read(WorkingMemory, r, null);
+            SoarWorkingMemoryReader.read(workingMemory, r, null);
         }
         r.close();
         restoreStateIds();
@@ -1198,7 +1198,7 @@ public class OperatorWindow extends JTree {
             if (o instanceof SoarOperatorNode) {
                 SoarOperatorNode son = (SoarOperatorNode) o;
                 if (son.isHighLevel()) {
-                    son.restoreId(WorkingMemory);
+                    son.restoreId(workingMemory);
                 }
             }
         }
@@ -1253,12 +1253,12 @@ public class OperatorWindow extends JTree {
             // for Version 5:  TreeFileWriter.write5(fw,(DefaultTreeModel)getModel());
             fw.close();
             FileWriter graphWriter = new FileWriter(inDataMapName);
-            WorkingMemory.write(graphWriter);
+            workingMemory.write(graphWriter);
             graphWriter.close();
 
             File commentFile = new File(inDataMapName.getParent() + File.separator + "comment.dm");
             FileWriter commentWriter = new FileWriter(commentFile);
-            WorkingMemory.writeComments(commentWriter);
+            workingMemory.writeComments(commentWriter);
             commentWriter.close();
         } catch (IOException ioe) {
             System.err.println("An Exception was thrown in OperatorWindow.saveHierarchy");
@@ -1285,7 +1285,7 @@ public class OperatorWindow extends JTree {
      *
      * @see SoarWorkingMemoryModel#reduce(java.util.List)
      */
-    private void reduceWorkingMemory() {
+    public void reduceWorkingMemory() {
         List<SoarVertex> vertList = new LinkedList<>();
         Enumeration<TreeNode> e = ((DefaultMutableTreeNode) getModel().getRoot()).breadthFirstEnumeration();
         while (e.hasMoreElements()) {
@@ -1295,7 +1295,7 @@ public class OperatorWindow extends JTree {
                 vertList.add(v);
             }
         }
-        WorkingMemory.reduce(vertList);
+        workingMemory.reduce(vertList);
     }
 
     /**

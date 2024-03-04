@@ -117,9 +117,13 @@ public class CheckBoxDataMapTree extends DataMapTree implements MouseListener {
             }
         }//for
 
+        //Make sure the changes will get written to the .dm file
+        this.parentWindow.setModified(true);
+
         //Report the success to the user
         addedEntries.add(0, "The following " + addedEntries.size() + " entries were imported from " + foreignDM + ":");
         MainFrame.getMainFrame().setFeedbackListWithStrings(addedEntries);
+        MainFrame.getMainFrame().openTopStateDatamap();
 
     }//importFromForeignDataMap
 

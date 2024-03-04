@@ -94,5 +94,23 @@ public abstract class SoarVertex extends Vertex {
         return false;
     }
 
+    /**
+     * I added this because the re-import of linked datamap subtrees
+     * was causing a crash in {@link Edge#mate(SoarVertex)}.  I don't know why
+     * by the given parameter was a match but a copy.  It makes me nervous that
+     * I've fixed it this way.
+     *
+     * I tried to fix it by calling reduce on the SWMM object before/after
+     * deleting the old subtree but it didn't work. I think you could fix it
+     * by saving to SWMM to disk and reloading it.  yuck. :(
+     *
+     * :AMN: Feb 2024
+     */
+    @Override
+    public boolean equals(Object o) {
+        if (! (o instanceof SoarVertex)) return false;
+        return ((SoarVertex)o).number == this.number;
+    }
+
 }
 	

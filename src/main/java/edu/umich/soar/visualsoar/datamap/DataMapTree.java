@@ -1274,8 +1274,8 @@ public class DataMapTree extends JTree implements ClipboardOwner {
     /**
      * addForeignSubTree       <!-- RECURSIVE -->
      * <p>
-     * creates ForeignVertex objects for a given parentForeignFTN and all its descendants.  These
-     * are added to the given result vector _unless_ their id is in the seenSoFar list.
+     * creates ForeignVertex objects for a given vertex in a foreign datamap and all its descendants.  These
+     * are added to the given result vector _unless_ their id is in the seenSoFar list (to prevent loops).
      *
      * @param localSWMM        the SWMM for this project's datamap
      * @param foreignSWMM     the SWMM from the other (external) project's datamap
@@ -1382,9 +1382,9 @@ public class DataMapTree extends JTree implements ClipboardOwner {
     }//getForeignSoarVertex
 
     /**
-         * This method re-imports a subtree of ForeignVertex objects from the associated database
-         * by simply deleting it and reloading it.
-         */
+     * This method re-imports a subtree of ForeignVertex objects from the associated database
+     * by simply deleting it and reloading it.
+     */
     public void reimportSubtree() {
         //Get the FTN and NamedEdge that correspond to the user's selection
         TreePath path = getSelectionPath();
@@ -1417,8 +1417,14 @@ public class DataMapTree extends JTree implements ClipboardOwner {
         }
 
         //Delete the old subtree
-        swmm.removeTriple(ne.V0(), ne.getName(), ne.V1());
-        parentWindow.setModified(true);
+        this.swmm.removeTriple(ne.V0(), ne.getName(), ne.V1());
+        this.parentWindow.setModified(true);
+        OperatorWindow operatorWindow = MainFrame.getMainFrame().getOperatorWindow();
+        operatorWindow.reduceWorkingMemory();
+
+        //Re-add the subtree's root as a new vertex
+        fv = new ForeignVertex(this.swmm.getNextVertexId(), fv.getForeignDMName(), foreignSV);
+        this.swmm.addTriple(ne.V0(), ne.getName(), fv);
 
         //re-load the subtree
         HashMap<Integer, ForeignVertex> seenSoFar = new HashMap<>();
@@ -1430,6 +1436,7 @@ public class DataMapTree extends JTree implements ClipboardOwner {
         //Report the results to the user
         addedEntries.add(0, "The following " + addedEntries.size() + " entries were imported from " + fv.getForeignDMName() + ":");
         MainFrame.getMainFrame().setFeedbackListWithStrings(addedEntries);
+        MainFrame.getMainFrame().openTopStateDatamap();
 
     }//reimportSubtree
 
