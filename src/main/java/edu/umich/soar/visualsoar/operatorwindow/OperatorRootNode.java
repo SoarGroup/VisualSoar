@@ -127,6 +127,7 @@ public class OperatorRootNode extends FolderNode implements java.io.Serializable
         super.enableContextMenuItems();
         addTopFolderItem.setVisible(true);
         addTopFolderItem.setEnabled(true);
+        openDataMapItem.setEnabled(true);  //allow open of top-level datamap
 
     }//enableContextMenuItems
 
