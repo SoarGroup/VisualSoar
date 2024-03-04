@@ -1394,7 +1394,7 @@ public class DataMapTree extends JTree implements ClipboardOwner {
         NamedEdge ne = ftn.getEdge();
 
         //Sanity check
-        if (! (ne.V1() instanceof ForeignVertex)) {
+        if ( (ne == null) || (! (ne.V1() instanceof ForeignVertex)) ){
             //This should never happen
             JOptionPane.showMessageDialog(this, "Can not re-import non-foreign vertex", "Cannot re-import", JOptionPane.ERROR_MESSAGE);
             return;
