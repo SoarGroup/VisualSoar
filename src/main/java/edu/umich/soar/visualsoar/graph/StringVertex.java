@@ -30,6 +30,8 @@ public class StringVertex extends SoarVertex {
         return " : string";
     }
 
+    public String typeName() { return "string"; }
+
     //////////////////////////////////
 // Manipulators
 //////////////////////////////////

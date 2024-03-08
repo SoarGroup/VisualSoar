@@ -50,6 +50,9 @@ public class ForeignVertex extends SoarVertex {
     }
 
     @Override
+    public String typeName() { return "foreign " + this.foreignSV.typeName(); }
+
+    @Override
     public String toString() {
         return foreignSV.toString();
     }

@@ -17,13 +17,20 @@ public class IntegerRangeVertex extends SoarVertex {
         }
         low = _low;
         high = _high;
-        calculateRep();
+        rep = ": integer" + getRangeString();
     }
 
-    public SoarVertex copy(int newId) {
-        return new IntegerRangeVertex(newId, low, high);
+    @Override
+    public boolean allowsEmanatingEdges() {
+        return false;
     }
 
+    @Override
+    public boolean isEditable() {
+        return true;
+    }
+
+    @Override
     public boolean isValid(String s) {
         try {
             int i = Integer.parseInt(s);
@@ -33,21 +40,21 @@ public class IntegerRangeVertex extends SoarVertex {
         }
     }
 
-
-    public boolean allowsEmanatingEdges() {
-        return false;
+    @Override
+    public SoarVertex copy(int newId) {
+        return new IntegerRangeVertex(newId, low, high);
     }
 
+    @Override
+    public String typeName() { return "integer"; }
+
+    @Override
     public String toString() {
         return rep;
     }
 
     public void write(java.io.Writer w) throws java.io.IOException {
         w.write("INTEGER_RANGE " + number + ' ' + low + ' ' + high + '\n');
-    }
-
-    public boolean isEditable() {
-        return true;
     }
 
     public boolean edit(Frame owner) {
@@ -59,28 +66,32 @@ public class IntegerRangeVertex extends SoarVertex {
         if (theDialog.wasApproved()) {
             low = theDialog.getLow().intValue();
             high = theDialog.getHigh().intValue();
-            calculateRep();
+            rep = ": integer" + getRangeString();
             return true;
         }
         return false;
     }
 
-    private void calculateRep() {
-        rep = ": integer";
+    /** creates a string representing this integer's range.
+     * If there is no limit then an empty string is returned */
+    public String getRangeString() {
+        String result = "";
         if (low != Integer.MIN_VALUE || high != Integer.MAX_VALUE) {
-            rep += " [ ";
+            result += " [ ";
             if (low == Integer.MIN_VALUE) {
-                rep += "... ";
+                result += "... ";
             } else {
-                rep += low + " ";
+                result += low + " ";
             }
-            rep += "- ";
+            result += "- ";
             if (high == Integer.MAX_VALUE) {
-                rep += "... ";
+                result += "... ";
             } else {
-                rep += high + " ";
+                result += high + " ";
             }
-            rep += " ]";
+            result += " ]";
         }
-    }
+        return result;
+    }//getRangeString
+
 }

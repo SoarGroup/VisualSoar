@@ -9,6 +9,7 @@ import javax.swing.*;
  * {@link IntegerRangeVertex},
  * {@link FloatRangeVertex},
  * {@link EnumerationVertex},
+ * {@link StringVertex} (no longer used?),
  * {@link ForeignVertex}
  *
  * @author Brad Jones
@@ -66,6 +67,11 @@ public abstract class SoarVertex extends Vertex {
      * @return the new vertex
      */
     public abstract SoarVertex copy(int newId);
+
+    /**
+     * returns the name of this vertex type as a string (used for reporting information to the user)
+     */
+    public abstract String typeName();
 
 ///////////////////////////////////////////////
 // Modifiers

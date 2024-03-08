@@ -13,18 +13,25 @@ public class SoarIdentifierVertex extends SoarVertex {
     ///////////////////////////////////////////////////
 // Accessors
 ///////////////////////////////////////////////////	
+    @Override
     public SoarVertex copy(int newId) {
         return new SoarIdentifierVertex(newId);
     }
 
+    @Override
     public boolean allowsEmanatingEdges() {
         return true;
     }
 
+    @Override
     public boolean isValid(String s) {
         return false;
     }
 
+    @Override
+    public String typeName() { return "identfier"; }
+
+    @Override
     public String toString() {
         return "";
     }

@@ -21,21 +21,16 @@ public class FloatRangeVertex extends SoarVertex {
         }
         low = _low;
         high = _high;
-        calculateRep();
+        rep = ": float" + getRangeString();
     }
 
 //////////////////////////////////////////
 // Accessors
 //////////////////////////////////////////	
     @Override
-    public SoarVertex copy(int newId) {
-        return new FloatRangeVertex(newId, low, high);
-    }
-
-    @Override
     public boolean allowsEmanatingEdges() {
-        return false;
-    }
+    return false;
+}
 
     @Override
     public boolean isEditable() {
@@ -51,6 +46,14 @@ public class FloatRangeVertex extends SoarVertex {
             return false;
         }
     }
+
+    @Override
+    public SoarVertex copy(int newId) {
+        return new FloatRangeVertex(newId, low, high);
+    }
+
+    @Override
+    public String typeName() { return "float"; }
 
     @Override
     public String toString() {
@@ -69,7 +72,7 @@ public class FloatRangeVertex extends SoarVertex {
         if (theDialog.wasApproved()) {
             low = theDialog.getLow().floatValue();
             high = theDialog.getHigh().floatValue();
-            calculateRep();
+            rep = ": float" + getRangeString();
             return true;
         }
         return false;
@@ -80,23 +83,26 @@ public class FloatRangeVertex extends SoarVertex {
         w.write("FLOAT_RANGE " + number + " " + low + " " + high + '\n');
     }
 
-    private void calculateRep() {
-        rep = ": float";
+   /** creates a string representing this integer's range.
+    *  If there is no limit then an empty string is returned */
+    public String getRangeString() {
+        String result = "";
         if (low != Float.NEGATIVE_INFINITY || high != Float.POSITIVE_INFINITY) {
-            rep += " [ ";
+            result += " [ ";
             if (low == Float.NEGATIVE_INFINITY) {
-                rep += "... ";
+                result += "... ";
             } else {
-                rep += low + " ";
+                result += low + " ";
             }
-            rep += "- ";
+            result += "- ";
             if (high == Float.POSITIVE_INFINITY) {
-                rep += "... ";
+                result += "... ";
             } else {
-                rep += high + " ";
+                result += high + " ";
             }
-            rep += " ]";
+            result += " ]";
         }
+        return result;
     }
 
 
