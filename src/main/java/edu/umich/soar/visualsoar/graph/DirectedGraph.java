@@ -79,8 +79,11 @@ public abstract class DirectedGraph extends Graph {
                             Enumeration<NamedEdge> foundEdges = swmm.emanatingEdges(w);
                             while (foundEdges.hasMoreElements()) {
                                 NamedEdge foundEdge = foundEdges.nextElement();
-                                if (edge.getName().equals(foundEdge.getName()) && (foundEdge.V1() instanceof SoarIdentifierVertex)) {
-                                    return foundEdge.V1();
+                                foundEdge.V1().typeName();
+                                if (edge.getName().equals(foundEdge.getName())) {
+                                    if (foundEdge.V1().allowsEmanatingEdges()) {
+                                        return foundEdge.V1();
+                                    }
                                 }
                             }
                         }

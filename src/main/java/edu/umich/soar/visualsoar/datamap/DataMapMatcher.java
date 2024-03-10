@@ -1,9 +1,6 @@
 package edu.umich.soar.visualsoar.datamap;
 
-import edu.umich.soar.visualsoar.graph.EnumerationVertex;
-import edu.umich.soar.visualsoar.graph.NamedEdge;
-import edu.umich.soar.visualsoar.graph.SoarIdentifierVertex;
-import edu.umich.soar.visualsoar.graph.SoarVertex;
+import edu.umich.soar.visualsoar.graph.*;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorNode;
 import edu.umich.soar.visualsoar.parser.*;
 import edu.umich.soar.visualsoar.util.EnumerationIteratorWrapper;
@@ -126,7 +123,7 @@ public class DataMapMatcher {
 
                     // If parent Vertex is not a SoarIdentifierVertex, need to
                     // create one
-                    if (!(currentSV instanceof SoarIdentifierVertex)) {
+                    if (!(currentSV.allowsEmanatingEdges())) {
                         SoarVertex matchingVertex =
                                 dataMap.getMatchingParent(currentSV);
                         if (matchingVertex != null) {
@@ -139,7 +136,7 @@ public class DataMapMatcher {
 
                             while (z.hasNext()) {
                                 SoarVertex oz = z.next();
-                                if (oz instanceof SoarIdentifierVertex) {
+                                if (oz.allowsEmanatingEdges()) {
                                     parentVertex = oz;
                                     // Get the name of the vertex to create
                                     Enumeration<NamedEdge> parentEdges = dataMap.emanatingEdges(parentVertex);
@@ -185,7 +182,7 @@ public class DataMapMatcher {
                         SoarVertex parentVertex = null;
                         while (x.hasNext()) {
                             SoarVertex ox = x.next();
-                            if (ox instanceof SoarIdentifierVertex) {
+                            if (ox.allowsEmanatingEdges()) {
                                 parentVertex = ox;
                             }
                         }
@@ -284,7 +281,7 @@ public class DataMapMatcher {
                         while (dEdges.hasMoreElements()) {
                             NamedEdge dEdge = dEdges.nextElement();
                             if (dEdge.getName().equals(currentTriple.getAttribute().getString())
-                                    && (dEdge.V1() instanceof SoarIdentifierVertex)) {
+                                    && (dEdge.V1().allowsEmanatingEdges())) {
                                 alreadyThere = true;
                             }
                         }
@@ -331,7 +328,7 @@ public class DataMapMatcher {
                         // VALUE Attribute was already there.  Check for value on attribute, if not there, add it
                         else {
                             // if attributeEdge is already a SoarIdentifierVertex, remove it and make it an EnumerationVertex
-                            if (attributeEdge.V1() instanceof SoarIdentifierVertex) {
+                            if (attributeEdge.V1().allowsEmanatingEdges()) {
                                 dataMap.removeTriple(attributeEdge.V0(), currentTriple.getAttribute().getString(), attributeEdge.V1());
                                 Vector<String> v1Vector = new Vector<>();
                                 v1Vector.add(currentTriple.getValue().getString());

@@ -39,12 +39,14 @@ public class FeedbackListEntry {
     private String message;                 //message text
     private boolean isError = false;        //if 'true' message will be displayed in red text
 
+    //disable to turn off the "go to source" context menu option by default.  A subclass that overrides
+    //the react() method should set this to true
+    private boolean canGoto = false;
+
 ///////////////////////////////////////////////////////////////////
 // Constructors
 ///////////////////////////////////////////////////////////////////
-    public FeedbackListEntry(String message) {
-        this.message = message;
-    }
+    public FeedbackListEntry(String message) { this.message = message; }
 
     public FeedbackListEntry(String message, boolean isError) {
         this(message);
@@ -57,6 +59,8 @@ public class FeedbackListEntry {
     public String getMessage() { return message; }
     public void setMessage(String s) { message = s; }
     public boolean isError() { return isError; }
+    public boolean canGoto() { return this.canGoto; }
+    public void setCanGoto(boolean b) { this.canGoto = b; }
     @Override
     public String toString() {  return message; }
 

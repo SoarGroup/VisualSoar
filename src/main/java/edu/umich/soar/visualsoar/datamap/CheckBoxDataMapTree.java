@@ -5,6 +5,7 @@ import edu.umich.soar.visualsoar.graph.ForeignVertex;
 import edu.umich.soar.visualsoar.graph.NamedEdge;
 import edu.umich.soar.visualsoar.graph.SoarIdentifierVertex;
 import edu.umich.soar.visualsoar.graph.SoarVertex;
+import edu.umich.soar.visualsoar.misc.FeedbackEntryForeignDatamap;
 import edu.umich.soar.visualsoar.misc.FeedbackListEntry;
 
 import javax.swing.tree.TreeModel;
@@ -85,17 +86,13 @@ public class CheckBoxDataMapTree extends DataMapTree implements MouseListener {
         HashMap<Integer, ForeignVertex> seenSoFar = new HashMap<>();
 
         //We want to track all entries that were added, so we can report to the user
-        Vector<String> addedEntries = new Vector<>();
+        Vector<FeedbackListEntry> addedEntries = new Vector<>();
 
         //Create the ForeignVertex objs and add to local SWMM
         for (FakeTreeNode ftn : level1FTNs) {
             //extract the SoarVertex from the foreign datamap
             NamedEdge ne = ftn.getEdge();
             SoarVertex foreignSV = ne.V1();
-
-            //Record the addition
-            String rep = "    <s> ^" + ne.getName();  //added spaces aid readability later
-            addedEntries.add(rep);
 
             //To avoid insanity, skip any foreign vertexes.
             if (foreignSV instanceof ForeignVertex) continue;
@@ -104,12 +101,16 @@ public class CheckBoxDataMapTree extends DataMapTree implements MouseListener {
             int newId = localSWMM.getNextVertexId();
             ForeignVertex fv = new ForeignVertex(newId, foreignDM, foreignSV);
             localSWMM.addVertex(fv);
-            localSWMM.addTriple(localRoot, ne.getName(), fv);
+            NamedEdge newLocalNE = localSWMM.addTriple(localRoot, ne.getName(), fv);
 
-            //record the mapping from foreign SIV id to ForeignVertex object
+            //record the mapping from foreign SIV id to local ForeignVertex object
             if (foreignSV instanceof SoarIdentifierVertex) {
                 seenSoFar.put(foreignSV.getValue(), fv);
             }
+
+            //Record the addition for the user
+            String rep = "    <s> ^" + ne.getName();  //added spaces aid readability later
+            addedEntries.add(new FeedbackEntryForeignDatamap(newLocalNE, FeedbackEntryForeignDatamap.ADDED_FOREIGN_VERTEX, rep));
 
             //Build out the entire foreign subtree recursively
             if (ftn.getChildCount() > 0) {
@@ -121,8 +122,8 @@ public class CheckBoxDataMapTree extends DataMapTree implements MouseListener {
         this.parentWindow.setModified(true);
 
         //Report the success to the user
-        addedEntries.add(0, "The following " + addedEntries.size() + " entries were imported from " + foreignDM + ":");
-        MainFrame.getMainFrame().setFeedbackListWithStrings(addedEntries);
+        addedEntries.add(0, new FeedbackListEntry("The following " + addedEntries.size() + " entries were imported from " + foreignDM + ":"));
+        MainFrame.getMainFrame().setFeedbackListData(addedEntries);
         MainFrame.getMainFrame().openTopStateDatamap();
 
     }//importFromForeignDataMap

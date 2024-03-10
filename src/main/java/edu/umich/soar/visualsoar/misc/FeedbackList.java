@@ -66,16 +66,17 @@ public class FeedbackList extends JList<FeedbackListEntry> implements ActionList
 
                         //right click:  context menu
                         else if (SwingUtilities.isRightMouseButton(e)) {
-                            //There are two possible reasons for the "add to datamap" opton to be grayed out:
-
+                            //There are two possible reasons for the "add to datamap" option to be grayed out:
                             //1.  the selected entry is not associated with Soar source code
                             boolean isOpNodeEntry = (selectedObj instanceof FeedbackEntryOpNode);
                             dmAddMenuItem.setEnabled(isOpNodeEntry);
-
                             //2.  project is read-only
                             if (dmAddMenuItem.isEnabled()) {
                                 dmAddMenuItem.setEnabled(!MainFrame.getMainFrame().isReadOnly());
                             }
+
+                            gotoSourceMenuItem.setEnabled(selectedObj.canGoto());
+
 
                             rightClickContextMenu.show(e.getComponent(), e.getX(), e.getY());
                         }

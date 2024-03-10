@@ -18,9 +18,9 @@ public class FeedbackEntryDatamap extends FeedbackListEntry {
     ///////////////////////////////////////////////////////////////////
     // Data Members
     ///////////////////////////////////////////////////////////////////
-    private NamedEdge edge;
-    private SoarIdentifierVertex siv;
-    private String dataMapName;
+    protected NamedEdge edge;
+    protected SoarIdentifierVertex siv;
+    protected String dataMapName;
 
     ///////////////////////////////////////////////////////////////////
     // Constructors
@@ -33,6 +33,7 @@ public class FeedbackEntryDatamap extends FeedbackListEntry {
         edge = in_edge;
         siv = in_siv;
         dataMapName = inDataMapName;
+        setCanGoto(true);
     }
 
     ///////////////////////////////////////////////////////////////////

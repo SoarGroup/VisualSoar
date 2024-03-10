@@ -1,34 +1,34 @@
 package edu.umich.soar.visualsoar.misc;
 
+import edu.umich.soar.visualsoar.MainFrame;
+import edu.umich.soar.visualsoar.datamap.DataMapTree;
 import edu.umich.soar.visualsoar.datamap.SoarWorkingMemoryModel;
-import edu.umich.soar.visualsoar.graph.ForeignVertex;
-import edu.umich.soar.visualsoar.graph.NamedEdge;
+import edu.umich.soar.visualsoar.graph.*;
+import edu.umich.soar.visualsoar.operatorwindow.OperatorRootNode;
+import edu.umich.soar.visualsoar.operatorwindow.OperatorWindow;
+
+import java.util.HashMap;
+import java.util.Vector;
 
 /**
  * class FeedbackEntryForeignDatamap
  * <p>
- * is a subclass of {@link FeedbackListEntry} that identifies an entry in a
+ * is a subclass of {@link FeedbackListEntry} that identifies a
  * {@link edu.umich.soar.visualsoar.graph.ForeignVertex} entry in the
- * local datamap that no longer matches the corresponding vertex in
- * the external (foreign) datamap. It's react() method allows the user
- * to resolve the issue in some way.
+ * local datamap that has some issue with.  In most cases, it no longer
+ * matches the corresponding vertex in the external (foreign) datamap.
+ * It's react() method allows the user to resolve the issue in some way.
  */
-public class FeedbackEntryForeignDatamap extends FeedbackListEntry {
+public class FeedbackEntryForeignDatamap extends FeedbackEntryDatamap {
 
     //Valid behaviors for this type of feedback correspond to a finite set of issues below
+    public static final int ADDED_FOREIGN_VERTEX = 1;
     public static final int ERR_UNKNOWN_ISSUE = -1;
     public static final int ERR_DM_FILE_UNREADABLE = -2;
     public static final int ERR_FOREIGN_VERTEX_MISSING = -3;
     public static final int ERR_FOREIGN_VERTEX_TYPE_MISMATCH = -4;
-    public static final int ERR_FOREIGN_VERTEX_COMMENT_MISMATCH = -5;
 
-
-    private SoarWorkingMemoryModel localSWMM;   //the local datamap
-    private NamedEdge localEdge;                //the named edge in localSWMM that is the source of the problem
-    private ForeignVertex localFV;              //the value of localEdge.V1() <- must be a ForeignVertex object
-    private SoarWorkingMemoryModel foreignSWMM; //the external datamap
-    private NamedEdge foreignEdge;              //the named edge in foreignSWMM that corresponds to localEdge
-    private int errType;                        //one of the constants defined above
+    private int entryType;                      //one of the constants defined above
 
 ///////////////////////////////////////////////////////////////////
 // Constructors
@@ -36,105 +36,120 @@ public class FeedbackEntryForeignDatamap extends FeedbackListEntry {
 
     /**
      *
-     * @param localSWMM    the local datmap that contains the ForeignVertex
-     * @param foreignSWMM  the external datamap that the ForeignVertex is referring to.
-     *                     This can be null to indicate "not found."
-     * @param localEdge    the NamedEdge object in localSWMM that's causing the problem
-     * @param errType      what the issue is (see the constants above)
+     * @param localEdge    the NamedEdge in localSWMM that's causing the problem.
+     *                     The V1() of this edge must be a ForeignVertex.
+     * @param entryType     one of the constants listed above
+     * @param msg          the associated error message
      */
-    public FeedbackEntryForeignDatamap(SoarWorkingMemoryModel localSWMM,
-                                       SoarWorkingMemoryModel foreignSWMM,
-                                       NamedEdge localEdge,
-                                       NamedEdge foreignEdge,
-                                       int errType) {
-        super(null);  //the message generated based upon switch statement below
-        this.localSWMM = localSWMM;
-        this.foreignSWMM = foreignSWMM;
-        this.localEdge = localEdge;
-        this.foreignEdge = foreignEdge;
-        this.errType = errType;
-        this.localFV = (ForeignVertex)localEdge.V1();
+    public FeedbackEntryForeignDatamap(NamedEdge localEdge,
+                                       int entryType,
+                                       String msg) {
+        //The nulls setn to this parent ctor will be calculated and set below.
+        super(localEdge, null, null, null);
 
-        switch (errType) {
-            case ERR_DM_FILE_UNREADABLE:
-                setMessage("Foreign datamap file missing.  " + localFV.getForeignDMName() + " does not exist or can not be read.");
-                break;
-            case ERR_FOREIGN_VERTEX_MISSING:
-                setMessage("Corresponding entry for " + localEdge.toString() + " not found in " + localFV.getForeignDMName());
-                break;
-            case ERR_FOREIGN_VERTEX_TYPE_MISMATCH:
-                //TODO
-//                SoarVertex foreignEdge.V1()
-//                setMessage("Corresponding entry for " + localEdge.toString() + " is of type " + not found in " + localFV.getForeignDMName());
-                break;
-            case ERR_FOREIGN_VERTEX_COMMENT_MISMATCH:
-                //TODO
-                break;
-            default:
-                //TODO
-                setMessage("Unknown issue " + "TODO");
-                break;
-        }//switch
+        this.entryType = entryType;
+        setMessage(msg);
+
+        //calculate super.siv
+        OperatorWindow operatorWindow = MainFrame.getMainFrame().getOperatorWindow();
+        this.siv = operatorWindow.getDatamap().getTopstate();
+
+        //calculate super.dataMapName
+        OperatorRootNode root = (OperatorRootNode)(operatorWindow.getModel().getRoot());
+        this.dataMapName = root.toString();
+
+        //For now, VS ignores context menu actions for missing datamap files
+        //TODO:  implement code to find the lost .dm file and update the entire subtree
+        if (entryType == ERR_DM_FILE_UNREADABLE) {
+            this.setCanGoto(false);
+        }
+
     }//ctor
 
-//    /** helper for the ctor that inits non-given instance variables and
-//     * calculates what the error is based upon the data given */
-//    public int calcError() {
-//
-//        //Makes sure the given NamedEdge is legit.  (It should always be...)
-//        if ( (localEdge == null) || (! (localEdge.V1() instanceof ForeignVertex)) ) {
-//            return ERR_UNKNOWN_ISSUE;
-//        }
-//        try {
-//            this.localVertex = (ForeignVertex) localEdge.V1();
-//        } catch(NullPointerException npe) {
-//            this.errType = ERR_UNKNOWN_ISSUE;
-//            return;
-//        }
-//
-//
-//
-//        //Calculate the value for foreignVertex
-//        if (foreignSWMM != null) {
-//
-//            int foreignId = this.localVertex.getLinkedSoarVertex().getValue();
-//            SoarVertex foreignFV = foreignSWMM.getVertexForId(foreignId);
-//        }
-//
-//
-//        if (localVertex == null) {  //should never happen
-//            setMessage("Unexpected error occurred while validating foreign datamap entry.")
-//        }
-//        else if (foreignSWMM == null) {
-//            setMessage("Foreign datamap file missing.  " + localVertex.getForeignDMName() + " does not exist.");
-//        }
-//        else {
-//
-//            if (foreignFV == null) {
-//                setMessage("Corresponding entry for " + localVertex.toString() + " not found in " + localVertex.getForeignDMName());
-//            }
-//            else {
-//                //check for mismatch
-//                foreignSWMM.getMatchingParent()
-//                if ()
-//            }
-//
-//        }
-//
-//        //Set the message string
-//        getMessage();
-//    }//calcError
-
-
-///////////////////////////////////////////////////////////////////
-// Other Methods
-///////////////////////////////////////////////////////////////////
+    @Override
+    public String toString() { return this.getMessage(); }
 
     /**
-     * react
+     * A factory method that examples a local ForeignVertex and the foreign entry it is referring to.
      *
-     * is called when the user interacts with this message typically via a double click.
+     * This is used be DataMapTree.compareForeignSubTree().
+     *
+     * @param localNE    the local NamedEdge whose V1() value refers to an entry in a foreign datamap.
+     * @param foreignSV  the foreign datamap entry that localNE.V1() is referring to
+     * @param rep        a string representation of the local vertex (ala "^foo.bar.baz")
+     *
+     * @return a FeedbackEntryForeignDatamap object describing the mismatch (or null if no mismatch).
+     *         Note that the message for this object will be preceded with four spaces (indented) as
+     *         it is expected to be included in a list.
+     *
+     * CAVEAT: The caller must ensure that:
+     *           - localNE.V1() is a ForeignVertex
+     *           - localNE.V1().getCopyOfForeignSoarVertex().getNumber() == foreignSV.getNumber()
      */
-    //TODO!!
-    public void react() {  }
-}
+    public static FeedbackEntryForeignDatamap compareForeignVertex(NamedEdge localNE, SoarVertex foreignSV, String rep) {
+        //Check:  type mismatch
+        String fcTypeName = foreignSV.typeName();
+        ForeignVertex localSV = (ForeignVertex)localNE.V1();
+        SoarVertex efcSV = localSV.getCopyOfForeignSoarVertex();
+        String efcSVTypeName = efcSV.typeName();
+        if (! fcTypeName.equals(efcSVTypeName)) {
+            String msg =  "    " + rep + " is a " + efcSVTypeName + " but it is a " + fcTypeName + " in " + localSV.getForeignDMName();
+            return new FeedbackEntryForeignDatamap(localNE, ERR_FOREIGN_VERTEX_TYPE_MISMATCH, msg);
+        }
+
+        //Check:  different integer range
+        if (foreignSV instanceof IntegerRangeVertex) {
+            String actualRange = ((IntegerRangeVertex)foreignSV).getRangeString();
+            String expRange = ((IntegerRangeVertex) efcSV).getRangeString();
+            if (! expRange.equals(actualRange)) {
+                String msg = "    " + rep + " has range " + expRange + " but the range is " + actualRange + " in " + localSV.getForeignDMName();
+                return new FeedbackEntryForeignDatamap(localNE, ERR_FOREIGN_VERTEX_TYPE_MISMATCH, msg);
+            }
+        }
+
+        //Check:  different float range
+        if (foreignSV instanceof FloatRangeVertex) {
+            String actualRange = ((FloatRangeVertex)foreignSV).getRangeString();
+            String expRange = ((FloatRangeVertex) efcSV).getRangeString();
+            if (! expRange.equals(actualRange)) {
+                String msg = "    " + rep + " has range " + expRange + " but the range is " + actualRange + " in " + localSV.getForeignDMName();
+                return new FeedbackEntryForeignDatamap(localNE, ERR_FOREIGN_VERTEX_TYPE_MISMATCH, msg);
+            }
+        }
+
+        //Check:  different enumeration contents
+        if (foreignSV instanceof EnumerationVertex) {
+            String actualContents = foreignSV.toString();
+            String expContents = efcSV.toString();
+            if (! expContents.equals(actualContents)) {
+                //adjust string to make more human-readable by remove content before the '['
+                int brack = actualContents.indexOf('[');
+                if (brack != -1) actualContents = actualContents.substring(brack);
+                brack = expContents.indexOf('[');
+                if (brack != -1) expContents = expContents.substring(brack);
+
+                String msg = "    " + rep + " has contents " + expContents + " but the contents are " + actualContents + " in " + localSV.getForeignDMName();
+                return new FeedbackEntryForeignDatamap(localNE, ERR_FOREIGN_VERTEX_TYPE_MISMATCH, msg);
+            }
+        }
+
+        //foreign vertex is a leaf when local vertex isn't a leaf
+        if (localSV.allowsEmanatingEdges() && (! foreignSV.allowsEmanatingEdges())) {
+            String msg = "    " + rep + " is a vertex with children but it is not so in " + localSV.getForeignDMName();
+            return new FeedbackEntryForeignDatamap(localNE, ERR_FOREIGN_VERTEX_TYPE_MISMATCH, msg);
+        }
+
+        //local vertex is a leaf when foreign vertex isn't a leaf
+        if ((! localSV.allowsEmanatingEdges()) && foreignSV.allowsEmanatingEdges()) {
+            String msg = "    " + rep + " is a vertex without children but it is not so in " + localSV.getForeignDMName();
+            return new FeedbackEntryForeignDatamap(localNE, ERR_FOREIGN_VERTEX_TYPE_MISMATCH, msg);
+        }
+
+
+        return null;   //no mismatch, yay :)
+    }//compareForeignVertex
+
+
+    //TODO:  Override react() to handle search for missing foreign datmap
+
+}//class FeedbackEntryForeignDatamap

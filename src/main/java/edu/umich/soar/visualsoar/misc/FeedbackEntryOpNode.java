@@ -33,6 +33,7 @@ public class FeedbackEntryOpNode extends FeedbackListEntry {
         super(msg);
         node = in_node;
         lineNumber = in_ln;
+        setCanGoto(true);
     }
 
     /**

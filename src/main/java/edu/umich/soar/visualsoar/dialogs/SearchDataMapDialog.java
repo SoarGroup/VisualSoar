@@ -118,12 +118,16 @@ public class SearchDataMapDialog extends JDialog {
 
                     // See if current FakeTreeNode's edge match desired edge
                     if (ftn.getEdge() != null) {
+                        SoarVertex enumVert = ftn.getEnumeratingVertex();
+                        if (enumVert instanceof ForeignVertex) {
+                            enumVert = ((ForeignVertex) enumVert).getCopyOfForeignSoarVertex();
+                        }
                         if ((ftn.getEdge()).getName().equals(toFind) &&
-                                ((theOptions[0] && ftn.getEnumeratingVertex() instanceof SoarIdentifierVertex)
-                                        || (theOptions[1] && ftn.getEnumeratingVertex() instanceof EnumerationVertex)
-                                        || (theOptions[2] && ftn.getEnumeratingVertex() instanceof StringVertex)
-                                        || (theOptions[3] && ftn.getEnumeratingVertex() instanceof IntegerRangeVertex)
-                                        || (theOptions[4] && ftn.getEnumeratingVertex() instanceof FloatRangeVertex))) {
+                                ((theOptions[0] && enumVert instanceof SoarIdentifierVertex)
+                                        || (theOptions[1] && enumVert instanceof EnumerationVertex)
+                                        || (theOptions[2] && enumVert instanceof StringVertex)
+                                        || (theOptions[3] && enumVert instanceof IntegerRangeVertex)
+                                        || (theOptions[4] && enumVert instanceof FloatRangeVertex))) {
                             edgeNotFound = false;
                             foundftn = ftn;
                         }
@@ -141,12 +145,16 @@ public class SearchDataMapDialog extends JDialog {
                             else {
                                 // Check this edge since it won't be added to the queue
                                 if (childftn.getEdge() != null) {
+                                    SoarVertex childEnumVert = ftn.getEnumeratingVertex();
+                                    if (childEnumVert instanceof ForeignVertex) {
+                                        childEnumVert = ((ForeignVertex) childEnumVert).getCopyOfForeignSoarVertex();
+                                    }
                                     if ((childftn.getEdge()).getName().equals(toFind) &&
-                                            ((theOptions[0] && childftn.getEnumeratingVertex() instanceof SoarIdentifierVertex)
-                                                    || (theOptions[1] && childftn.getEnumeratingVertex() instanceof EnumerationVertex)
-                                                    || (theOptions[2] && childftn.getEnumeratingVertex() instanceof StringVertex)
-                                                    || (theOptions[3] && childftn.getEnumeratingVertex() instanceof IntegerRangeVertex)
-                                                    || (theOptions[4] && childftn.getEnumeratingVertex() instanceof FloatRangeVertex))) {
+                                            ((theOptions[0] && childEnumVert instanceof SoarIdentifierVertex)
+                                                    || (theOptions[1] && childEnumVert instanceof EnumerationVertex)
+                                                    || (theOptions[2] && childEnumVert instanceof StringVertex)
+                                                    || (theOptions[3] && childEnumVert instanceof IntegerRangeVertex)
+                                                    || (theOptions[4] && childEnumVert instanceof FloatRangeVertex))) {
                                         edgeNotFound = false;
                                         foundftn = childftn;
                                     }

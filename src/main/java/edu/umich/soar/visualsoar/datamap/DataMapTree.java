@@ -1250,7 +1250,7 @@ public class DataMapTree extends JTree implements ClipboardOwner {
      */
     private SoarWorkingMemoryModel findOrLoadForeignDatamap(NamedEdge theEdge,
                                                             HashMap<String, SoarWorkingMemoryModel> cache,
-                                                            Vector<FeedbackEntryForeignDatamap> vecIssues) {
+                                                            Vector<FeedbackListEntry> vecIssues) {
         //Try to retrieve it from the HashMap
         ForeignVertex fv = (ForeignVertex)theEdge.V1();
         SoarWorkingMemoryModel fSWMM = cache.get(fv.getForeignDMName());
@@ -1263,7 +1263,8 @@ public class DataMapTree extends JTree implements ClipboardOwner {
         //Does the foreign .dm file still exist?
         File foreignDMFile = new File(foreignDMFullPath);
         if (! foreignDMFile.exists()) {
-            vecIssues.add(new FeedbackEntryForeignDatamap(swmm, null, theEdge, null, FeedbackEntryForeignDatamap.ERR_DM_FILE_UNREADABLE));
+            String msg = foreignDMFullPath + " does not exist.";
+            vecIssues.add(new FeedbackEntryForeignDatamap(theEdge, FeedbackEntryForeignDatamap.ERR_DM_FILE_UNREADABLE, msg));
             return null;
         }
 
@@ -1271,7 +1272,8 @@ public class DataMapTree extends JTree implements ClipboardOwner {
         fSWMM = new SoarWorkingMemoryModel(false, foreignDMFile.getName());
         String dmName = SoarWorkingMemoryReader.readDataIntoSWMM(foreignDMFile, fSWMM);
         if (dmName == null) {
-            vecIssues.add(new FeedbackEntryForeignDatamap(swmm, null, theEdge, null, FeedbackEntryForeignDatamap.ERR_DM_FILE_UNREADABLE));
+            String msg = foreignDMFullPath + " can not be read.";
+            vecIssues.add(new FeedbackEntryForeignDatamap(theEdge, FeedbackEntryForeignDatamap.ERR_DM_FILE_UNREADABLE, msg));
             return null;
         }
 
@@ -1285,7 +1287,7 @@ public class DataMapTree extends JTree implements ClipboardOwner {
     /** overloaded version of the above that needs fewer params */
     private SoarWorkingMemoryModel findOrLoadForeignDatamap(NamedEdge theEdge) {
         HashMap<String, SoarWorkingMemoryModel> cache = new HashMap<>();
-        Vector<FeedbackEntryForeignDatamap> vecIssues = new Vector<>();
+        Vector<FeedbackListEntry> vecIssues = new Vector<>();
         return findOrLoadForeignDatamap(theEdge, cache, vecIssues);
     }
 
@@ -1318,7 +1320,7 @@ public class DataMapTree extends JTree implements ClipboardOwner {
                                      ForeignVertex localSV,
                                      HashMap<Integer, ForeignVertex> seenSoFar,
                                      String stringRep,
-                                     Vector<String> addedEntries) {
+                                     Vector<FeedbackListEntry> addedEntries) {
 
         //base case: foreign vertex is a leaf node
         if (! foreignSV.allowsEmanatingEdges()) {
@@ -1350,11 +1352,11 @@ public class DataMapTree extends JTree implements ClipboardOwner {
             }
 
             //Add the new entry in the local datamap
-            localSWMM.addTriple(localSV, neChild.getName(), childFV);
+            NamedEdge newLocalNE = localSWMM.addTriple(localSV, neChild.getName(), childFV);
 
             //Record the addition to report to the user later
             String childRep = stringRep + "." + neChild;
-            addedEntries.add(childRep);
+            addedEntries.add(new FeedbackEntryForeignDatamap(newLocalNE, FeedbackEntryForeignDatamap.ADDED_FOREIGN_VERTEX, childRep));
 
             //If this is a new ForeignVertex, then record the associated foreign SIV and recurse to add its children
             if (newForeignVertex) {
@@ -1370,66 +1372,6 @@ public class DataMapTree extends JTree implements ClipboardOwner {
     }//addForeignSubTree
 
     /**
-     * helper method for {@link #compareForeignVertex} that compares a local ForeignVertex to the foreign entry
-     * it is cloning.
-     *
-     * @param localSV    the local ForeignVertex object referring to an entry in a foreign datamap.
-     * @param foreignSV  the foreign datamap entry that localSV is referring to
-     * @param rep        a string representation of the local vertex (ala "^foo.bar.baz")
-     * @return a string describing the mismatch or null if none found
-     *
-     * Note: This method does not verify that:
-     *               localSV.getCopyOfForeignSoarVertex().getNumber() == foreignSV.getNumber().
-     *       That's the caller's bailiwick.
-     */
-    private String compareForeignVertex(ForeignVertex localSV, SoarVertex foreignSV, String rep) {
-        //Check:  type mismatch
-        String fcTypeName = foreignSV.typeName();
-        SoarVertex efcSV = localSV.getCopyOfForeignSoarVertex();
-        String efcSVTypeName = efcSV.typeName();
-        if (! fcTypeName.equals(efcSVTypeName)) {
-            return "    " + rep + " is a " + efcSVTypeName + " but it is a " + fcTypeName + " in " + localSV.getForeignDMName();
-        }
-
-        //Check:  different integer range
-        if (foreignSV instanceof IntegerRangeVertex) {
-            String actualRange = ((IntegerRangeVertex)foreignSV).getRangeString();
-            String expRange = ((IntegerRangeVertex) efcSV).getRangeString();
-            if (! expRange.equals(actualRange)) {
-                return "    " + rep + " has range " + expRange + " but the range is " + actualRange + " in " + localSV.getForeignDMName();
-            }
-        }
-
-        //Check:  different float range
-        if (foreignSV instanceof FloatRangeVertex) {
-            String actualRange = ((FloatRangeVertex)foreignSV).getRangeString();
-            String expRange = ((FloatRangeVertex) efcSV).getRangeString();
-            if (! expRange.equals(actualRange)) {
-                return "    " + rep + " has range " + expRange + " but the range is " + actualRange + " in " + localSV.getForeignDMName();
-            }
-        }
-
-        //Check:  different enumeration contents
-        if (foreignSV instanceof EnumerationVertex) {
-            String actualContents = foreignSV.toString();
-            String expContents = efcSV.toString();
-            if (! expContents.equals(actualContents)) {
-                //adjust string to make more human-readable by remove content before the '['
-                int brack = actualContents.indexOf('[');
-                if (brack != -1) actualContents = actualContents.substring(brack);
-                brack = expContents.indexOf('[');
-                if (brack != -1) expContents = expContents.substring(brack);
-
-                return "    " + rep + " has contents " + expContents + " but the contents are " + actualContents + " in " + localSV.getForeignDMName();
-            }
-        }
-
-        return null;   //no mismatch, yay :)
-    }//compareForeignVertex
-
-
-
-    /**
      * compareForeignSubTree       <!-- RECURSIVE -->
      * <p>
      * compares a foreign subtree in the local datamap to the source subtree in the foreign datamap and compiles a
@@ -1438,7 +1380,8 @@ public class DataMapTree extends JTree implements ClipboardOwner {
      * @param localSWMM        the SWMM for this project's datamap
      * @param foreignSWMM      the SWMM from the other (external) project's datamap
      * @param foreignSV        a SoarVertex in the foreign datamap.
-     * @param localSV          the local ForesignVertex object that is linked to the given foreignSV
+     * @param localNE          the local NamedEdge whose .V1() is linked to the given foreignSV
+     *                         CAVEAT:  call must guarantee that localNE.V1() is a ForeignVertex
      * @param stringRep        is a String representation of foreignSV as a path from the root.
      *                                Example:  "<s> ^io.input-link.block.on-top"
      *                         When making the initial call to this method use a string of the form:  "<s> ^foo"
@@ -1446,7 +1389,7 @@ public class DataMapTree extends JTree implements ClipboardOwner {
      *                         the foreign datamap to the ForeignVertex objects added to this project's datamap.  This is
      *                         used to handle links in the foreign database and to avoid infinite recursion (e.g., base case).
      *                         You should pass in an empty set the first time you call this method.
-     * @param diffsList        as the recursion proceeds, it keeps a list of all differences, so they can be reported
+     * @param issuesList        as the recursion proceeds, it keeps a list of all differences, so they can be reported
      *                         to the user at the end.
      *
      * CAVEAT:  This method assumes the foreign subtree has no loops as it does not check for infinite recursion.
@@ -1458,31 +1401,27 @@ public class DataMapTree extends JTree implements ClipboardOwner {
     protected void compareForeignSubTree(SoarWorkingMemoryModel localSWMM,
                                          SoarWorkingMemoryModel foreignSWMM,
                                          SoarVertex foreignSV,
-                                         ForeignVertex localSV,
+                                         NamedEdge localNE,
                                          String stringRep,
                                          HashMap<Integer, ForeignVertex> seenSoFar,
-                                         Vector<String> diffsList) {
+                                         Vector<FeedbackListEntry> issuesList) {
 
 
         //base case #1:  this foreign vertex has already been seen
         if (seenSoFar.get(foreignSV.getValue()) != null) return;
+        ForeignVertex localSV = (ForeignVertex) localNE.V1();
         seenSoFar.put(foreignSV.getValue(), localSV);  //record for next time
 
         //base case #2:  mismatch  (no point in recursing further)
-        String mismatch = compareForeignVertex(localSV, foreignSV, stringRep);
+        FeedbackEntryForeignDatamap mismatch =
+                FeedbackEntryForeignDatamap.compareForeignVertex(localNE, foreignSV, stringRep);
         if (mismatch != null) {
-            diffsList.add(mismatch);
+            issuesList.add(mismatch);
             return;
         }
 
-        //base case #3: local vertex is a leaf node
+        //base case #3: local vertex is a leaf node; no need to recurse further
         if (! localSV.allowsEmanatingEdges()) {
-            return;
-        }
-
-        //base case #4 (very rare):  foreign vertex is a leaf when local vertex isn't a leaf
-        if (! foreignSV.allowsEmanatingEdges()) {
-            diffsList.add("    " + stringRep + " is a vertex with children but it is not so in " + localSV.getForeignDMName());
             return;
         }
 
@@ -1520,7 +1459,8 @@ public class DataMapTree extends JTree implements ClipboardOwner {
             if (neForeign == null) {
                 //Report not found
                 String childRep = stringRep + "." + neLocal;
-                diffsList.add("    " + childRep + " refers to an entry in " + localSV.getForeignDMName() + " that no longer exists.");
+                String msg = "    " + childRep + " refers to an entry in " + localSV.getForeignDMName() + " that no longer exists.";
+                issuesList.add(new FeedbackEntryForeignDatamap(localNE, FeedbackEntryForeignDatamap.ERR_FOREIGN_VERTEX_MISSING, msg));
                 continue;
             }
 
@@ -1531,14 +1471,15 @@ public class DataMapTree extends JTree implements ClipboardOwner {
 
             //Recursive call to compare these children
             String childRep = stringRep + "." + neForeign.getName();
-            compareForeignSubTree(localSWMM, foreignSWMM, neForeign.V1(), localChildSV, childRep, seenSoFar, diffsList);
+            compareForeignSubTree(localSWMM, foreignSWMM, neForeign.V1(), neLocal, childRep, seenSoFar, issuesList);
 
         }//for
 
         //After the checks are completed, see if there are any foreign SVs that are unaccounted for
         for(NamedEdge ne : foreignNEs) {
             String childRep = stringRep + "." + ne;
-            diffsList.add("    Found " + childRep + " in " + localSV.getForeignDMName() + " but it is missing in this project's datamap." );
+            String msg = "    " + childRep + " is in " + localSV.getForeignDMName() + " but it is missing in this project's datamap.";
+            issuesList.add(new FeedbackListEntry(msg));
         }
 
     }//compareForeignSubTree
@@ -1622,13 +1563,13 @@ public class DataMapTree extends JTree implements ClipboardOwner {
         HashMap<Integer, ForeignVertex> seenSoFar = new HashMap<>();
         seenSoFar.put(foreignSV.getValue(), fv);
         String rep = "    <s> ^" + ne.getName(); //added spaces help formatting later
-        Vector<String> addedEntries = new Vector<>();
-        addedEntries.add(rep);
+        Vector<FeedbackListEntry> addedEntries = new Vector<>();
+        addedEntries.add(new FeedbackEntryForeignDatamap(ne, FeedbackEntryForeignDatamap.ADDED_FOREIGN_VERTEX, rep));
         addForeignSubTree(this.swmm,  fSWMM, foreignSV, fv, seenSoFar, rep, addedEntries);
 
         //Report the results to the user
-        addedEntries.add(0, "The following " + addedEntries.size() + " entries were imported from " + fv.getForeignDMName() + ":");
-        MainFrame.getMainFrame().setFeedbackListWithStrings(addedEntries);
+        addedEntries.add(0, new FeedbackListEntry("The following " + addedEntries.size() + " entries were imported from " + fv.getForeignDMName() + ":"));
+        MainFrame.getMainFrame().setFeedbackListData(addedEntries);
 
     }//reimportSubtree
 
@@ -1672,18 +1613,18 @@ public class DataMapTree extends JTree implements ClipboardOwner {
         }
 
         //verify the subtree via each child
-        Vector<String> diffsList = new Vector<>();
+        Vector<FeedbackListEntry> diffsList = new Vector<>();
         HashMap<Integer, ForeignVertex> seenSoFar = new HashMap<>();
-        compareForeignSubTree(this.swmm,  fSWMM, foreignSV, fv, ne.getName(), seenSoFar, diffsList);
+        compareForeignSubTree(this.swmm,  fSWMM, foreignSV, ne, ne.getName(), seenSoFar, diffsList);
 
         //Report the results to the user
         if (! diffsList.isEmpty()) {
-            diffsList.add(0, "The following " + diffsList.size() + " mismatches were found between the imported datamap entries and their original imported from " + fv.getForeignDMName() + ":");
+            diffsList.add(0, new FeedbackListEntry("The following " + diffsList.size() + " mismatches were found between the imported datamap entries and their original imported from " + fv.getForeignDMName() + ":"));
         }
         else {
-            diffsList.add("No mismatches found.");
+            diffsList.add(new FeedbackListEntry("No mismatches found."));
         }
-        MainFrame.getMainFrame().setFeedbackListWithStrings(diffsList);
+        MainFrame.getMainFrame().setFeedbackListData(diffsList);
     }//verifySubtree
 
 

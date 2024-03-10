@@ -101,14 +101,18 @@ public class SoarWorkingMemoryModel {
 
     /**
      * Adds a triple to working memory
+     *
+     * @return the new NamedEdge that was created
      */
-    public void addTriple(SoarVertex v0, String attribute, SoarVertex v1) {
+    public NamedEdge addTriple(SoarVertex v0, String attribute, SoarVertex v1) {
         if (!v0.allowsEmanatingEdges()) {
             throw new IllegalArgumentException("The First SoarVertex does not allow emanating edges");
         }
         NamedEdge ne = new NamedEdge(v0, v1, attribute);
         rep.addEdge(ne);
         notifyListenersOfAdd(ne);
+
+        return ne;
     }
 
     /**
