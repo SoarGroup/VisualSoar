@@ -1232,13 +1232,32 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 			String[] tokens = line.split(" ");
 			if (tokens.length != 2) continue; //invalid line
 
+			//Calcualte the canonical path of the filename for equality comparison
+			String target;
+			try {
+				target = (new File(tokens[1])).getCanonicalPath();
+			}
+			catch(IOException ioe) {
+				continue; //fail quietly; should never happen
+			}
+
 			//Find the associated node
-			String filename = tokens[1];
 			Enumeration<TreeNode> bfe = operatorWindow.breadthFirstEnumeration();
 			while(bfe.hasMoreElements()) {
 				OperatorNode node = (OperatorNode) bfe.nextElement();
 				if (node.getFileName() == null) continue; //skip the fluff
-				if (node.getFileName().equals(filename)) {
+
+				//calculate the canonical path so equality comparison will work as intended
+				String nodeFN;
+				try {
+					nodeFN = (new File(node.getFileName())).getCanonicalPath();
+				}
+				catch(IOException ioe) {
+					continue; //fail quietly; should never happen
+				}
+
+
+				if (nodeFN.equals(target)) {
 					if (tokens[0].equals("RULEEDITOR")) {
 						node.openRules(this);
 					}
@@ -1375,8 +1394,9 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 			Prefs.flush();
 			try 
             {
-				//Save current open window settings
-				MainFrame.this.writeCfgFile();
+				if (CustomInternalFrame.hasEverChanged()) {
+					commitAction.perform();
+				}
 
 				for (JInternalFrame frame : frames) {
 					frame.setClosed(true);
@@ -1387,9 +1407,6 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 				SoarRuntimeTerm();
 								
 				dispose();
-				if (CustomInternalFrame.hasEverChanged()) {
-					commitAction.perform();
-				}
 				System.exit(0);
 			}
 			catch (java.beans.PropertyVetoException pve) { /* ignore */ }
@@ -1668,10 +1685,10 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 			JInternalFrame[] frames = desktopPane.getAllFrames();
 			try 
             {
+				if (! isReadOnly()) commitAction.perform();
 				for (JInternalFrame frame : frames) {
 					frame.setClosed(true);
 				}
-				if (! isReadOnly()) commitAction.perform();
 				operatorDesktopSplit.setLeftComponent(null);
 
 				projectActionsEnable(false);
