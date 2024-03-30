@@ -239,19 +239,6 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		feedbackList.setListData(v);
 	}
 
-
-	/**
-	 * alternative version that displays multiple strings
-	 */
-	public void setFeedbackListWithStrings(Vector<String> msgs) {
-		Vector<FeedbackListEntry> vec = new Vector<>();
-		for(String s : msgs) {
-			vec.add(new FeedbackListEntry(s));
-		}
-		setFeedbackListData(vec);
-	}
-
-
 	/**
 	 * Method updates the status bar text with a message
 	 */
@@ -1213,6 +1200,50 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		return new File(fileChooser.getDirectory(), fileChooser.getFile());
 	}//ghettoFileChooser
 
+
+	/**
+	 * writeCFGFile
+	 *
+	 * saves information about what files are open in the project so that they can be restored
+	 * when the file is loaded
+	 */
+	private void writeCFGFile() {
+		//Create the .cfg file contents
+		ArrayList<String> cfgLines = new ArrayList<>();
+		JInternalFrame[] jif = desktopPane.getAllFrames();
+		for (JInternalFrame jInternalFrame : jif) {
+			if (jInternalFrame instanceof RuleEditor) {
+				RuleEditor re = (RuleEditor) jInternalFrame;
+				String line = "RULEEDITOR " + re.getFile() + " " + re.getNode().getUniqueName();
+				cfgLines.add(line);
+			}
+			else if (jInternalFrame instanceof DataMap) {
+				DataMap dm = (DataMap) jInternalFrame;
+				String line = "DATAMAP " + dm.getId();
+				cfgLines.add(line);
+			}
+		}
+
+		//calculate where the .cfg file should be
+		OperatorRootNode orn = (OperatorRootNode) (operatorWindow.getModel().getRoot());
+		String cfgFN = orn.getFolderName() + File.separator + orn.getName() + ".cfg";
+		File cfgFile = new File(cfgFN);
+
+		//Write the .cfg file contents
+		try {
+			PrintWriter pw = new PrintWriter(cfgFile);
+			for(String line : cfgLines) {
+				pw.println(line);
+			}
+			pw.close();
+		}
+		catch(FileNotFoundException fnfe) {
+			//the .cfg file is not essential so just report it if it can't be written
+			this.setStatusBarMsg("Unable to save current configuration to " + cfgFN);
+		}
+	}//writeCFGFile
+
+
 /**
 * Runs through all the Rule Editors in the Desktop Pane and tells them to save
 * themselves.
@@ -1228,6 +1259,9 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		
 		public void perform() 
         {
+			//Save the list of currently open windows
+			writeCFGFile();
+
 			try
             {
 				JInternalFrame[] jif = desktopPane.getAllFrames();
@@ -1245,7 +1279,10 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
                                               "I/O Error",
                                               JOptionPane.ERROR_MESSAGE);
 			}
-		}
+
+
+
+		}//perform SaveAllFilesAction
 
 		public void actionPerformed(ActionEvent event) 
         {
@@ -1253,7 +1290,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		}
 		
 	}
-	
+
 	/**
 	 * Exit command
 	 * First closes all the RuleEditor windows
@@ -1273,6 +1310,9 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 			Prefs.flush();
 			try 
             {
+				//Save current open window settings
+				MainFrame.this.writeCFGFile();
+
 				for (JInternalFrame frame : frames) {
 					frame.setClosed(true);
 				}
