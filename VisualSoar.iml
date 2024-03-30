@@ -29,6 +29,7 @@
       <library>
         <CLASSES>
           <root url="jar://$MODULE_DIR$/lib/sml.jar!/" />
+          <root url="jar://$MODULE_DIR$/java/sml.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

@@ -1,13 +1,13 @@
 <project name="soar-visualsoar" default="build" basedir=".">
 
-	<property name="manifest.classpath" value="lib/sml.jar" />
+	<property name="manifest.classpath" value="java/sml.jar bin/java/sml.jar lib/sml.jar" />
 	<property name="jar.main.class" value="edu.umich.soar.visualsoar.VisualSoar" />
       
 
 	<property name="version" value="snapshot" />
 
 	<property name="manifest.vendor" value="University of Michigan"/>
-	<property name="copyright" value="(c) The Regents of the University of Michigan, 2013"/>
+	<property name="copyright" value="(c) The Regents of the University of Michigan, 2024"/>
 
 	<property name="src" location="src/main/java" />
 	<property name="lib" location="lib" />
