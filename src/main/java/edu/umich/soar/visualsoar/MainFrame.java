@@ -7,10 +7,7 @@ import edu.umich.soar.visualsoar.datamap.SoarWorkingMemoryReader;
 import edu.umich.soar.visualsoar.dialogs.*;
 import edu.umich.soar.visualsoar.graph.NamedEdge;
 import edu.umich.soar.visualsoar.misc.*;
-import edu.umich.soar.visualsoar.operatorwindow.FileNode;
-import edu.umich.soar.visualsoar.operatorwindow.OperatorNode;
-import edu.umich.soar.visualsoar.operatorwindow.OperatorRootNode;
-import edu.umich.soar.visualsoar.operatorwindow.OperatorWindow;
+import edu.umich.soar.visualsoar.operatorwindow.*;
 import edu.umich.soar.visualsoar.parser.ParseException;
 import edu.umich.soar.visualsoar.parser.SoarProduction;
 import edu.umich.soar.visualsoar.parser.SuppParseChecks;
@@ -1200,36 +1197,104 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		return new File(fileChooser.getDirectory(), fileChooser.getFile());
 	}//ghettoFileChooser
 
+	/**
+	 * @return a File object representing where the project's .cfg file should be
+	 */
+	private File getCfgFile() {
+		OperatorRootNode orn = (OperatorRootNode) (operatorWindow.getModel().getRoot());
+		String cfgFN = orn.getFolderName() + File.separator + orn.getName() + ".cfg";
+		return new File(cfgFN);
+	}//getCfgFile
 
 	/**
-	 * writeCFGFile
+	 * readCfgFile
+	 *
+	 * is called when the project is loaded to read information about what files are open last time and restore them
+	 */
+	private void readCfgFile() {
+		//Read file contents
+		File cfgFile = getCfgFile();
+		if (!cfgFile.exists()) return; //nothing to do
+		Scanner scan;
+		ArrayList<String> cfgLines = new ArrayList<>();
+		try {
+			 scan = new Scanner(cfgFile);
+			 while(scan.hasNextLine()) cfgLines.add(scan.nextLine());
+			 scan.close();
+		}
+		catch(FileNotFoundException fnfe) {
+			this.setStatusBarMsg("Unabled to read previsou configuration from " + cfgFile.getName());
+			return;
+		}
+
+		//Process each line
+		for(String line : cfgLines) {
+			String[] tokens = line.split(" ");
+			if (tokens.length != 2) continue; //invalid line
+
+			//Find the associated node
+			String filename = tokens[1];
+			Enumeration<TreeNode> bfe = operatorWindow.breadthFirstEnumeration();
+			while(bfe.hasMoreElements()) {
+				OperatorNode node = (OperatorNode) bfe.nextElement();
+				if (node.getFileName() == null) continue; //skip the fluff
+				if (node.getFileName().equals(filename)) {
+					if (tokens[0].equals("RULEEDITOR")) {
+						node.openRules(this);
+					}
+					else if (tokens[0].equals("DATAMAP")) {
+						node.openDataMap(operatorWindow.getDatamap(), this);
+					}
+				}
+			}//for each operator node
+		}//for each cfg file line
+
+
+
+	}//readCfgFile
+
+	/**
+	 * writeCfgFile
 	 *
 	 * saves information about what files are open in the project so that they can be restored
-	 * when the file is loaded
+	 * when the file is loaded.
+	 *
+	 * Each line in the config file is one of the following:
+	 * RULEEDITOR &lt;filename&gt;
+	 * DATAMAP &lt;filename&gt;
 	 */
-	private void writeCFGFile() {
+	private void writeCfgFile() {
 		//Create the .cfg file contents
 		ArrayList<String> cfgLines = new ArrayList<>();
 		JInternalFrame[] jif = desktopPane.getAllFrames();
 		for (JInternalFrame jInternalFrame : jif) {
 			if (jInternalFrame instanceof RuleEditor) {
 				RuleEditor re = (RuleEditor) jInternalFrame;
-				String line = "RULEEDITOR " + re.getFile() + " " + re.getNode().getUniqueName();
+				String line = "RULEEDITOR " + re.getFile();
 				cfgLines.add(line);
 			}
 			else if (jInternalFrame instanceof DataMap) {
 				DataMap dm = (DataMap) jInternalFrame;
-				String line = "DATAMAP " + dm.getId();
-				cfgLines.add(line);
-			}
-		}
+				int dmId = dm.getId();
 
-		//calculate where the .cfg file should be
-		OperatorRootNode orn = (OperatorRootNode) (operatorWindow.getModel().getRoot());
-		String cfgFN = orn.getFolderName() + File.separator + orn.getName() + ".cfg";
-		File cfgFile = new File(cfgFN);
+				//Find the filename of the SoarOperatorNode associated with this id
+				Enumeration<TreeNode> bfe = operatorWindow.breadthFirstEnumeration();
+				while(bfe.hasMoreElements()) {
+					OperatorNode node = (OperatorNode) bfe.nextElement();
+					if (node instanceof SoarOperatorNode) {
+						SoarOperatorNode son = (SoarOperatorNode) node;
+						if (son.getDataMapIdNumber() == dmId) {
+							String line = "DATAMAP " + son.getFileName();
+							cfgLines.add(line);
+							break;
+						}
+					}
+				}//for each operator node
+			}//if datamap
+		}//for each internal frame
 
 		//Write the .cfg file contents
+		File cfgFile = getCfgFile();
 		try {
 			PrintWriter pw = new PrintWriter(cfgFile);
 			for(String line : cfgLines) {
@@ -1239,9 +1304,9 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		}
 		catch(FileNotFoundException fnfe) {
 			//the .cfg file is not essential so just report it if it can't be written
-			this.setStatusBarMsg("Unable to save current configuration to " + cfgFN);
+			this.setStatusBarMsg("Unable to save current configuration to " + cfgFile.getName());
 		}
-	}//writeCFGFile
+	}//writeCfgFile
 
 
 /**
@@ -1260,7 +1325,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		public void perform() 
         {
 			//Save the list of currently open windows
-			writeCFGFile();
+			writeCfgFile();
 
 			try
             {
@@ -1311,7 +1376,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 			try 
             {
 				//Save current open window settings
-				MainFrame.this.writeCFGFile();
+				MainFrame.this.writeCfgFile();
 
 				for (JInternalFrame frame : frames) {
 					frame.setClosed(true);
@@ -1377,7 +1442,9 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		//Update the title to include the project name
 		setTitle(file.getName().replaceAll(".vsa", ""));
 
-	}
+		//Reopen windows that were open last time
+		readCfgFile();
+	}//tryOpenProject
 	
 	/**
 	 * Open Project Action
@@ -1425,6 +1492,9 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 
 					//Set the title bar to include the project name
 					setTitle(file.getName().replaceAll(".vsa", ""));
+
+					//Reopen windows that were open last time
+					readCfgFile();
 
 					//Configure read-only status
 					setReadOnly(event.getActionCommand().contains("Read-Only"));

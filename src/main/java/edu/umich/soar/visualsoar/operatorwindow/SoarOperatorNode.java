@@ -187,6 +187,8 @@ public class SoarOperatorNode extends FileNode {
         return dataMapId;
     }
 
+    public int getDataMapIdNumber() { return this.dataMapIdNumber; }
+
     /**
      * @return whether an openDataMap() call on this node will work
      */
