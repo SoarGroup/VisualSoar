@@ -101,6 +101,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 	//Note:  these menu items must be an instance variable because they are changed in read-only mode
 	JMenuItem toggleReadOnlyItem = new JMenuItem(TOGGLE_RO_ON);
 	JMenuItem saveItem = new JMenuItem("Save");
+	JMenu openRecentMenu = new JMenu("Open Recent");
 
 	Action toggleReadOnlyAction = new ToggleReadOnlyAction();
 	PerformableAction commitAction = new CommitAction();
@@ -318,11 +319,11 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		newProjectItem.addActionListener(newProjectAction);
 		newProjectAction.addPropertyChangeListener(
             new ActionButtonAssociation(newProjectAction,newProjectItem));
-			
+
 		JMenuItem openProjectItem = new JMenuItem("Open Project...");
 		openProjectItem.addActionListener(openProjectAction);
 		openProjectAction.addPropertyChangeListener(
-            new ActionButtonAssociation(openProjectAction,openProjectItem));
+				new ActionButtonAssociation(openProjectAction,openProjectItem));
 
 		JMenuItem openProjectReadOnlyItem = new JMenuItem("Open Project Read-Only...");
 		openProjectReadOnlyItem.addActionListener(openProjectAction);
@@ -357,6 +358,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		//Add all the JMenuItem objects to the file menu
 		fileMenu.add(newProjectItem);
 		fileMenu.add(openProjectItem);
+		fileMenu.add(openRecentMenu);
 		fileMenu.add(openProjectReadOnlyItem);
         fileMenu.add(openFileItem);
 		fileMenu.add(closeProjectItem);
@@ -381,10 +383,32 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 
 		exitItem.setAccelerator(KeyStroke.getKeyStroke("alt X"));
 		exitItem.setMnemonic(KeyEvent.VK_X);
-		
+
+		updateRecentProjectsSubMenu();
+
+
 		return fileMenu;
 	}//createFileMenu
-	
+
+	/**
+	 * changes the values in the "Open Recent" sub-menu to reflect the latest project loaded
+	 */
+	public void updateRecentProjectsSubMenu() {
+		//Clear the old projects
+		openRecentMenu.removeAll();
+
+		//Populate the recent projects
+		Vector<File> recentProjs = Prefs.getRecentProjs();
+		if (recentProjs.isEmpty()) openRecentMenu.setEnabled(false);
+		else {
+			for(File projFile : recentProjs) {
+				JMenuItem recentItem = new JMenuItem(projFile.toString());
+				recentItem.addActionListener(new TryOpenProjectAction(projFile));
+				openRecentMenu.add(recentItem);
+			}
+		}//else
+	}
+
 	/**
 	 * A helper function to create the edit menu
 	 * @return The edit menu
@@ -1223,7 +1247,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 			 scan.close();
 		}
 		catch(FileNotFoundException fnfe) {
-			this.setStatusBarMsg("Unabled to read previsou configuration from " + cfgFile.getName());
+			this.setStatusBarMsg("Unable to read previous configuration from " + cfgFile.getName());
 			return;
 		}
 
@@ -1232,7 +1256,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 			String[] tokens = line.split(" ");
 			if (tokens.length != 2) continue; //invalid line
 
-			//Calcualte the canonical path of the filename for equality comparison
+			//Calculate the canonical path of the filename for equality comparison
 			String target;
 			try {
 				target = (new File(tokens[1])).getCanonicalPath();
@@ -1397,6 +1421,10 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 				if (CustomInternalFrame.hasEverChanged()) {
 					commitAction.perform();
 				}
+				else {
+					//Save currently open windows even if nothing's been changed
+					writeCfgFile();
+				}
 
 				for (JInternalFrame frame : frames) {
 					frame.setClosed(true);
@@ -1462,6 +1490,35 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		//Reopen windows that were open last time
 		readCfgFile();
 	}//tryOpenProject
+
+
+	public class TryOpenProjectAction extends PerformableAction {
+		private final File projFile;
+
+		public TryOpenProjectAction(File projFile) {
+			super("Attempt to load project file: " + projFile.getName());
+			this.projFile = projFile;
+		}
+
+		@Override
+		public void perform() {
+			//Get rid of the old project (if it exists)
+			if (operatorWindow != null) {
+				closeProjectAction.perform();
+			}
+
+			try {
+				tryOpenProject(projFile);
+			} catch(IOException ioe) {
+				JOptionPane.showMessageDialog(MainFrame.this, "Unable to open file: " + projFile.getName());
+			}
+		}
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			perform();
+		}
+	}
 	
 	/**
 	 * Open Project Action

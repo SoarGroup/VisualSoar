@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.file.FileSystems;
 import java.util.Vector;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
@@ -23,11 +24,17 @@ public enum Prefs {
     userName("User"),
     editorFontSize("" + SoarDocument.DEFAULT_FONT_SIZE),
     dividerPosition("" + MainFrame.DEFAULT_DIV_POS),
-    customTemplateFolder("");
+    customTemplateFolder(""),
+    //Filenames of last 5 .vsa files that have been loaded
+    recentProj0(""),
+    recentProj1(""),
+    recentProj2(""),
+    recentProj3(""),
+    recentProj4("");
 
     private static final Preferences preferences = Preferences.userRoot().node("edu/umich/soar/visualsoar");
     private static final SyntaxColor[] colors = SyntaxColor.getDefaultSyntaxColors();
-    private static Vector<String> customTemplates = new Vector<String>();
+    private static final Vector<String> customTemplates = new Vector<>();
     //default custom template content
     public static final String defaultCustTempText = "# Any text you write in a template file is automatically inserted when\n# the template is selected from the Insert Template menu.  This\n# comment has been inserted to help you.  You should probably\n# remove it from this file after your template is written.\n#\n# Certain macros can be placed in your text and they will be\n# automatically replaced with the relevant text.\n#\n# The macros are:\n# - $super-operator$ = the super operator\n# - $operator$ = the current operator\n# - $production$ = the name of the production nearest to the cursor\n# - $date$ = today's date\n# - $time$ = the time right now\n# - $project$ or $agent$ = the name of the project\n# - $user$ = the current user name\n# - $caret$ or $cursor$ = indicates where where the cursor should be\n#   after the template is inserted (to be implemented...)\n#\n\nsp {$super-operator$*custom-template\n   (state <s> ^foo bar) \n-->\n   (<s> ^baz qux)\n}\n";
 
@@ -78,7 +85,7 @@ public enum Prefs {
     public static File getCustomTemplatesFolder() {
         //Verify the folder exists and can be accessed
         String prefDirName = Prefs.customTemplateFolder.get();
-        if (prefDirName.length() != 0) {
+        if (!prefDirName.isEmpty()) {
             File prefDir = new File(prefDirName);
             if (! prefDir.exists()) {
                 if (!prefDir.mkdirs()) {
@@ -96,8 +103,8 @@ public enum Prefs {
 
         //If folder is not set, use default location
         //(If this isn't accessible then we're screwed so just trust...)
-        if (prefDirName.length() == 0) {
-            String sep = System.getProperty("file.separator");
+        if (prefDirName.isEmpty()) {
+            String sep = FileSystems.getDefault().getSeparator();
             prefDirName = System.getProperty("user.dir") + sep + ".java" + sep + "edu" + sep + "umich" + sep + "soar" + sep + "visualsoar" + sep;
             Prefs.customTemplateFolder.set(prefDirName);
         }
@@ -119,12 +126,11 @@ public enum Prefs {
         //put the template names in Prefs.customTemplates
         if (templates != null) {
 
-            int len = templates.length;
             customTemplates.clear();
-            for (int i = 0; i < len; ++i) {
+            for (String template : templates) {
                 //trim away the path and extension
-                String name = templates[i];
-                int lastSlash = name.lastIndexOf(System.getProperty("file.separator"));
+                String name = template;
+                int lastSlash = name.lastIndexOf(FileSystems.getDefault().getSeparator());
                 name = name.substring(lastSlash + 1);
                 int ext = name.lastIndexOf(".vsoart");
                 name = name.substring(0, ext);
@@ -139,13 +145,12 @@ public enum Prefs {
      * This method doesn't guarantee the file exists or is accessible! */
     public static File getCustomTemplateFile(String name) {
         File prefsDir = getCustomTemplatesFolder();
-        String filename = prefsDir + System.getProperty("file.separator") + name + ".vsoart";
+        String filename = prefsDir + FileSystems.getDefault().getSeparator() + name + ".vsoart";
         return new File(filename);
     }//getCustomTemplateFile
 
     public static Vector<String> getCustomTemplates() {
-        Vector<String> result = new Vector<>(Prefs.customTemplates);
-        return result;
+        return new Vector<>(Prefs.customTemplates);
     }
 
     /**
@@ -157,7 +162,7 @@ public enum Prefs {
     public static File addCustomTemplate(String newbie) {
         //Add the new template
         if (newbie == null) return null;
-        if (newbie.length() == 0) return null;
+        if (newbie.isEmpty()) return null;
         if (Prefs.customTemplates.contains(newbie)) return null;
 
         //If the file doesn't exist (it shouldn't), create it
@@ -191,6 +196,84 @@ public enum Prefs {
         File removeFile = getCustomTemplateFile(removeMe);
         removeFile.delete();
     }//removeCustomTemplate
+
+
+
+    /* helper method for getRecentProjs() and addRecentProject() below.  It verifies
+       a given filename is the valid name of an existing .vsa file and adds it to a list. */
+    private static void addIfValid(String filename, Vector<File> vec) {
+        if ( (filename != null)
+              && (filename.endsWith(".vsa"))
+              && (!vec.contains(filename)) ) {
+
+            //Make sure the new file still exists
+            File newbieFile = new File(filename);
+            if (!newbieFile.exists()) return;
+
+            //Extract the canonical (unique) name of this file for comparison
+            String newbieFN;
+            try {
+                newbieFN = newbieFile.getCanonicalPath();
+            }
+            catch(IOException ioe) {
+                return; //invalid file is ignored (should not happen)
+            }
+
+            //compare to canonical name of existing files to avoid duplicates
+            for(File prevFile : vec) {
+                String prevFN;
+                try {
+                    prevFN = prevFile.getCanonicalPath();
+                }
+                catch(IOException ioe) {
+                    continue; //skip this one
+                }
+
+                //If we've seen this file before, reject
+                if (newbieFN.equals(prevFN)) return;
+            }
+
+            //all checks passed
+            vec.add(newbieFile);
+        }
+    }//addIfValid
+
+
+    /** retrieves a list of the most recently opened .vsa files */
+    public static Vector<File> getRecentProjs() {
+        Vector<File> recentProjs = new Vector<>();
+        addIfValid(recentProj0.get(), recentProjs);
+        addIfValid(recentProj1.get(), recentProjs);
+        addIfValid(recentProj2.get(), recentProjs);
+        addIfValid(recentProj3.get(), recentProjs);
+        addIfValid(recentProj4.get(), recentProjs);
+        return recentProjs;
+    }//getRecentProjs
+
+    /**
+     * adds a new filename to the list of recent projects
+     */
+    public static void addRecentProject(String newbie) {
+        //Make sure this file is valid and unique.
+        Vector<File> recentProjs = getRecentProjs();
+        addIfValid(newbie, recentProjs);
+
+        //If there are too many projects, remove some
+        while (recentProjs.size() > 5) {
+            recentProjs.remove(0);
+        }
+
+        //Place the recent projects back into the prefs
+        if (recentProjs.size() > 0) recentProj0.set(recentProjs.get(0).getPath());
+        if (recentProjs.size() > 1) recentProj1.set(recentProjs.get(1).getPath());
+        if (recentProjs.size() > 2) recentProj2.set(recentProjs.get(2).getPath());
+        if (recentProjs.size() > 3) recentProj3.set(recentProjs.get(3).getPath());
+        if (recentProjs.size() > 4) recentProj4.set(recentProjs.get(4).getPath());
+
+        //Update the VisualSoar menu to reflect the change
+        MainFrame.getMainFrame().updateRecentProjectsSubMenu();
+    }//addRecentProject
+
 
     private final String def;
     private final boolean defBoolean;

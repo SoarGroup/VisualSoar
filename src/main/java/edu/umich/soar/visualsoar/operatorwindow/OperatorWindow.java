@@ -11,6 +11,7 @@ import edu.umich.soar.visualsoar.graph.SoarIdentifierVertex;
 import edu.umich.soar.visualsoar.graph.SoarVertex;
 import edu.umich.soar.visualsoar.misc.FeedbackEntryOpNode;
 import edu.umich.soar.visualsoar.misc.FeedbackListEntry;
+import edu.umich.soar.visualsoar.misc.Prefs;
 import edu.umich.soar.visualsoar.parser.ParseException;
 import edu.umich.soar.visualsoar.parser.SoarProduction;
 import edu.umich.soar.visualsoar.parser.TokenMgrError;
@@ -149,6 +150,7 @@ public class OperatorWindow extends JTree {
         s_OperatorWindow = this;
         workingMemory = new SoarWorkingMemoryModel(false, null);
         openHierarchy(in_file);
+        Prefs.addRecentProject(in_file.getAbsolutePath());
     }
 
     public static OperatorWindow getOperatorWindow() {
