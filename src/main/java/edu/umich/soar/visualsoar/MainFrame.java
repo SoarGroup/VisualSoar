@@ -50,9 +50,10 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 /////////////////////////////////////////
 	private static final long serialVersionUID = 20221225L;
 
-	//This is for the divider between the operator pane and the desktop
+	//This is for the dividers between the operator pane and the desktop and also feedback pane
 	public static final double MAX_DIV_POS = 0.95;
-	public static final double DEFAULT_DIV_POS = 0.1;
+	public static final double DEFAULT_OPER_DIV_POS = 0.1;
+	public static final double DEFAULT_FB_DIV_POS = 0.65;
 	public static final double MIN_DIV_POS = 0.02;
 
 /////////////////////////////////////////
@@ -68,6 +69,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 	private final CustomDesktopPane desktopPane = new CustomDesktopPane();
 	private final TemplateManager d_templateManager = new TemplateManager();
 	private final JSplitPane operatorDesktopSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+	private final JSplitPane feedbackDesktopSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT);;
 	public FeedbackList feedbackList = new FeedbackList();
     public JLabel statusBar = new JLabel("  Welcome to Visual Soar.");
 	String lastWindowViewOperation = "none"; // can also be "tile" or "cascade"
@@ -169,11 +171,10 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		sp.setBorder(new TitledBorder("Feedback"));
 
 		//Create the main desktop
-		JSplitPane feedbackDesktopSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
 		feedbackDesktopSplit.setTopComponent(operatorDesktopSplit);
         feedbackDesktopSplit.setBottomComponent(sp);
         feedbackDesktopSplit.setOneTouchExpandable(true);
-        feedbackDesktopSplit.setDividerLocation( ((int) (getSize().getHeight() * .65)) );
+		feedbackDividerSetup();
 
 		//Add the desktop to the window with status bar at the bottom
 		Box vbox = Box.createVerticalBox();
@@ -1097,20 +1098,20 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
   	}
 
 	/**
-	 * sets the divider position (between the operator pane and the desktop)
+	 * sets the divider position between the operator pane and the desktop
 	 * based upon the last user setting.
 	 */
-	private static boolean listenerSetup = false;  //avoid re-creating listener
-	private void dividerSetup() {
-		double position = Double.parseDouble(Prefs.dividerPosition.get());
+	private static boolean operListenerSetup = false;  //avoid re-creating listener
+	private void operDividerSetup() {
+		double position = Double.parseDouble(Prefs.operDividerPosition.get());
 		if ((position < MIN_DIV_POS) || (position > MAX_DIV_POS)) {
-			position = DEFAULT_DIV_POS;
-			Prefs.dividerPosition.set("" + DEFAULT_DIV_POS);
+			position = DEFAULT_OPER_DIV_POS;
+			Prefs.operDividerPosition.set("" + DEFAULT_OPER_DIV_POS);
 		}
 		operatorDesktopSplit.setDividerLocation(position);
 
 		//Whenever the user moves the divider, remember the user's preference
-		if (! listenerSetup) {
+		if (!operListenerSetup) {
 			operatorDesktopSplit.addPropertyChangeListener(
 					JSplitPane.DIVIDER_LOCATION_PROPERTY,
 					new PropertyChangeListener() {
@@ -1126,15 +1127,56 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 
 							//Save the new value to Prefs (if sane)
 							if ((proportion >= MIN_DIV_POS) && (proportion <= MAX_DIV_POS)) {
-								Prefs.dividerPosition.set("" + proportion);
+								Prefs.operDividerPosition.set("" + proportion);
 								Prefs.flush();
 							}
 						}
 					}
 			);
-			listenerSetup = true;
+			operListenerSetup = true;
+		}//listener setup
+	}//operDividerSetup
+
+	/**
+	 * sets the divider position between the feedback pane and the desktop
+	 * based upon the last user setting.
+	 */
+	private static boolean feedbackListenerSetup = false;  //avoid re-creating listener
+	private void feedbackDividerSetup() {
+		double position = Double.parseDouble(Prefs.fbDividerPosition.get());
+		if ((position < MIN_DIV_POS) || (position > MAX_DIV_POS)) {
+			position = DEFAULT_FB_DIV_POS;
+			Prefs.fbDividerPosition.set("" + DEFAULT_FB_DIV_POS);
+		}
+		feedbackDesktopSplit.setDividerLocation( ((int) (getSize().getHeight() * position)) );
+
+		//Whenever the user moves the divider, remember the user's preference
+		if (!feedbackListenerSetup) {
+			feedbackDesktopSplit.addPropertyChangeListener(
+					JSplitPane.DIVIDER_LOCATION_PROPERTY,
+					new PropertyChangeListener() {
+						@Override
+						public void propertyChange(PropertyChangeEvent evt) {
+							//Retrieve the value as a double
+							String valStr = evt.getNewValue().toString();
+							int val = Integer.parseInt(valStr);
+
+							//Convert it to a fraction of split pane's size
+							int paneHeight = feedbackDesktopSplit.getHeight();
+							double proportion = (double) val / (double) paneHeight;
+
+							//Save the new value to Prefs (if sane)
+							if ((proportion >= MIN_DIV_POS) && (proportion <= MAX_DIV_POS)) {
+								Prefs.fbDividerPosition.set("" + proportion);
+								Prefs.flush();
+							}
+						}
+					}
+			);
+			feedbackListenerSetup = true;
 		}//listener setup
 	}//dividerSetup
+
 
 	/**
 	 * setReadOnly
@@ -1551,7 +1593,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		projectActionsEnable(true);
 
 		//Set and monitor the divider position
-		dividerSetup();
+		operDividerSetup();
 
 		//Update the title to include the project name
 		setTitle(file.getName().replaceAll(".vsa", ""));
@@ -1625,7 +1667,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 					projectActionsEnable(true);
 
 					//Set and monitor the divider position
-					dividerSetup();
+					operDividerSetup();
 
 					//Verify project integrity
 					verifyProjectAction.perform();
@@ -1779,7 +1821,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
                 exportAgentAction.perform();
 
 				//Set and monitor the divider position
-				dividerSetup();
+				operDividerSetup();
 
 				//Reset tracking whether any change has been made to this project
 				CustomInternalFrame.resetEverchanged();

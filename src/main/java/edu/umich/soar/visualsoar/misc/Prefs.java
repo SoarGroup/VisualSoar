@@ -23,7 +23,8 @@ public enum Prefs {
     sharedProjectEnabled(false),
     userName("User"),
     editorFontSize("" + SoarDocument.DEFAULT_FONT_SIZE),
-    dividerPosition("" + MainFrame.DEFAULT_DIV_POS),
+    operDividerPosition("" + MainFrame.DEFAULT_OPER_DIV_POS),
+    fbDividerPosition("" + MainFrame.DEFAULT_FB_DIV_POS),
     customTemplateFolder(""),
     //Filenames of last 5 .vsa files that have been loaded
     recentProj0(""),
