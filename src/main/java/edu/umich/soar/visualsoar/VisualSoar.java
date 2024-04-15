@@ -3,6 +3,7 @@ import edu.umich.soar.visualsoar.misc.Prefs;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Vector;
 import javax.swing.JOptionPane;
 
 /**
@@ -19,7 +20,7 @@ public class VisualSoar {
 ///////////////////////////////////////////////////////////////////
 
 	/**
-	 * Since this class can be run this is the starting point, it constructs an instance of
+	 * Since this class can be run this is the starting point, it constructs an instance
 	 * of the MainFrame
 	 * @param args an array of strings representing command line arguments
 	 */
@@ -28,17 +29,36 @@ public class VisualSoar {
 		MainFrame.setMainFrame(mainFrame);
 		mainFrame.setVisible(true);
 
-		if(args.length == 1){
+		//If user specified a command line argument, try to open it as a project
+		if(args.length >= 1){
 			try{
 				mainFrame.tryOpenProject(new File(args[0]));
 			}
 			catch(IOException ioe) {
 				JOptionPane.showMessageDialog(mainFrame,
-					"File " + args[0] + " not found",
-					"Open Project Error",
-					JOptionPane.ERROR_MESSAGE);
+						"File " + args[0] + " not found",
+						"Open Project Error",
+						JOptionPane.ERROR_MESSAGE);
 			}
 		}
+
+		//If nothing was specified on the command line, try
+		//to open the most recent project as a courtesy
+		else  {
+			Vector<File> recentProjs = Prefs.getRecentProjs();
+			int numRecent = recentProjs.size();
+			if (numRecent > 0) {
+				File mostRecent = recentProjs.get(numRecent - 1);
+				try{
+					mainFrame.tryOpenProject(mostRecent);
+				}
+				catch(IOException ioe) {
+					//fail quietly.
+				}
+			}
+		}
+
+
 	}
 	
 }

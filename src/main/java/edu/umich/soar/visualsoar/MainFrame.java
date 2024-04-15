@@ -401,7 +401,9 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		Vector<File> recentProjs = Prefs.getRecentProjs();
 		if (recentProjs.isEmpty()) openRecentMenu.setEnabled(false);
 		else {
-			for(File projFile : recentProjs) {
+			//iterate backwards so the most recent file is at the top
+			for(int i = recentProjs.size() - 1; i >= 0; --i) {
+				File projFile = recentProjs.get(i);
 				JMenuItem recentItem = new JMenuItem(projFile.toString());
 				recentItem.addActionListener(new TryOpenProjectAction(projFile));
 				openRecentMenu.add(recentItem);
@@ -1307,6 +1309,9 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 	 * DATAMAP &lt;filename&gt;
 	 */
 	private void writeCfgFile() {
+		//Sanity check:  is a project currently open?
+		if (operatorWindow == null) return;
+
 		//Create the .cfg file contents
 		ArrayList<String> cfgLines = new ArrayList<>();
 		JInternalFrame[] jif = desktopPane.getAllFrames();
@@ -1422,7 +1427,6 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 					commitAction.perform();
 				}
 				else {
-					//Save currently open windows even if nothing's been changed
 					writeCfgFile();
 				}
 

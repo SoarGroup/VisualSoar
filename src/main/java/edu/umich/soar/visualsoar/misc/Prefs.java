@@ -219,7 +219,8 @@ public enum Prefs {
                 return; //invalid file is ignored (should not happen)
             }
 
-            //compare to canonical name of existing files to avoid duplicates
+            //compare to canonical name of existing files to see if this is a duplicate
+            File dupOf = null;
             for(File prevFile : vec) {
                 String prevFN;
                 try {
@@ -229,9 +230,16 @@ public enum Prefs {
                     continue; //skip this one
                 }
 
-                //If we've seen this file before, reject
-                if (newbieFN.equals(prevFN)) return;
+                //If we've seen this file before exit
+                if (newbieFN.equals(prevFN)) {
+                    dupOf = prevFile;
+                    break;
+                }
             }
+
+            //If it's a duplicate, then remove the old one so it's replaced by the new
+            //(as a side effect this helpfully adds it to the top of the Open Recent menu list)
+            vec.remove(dupOf);
 
             //all checks passed
             vec.add(newbieFile);
