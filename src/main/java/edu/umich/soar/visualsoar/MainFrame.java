@@ -158,12 +158,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
     {
 		// Set the Title of the window
 		super(s);
-
-		// Use Java toolkit to access user's screen size and set VisualSoar window to 90% of that size
-        Toolkit tk = Toolkit.getDefaultToolkit();
-        Dimension d = tk.getScreenSize();
-		setSize( ((int) (d.getWidth() * .9)), ((int) (d.getHeight() * .9)) );
-
+		restorePositionAndSize();
 		setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 
 		Container contentPane = getContentPane();
@@ -178,7 +173,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		feedbackDesktopSplit.setTopComponent(operatorDesktopSplit);
         feedbackDesktopSplit.setBottomComponent(sp);
         feedbackDesktopSplit.setOneTouchExpandable(true);
-        feedbackDesktopSplit.setDividerLocation( ((int) (d.getHeight() * .65)) );
+        feedbackDesktopSplit.setDividerLocation( ((int) (getSize().getHeight() * .65)) );
 
 		//Add the desktop to the window with status bar at the bottom
 		Box vbox = Box.createVerticalBox();
@@ -202,6 +197,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
         d_templateManager.load();
         
         List<Image> icons = new ArrayList<>();
+		Toolkit tk = Toolkit.getDefaultToolkit();
         icons.add(tk.getImage(MainFrame.class.getResource("/vs.png")));
         icons.add(tk.getImage(MainFrame.class.getResource("/vs16.png")));
 		this.setIconImages(icons);
@@ -683,6 +679,73 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
             //No sweat. This just means the new window failed to get focus.
         }
     }//OpenFile()
+
+	/**
+	 * sets the VisualSoar window's position and size to a default
+	 */
+	private void useDefaultPositionAndSize() {
+		// Use Java toolkit to access user's screen size and set VisualSoar window to 90% of that size
+		Toolkit tk = Toolkit.getDefaultToolkit();
+		Dimension d = tk.getScreenSize();
+		setSize( ((int) (d.getWidth() * .9)), ((int) (d.getHeight() * .9)) );
+	}
+
+	/**
+	 * restores the Visual Soar to the position and size it had last time
+	 */
+	private void restorePositionAndSize() {
+		//If size/position data is missing then use the default size/pos
+		String lastXStr = Prefs.lastXPos.get();
+		String lastYStr = Prefs.lastYPos.get();
+		String lastWidthStr = Prefs.lastWidth.get();
+		String lastHeightStr = Prefs.lastHeight.get();
+		if ((lastXStr == null)  || (lastYStr == null) || (lastWidthStr == null) || (lastHeightStr == null)) {
+			useDefaultPositionAndSize();
+			return;
+		}
+
+		//If the last pos/size data is not parseable use the default size/pos
+		int lastX;
+		int lastY;
+		int lastWidth;
+		int lastHeight;
+		try {
+			lastX = Integer.parseInt(lastXStr);
+			lastY = Integer.parseInt(lastYStr);
+			lastWidth = Integer.parseInt(lastWidthStr);
+			lastHeight = Integer.parseInt(lastHeightStr);
+		}
+		catch(NumberFormatException nfe) {
+			useDefaultPositionAndSize();
+			return;
+		}
+
+		//if the window is off the screen (or CLOSE to it), then use the default size/pos
+		int CLOSE = 30; //I arbitrarily choose 30 pixels as "close"
+		Toolkit tk = Toolkit.getDefaultToolkit();
+		Dimension d = tk.getScreenSize();
+		if ((lastX < 0) || (lastY < 0) || (lastX + CLOSE > d.width) || (lastY + CLOSE > d.height)) {
+			useDefaultPositionAndSize();
+			return;
+		}
+
+		//Ok, we are ready to accept these previous values
+		setSize(lastWidth, lastHeight);
+		setLocation(lastX, lastY);
+	}//restorePositionAndSize
+
+	/** stores the current window position and size so they can be restored
+	 * when Visual Soar runs again */
+	private void savePositionAndSize() {
+		Point loc = getLocation();
+		Prefs.lastXPos.set("" + loc.x);
+		Prefs.lastYPos.set("" + loc.y);
+		Dimension dim = getSize();
+		Prefs.lastWidth.set("" + dim.width);
+		Prefs.lastHeight.set("" + dim.height);
+
+	}
+
 
 	/**
      * When the Soar Runtime|Agent menu is selected, this listener
@@ -1423,6 +1486,8 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 			Prefs.flush();
 			try 
             {
+				savePositionAndSize();
+
 				if (CustomInternalFrame.hasEverChanged()) {
 					commitAction.perform();
 				}

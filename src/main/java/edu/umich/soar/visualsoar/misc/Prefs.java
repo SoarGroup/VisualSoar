@@ -30,7 +30,11 @@ public enum Prefs {
     recentProj1(""),
     recentProj2(""),
     recentProj3(""),
-    recentProj4("");
+    recentProj4(""),
+    lastXPos(null),
+    lastYPos(null),
+    lastWidth(null),
+    lastHeight(null);
 
     private static final Preferences preferences = Preferences.userRoot().node("edu/umich/soar/visualsoar");
     private static final SyntaxColor[] colors = SyntaxColor.getDefaultSyntaxColors();
