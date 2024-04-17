@@ -257,28 +257,30 @@ public class SoarOperatorNode extends FileNode {
      * This is the function that gets called when you want to add a sub-operator to this node
      *
      * @param newOperatorName the name of the new operator to add
+     *
+     * @return the newly created child operator node (or null on failure)
      */
     public OperatorNode addSubOperator(OperatorWindow operatorWindow,
                                        SoarWorkingMemoryModel swmm,
                                        String newOperatorName) throws IOException {
         if (!isHighLevel) {
             if (!firstTimeAdd(operatorWindow, swmm)) {
-                return this;
+                return null;
             }
         }
 
         File rules = new File(getFullPathName() + File.separator + newOperatorName + ".soar");
         if (creationConflict(rules)) {
-            return this;
+            return null;
         }
 
         if (!rules.createNewFile()) {
             throw new IOException();
         }
 
-        OperatorNode on = operatorWindow.createSoarOperatorNode(newOperatorName,
+        OperatorNode child = operatorWindow.createSoarOperatorNode(newOperatorName,
                 rules.getName());
-        operatorWindow.addChild(this, on);
+        operatorWindow.addChild(this, child);
 
         SoarVertex opName = swmm.createNewEnumeration(newOperatorName);
         SoarVertex operId = swmm.createNewSoarId();
@@ -287,7 +289,7 @@ public class SoarOperatorNode extends FileNode {
 
         notifyLinksOfUpdate(operatorWindow);
         sourceChildren();
-        return this;
+        return child;
     }//addSubOperator
 
     /**

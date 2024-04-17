@@ -88,16 +88,18 @@ public class OperatorRootNode extends FolderNode implements java.io.Serializable
      *
      * @param swmm            the Working Memory Model so that we can add corresponding entries to the datamap
      * @param newOperatorName the name of the operator being added
+     *
+     * @return the newly created child operator node (or null on failure)
      */
     public OperatorNode addSubOperator(OperatorWindow operatorWindow, SoarWorkingMemoryModel swmm, String newOperatorName) throws IOException {
-        super.addSubOperator(operatorWindow, swmm, newOperatorName);
+        OperatorNode child = super.addSubOperator(operatorWindow, swmm, newOperatorName);
 
         SoarVertex oper = swmm.createNewSoarId();
         SoarVertex operName = swmm.createNewEnumeration(newOperatorName);
         swmm.addTriple(swmm.getTopstate(), "operator", oper);
         swmm.addTriple(oper, "name", operName);
 
-        return this;
+        return child;
     }
 
     public String getName() {

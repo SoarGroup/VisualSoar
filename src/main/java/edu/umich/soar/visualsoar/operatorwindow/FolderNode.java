@@ -108,6 +108,8 @@ public class FolderNode extends OperatorNode implements java.io.Serializable {
      *
      * @param swmm            the tree model for which this node is currently a member
      * @param newOperatorName the name of the new operator to add
+     *
+     * @return the newly created child operator node (or null on failure)
      */
     public OperatorNode addSubOperator(OperatorWindow operatorWindow,
                                        SoarWorkingMemoryModel swmm,
@@ -117,7 +119,7 @@ public class FolderNode extends OperatorNode implements java.io.Serializable {
 
         if (creationConflict(rules)) {
 
-            return this;
+            return null;
         }
 
         if (!rules.createNewFile()) {
@@ -125,11 +127,11 @@ public class FolderNode extends OperatorNode implements java.io.Serializable {
             throw new IOException();
         }
 
-        OperatorNode on = operatorWindow.createSoarOperatorNode(newOperatorName,
+        OperatorNode child = operatorWindow.createSoarOperatorNode(newOperatorName,
                 rules.getName());
-        operatorWindow.addChild(this, on);
+        operatorWindow.addChild(this, child);
         sourceChildren();
-        return this;
+        return child;
     }
 
     /**

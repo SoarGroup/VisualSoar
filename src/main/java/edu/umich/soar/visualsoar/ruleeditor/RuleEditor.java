@@ -1692,17 +1692,31 @@ public class RuleEditor extends CustomInternalFrame {
         }
 
         public void actionPerformed(ActionEvent e) {
-            try {
-                String s = template.instantiate(RuleEditor.this);
-                int pos = editorPane.getCaretPosition();
-                editorPane.insert(s, pos);
-                editorPane.setCaretPosition(pos + template.getCaretOffset());
-            } catch (TemplateInstantiationException tie) {
-                JOptionPane.showMessageDialog(RuleEditor.this, tie.getMessage(),
-                        "Template Error",
-                        JOptionPane.ERROR_MESSAGE);
-            }
+            insertTemplate(template);  //see below
         }
+    }
+
+    /** inserts a given template into this file.
+     *
+     * @param template  the template to insert
+     */
+    public void insertTemplate(Template template) {
+        String text = "";
+        try {
+            text = template.instantiate(RuleEditor.this);
+        } catch (TemplateInstantiationException tie) {
+            JOptionPane.showMessageDialog(RuleEditor.this, tie.getMessage(),
+                    "Template Error",
+                    JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        int pos = editorPane.getCaretPosition();
+        editorPane.insert(text, pos);
+        editorPane.setCaretPosition(pos + template.getCaretOffset());
+
+        //add a newline because it's likely helpful
+        editorPane.insert("\n", pos);
     }
 
     static class EditCustomTemplatesAction extends AbstractAction {

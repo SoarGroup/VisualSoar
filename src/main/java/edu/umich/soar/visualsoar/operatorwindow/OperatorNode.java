@@ -9,6 +9,7 @@ import edu.umich.soar.visualsoar.misc.FeedbackListEntry;
 import edu.umich.soar.visualsoar.parser.ParseException;
 import edu.umich.soar.visualsoar.parser.SoarProduction;
 import edu.umich.soar.visualsoar.parser.TokenMgrError;
+import edu.umich.soar.visualsoar.ruleeditor.RuleEditor;
 
 import javax.swing.*;
 import javax.swing.tree.TreeNode;
@@ -29,7 +30,7 @@ import java.util.Vector;
  * @version 0.5a 5 Aug 1999
  * <p>
  * Class Hierarchy: <br/>
- *    Operator Node                                superclass for all nodes<br/>
+ *    OperatorNode                                 (this class) superclass for all nodes<br/>
  *    +-- {@link FolderNode}                       contains a folder<br/>
  *        +-- {@link OperatorRootNode}             root folder of the entire pane<br/>
  *    +-- {@link FileNode}                         superclass for any node with an associated file<br/>
@@ -615,9 +616,11 @@ public abstract class OperatorNode extends VSTreeNode implements java.io.Seriali
      * all this function does is print out an error message to that effect
      *
      * @param newOperatorName the name of the new operator to add
+     *
+     * @return the newly created child operator node (or null on failure)
      */
     public OperatorNode addSubOperator(OperatorWindow operatorWindow, SoarWorkingMemoryModel swmm, String newOperatorName) throws IOException {
-        System.err.println("addSubOperator: This should never get called");
+        System.err.println("OperatorNode.addSubOperator: This should never get called");
         return null;
     }
 
@@ -675,8 +678,11 @@ public abstract class OperatorNode extends VSTreeNode implements java.io.Seriali
      * all this function does is print out an error message to that effect
      *
      * @param pw the MainFrame
+     *
+     * @return the RuleEditor object created (or null on failure)
      */
-    public void openRules(MainFrame pw) {
+    public RuleEditor openRules(MainFrame pw) {
+        return null;
     }
 
 

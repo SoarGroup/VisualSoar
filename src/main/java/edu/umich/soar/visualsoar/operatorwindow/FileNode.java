@@ -375,27 +375,38 @@ public class FileNode extends OperatorNode implements java.io.Serializable {
      *
      * @param pw the MainFrame
      */
-    public void openRules(MainFrame pw) {
-        if (ruleEditor == null || ruleEditor.isClosed()) {
-            try {
-                ruleEditor = new RuleEditor(new java.io.File(getFileName()),
-                        this);
-                ruleEditor.setReadOnly(MainFrame.getMainFrame().isReadOnly());
-                ruleEditor.setVisible(true);
-                pw.addRuleEditor(ruleEditor);
-                ruleEditor.setSelected(true);
-            } catch (IOException ioe) {
-                JOptionPane.showMessageDialog(pw,
-                        "There was an error reading file: " + fileAssociation,
-                        "I/O Error",
-                        JOptionPane.ERROR_MESSAGE);
-            } catch (java.beans.PropertyVetoException pve) {
-                //No sweat. This just means the new window failed to get focus.
-            }
-        } else {
+    @Override
+    public RuleEditor openRules(MainFrame pw) {
+        //If the rules are already open just bring it to the front
+        if ( (ruleEditor != null) && (! ruleEditor.isClosed()) ) {
             pw.showRuleEditor(ruleEditor);
+            return ruleEditor;
         }
-    }
+
+        //Read the file contents
+        try {
+            ruleEditor = new RuleEditor(new java.io.File(getFileName()),
+                    this);
+        } catch (IOException ioe) {
+            JOptionPane.showMessageDialog(pw,
+                    "There was an error reading file: " + fileAssociation,
+                    "I/O Error",
+                    JOptionPane.ERROR_MESSAGE);
+        }
+
+        //Create the window and show it to the user
+        ruleEditor.setReadOnly(MainFrame.getMainFrame().isReadOnly());
+        ruleEditor.setVisible(true);
+        pw.addRuleEditor(ruleEditor);
+        try {
+            ruleEditor.setSelected(true);
+        } catch (java.beans.PropertyVetoException pve) {
+            //No sweat. This just means the new window failed to get focus.
+        }
+
+        return ruleEditor;
+
+    }//openRules
 
     /**
      * This opens/shows a rule editor with this node's associated file

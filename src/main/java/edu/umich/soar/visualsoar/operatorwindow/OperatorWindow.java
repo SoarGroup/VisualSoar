@@ -12,9 +12,11 @@ import edu.umich.soar.visualsoar.graph.SoarVertex;
 import edu.umich.soar.visualsoar.misc.FeedbackEntryOpNode;
 import edu.umich.soar.visualsoar.misc.FeedbackListEntry;
 import edu.umich.soar.visualsoar.misc.Prefs;
+import edu.umich.soar.visualsoar.misc.Template;
 import edu.umich.soar.visualsoar.parser.ParseException;
 import edu.umich.soar.visualsoar.parser.SoarProduction;
 import edu.umich.soar.visualsoar.parser.TokenMgrError;
+import edu.umich.soar.visualsoar.ruleeditor.RuleEditor;
 import edu.umich.soar.visualsoar.util.ReaderUtils;
 
 import javax.swing.*;
@@ -432,37 +434,58 @@ public class OperatorWindow extends JTree {
      * it inserts a new node into the tree
      */
     public void addSubOperator() {
-        String s;
+        //Ask the user for the new operator's name
+        String opName;
         NameDialog theDialog = new NameDialog(MainFrame.getMainFrame());
         theDialog.setTitle("Enter Operator Name");
         theDialog.setVisible(true);
+        if (! theDialog.wasApproved()) return;  //User hit Cancel button
+        opName = theDialog.getText();
 
-        if (theDialog.wasApproved()) {
-            s = theDialog.getText();
+        //Find the new child operator's location in the operator hierarchy
+        TreePath tp = getSelectionPath();
+        if (tp == null) return; //should never happen
+        OperatorNode parent = (OperatorNode) tp.getLastPathComponent();
+        OperatorNode child = null;
 
-            TreePath tp = getSelectionPath();
-            if (tp == null) {
-                return; //should never happen
-            }
-            OperatorNode parent = (OperatorNode) tp.getLastPathComponent();
-
-            try {
-                parent = parent.addSubOperator(this, workingMemory, s);
-
-                if (parent != null) {
-                    tp = new TreePath(parent.getPath());
-
-                    if (parent.getChildCount() != 0) {
-                        expandPath(tp);
-                    }
-                }
-            } catch (IOException ioe) {
-                JOptionPane.showMessageDialog(MainFrame.getMainFrame(),
-                        "Could not create sub-operator, name may be invalid",
-                        "I/O Error", JOptionPane.ERROR_MESSAGE);
-            }
+        //Attempt to add the new operator
+        try {
+            child = parent.addSubOperator(this, workingMemory, opName);
+        } catch (IOException ioe) {
+            //error will be reported below
         }
-    }
+
+        //Report failure to user.
+        if (child == null) {
+            JOptionPane.showMessageDialog(MainFrame.getMainFrame(),
+                    "Could not create sub-operator, name may be invalid",
+                    "I/O Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        //Expand to the parent so child is visible.  (How could it not be?)
+        tp = new TreePath(parent.getPath());
+        if (parent.getChildCount() != 0) {  //should always be true
+            expandPath(tp);
+        }
+
+        //Create a rule editor for the new, empty operator
+        RuleEditor re = child.openRules(MainFrame.getMainFrame());
+
+        //Insert the 'propose' and 'apply' templates
+        Template parentTemplate = MainFrame.getMainFrame().getTemplateManager().getRootTemplate();
+        Template proposeTemplate = null;
+        Template applyTemplate = null;
+        Iterator<Template> iter = parentTemplate.getChildTemplates();
+        while (iter.hasNext()) {
+            Template t = iter.next();
+            if (t.getName().equals("propose-operator")) proposeTemplate = t;
+            if (t.getName().equals("apply-operator")) applyTemplate = t;
+        }
+        if (proposeTemplate != null) re.insertTemplate(proposeTemplate);
+        if (applyTemplate != null) re.insertTemplate(applyTemplate);
+
+    }//addSubOperator
 
     /*
      * Exports a portion of the Operator hierarchy into a .vse file
