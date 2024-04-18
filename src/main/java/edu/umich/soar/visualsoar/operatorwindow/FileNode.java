@@ -219,9 +219,10 @@ public class FileNode extends OperatorNode implements java.io.Serializable {
             java.io.Reader r = new java.io.FileReader(getFileName());
             SoarParser aParser = new SoarParser(r);
 
-            Vector<SoarProduction> v = aParser.VisualSoarFile();
+            Vector<SoarProduction> prods = aParser.VisualSoarFile();
             r.close();
-            return v;
+
+            return prods;
         }
 
         //This version is for files that are open (:AMN: Sep 2022)

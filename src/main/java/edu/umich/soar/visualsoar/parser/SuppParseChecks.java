@@ -346,6 +346,21 @@ public class SuppParseChecks {
         return text;
     }//insertBraces
 
+    /** helper method to load the contents of a given file into a String */
+    private static String getFileContent(String filename) {
+        Path fPath = Paths.get(filename);
+        String fileContent;
+        try {
+            byte[] bytes = Files.readAllBytes(fPath);
+            fileContent = new String(bytes);
+        } catch (IOException e) {
+            //quiet fail.  This is not important enough to do anything about it
+            //and likely to be caught by other parts of VisualSoar.
+            return null;  //failure
+        }
+        return fileContent;
+    }
+
     /**
      * fixUnmatchedBraces
      * <p>
@@ -360,17 +375,8 @@ public class SuppParseChecks {
      * @param filename of the file to check
      */
     public static void fixUnmatchedBraces(String filename) {
-        //Read in the file content
-        Path fPath = Paths.get(filename);
-        String fileContent;
-        try {
-            byte[] bytes = Files.readAllBytes(fPath);
-            fileContent = new String(bytes);
-        } catch (IOException e) {
-            //quiet fail.  This is not important enough to do anything about it
-            //and likely to be caught by other parts of VisualSoar.
-            return;
-        }
+        String fileContent = getFileContent(filename);
+        if (fileContent == null) return; //fail silently
 
         //insert braces as needed
         Vector<Integer> bracePositions = findMissingBracePositions(fileContent);
@@ -390,6 +396,212 @@ public class SuppParseChecks {
         }//if file was changed
 
     }//fixUnmatchedBraces
+
+
+    /**
+     * getSimpleTestConstants
+     * <p>
+     * is a helper method for {@link #warnSuspiciousConstants}.
+     * It extracts the constant names from a SimpleTest object and places
+     * them in the given vector (if found).
+     */
+    private static void getSimpleTestConstants(Vector<Pair> cons, SimpleTest sTest) {
+        //Disjunction test
+        if (sTest.isDisjunctionTest()) {
+            DisjunctionTest djTest = sTest.getDisjunctionTest();
+            Iterator<Constant> constants = djTest.getConstants();
+            while(constants.hasNext()) {
+                cons.add(constants.next().toPair());
+            }
+        }
+
+        //Relation test
+        else {
+            SingleTest singleTest = sTest.getRelationalTest().getSingleTest();
+            if (singleTest.isConstant()) {
+                cons.add(singleTest.getConstant().toPair());
+            }
+        }
+    }//getSimpleTestConstants
+
+
+
+    /**
+     * getAttrTestConstants
+     * <p>
+     * is a helper method for {@link #warnSuspiciousConstants}.
+     * It extracts the variable names from an AttributeTest object and
+     * places them in the given vector (if found).
+     */
+    private static void getAttrTestConstants(Vector<Pair> cons, Test test) {
+        if (test.isConjunctiveTest()) {
+            ConjunctiveTest cjTest = test.getConjunctiveTest();
+            Iterator<SimpleTest> stIter = cjTest.getSimpleTests();
+            while (stIter.hasNext()) {
+                SimpleTest sTest = stIter.next();
+                getSimpleTestConstants(cons, sTest);
+            }
+        } else {
+            SimpleTest sTest = test.getSimpleTest();
+            getSimpleTestConstants(cons, sTest);
+        }
+    }//getAttrTestConstants
+
+    /**
+     * getValTestConstants
+     * <p>
+     * is a helper method for {@link #warnSuspiciousConstants}.
+     * It extracts the variable names from an AttributeTest object and
+     * places them in the given vector (if found).
+     */
+    private static void getValTestConstants(Vector<Pair> cons, Test test) {
+        if (test.isConjunctiveTest()) {
+            ConjunctiveTest cjTest = test.getConjunctiveTest();
+            Iterator<SimpleTest> stIter = cjTest.getSimpleTests();
+            while (stIter.hasNext()) {
+                SimpleTest sTest = stIter.next();
+                getSimpleTestConstants(cons, sTest);
+            }
+        } else {
+            SimpleTest sTest = test.getSimpleTest();
+            getSimpleTestConstants(cons, sTest);
+        }
+    }//getValTestConstants
+
+
+
+    /**
+     * getPCondConstants
+     * <p>
+     * is a helper method for {@link #warnSuspiciousConstants}.  It
+     * extracts all the constants from a PositiveCondition object and
+     * places them in the given vector (if found).
+     * <p>
+     * Warning:  recursive method
+     */
+    private static void getPCondConstants(Vector<Pair> conds, PositiveCondition pCond) {
+        //A PCond can be a conjunction of conditions...
+        if (pCond.isConjunction()) {
+            //Recurse into the conjunction
+            Iterator<Condition> conjIter = pCond.getConjunction();
+            while (conjIter.hasNext()) {
+                Condition cond = conjIter.next();
+                getPCondConstants(conds, cond.getPositiveCondition());
+            }
+            return;
+        }
+
+        //search all attribute-value tests
+        Iterator<AttributeValueTest> avIter = pCond.getConditionForOneIdentifier().getAttributeValueTests();
+        while (avIter.hasNext()) {
+            AttributeValueTest avt = avIter.next();
+
+            //Attribute tests
+            Iterator<AttributeTest> attrIter = avt.getAttributeTests();
+            while (attrIter.hasNext()) {
+                AttributeTest attr = attrIter.next();
+                getAttrTestConstants(conds, attr.getTest());
+            }//attr tests
+
+            //Value Tests
+            Iterator<ValueTest> valIter = avt.getValueTests();
+            while (valIter.hasNext()) {
+                ValueTest val = valIter.next();
+                getValTestConstants(conds, val.getTest());
+            }//Value
+
+        }//attr-val tests
+    }//getPCondConstants
+
+    /**
+     * getActionConstants
+     * <p>
+     * is a helper method for {@link #warnSuspiciousConstants}.
+     * It extracts all the constants from an Action object and
+     * places them in the given vector (if found).
+     */
+    private static void getActionConstants(Action act, Vector<Pair> constants) {
+        if (!act.isVarAttrValMake()) return;
+
+        Iterator<AttributeValueMake> avIter = act.getVarAttrValMake().getAttributeValueMakes();
+        while (avIter.hasNext()) {
+            AttributeValueMake avMake = avIter.next();
+
+            //RHS value tested
+            Iterator<RHSValue> rhsValIter = avMake.getRHSValues();
+            while (rhsValIter.hasNext()) {
+                RHSValue rhsVal = rhsValIter.next();
+                if (rhsVal.isConstant()) {
+                    constants.add(rhsVal.getConstant().toPair());
+                }
+            }
+
+            //RHS value created
+            Iterator<ValueMake> rhsMakeIter = avMake.getValueMakes();
+            while (rhsMakeIter.hasNext()) {
+                ValueMake val = rhsMakeIter.next();
+                if (val.getRHSValue().isConstant()) {
+                    constants.add(val.getRHSValue().getConstant().toPair());
+                }
+            }
+        }//loop over Action VarAttrVals
+    }//getActionConstants
+
+
+
+    /**
+     * warnSuspiciousConstants
+     * <p>
+     * When an unclosed angle bracket is used as a constant in Soar it's
+     * legal syntax, but it's likely not intentional.  For example:
+     * <code>
+     *         (<op> ^direction <dir)
+     *         (<op> ^direction dir>)
+     * </code>
+     * <p>
+     * In this example, it's likely that 'dir' is a meant to be a variable,
+     * not a constant.
+     * <p>
+     *
+     * @param opNode the operator that contains these productions
+     * @param prods parsed SoarProduction objects to inspect
+     *
+     * @return FeedbackListEntry object for the first suspicious constant found
+     */
+    public static FeedbackListEntry warnSuspiciousConstants(OperatorNode opNode, Vector<SoarProduction> prods) {
+        Vector<Pair> constants = new Vector<>();
+        for(SoarProduction prod : prods) {
+
+            //Retrieve constants from LHS
+            Iterator<Condition> lhsIter = prod.getConditionSide().getConditions();
+            while(lhsIter.hasNext()) {
+                //Get all the constant names
+                PositiveCondition pCond = lhsIter.next().getPositiveCondition();
+                getPCondConstants(constants, pCond);
+            }
+
+            //Retrieve constants from RHS
+            Iterator<Action> actIter = prod.getActionSide().getActions();
+            while (actIter.hasNext()) {
+                Action act = actIter.next();
+                getActionConstants(act, constants);
+            }
+
+
+            //Check for suspicious items in the list
+            for(Pair pair : constants) {
+                boolean angleBegin = pair.getString().startsWith("<");
+                boolean angleEnd = pair.getString().endsWith(">");
+                if (angleBegin != angleEnd) {
+                    String msg = "Warning: constant '" + pair.getString() + "' contains an unmatched angle bracket.  Did you intend to use a variable here?";
+                    return new FeedbackEntryOpNode(opNode, pair.getLine(), msg);
+                }
+            }
+
+        }
+
+        return null;  //no issues found
+    }//warnSuspiciousConstants
 
 
 }//class SuppParseChecks

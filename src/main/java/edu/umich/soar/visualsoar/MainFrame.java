@@ -2579,15 +2579,23 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 					//This is the main parsing here
                     Vector<SoarProduction> prods = opNode.parseProductions();
 
-                    //Check for Supplemental Error:  Variable on RHS never
-					// created or tested
+                    //Check for Supplemental Errors and Warnings
                     if ((prods != null) && (!prods.isEmpty())) {
+
+						// Variable on RHS never created or tested
 						for (SoarProduction sprod : prods) {
 							FeedbackListEntry flobj = SuppParseChecks.checkUndefinedVarRHS(opNode, sprod);
 							if (flobj != null) {
 								vecErrors.add(flobj);
 								return true;
 							}
+						}
+
+						//angle brackets used in constants
+						FeedbackListEntry flobj = SuppParseChecks.warnSuspiciousConstants(opNode, prods);
+						if (flobj != null) {
+							vecErrors.add(flobj);
+							return true;
 						}
 					}
 
