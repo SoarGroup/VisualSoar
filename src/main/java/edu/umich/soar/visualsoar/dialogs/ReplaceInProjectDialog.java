@@ -19,6 +19,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.LineNumberReader;
 import java.util.Enumeration;
+import java.util.Random;
 import java.util.Vector;
 
 /**
@@ -37,7 +38,7 @@ public class ReplaceInProjectDialog extends JDialog {
      */
     OperatorNode root;
     Enumeration<TreeNode> bfe;
-    boolean searchingRuleEditor;
+    boolean searchingRuleEditor;  //is the current file being searched open in a rule editor window right now?
     boolean stringFound;
     boolean stringSelected;
     OperatorNode current;
@@ -68,7 +69,7 @@ public class ReplaceInProjectDialog extends JDialog {
      * and replaces that string with another string.
      * Replace button replaces currently selected string with replacer string and
      * then moves to the next matching string in the project.
-     * Find Next button highlights finds the next matching string in the project'
+     * Find Next button highlights finds the next matching string in the project
      * and highlights that string.
      *
      * @param owner     Frame which owns the dialog
@@ -189,16 +190,33 @@ public class ReplaceInProjectDialog extends JDialog {
                             v.add(new FeedbackListEntry(msg));
                         }
 
+                        //Special case, if toReplace contains toFind as a substring,
+                        // then VisualSoar can get into an infinite loop.
+                        // So, we handle that with a two-step replace.  Yes, this
+                        // is a kludge.  To really fix this the whole find/replace
+                        // system needs to be re-architected and that seems not
+                        // worth the time investment.  -:AMN: 20 Apr 2024
+                        if (toReplace.contains(toFind)) {
+                            String unique = uniqueStr(toFind);
+                            bfe = root.breadthFirstEnumeration();
+                            while (bfe.hasMoreElements() || searchingRuleEditor) {
+                                if (stringSelected) {
+                                    d_ruleEditor.replace();
+                                }
+                                findInProject(toFind, unique, caseSensitive, true);
+                            }
+                            toFind = unique;  //set up for stage 2 below
+                            caseSensitive = true;
+                        }
 
-                        // Now do the actual replacement of the strings
+                        //Do the main replacement
                         bfe = root.breadthFirstEnumeration();
-
                         while (bfe.hasMoreElements() || searchingRuleEditor) {
                             if (stringSelected) {
-                                // replace
                                 d_ruleEditor.replace();
                             }
 
+                            //General replace
                             findInProject(toFind, toReplace, caseSensitive, true);
                         }
 
@@ -271,6 +289,25 @@ public class ReplaceInProjectDialog extends JDialog {
                     }
                 });
     }//ReplaceInProjectDialog ctor
+
+    /** Generate a random string of non-whitespace ASCII characters that is very unlikely to exist in the project and does not contain the given string as a substring. */
+    private String uniqueStr(String toFind) {
+        Random rand = new Random();
+        StringBuilder unique = new StringBuilder();
+        while(unique.length() < 30) { //30 characters seems more than sufficient
+
+            //add a random non-whitespace char
+            int nonWhitespaceIndex = 33 + rand.nextInt(90);
+            char someChar = (char)nonWhitespaceIndex;
+
+            //Make sure toFind isn't a substring of this
+            if (! (unique.toString() + someChar).contains(toFind)) {
+                unique.append(someChar);
+            }
+        }
+
+        return unique.toString();
+    }//uniqueStr
 
     private void findInProject(String toFind, String toReplace, Boolean caseSensitive, boolean outputToFeedbackList) {
         boolean matchCase = caseSensitive;

@@ -821,8 +821,10 @@ public class RuleEditor extends CustomInternalFrame {
 
 
     /**
-     * Takes the selected text within the editorPane checks to see if that is the string
-     * that we are looking for, if it is then it replaces it and selects the new text
+     * This method is used by the Find/Replace dialog.  It takes the
+     * selected text within the editorPane checks to see if that is
+     * the string that we are looking for, if it is then it replaces
+     * it and selects the new text
      */
     public void replace() {
         String selString = editorPane.getSelectedText();
