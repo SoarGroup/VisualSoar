@@ -481,11 +481,19 @@ public abstract class OperatorNode extends VSTreeNode implements java.io.Seriali
         theFile.delete();
     }
 
-    protected void renameToDeleted(File oldFile) {
-        File newFile;
+    /**
+     * renames a file or folder to have a succeeding '~' indicating it's
+     * been removed from the project.  By not actually deleting the file
+     * you make it possible for the user to recover the data if needed.
+     *
+     * This method properly handles folders by recursively calling itself
+     * on their contents.
+     */
+    protected void renameToRemove(File oldFile) {
+        File newFile = new File(oldFile.getPath() + "~");
 
-        newFile = new File(oldFile.getPath() + "~");
-
+        //If the name is already in use then it's presumably
+        // a previously removed version, so it's safe to delete
         if (newFile.exists()) {
             if (!newFile.delete()) {
                 if (newFile.isDirectory()) {
@@ -853,5 +861,7 @@ public abstract class OperatorNode extends VSTreeNode implements java.io.Seriali
 
     public abstract void sourceRecursive() throws IOException;
 
+    /** close any open editor windows associated with this node */
+    public abstract void closeEditors();
 
 }//class OperatorNode

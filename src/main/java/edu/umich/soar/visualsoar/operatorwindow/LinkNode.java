@@ -70,7 +70,7 @@ public class LinkNode extends FileNode {
 
     public void delete(OperatorWindow operatorWindow) {
         OperatorNode parent = (OperatorNode) getParent();
-        renameToDeleted(new File(getFileName()));
+        renameToRemove(new File(getFileName()));
         operatorWindow.removeNode(this);
         parent.notifyDeletionOfChild(operatorWindow, this);
         linkedToNode.removeLink(this);

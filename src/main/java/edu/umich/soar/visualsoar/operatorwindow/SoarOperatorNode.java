@@ -372,15 +372,15 @@ public class SoarOperatorNode extends FileNode {
                     linkNodeToDelete.delete(operatorWindow);
                 }
             }
-            renameToDeleted(new File(getFileName()));
-            renameToDeleted(new File(getFolderName()));
+            renameToRemove(new File(getFileName()));
+            renameToRemove(new File(getFolderName()));
             OperatorNode parent = (OperatorNode) getParent();
             operatorWindow.removeNode(this);
             parent.notifyDeletionOfChild(operatorWindow, this);
 
         } else //not a HL operator
         {
-            renameToDeleted(new File(getFileName()));
+            renameToRemove(new File(getFileName()));
             OperatorNode parent = (OperatorNode) getParent();
             operatorWindow.removeNode(this);
             parent.notifyDeletionOfChild(operatorWindow, this);
@@ -396,7 +396,7 @@ public class SoarOperatorNode extends FileNode {
                                       OperatorNode child) {
 
         if (getChildCount() == 0) {
-            renameToDeleted(new File(getFolderName()));
+            renameToRemove(new File(getFolderName()));
             isHighLevel = false;
             folderName = null;
             dataMapId = null;

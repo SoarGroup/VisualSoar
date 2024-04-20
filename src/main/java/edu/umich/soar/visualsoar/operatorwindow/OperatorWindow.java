@@ -812,6 +812,7 @@ public class OperatorWindow extends JTree {
      * removes the selected node from the tree
      */
     public void delete() {
+        //Figure out which node is currently selected
         TreePath tp = getSelectionPath();
         if (tp == null) {
             return; //should never happen
@@ -819,9 +820,11 @@ public class OperatorWindow extends JTree {
         OperatorNode selNode = (OperatorNode) tp.getLastPathComponent();
         getModel(); //unnecessary?
 
+        //Delete procedure varies by node type
         if (selNode instanceof FileNode) {
             if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this, "Are you sure you want to delete " +
                     selNode + "?", "Confirm Delete", JOptionPane.YES_NO_OPTION)) {
+                selNode.closeEditors();
                 selNode.delete(this);
             }
         } else if ((selNode instanceof FolderNode) && selNode.toString().equals("common")) {
@@ -844,7 +847,10 @@ public class OperatorWindow extends JTree {
         else {
             getToolkit().beep();
         }
-    }
+
+
+
+    }//delete
 
     /**
      * For the currently selected node, it will check all the children of this node against the datamap

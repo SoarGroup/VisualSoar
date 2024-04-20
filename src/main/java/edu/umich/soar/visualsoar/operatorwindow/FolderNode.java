@@ -245,7 +245,7 @@ public class FolderNode extends OperatorNode implements java.io.Serializable {
 
     public void delete(OperatorWindow operatorWindow) {
 
-        renameToDeleted(new File(getFolderName()));
+        renameToRemove(new File(getFolderName()));
         OperatorNode parent = (OperatorNode) getParent();
         operatorWindow.removeNode(this);
         parent.notifyDeletionOfChild(operatorWindow, this);
@@ -305,6 +305,20 @@ public class FolderNode extends OperatorNode implements java.io.Serializable {
 
             OperatorNode child = (OperatorNode) getChildAt(i);
             child.sourceRecursive();
+        }
+    }
+
+    /**
+     * I've implemented this but I note that VS doesn't allow the user
+     * to close non-empty folders so I don't think this method ever
+     * really gets called.  It's here just in case.  -:AMN: 20 Apr 2024
+     */
+    @Override
+    public void closeEditors() {
+        int childCount = getChildCount();
+        for (int i = 0; i < childCount; ++i) {
+            OperatorNode child = (OperatorNode) getChildAt(i);
+            child.closeEditors();
         }
     }
 

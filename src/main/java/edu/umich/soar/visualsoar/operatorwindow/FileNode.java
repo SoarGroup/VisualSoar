@@ -8,6 +8,7 @@ import edu.umich.soar.visualsoar.ruleeditor.RuleEditor;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultTreeModel;
+import java.beans.PropertyVetoException;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -196,7 +197,7 @@ public class FileNode extends OperatorNode implements java.io.Serializable {
             return;
         }
 
-        renameToDeleted(new File(getFileName()));
+        renameToRemove(new File(getFileName()));
 
         operatorWindow.removeNode(this);
         parent.notifyDeletionOfChild(operatorWindow, this);
@@ -460,6 +461,28 @@ public class FileNode extends OperatorNode implements java.io.Serializable {
     }
 
     public void sourceRecursive() throws IOException {
+    }
+
+    /** close the open editor window associated with this node (if there is one) */
+    @Override
+    public void closeEditors() {
+        //Make sure there is a window to close
+        if (ruleEditor == null) return;
+        if (ruleEditor.isClosed()) return;
+
+        //Save whatever is there to avoid the "are you sure?" popup
+        try {
+            ruleEditor.write();
+        } catch (IOException e) {
+            //Nothing I can do here. Just silently ignore
+        }
+
+        try {
+            ruleEditor.setClosed(true);
+        } catch (PropertyVetoException e) {
+            /* if this window can't be closed at least make it invisible */
+            ruleEditor.setVisible(false);
+        }
     }
 
     public void searchTestDataMap(SoarWorkingMemoryModel swmm,
