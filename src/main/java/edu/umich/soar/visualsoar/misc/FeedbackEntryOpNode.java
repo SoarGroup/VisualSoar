@@ -19,6 +19,7 @@ public class FeedbackEntryOpNode extends FeedbackListEntry {
     private String prodName = null;         //name of production associated with this message
     private int lineNumber = -1;            //line number associated with this message
     private String assocString = null;      //code string to highlight in file
+    private boolean canFix = true;          //is this a code error VS can auto-fix for the user
 
     ///////////////////////////////////////////////////////////////////
     // Constructors
@@ -90,6 +91,12 @@ public class FeedbackEntryOpNode extends FeedbackListEntry {
     public int getLine() {
         return lineNumber;
     }
+
+    public String getProdName() { return prodName; }
+
+    public boolean canFix() { return this.canFix; }
+
+    public void setCanFix(boolean val) { this.canFix = val; }
 
     @Override
     public String toString() {

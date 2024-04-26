@@ -1,6 +1,7 @@
 package edu.umich.soar.visualsoar.datamap;
 
 import edu.umich.soar.visualsoar.graph.*;
+import edu.umich.soar.visualsoar.misc.FeedbackEntryOpNode;
 import edu.umich.soar.visualsoar.misc.FeedbackListEntry;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorNode;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorWindow;
@@ -584,7 +585,15 @@ public class SoarWorkingMemoryModel {
             }
         }
 
-        return dceh.getErrors();
+        //Since this error has been fixed, it can't be re-fixed
+        Vector<FeedbackListEntry> errs = dceh.getErrors();
+        for(FeedbackListEntry entry : errs) {
+            if (entry instanceof FeedbackEntryOpNode) {
+                ((FeedbackEntryOpNode)entry).setCanFix(false);
+            }
+        }
+
+        return errs;
     }//checkGenerateSingleEntry
 
     /**

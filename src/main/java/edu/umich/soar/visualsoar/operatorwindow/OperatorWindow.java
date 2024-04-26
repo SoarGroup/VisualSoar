@@ -984,14 +984,17 @@ public class OperatorWindow extends JTree {
         while (prodEnum.hasMoreElements()) {
             SoarProduction sp = prodEnum.nextElement();
             //we only care about the production that caused the error
-            if (errToFix.getMessage().startsWith(sp.getName())) {
+
+            if (errToFix.getProdName().equals(sp.getName())) {
                 Vector<FeedbackListEntry> errs =
                         workingMemory.checkGenerateSingleEntry(siv, sp, opNode, errToFix);
 
                 //The errs list should not be empty
                 if (errs.isEmpty()) {
-                    errs.add(new FeedbackEntryOpNode(opNode, errToFix.getLine(),
-                            "Datamap entry operation failed."));
+                    FeedbackEntryOpNode entry = new FeedbackEntryOpNode(opNode, errToFix.getLine(),
+                            "Datamap entry operation failed.");
+                    entry.setCanFix(false);
+                    errs.add(entry);
                 }
 
                 vecGenerations.addAll(errs);

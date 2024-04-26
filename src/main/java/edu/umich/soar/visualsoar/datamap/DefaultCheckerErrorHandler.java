@@ -24,6 +24,8 @@ public class DefaultCheckerErrorHandler extends DefaultMatcherErrorHandler imple
 // Modifiers
 //////////////////////////////////////////////////
     public void variableNotMatched(String variable) {
-        d_errors.add(new FeedbackEntryOpNode(opNode, productionName, startLine, "variable " + variable + " could not be matched in production"));
+        FeedbackEntryOpNode entry = new FeedbackEntryOpNode(opNode, productionName, startLine, "variable " + variable + " could not be matched in production");
+        entry.setCanFix(false);
+        d_errors.add(entry);
     }
 }

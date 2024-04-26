@@ -1,6 +1,8 @@
 package edu.umich.soar.visualsoar.misc;
 
 import edu.umich.soar.visualsoar.MainFrame;
+import edu.umich.soar.visualsoar.operatorwindow.FileOperatorNode;
+import edu.umich.soar.visualsoar.operatorwindow.OperatorNode;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorWindow;
 
 import javax.swing.*;
@@ -10,6 +12,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.Enumeration;
 import java.util.Vector;
 
 /**
@@ -66,13 +69,17 @@ public class FeedbackList extends JList<FeedbackListEntry> implements ActionList
 
                         //right click:  context menu
                         else if (SwingUtilities.isRightMouseButton(e)) {
-                            //There are two possible reasons for the "add to datamap" option to be grayed out:
+                            //There are three possible reasons for the "add to datamap" option to be grayed out:
                             //1.  the selected entry is not associated with Soar source code
                             boolean isOpNodeEntry = (selectedObj instanceof FeedbackEntryOpNode);
                             dmAddMenuItem.setEnabled(isOpNodeEntry);
                             //2.  project is read-only
                             if (dmAddMenuItem.isEnabled()) {
                                 dmAddMenuItem.setEnabled(!MainFrame.getMainFrame().isReadOnly());
+                            }
+                            //3.  the entry is not fixable
+                            if (dmAddMenuItem.isEnabled() && (isOpNodeEntry)) {
+                                dmAddMenuItem.setEnabled(((FeedbackEntryOpNode)selectedObj).canFix());
                             }
 
                             gotoSourceMenuItem.setEnabled(selectedObj.canGoto());
@@ -96,18 +103,44 @@ public class FeedbackList extends JList<FeedbackListEntry> implements ActionList
      */
     @Override
     public void actionPerformed(ActionEvent action) {
-        if (selectedObj != null) selectedObj.react();
+        if (selectedObj == null) return;  //should not happen
+
         if (action.getSource().equals(gotoSourceMenuItem)) {
             selectedObj.react();
-        } else if (action.getSource().equals(dmAddMenuItem)) {
+        }
+        else if (action.getSource().equals(dmAddMenuItem)) {
             //This should only happen with "check against the datamap" errors
-            if (! (selectedObj instanceof FeedbackEntryOpNode)) return; //should not happen!
-            FeedbackEntryOpNode entry = (FeedbackEntryOpNode)selectedObj;
+            if (!(selectedObj instanceof FeedbackEntryOpNode)) return; //should not happen
+            FeedbackEntryOpNode entry = (FeedbackEntryOpNode) selectedObj;
+
+            //open datamap to display this result
+            OperatorNode opNode = entry.getNode();
+            OperatorNode parent = (OperatorNode) opNode.getParent();
+            OperatorWindow opWin = MainFrame.getMainFrame().getOperatorWindow();
+            parent.openDataMap(opWin.getDatamap(), MainFrame.getMainFrame());
 
             //Create a non-validated datamap entry to resolve this issue
-            OperatorWindow opWin = MainFrame.getMainFrame().getOperatorWindow();
             Vector<FeedbackListEntry> vecErrors = new Vector<>();
             opWin.generateDataMapForOneError(entry, vecErrors);
+
+
+            //create a new feedback list that replaces the error with fix result
+            Enumeration<? extends FeedbackListEntry> iter = this.dlm.elements();
+            boolean found = false;
+            while(iter.hasMoreElements()) {
+                FeedbackListEntry fle = iter.nextElement();
+                if (fle == entry) {
+                    found = true;
+                }
+                else {
+                    if (!found) {
+                        vecErrors.add(0, fle);  //prepend
+                    }
+                    else {
+                        vecErrors.add(fle);  //append
+                    }
+                }
+            }
             MainFrame.getMainFrame().setFeedbackListData(vecErrors);
         }
     }
@@ -181,12 +214,16 @@ public class FeedbackList extends JList<FeedbackListEntry> implements ActionList
                 setForeground(FEEDBACK_ERROR_COLOR);
             }
             else if (entry instanceof FeedbackEntryOpNode) {
-                setForeground(FEEDBACK_MSG_COLOR);
+                if (((FeedbackEntryOpNode)entry).canFix()) {
+                    setForeground(FEEDBACK_MSG_COLOR);
+                }
             }
 
 
             setBorder(EMPTY_BORDER);
             return this;
         }
+
+
     }//class FeedbackList
 }
