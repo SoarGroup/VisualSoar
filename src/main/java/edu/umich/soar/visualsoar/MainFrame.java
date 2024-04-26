@@ -31,6 +31,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.beans.PropertyVetoException;
 import java.io.*;
 import java.util.List;
 import java.util.*;
@@ -108,6 +109,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 	Action toggleReadOnlyAction = new ToggleReadOnlyAction();
 	PerformableAction commitAction = new CommitAction();
 	Action exitAction = new ExitAction();
+	Action closeAllWindowsAction = new CloseAllWindowsAction();
     Action cascadeAction = new CascadeAction();
     Action tileWindowsAction = new TileWindowsAction();
     Action reTileWindowsAction = new ReTileWindowsAction();
@@ -552,6 +554,14 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 	private JMenu createViewMenu() 
     {
 		final JMenu viewMenu = new JMenu("View");
+		//Close All Windows
+		JMenuItem closeAllWindowsItem = new JMenuItem("Close All Windows");
+		closeAllWindowsItem.addActionListener(closeAllWindowsAction);
+		closeAllWindowsItem.addPropertyChangeListener(
+				new ActionButtonAssociation(closeAllWindowsAction,closeAllWindowsItem));
+		viewMenu.add(closeAllWindowsItem);
+
+
 		// View Menu
 		JMenuItem cascadeItem = new JMenuItem("Cascade Windows");
 		cascadeItem.addActionListener(cascadeAction);
@@ -3344,6 +3354,27 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 			}
 		}
 	}//class SaveProjectAsAction
+
+
+	class CloseAllWindowsAction extends AbstractAction {
+		private static final long serialVersionUID = 20240426L;
+
+		public CloseAllWindowsAction()
+		{
+			super("Close All Windows");
+		}
+
+		public void actionPerformed(ActionEvent e) {
+			JInternalFrame[] frames = desktopPane.getAllFrames();
+			for (JInternalFrame jif : frames) {
+				try {
+					jif.setClosed(true);
+				} catch (PropertyVetoException ex) {
+					/** should not happen.  ignore. nbd.*/
+				}
+			}
+		}
+	}
 
     class TileWindowsAction extends AbstractAction 
     {
