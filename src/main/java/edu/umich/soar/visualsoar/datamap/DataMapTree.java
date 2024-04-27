@@ -15,6 +15,8 @@ import edu.umich.soar.visualsoar.util.QueueAsLinkedList;
 import edu.umich.soar.visualsoar.util.VSQueue;
 
 import javax.swing.*;
+import javax.swing.event.PopupMenuEvent;
+import javax.swing.event.PopupMenuListener;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
@@ -46,7 +48,7 @@ import java.util.*;
  * @author Brad Jones
  * @author Andrew Nuxoll
  */
-public class DataMapTree extends JTree implements ClipboardOwner {
+public class DataMapTree extends JTree implements ClipboardOwner, PopupMenuListener {
     private static final long serialVersionUID = 20221225L;
 
 
@@ -403,6 +405,8 @@ public class DataMapTree extends JTree implements ClipboardOwner {
         swmm = _swmm;
         s_DataMapTree = this;
 
+        contextMenu.addPopupMenuListener(this);
+
         getSelectionModel().setSelectionMode(TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION);
 
         //When a datamap tree is being used to select nodes (i.e., import from foreign datamap)
@@ -519,6 +523,20 @@ public class DataMapTree extends JTree implements ClipboardOwner {
         ChangeToIntegerItem.setEnabled(changeOk);
         ChangeToFloatItem.setEnabled(changeOk);
         ChangeToStringItem.setEnabled(changeOk);
+    }//setContextMenuItemsToAllowChanges
+
+    /**
+     * @return true if the contents of the clipboard can be pasted or linked to the datamap
+     */
+    public boolean clipboardIsPasteable() {
+        Transferable tr = clipboard.getContents(this);
+        if (tr != null) {
+            DataFlavor dataFlavor = TransferableVertex.flavors[0];
+            if (tr.isDataFlavorSupported(dataFlavor)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -2041,6 +2059,20 @@ public class DataMapTree extends JTree implements ClipboardOwner {
         } // if root is a valid ftn
 
     }//displayGeneratedNodes
+
+    @Override
+    public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
+        //Only enable paste/link menu items if there is appropriate data in the clipboard
+        if (! isReadOnly) {
+            boolean canPaste = clipboardIsPasteable();
+            LinkItem.setEnabled(canPaste);
+            PasteItem.setEnabled(canPaste);
+        }
+    }
+    @Override
+    public void popupMenuWillBecomeInvisible(PopupMenuEvent e) { /* ignore */  }
+    @Override
+    public void popupMenuCanceled(PopupMenuEvent e) { /* ignore */  }
 
 
     /**

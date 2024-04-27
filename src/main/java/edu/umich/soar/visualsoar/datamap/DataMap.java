@@ -8,10 +8,7 @@ import edu.umich.soar.visualsoar.misc.FeedbackListEntry;
 import edu.umich.soar.visualsoar.misc.Prefs;
 
 import javax.swing.*;
-import javax.swing.event.InternalFrameAdapter;
-import javax.swing.event.InternalFrameEvent;
-import javax.swing.event.TreeModelEvent;
-import javax.swing.event.TreeModelListener;
+import javax.swing.event.*;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 import java.util.Vector;
@@ -23,11 +20,15 @@ import java.util.Vector;
  * @see DataMapTree
  */
 
-public class DataMap extends CustomInternalFrame {
+public class DataMap extends CustomInternalFrame implements MenuListener {
     private static final long serialVersionUID = 20221225L;
 
     protected DataMapTree dataMapTree;
     private final int id;
+
+    //These menu items must be instance variable since they might or might not be enabled
+    private JMenuItem pasteItem;
+    private JMenuItem linkItem;
 
 ////////////////////////////////////////
 // Constructors
@@ -103,6 +104,7 @@ public class DataMap extends CustomInternalFrame {
     private void setupMenuBar() {
         JMenuBar menuBar = new JMenuBar();
         JMenu editMenu = new JMenu("Edit");
+        editMenu.addMenuListener(this);
         JMenu validateMenu = new JMenu("Validation");
 
 /*		Too Dangerous, see DataMapTree.java
@@ -119,13 +121,13 @@ public class DataMap extends CustomInternalFrame {
         copyItem.addActionListener(dataMapTree.copyAction);
 
 
-        JMenuItem pasteItem = new JMenuItem("Paste");
+        this.pasteItem = new JMenuItem("Paste");
         editMenu.add(pasteItem);
         pasteItem.setAccelerator(KeyStroke.getKeyStroke("control V"));
         pasteItem.addActionListener(dataMapTree.pasteAction);
 
 
-        JMenuItem linkItem = new JMenuItem("Paste as Link");
+        this.linkItem = new JMenuItem("Paste as Link");
         editMenu.add(linkItem);
         linkItem.setAccelerator(KeyStroke.getKeyStroke("control L"));
         linkItem.addActionListener(dataMapTree.linkAction);
@@ -172,22 +174,22 @@ public class DataMap extends CustomInternalFrame {
 
     /**
      * configures the editor in/out of read-only mode
-     * @param status  read-only=true  editable=false
+     * @param isReadOnly  read-only=true  editable=false
      */
     @Override
-    public void setReadOnly(boolean status) {
+    public void setReadOnly(boolean isReadOnly) {
 
         //enable/disable menu actions that change the contents
         for(JMenuItem item : readOnlyDisabledMenuItems) {
-            item.setEnabled(! status);
+            item.setEnabled(! isReadOnly);
         }
 
-        //set same status for the associated soar document
-        dataMapTree.isReadOnly =  status;
+        //set same isReadOnly for the associated soar document
+        dataMapTree.isReadOnly =  isReadOnly;
 
-        //Update the title bar to show the status
+        //Update the title bar to show the isReadOnly
         String title = getTitle();
-        if (status) {
+        if (isReadOnly) {
             title = MainFrame.RO_LABEL + title;
         }
         else {
@@ -238,6 +240,25 @@ public class DataMap extends CustomInternalFrame {
             JOptionPane.showMessageDialog(MainFrame.getMainFrame(), "Could not find a matching FakeTreeNode in the datamap");
         }
     }
+
+    /**
+     * the Paste and Paste as Link menu items should not be active
+     * if the clipboard is empty or unusable.  This method is called
+     * to activate or deactivate those menu items as appropriate
+     */
+    @Override
+    public void menuSelected(MenuEvent e) {
+        if (! dataMapTree.isReadOnly) {
+            boolean canPaste = dataMapTree.clipboardIsPasteable();
+            pasteItem.setEnabled(canPaste);
+            linkItem.setEnabled(canPaste);
+        }
+    }
+    @Override
+    public void menuDeselected(MenuEvent e) { /* ignore */ }
+    @Override
+    public void menuCanceled(MenuEvent e) { /* ignore */ }
+
 
     private class DataMapListenerModel implements TreeModelListener {
         public void treeNodesChanged(TreeModelEvent e) {
