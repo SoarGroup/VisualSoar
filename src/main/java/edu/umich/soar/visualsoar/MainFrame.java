@@ -70,7 +70,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 	private final CustomDesktopPane desktopPane = new CustomDesktopPane();
 	private final TemplateManager d_templateManager = new TemplateManager();
 	private final JSplitPane operatorDesktopSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-	private final JSplitPane feedbackDesktopSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT);;
+	private final JSplitPane feedbackDesktopSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
 	public FeedbackList feedbackList = new FeedbackList();
     public JLabel statusBar = new JLabel("  Welcome to Visual Soar.");
 	String lastWindowViewOperation = "none"; // can also be "tile" or "cascade"
@@ -1140,12 +1140,47 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 								Prefs.operDividerPosition.set("" + proportion);
 								Prefs.flush();
 							}
+
+							//Also schedule re-tile
+							scheduleDelayedReTile();
+
 						}
 					}
+
+
+
 			);
 			operListenerSetup = true;
 		}//listener setup
 	}//operDividerSetup
+
+	/**
+	 * For some bizarre reason, the divider-location-property change event
+	 * seems to occur before the underlying pane is resized as a result of
+	 * the event.  I'm guessing the event handlers are out of order but
+	 * I don't know how to fix that since the pane-resize code is in
+	 * swing, not part of Visual Soar.  As a result, re-tiling the windows
+	 * in the event handler doesn't work.  Any easy, super-kludgey fix
+	 * is just to wait a split second and then re-tile.  This method
+	 * does that.
+	 *
+	 * Note:  It might be better to use javax.swing.Timer for this?  For
+	 *        now, I'm not inclined to fix something that's not broken.
+	 */
+	private void scheduleDelayedReTile() {
+		Thread t = new Thread(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					Thread.sleep(20);
+				} catch (InterruptedException e) {
+					/* don't care */
+				}
+				desktopPane.performTileAction();
+			}
+		});
+		t.start();
+	}//scheduleDelayedReTile
 
 	/**
 	 * sets the divider position between the feedback pane and the desktop
@@ -1180,6 +1215,9 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 								Prefs.fbDividerPosition.set("" + proportion);
 								Prefs.flush();
 							}
+
+							//Re-tile the windows as a result
+							scheduleDelayedReTile();
 						}
 					}
 			);
