@@ -532,9 +532,7 @@ public class DataMapTree extends JTree implements ClipboardOwner, PopupMenuListe
         Transferable tr = clipboard.getContents(this);
         if (tr != null) {
             DataFlavor dataFlavor = TransferableVertex.flavors[0];
-            if (tr.isDataFlavorSupported(dataFlavor)) {
-                return true;
-            }
+            return tr.isDataFlavorSupported(dataFlavor);
         }
         return false;
     }
@@ -1044,6 +1042,14 @@ public class DataMapTree extends JTree implements ClipboardOwner, PopupMenuListe
                 for (int j = 0; j < data.size(); j++) {
                     SoarVertex parent = ftn.getEnumeratingVertex();
                     SoarVertex child = swmm.createVertexCopy(data.getVertex(j));
+
+                    //Is this a legal paste?
+                    if (! parent.allowsEmanatingEdges()) {
+                        String msg = "Paste of " + child + " to " + parent + " is illegal.  " + parent + " is not an identifier.";
+                        MainFrame.getMainFrame().setStatusBarError(msg);
+                        return;
+                    }
+
                     swmm.addTriple(parent, data.getName(j), child);
                 }
                 parentWindow.setModified(true);
@@ -1088,6 +1094,14 @@ public class DataMapTree extends JTree implements ClipboardOwner, PopupMenuListe
                 //       a for-loop and replace the '0' below with loop var
                 SoarVertex parent = ftn.getEnumeratingVertex();
                 SoarVertex child = data.getVertex(0);
+
+                //Is this a legal link?
+                if (! parent.allowsEmanatingEdges()) {
+                    String msg = "Link of " + child + " to " + parent + " is illegal.  " + parent + " is not an identifier.";
+                    MainFrame.getMainFrame().setStatusBarError(msg);
+                    return;
+                }
+
                 swmm.addTriple(parent, data.getName(0), child);
                 parentWindow.setModified(true);
             }
