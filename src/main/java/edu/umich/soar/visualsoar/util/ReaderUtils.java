@@ -26,28 +26,53 @@ public class ReaderUtils {
      * character
      *
      * @param r the reader from which the user wants the word extracted
+     * @param delim     a character that overrides whitespace.  This was added
+     *                  to support datamap enumeration values that are
+     *                  surrounded by pipes.
+     *                  Example:  |this is treated as one word even though it has spaces|
      * @return a string that is a word as defined above
      * @throws IOException represents something went wrong reading the stream
      */
-    public static String getWord(Reader r) throws IOException {
+    public static String getWord(Reader r, char delim) throws IOException {
         StringBuilder s = new StringBuilder();
         boolean wordbegin = false;
         boolean wordend = false;
+        boolean inDelim = false;
+
         // Get rid of leading whitespace
         while (!wordend && r.ready()) {
             char c = (char) r.read();
-            if (Character.isWhitespace(c)) {
+            if (!inDelim && Character.isWhitespace(c)) {
                 if (wordbegin) {
                     wordend = true;
                 }
-            } else {
+            }
+            else {
                 if (!wordbegin) {
                     wordbegin = true;
+
+                    //Notice if a word begins with a delimeter char
+                    if(c == delim) {
+                        inDelim = true;
+                    }
                 }
+
+                //If the word began with a delim char then it must end with one
+                else if ( inDelim && (c == delim)) {
+                    wordend = true;
+                    inDelim = false;
+                }
+
+
                 s.append(c);
             }
         }
         return s.toString();
+    }
+
+    /** helper version of {@link #getWord(Reader, char)} that has no delim char */
+    public static String getWord(Reader r) throws IOException {
+        return getWord(r, '\0');
     }
 
     /**

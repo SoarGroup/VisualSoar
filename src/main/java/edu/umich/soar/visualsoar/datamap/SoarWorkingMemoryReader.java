@@ -38,7 +38,7 @@ public class SoarWorkingMemoryReader {
             int enumerationSize = ReaderUtils.getInteger(fr);
             Vector<String> v = new Vector<>();
             for (int j = 0; j < enumerationSize; ++j)
-                v.add(ReaderUtils.getWord(fr));
+                v.add(ReaderUtils.getWord(fr, '|'));
             vertexToAdd = new EnumerationVertex(id, v);
         } else if (type.equals("INTEGER_RANGE")) {
             vertexToAdd = new IntegerRangeVertex(id, ReaderUtils.getInteger(fr), ReaderUtils.getInteger(fr));
