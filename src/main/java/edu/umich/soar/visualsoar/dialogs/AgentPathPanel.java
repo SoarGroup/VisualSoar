@@ -20,8 +20,8 @@ class AgentPathPanel extends JPanel {
     private static final long serialVersionUID = 20221225L;
 
 
-    String workingDir = Prefs.openFolder.get();
-    JTextField pathField = new JTextField(workingDir, 20);
+    String workingDirName;
+    JTextField pathField = new JTextField(workingDirName, 20);
     JButton browse = new JButton("Browse...");
 
     public AgentPathPanel() {
@@ -35,6 +35,13 @@ class AgentPathPanel extends JPanel {
                 BorderFactory.createTitledBorder("Agent Path"),
                 BorderFactory.createEmptyBorder(10, 10, 10, 10)));
 
+        //Calculate the starting directory for the Browse button
+        workingDirName = Prefs.openFolder.get();
+        File workingDir = new File(workingDirName);
+        if (! workingDir.exists()) {
+            workingDirName = ".";
+        }
+
         // So that enter can affirmatively dismiss the dialog
         // pathField.getKeymap().removeKeyStrokeBinding(
         // KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0));
@@ -42,7 +49,7 @@ class AgentPathPanel extends JPanel {
         browse.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 DirectorySelectionDialog dsd = new DirectorySelectionDialog(edu.umich.soar.visualsoar.MainFrame.getMainFrame());
-                dsd.setPath(new File(workingDir));
+                dsd.setPath(new File(workingDirName));
                 dsd.setVisible(true);
                 if (dsd.wasApproved()) {
                     File file = dsd.getSelectedDirectory();
@@ -50,7 +57,7 @@ class AgentPathPanel extends JPanel {
 
                     //Save this working folder for next time
                     if (file.isDirectory()) {
-                        workingDir = file.getPath();
+                        workingDirName = file.getPath();
                     }
                 }
             }
