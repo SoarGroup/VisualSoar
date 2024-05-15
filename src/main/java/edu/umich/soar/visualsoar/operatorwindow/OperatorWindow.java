@@ -118,7 +118,10 @@ public class OperatorWindow extends JTree {
                 KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0),
                 WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
 
-        new BackupThread().start();
+        //Autobackup
+        if (! MainFrame.getMainFrame().isReadOnly()) {
+            new BackupThread().start();
+        }
     }
 
     /**
@@ -1267,18 +1270,20 @@ public class OperatorWindow extends JTree {
     /**
      * Saves the current hierarchy to disk using Version 4 method
      *
-     * @param inFileName    name of the file to be saved - .vsa file
-     * @param inDataMapName name of the datamap file - .dm file
+     * @param inProjFile    name of the file to be saved - .vsa file
+     * @param inDataMapFile name of the datamap file - .dm file
+     * @param inCommentFile name of the datamap comment file - comment.dm
+     *
      * @see #reduceWorkingMemory()
      * @see TreeFileWriter#write
      * @see SoarWorkingMemoryModel#write
      * @see SoarWorkingMemoryModel#writeComments
      */
-    public void writeOutHierarchy(File inFileName, File inDataMapName) {
+    public void writeOutHierarchy(File inProjFile, File inDataMapFile, File inCommentFile) {
         reduceWorkingMemory();
         try {
             OperatorRootNode orn = (OperatorRootNode) (getModel().getRoot());
-            FileWriter fw = new FileWriter(inFileName);
+            FileWriter fw = new FileWriter(inProjFile);
             fw.write("VERSION 4\n");
             // for Version 5:  fw.write("VERSION 5\n");
             String dataMapRP = orn.getDataMapFile().substring(orn.getFullPathStart().length());
@@ -1286,12 +1291,11 @@ public class OperatorWindow extends JTree {
             TreeFileWriter.write(fw, (DefaultTreeModel) getModel());
             // for Version 5:  TreeFileWriter.write5(fw,(DefaultTreeModel)getModel());
             fw.close();
-            FileWriter graphWriter = new FileWriter(inDataMapName);
+            FileWriter graphWriter = new FileWriter(inDataMapFile);
             workingMemory.write(graphWriter);
             graphWriter.close();
 
-            File commentFile = new File(inDataMapName.getParent() + File.separator + "comment.dm");
-            FileWriter commentWriter = new FileWriter(commentFile);
+            FileWriter commentWriter = new FileWriter(inCommentFile);
             workingMemory.writeComments(commentWriter);
             commentWriter.close();
         } catch (IOException ioe) {
@@ -1304,13 +1308,15 @@ public class OperatorWindow extends JTree {
     /**
      * Save entire Operator Hierarchy (including datamap)
      *
-     * @see #writeOutHierarchy(File, File)
+     * @see #writeOutHierarchy
      */
     public void saveHierarchy() {
         OperatorRootNode orn = (OperatorRootNode) (getModel().getRoot());
         File projectFileName = new File(orn.getProjectFile());
         File dataMapFile = new File(orn.getDataMapFile());
-        writeOutHierarchy(projectFileName, dataMapFile);
+        String commentFN = dataMapFile.getParent() + File.separator + "comment.dm";
+        File commentFile = new File(commentFN);
+        writeOutHierarchy(projectFileName, dataMapFile, commentFile);
     }
 
     /**
@@ -2132,9 +2138,10 @@ public class OperatorWindow extends JTree {
                 public void run() {
                     if (!closed) {
                         OperatorRootNode orn = (OperatorRootNode) (getModel().getRoot());
-                        File projectFileName = new File(orn.getProjectFile() + "~");
+                        File projectFile = new File(orn.getProjectFile() + "~");
                         File dataMapFile = new File(orn.getDataMapFile() + "~");
-                        writeOutHierarchy(projectFileName, dataMapFile);
+                        File commentFile = new File(dataMapFile.getParent() + File.separator + "comment.dm~");
+                        writeOutHierarchy(projectFile, dataMapFile, commentFile);
                     }
                 }
             };
@@ -2144,8 +2151,8 @@ public class OperatorWindow extends JTree {
         public void run() {
             while (!closed) {
                 try {
-                    sleep(60000 * 3);  // 3 minutes
                     SwingUtilities.invokeAndWait(writeOutControl);
+                    sleep(60000 * 3);  // 3 minutes
                 } catch (InterruptedException | InvocationTargetException ie) { /* don't care */ }
             }
         }//run

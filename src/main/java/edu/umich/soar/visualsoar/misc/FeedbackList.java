@@ -60,6 +60,7 @@ public class FeedbackList extends JList<FeedbackListEntry> implements ActionList
                     public void mouseClicked(MouseEvent e) {
                         //record currently selected object
                         int index = locationToIndex(e.getPoint());
+                        if (index == -1) return; //no selected object
                         selectedObj = dlm.getElementAt(index);
 
                         //double click:  the feedback entry object handles this

@@ -163,7 +163,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		// Set the Title of the window
 		super(s);
 		restorePositionAndSize();
-		setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+		setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);  //see addWindowListener call below
 
 		Container contentPane = getContentPane();
 		operatorDesktopSplit.setRightComponent(desktopPane);
@@ -184,6 +184,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
         vbox.add(feedbackDesktopSplit, BorderLayout.CENTER);
 		vbox.add(statusBar);
 
+		//Perform Exit actions on window close
 		setJMenuBar(createMainMenu());
 		addWindowListener(
             new WindowAdapter() 
@@ -215,8 +216,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
      * This method scans open windows on the VisualSoar desktop for unsaved
      * changes.  It returns true if any are found.
      */
-    public boolean isModified()
-    {
+    public boolean isModified() {
         CustomInternalFrame[] frames = desktopPane.getAllCustomFrames();
 		for (CustomInternalFrame frame : frames) {
 			if (frame.isModified()) return true;
@@ -303,6 +303,31 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 	 * are we in read-only mode?
 	 */
 	public boolean isReadOnly() { return this.isReadOnly; }
+
+	/** VS periodically creates auto backups of open files.  This method can be called to delete all of them. */
+	public void deleteAutoBackupFiles() {
+
+		//Check for any auto-backups of rule files
+		CustomInternalFrame[] frames = desktopPane.getAllCustomFrames();
+		for (CustomInternalFrame frame : frames) {
+			if (frame instanceof RuleEditor) {
+				RuleEditor re = (RuleEditor) frame;
+				String tempFN = re.getFile() + "~";
+				File f = new File(tempFN);
+				if (f.exists()) f.delete();
+			}
+		}
+
+		//Check for auto-backups of the project files
+		OperatorRootNode orn = (OperatorRootNode)(operatorWindow.getModel().getRoot());
+		File projectBackupFile = new File(orn.getProjectFile() + "~");
+		if (projectBackupFile.exists()) projectBackupFile.delete();
+		File dataMapBackupFile = new File(orn.getDataMapFile() + "~");
+		if (dataMapBackupFile.exists()) dataMapBackupFile.delete();
+		File commentBackupFile = new File(dataMapBackupFile.getParent() + File.separator + "comment.dm~");
+		if (commentBackupFile.exists()) commentBackupFile.delete();
+
+	}
 
 	/**
 	 * A helper function to create the file menu
@@ -621,8 +646,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
     {
         //If the user has modified files that have not been saved,
         //we need to ask the user what to do about it.
-        if (isModified())
-        {
+        if (isModified()) {
             String[] buttons = { "Save all files, then exit.",
                                  "Exit without Saving" };
 
@@ -1544,9 +1568,11 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
                                               ioe.getMessage(),
                                               "I/O Error",
                                               JOptionPane.ERROR_MESSAGE);
+				return;
 			}
 
-
+			//Since save was successful, discard auto-backup files
+			deleteAutoBackupFiles();
 
 		}//perform SaveAllFilesAction
 
@@ -1572,6 +1598,10 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		}
 		public void actionPerformed(ActionEvent event) 
         {
+			perform();
+		}
+
+		public void perform() {
 			JInternalFrame[] frames = desktopPane.getAllFrames();
 			Prefs.flush();
 			try 
@@ -1583,6 +1613,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 				}
 				else {
 					writeCfgFile();
+					deleteAutoBackupFiles();
 				}
 
 				for (JInternalFrame frame : frames) {
@@ -1596,7 +1627,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 				dispose();
 				System.exit(0);
 			}
-			catch (java.beans.PropertyVetoException pve) { /* ignore */ }
+			catch (PropertyVetoException pve) { /* ignore */ }
 		}
 	}
 
@@ -1702,7 +1733,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 				if(file != null) {
 					//Get rid of the old project (if it exists)
 					if (operatorWindow != null) {
-						MainFrame.getMainFrame().closeProjectAction.perform();
+						closeProjectAction.perform();
 					}
 
 					//Open the new project
@@ -1901,7 +1932,9 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 			JInternalFrame[] frames = desktopPane.getAllFrames();
 			try 
             {
-				if (! isReadOnly()) commitAction.perform();
+				if ( (!isReadOnly()) && (CustomInternalFrame.hasEverChanged()) ) commitAction.perform();
+				deleteAutoBackupFiles();
+
 				for (JInternalFrame frame : frames) {
 					frame.setClosed(true);
 				}

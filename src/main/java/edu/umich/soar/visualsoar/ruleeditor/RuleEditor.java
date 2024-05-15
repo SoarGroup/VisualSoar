@@ -119,7 +119,7 @@ public class RuleEditor extends CustomInternalFrame {
     private final Action sendMatchesToSoarAction = new SendMatchesToSoarAction();
     private final Action sendExciseProductionToSoarAction = new SendExciseProductionToSoarAction();
 
-    private final BackupThread backupThread;
+    private BackupThread backupThread;
 
     /**
      * Certain editing events need to treated as separate/significant by the
@@ -186,8 +186,12 @@ public class RuleEditor extends CustomInternalFrame {
                 });
 
         registerDocumentListeners();
-        backupThread = new BackupThread();
-        backupThread.start();
+
+        //Autobackup
+        if (! MainFrame.getMainFrame().isReadOnly()) {
+            backupThread = new BackupThread();
+            backupThread.start();
+        }
 
         if (edu.umich.soar.visualsoar.misc.Prefs.autoSoarCompleteEnabled.getBoolean()) {
             Keymap keymap = editorPane.getKeymap();
@@ -253,8 +257,11 @@ public class RuleEditor extends CustomInternalFrame {
         addVetoableChangeListener(new CloseListener());
 
         registerDocumentListeners();
-        backupThread = new BackupThread();
-        backupThread.start();
+        //Autobackup
+        if (! MainFrame.getMainFrame().isReadOnly()) {
+            backupThread = new BackupThread();
+            backupThread.start();
+        }
 
         editorPane.addCaretListener(
                 new CaretListener() {
@@ -890,6 +897,10 @@ public class RuleEditor extends CustomInternalFrame {
         setModified(false);
         modifiedLabel.setText("");
         fw.close();
+
+        //Delete the associated temp file if it exists
+        File tempFile = new File(fileName + "~");
+        if (tempFile.exists()) tempFile.delete();
 
         //for the Undo manager
         RuleEditor.this.lastActionWasSave = true;
@@ -2395,9 +2406,9 @@ public class RuleEditor extends CustomInternalFrame {
         public void run() {
             try {
                 while (!closed) {
+                    SwingUtilities.invokeAndWait(writeOutControl);
                     // 3 minutes
                     sleep(60000 * 3);
-                    SwingUtilities.invokeAndWait(writeOutControl);
                 }
             } catch (InterruptedException | InvocationTargetException ie) {
                 /* ignore */
