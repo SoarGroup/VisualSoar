@@ -319,14 +319,15 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		}
 
 		//Check for auto-backups of the project files
-		OperatorRootNode orn = (OperatorRootNode)(operatorWindow.getModel().getRoot());
-		File projectBackupFile = new File(orn.getProjectFile() + "~");
-		if (projectBackupFile.exists()) projectBackupFile.delete();
-		File dataMapBackupFile = new File(orn.getDataMapFile() + "~");
-		if (dataMapBackupFile.exists()) dataMapBackupFile.delete();
-		File commentBackupFile = new File(dataMapBackupFile.getParent() + File.separator + "comment.dm~");
-		if (commentBackupFile.exists()) commentBackupFile.delete();
-
+		if (operatorWindow != null) {
+			OperatorRootNode orn = (OperatorRootNode) (operatorWindow.getModel().getRoot());
+			File projectBackupFile = new File(orn.getProjectFile() + "~");
+			if (projectBackupFile.exists()) projectBackupFile.delete();
+			File dataMapBackupFile = new File(orn.getDataMapFile() + "~");
+			if (dataMapBackupFile.exists()) dataMapBackupFile.delete();
+			File commentBackupFile = new File(dataMapBackupFile.getParent() + File.separator + "comment.dm~");
+			if (commentBackupFile.exists()) commentBackupFile.delete();
+		}
 	}
 
 	/**
