@@ -42,6 +42,7 @@ public enum Prefs {
     private static final Vector<String> customTemplates = new Vector<>();
     //default custom template content
     public static final String defaultCustTempText = "# Any text you write in a template file is automatically inserted when\n# the template is selected from the Insert Template menu.  This\n# comment has been inserted to help you.  You should probably\n# remove it from this file after your template is written.\n#\n# Certain macros can be placed in your text and they will be\n# automatically replaced with the relevant text.\n#\n# The macros are:\n# - $super-operator$ = the super operator\n# - $operator$ = the current operator\n# - $production$ = the name of the production nearest to the cursor\n# - $date$ = today's date\n# - $time$ = the time right now\n# - $project$ or $agent$ = the name of the project\n# - $user$ = the current user name\n# - $caret$ or $cursor$ = indicates where where the cursor should be\n#   after the template is inserted (to be implemented...)\n#\n\nsp {$super-operator$*custom-template\n   (state <s> ^foo bar) \n-->\n   (<s> ^baz qux)\n}\n";
+    public static final String readOnlyFlag = " (read-only)";
 
 
     //Load custom colors
@@ -202,74 +203,121 @@ public enum Prefs {
         removeFile.delete();
     }//removeCustomTemplate
 
+    /**
+     * class RecentProjInfo
+     *
+     * contained the parsed info about a recent-loaded project
+     */
+    public static class RecentProjInfo {
+        public File file;
+        public boolean isReadOnly;
 
-
-    /* helper method for getRecentProjs() and addRecentProject() below.  It verifies
-       a given filename is the valid name of an existing .vsa file and adds it to a list. */
-    private static void addIfValid(String filename, Vector<File> vec) {
-        if ( (filename != null)
-              && (filename.endsWith(".vsa"))
-              && (!vec.contains(filename)) ) {
-
-            //Make sure the new file still exists
-            File newbieFile = new File(filename);
-            if (!newbieFile.exists()) return;
-
-            //Extract the canonical (unique) name of this file for comparison
-            String newbieFN;
-            try {
-                newbieFN = newbieFile.getCanonicalPath();
+        public RecentProjInfo(String text) {
+            this.isReadOnly = text.endsWith(readOnlyFlag);
+            if (this.isReadOnly) {
+                text = text.replace(readOnlyFlag, "");
             }
-            catch(IOException ioe) {
-                return; //invalid file is ignored (should not happen)
-            }
+            this.file = new File(text);  //Note: getRecentProjs() will check that this file exists
+        }
 
-            //compare to canonical name of existing files to see if this is a duplicate
-            File dupOf = null;
-            for(File prevFile : vec) {
-                String prevFN;
+        @Override
+        public boolean equals(Object obj) {
+            if (obj instanceof RecentProjInfo) {
+                RecentProjInfo other = (RecentProjInfo) obj;
+                if (other.isReadOnly != this.isReadOnly) return false;
                 try {
-                    prevFN = prevFile.getCanonicalPath();
+                    return other.file.getCanonicalPath().equals(this.file.getCanonicalPath());
                 }
                 catch(IOException ioe) {
-                    continue; //skip this one
-                }
-
-                //If we've seen this file before exit
-                if (newbieFN.equals(prevFN)) {
-                    dupOf = prevFile;
-                    break;
+                    //fall through
                 }
             }
-
-            //If it's a duplicate, then remove the old one so it's replaced by the new
-            //(as a side effect this helpfully adds it to the top of the Open Recent menu list)
-            vec.remove(dupOf);
-
-            //all checks passed
-            vec.add(newbieFile);
+            return false;
         }
+
+        @Override
+        public String toString() {
+            String result;
+            try {
+                result = file.getCanonicalPath();
+            }
+            catch(IOException ioe) {
+                /* should not happen.  If it does, just live with absolute path */
+                result = file.getAbsolutePath();
+            }
+            if (isReadOnly) result += " (read-only)";
+            return result;
+        }
+    }//class RecentProfInfo
+
+
+    /* helper method for getRecentProjs() and addIfValid() below.
+       It adds a RecentProjInfo to a vector of such objects in a canonical way. */
+    private static void addIfExists(RecentProjInfo candEntry, Vector<RecentProjInfo> recentProjs) {
+        //Make sure the new file still exists
+        if (! candEntry.file.exists()) return;
+
+        //see if this is a duplicate
+        RecentProjInfo dupOf = null;
+        for(RecentProjInfo prevEntry : recentProjs) {
+            if (candEntry.equals(prevEntry)) {
+                dupOf = prevEntry;
+                break;
+            }
+        }
+
+        //If it's a duplicate, then remove the old one, so it's replaced by the new.
+        //This helpfully adds it to the top of the Open Recent menu list.
+        recentProjs.remove(dupOf);
+
+        //all checks passed
+        recentProjs.add(candEntry);
+
+    }//addIfExists
+
+    /* helper method for addRecentProject() below.  It verifies a given filename
+       is the valid name of an existing .vsa file and adds it to a list. */
+    private static void addIfValid(String filename, boolean readOnly, Vector<RecentProjInfo> recentProjs) {
+        if ( (filename != null) && (filename.endsWith(".vsa")) ) {
+
+            File newbieFile = new File(filename);
+
+            //build a string that would represent this candidate entry
+            String initStr;
+            try {
+                initStr = newbieFile.getCanonicalPath();
+            }
+            catch(IOException ioe) {
+                return; //should not happen
+            }
+            if (readOnly) {
+                initStr += readOnlyFlag;
+            }
+            RecentProjInfo candEntry = new RecentProjInfo(initStr);
+            addIfExists(candEntry, recentProjs);
+        }//if
     }//addIfValid
 
 
     /** retrieves a list of the most recently opened .vsa files */
-    public static Vector<File> getRecentProjs() {
-        Vector<File> recentProjs = new Vector<>();
-        addIfValid(recentProj0.get(), recentProjs);
-        addIfValid(recentProj1.get(), recentProjs);
-        addIfValid(recentProj2.get(), recentProjs);
-        addIfValid(recentProj3.get(), recentProjs);
-        addIfValid(recentProj4.get(), recentProjs);
+    public static Vector<RecentProjInfo> getRecentProjs() {
+        Vector<RecentProjInfo> recentProjs = new Vector<>();
+        addIfExists(new RecentProjInfo(recentProj0.get()), recentProjs);
+        addIfExists(new RecentProjInfo(recentProj1.get()), recentProjs);
+        addIfExists(new RecentProjInfo(recentProj2.get()), recentProjs);
+        addIfExists(new RecentProjInfo(recentProj3.get()), recentProjs);
+        addIfExists(new RecentProjInfo(recentProj4.get()), recentProjs);
         return recentProjs;
     }//getRecentProjs
 
     /**
-     * adds a new filename to the list of recent projects
+     * adds a new filename to the list of recent projects.
+     * The given file is presumed to be the .vsa file for the currently open project.
      */
-    public static void addRecentProject(String newbie) {
+    public static void addRecentProject(File newbie, boolean readOnly) {
         //Make sure this file is valid and unique.
-        Vector<File> recentProjs = getRecentProjs();
-        addIfValid(newbie, recentProjs);
+        Vector<RecentProjInfo> recentProjs = getRecentProjs();
+        addIfValid(newbie.getAbsolutePath(), readOnly, recentProjs);
 
         //If there are too many projects, remove some
         while (recentProjs.size() > 5) {
@@ -277,11 +325,11 @@ public enum Prefs {
         }
 
         //Place the recent projects back into the prefs
-        if (recentProjs.size() > 0) recentProj0.set(recentProjs.get(0).getPath());
-        if (recentProjs.size() > 1) recentProj1.set(recentProjs.get(1).getPath());
-        if (recentProjs.size() > 2) recentProj2.set(recentProjs.get(2).getPath());
-        if (recentProjs.size() > 3) recentProj3.set(recentProjs.get(3).getPath());
-        if (recentProjs.size() > 4) recentProj4.set(recentProjs.get(4).getPath());
+        if (recentProjs.size() > 0) recentProj0.set(recentProjs.get(0).toString());
+        if (recentProjs.size() > 1) recentProj1.set(recentProjs.get(1).toString());
+        if (recentProjs.size() > 2) recentProj2.set(recentProjs.get(2).toString());
+        if (recentProjs.size() > 3) recentProj3.set(recentProjs.get(3).toString());
+        if (recentProjs.size() > 4) recentProj4.set(recentProjs.get(4).toString());
 
         //Update the VisualSoar menu to reflect the change
         MainFrame.getMainFrame().updateRecentProjectsSubMenu();

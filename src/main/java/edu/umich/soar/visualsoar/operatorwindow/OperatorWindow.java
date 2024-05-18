@@ -147,15 +147,17 @@ public class OperatorWindow extends JTree {
      * Opens an OperatorWindow for an existing project
      *
      * @param in_file the location of the project to be opened
+     * @param readOnly is this project being opened in read-only mode?
      * @see SoarWorkingMemoryModel
      * @see OperatorWindow#openHierarchy(File)
      */
-    public OperatorWindow(File in_file) throws NumberFormatException, IOException {
+    public OperatorWindow(File in_file, boolean readOnly) throws NumberFormatException, IOException {
         this();
         s_OperatorWindow = this;
         workingMemory = new SoarWorkingMemoryModel(false, null);
         openHierarchy(in_file);
-        Prefs.addRecentProject(in_file.getAbsolutePath());
+        Prefs.addRecentProject(in_file, readOnly);
+        MainFrame.getMainFrame().setStatusBarMsg("Opened " + in_file.getName());
     }
 
     public static OperatorWindow getOperatorWindow() {

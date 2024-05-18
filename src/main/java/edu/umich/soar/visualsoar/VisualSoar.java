@@ -32,7 +32,7 @@ public class VisualSoar {
 		//If user specified a command line argument, try to open it as a project
 		if(args.length >= 1){
 			try{
-				mainFrame.tryOpenProject(new File(args[0]));
+				mainFrame.tryOpenProject(new File(args[0]), false);
 			}
 			catch(IOException ioe) {
 				JOptionPane.showMessageDialog(mainFrame,
@@ -45,12 +45,12 @@ public class VisualSoar {
 		//If nothing was specified on the command line, try
 		//to open the most recent project as a courtesy
 		else  {
-			Vector<File> recentProjs = Prefs.getRecentProjs();
+			Vector<Prefs.RecentProjInfo> recentProjs = Prefs.getRecentProjs();
 			int numRecent = recentProjs.size();
 			if (numRecent > 0) {
-				File mostRecent = recentProjs.get(numRecent - 1);
+				Prefs.RecentProjInfo mostRecent = recentProjs.get(numRecent - 1);
 				try{
-					mainFrame.tryOpenProject(mostRecent);
+					mainFrame.tryOpenProject(mostRecent.file, mostRecent.isReadOnly);
 				}
 				catch(IOException ioe) {
 					//fail quietly.

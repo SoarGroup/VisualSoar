@@ -78,6 +78,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 	private JMenu soarRuntimeAgentMenu = null;
 
 	//Has the project been opened in read-only mode
+	//NOTE:  do not set this variable directly.  Use setReadOnly()
 	private boolean isReadOnly = false;
 	
 ////////////////////////////////////////
@@ -239,8 +240,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 	/**
 	 * Method updates the status bar text with a message
 	 */
-	public void setStatusBarMsg(String text)
-	{
+	public void setStatusBarMsg(String text) {
 		//Extra spaces make text align better with feedback window above it
 		statusBar.setForeground(Color.black);
 		statusBar.setText("  " + text);
@@ -423,14 +423,14 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		openRecentMenu.removeAll();
 
 		//Populate the recent projects
-		Vector<File> recentProjs = Prefs.getRecentProjs();
+		Vector<Prefs.RecentProjInfo> recentProjs = Prefs.getRecentProjs();
 		if (recentProjs.isEmpty()) openRecentMenu.setEnabled(false);
 		else {
 			//iterate backwards so the most recent file is at the top
 			for(int i = recentProjs.size() - 1; i >= 0; --i) {
-				File projFile = recentProjs.get(i);
-				JMenuItem recentItem = new JMenuItem(projFile.toString());
-				recentItem.addActionListener(new TryOpenProjectAction(projFile));
+				Prefs.RecentProjInfo projEntry = recentProjs.get(i);
+				JMenuItem recentItem = new JMenuItem(projEntry.toString());
+				recentItem.addActionListener(new TryOpenProjectAction(projEntry));
 				openRecentMenu.add(recentItem);
 			}
 		}//else
@@ -770,7 +770,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		setLocation(lastX, lastY);
 	}//restorePositionAndSize
 
-	/** stores the current window position and size so they can be restored
+	/** stores the current window position and size, so they can be restored
 	 * when Visual Soar runs again */
 	private void savePositionAndSize() {
 		Point loc = getLocation();
@@ -1182,7 +1182,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 	/**
 	 * For some bizarre reason, the divider-location-property change event
 	 * seems to occur before the underlying pane is resized as a result of
-	 * the event.  I'm guessing the event handlers are out of order but
+	 * the event.  I'm guessing the event handlers are out of order, but
 	 * I don't know how to fix that since the pane-resize code is in
 	 * swing, not part of Visual Soar.  As a result, re-tiling the windows
 	 * in the event handler doesn't work.  Any easy, super-kludgey fix
@@ -1269,22 +1269,17 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 
 
 		//Set the project's title bar to reflect this status
-		String title = getTitle();
 		if (this.isReadOnly) {
 			toggleReadOnlyItem.setText(TOGGLE_RO_OFF);
-
-			//Add "Read-Only" prefix to the title bar
-			title = RO_LABEL + title;
 		}
 		else {
 			toggleReadOnlyItem.setText(TOGGLE_RO_ON);
-
-			//Remove "Read-Only" prefix from the title bar
-			title = title.replace(RO_LABEL, "");
 		}
-		setTitle(title);
 
-		//May not save the project in read-only mode
+		//Reset the title so that the proper read-only status appears
+		setTitle(getTitle());
+
+		//The user may not save the project in read-only mode
 		saveItem.setEnabled(! status);
 	}//readOnlySetup
 
@@ -1296,6 +1291,22 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 	public void rejectForReadOnly() {
 		setStatusBarMsg("You must turn off Read-Only mode to edit this project.");
 		getToolkit().beep();
+	}
+
+	/** override this method to guarantee the current read-only status is in the title */
+	@Override
+	public void setTitle(String title) {
+		//Remove read-only status if present so title is reset to its base state
+		title = title.replace(RO_LABEL, "");
+
+		//Then re-add it if need be
+		if (this.isReadOnly) {
+			//Add "Read-Only" prefix to the title bar
+			title = RO_LABEL + title;
+		}
+
+		//Then set it
+		super.setTitle(title);
 	}
 
 
@@ -1346,7 +1357,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		 * Since I would expect the user will be annoyed if certain hot keys don't work right
 		 * after a project is loaded, I've worked around this error by making the above actions
 		 * detect when there is no project currently open and just silently abort in their
-		 * actionPerformed() methods. Thus I can keep them (and their hotkeys) active at all times.
+		 * actionPerformed() methods. Thus, I can keep them (and their hotkeys) active at all times.
 		 *
 		 * -:AMN:  30 Mar 2023
 		 */
@@ -1664,9 +1675,9 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
      * @param file .vsa project file that is to be opened
      * @see OperatorWindow
      */
-	public void tryOpenProject (File file) throws IOException
+	public void tryOpenProject (File file, boolean readOnly) throws IOException
     {
-		operatorWindow = new OperatorWindow(file);
+		operatorWindow = new OperatorWindow(file, readOnly);
 
 		operatorDesktopSplit.setLeftComponent(operatorWindow);
 		
@@ -1680,15 +1691,19 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 
 		//Reopen windows that were open last time
 		readCfgFile();
+
+		//Configure read-only status
+		setReadOnly(readOnly);
+
 	}//tryOpenProject
 
 
 	public class TryOpenProjectAction extends PerformableAction {
-		private final File projFile;
+		private final Prefs.RecentProjInfo projInfo;
 
-		public TryOpenProjectAction(File projFile) {
-			super("Attempt to load project file: " + projFile.getName());
-			this.projFile = projFile;
+		public TryOpenProjectAction(Prefs.RecentProjInfo rpi) {
+			super("Attempt to load project file: " + rpi);
+			this.projInfo = rpi;
 		}
 
 		@Override
@@ -1699,9 +1714,9 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 			}
 
 			try {
-				tryOpenProject(projFile);
+				tryOpenProject(projInfo.file, projInfo.isReadOnly);
 			} catch(IOException ioe) {
-				JOptionPane.showMessageDialog(MainFrame.this, "Unable to open file: " + projFile.getName());
+				JOptionPane.showMessageDialog(MainFrame.this, "Unable to open file: " + projInfo);
 			}
 		}
 
@@ -1738,7 +1753,8 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 					}
 
 					//Open the new project
-					operatorWindow = new OperatorWindow(file);
+					boolean readOnly = event.getActionCommand().contains("Read-Only");
+					operatorWindow = new OperatorWindow(file, readOnly);
 					if(file.getParent() != null) {
 						Prefs.openFolder.set(file.getParentFile().getAbsolutePath());
 					}
@@ -1762,7 +1778,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 					readCfgFile();
 
 					//Configure read-only status
-					setReadOnly(event.getActionCommand().contains("Read-Only"));
+					setReadOnly(readOnly);
 				}
 			}
 			catch(FileNotFoundException fnfe)
@@ -2036,7 +2052,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 	}
 
 	/**
-	 * This is where the user user wants some info about the authors
+	 * This is where the user wants some info about the authors
      * @see AboutDialog
 	 */	
 	class ContactUsAction extends AbstractAction 
@@ -3383,14 +3399,12 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 					operatorWindow.saveProjectAs(newName, newRootPath);
 
                     // Regenerate the *_source.soar files in the old project
-                    try 
-                    {
-                        OperatorWindow oldOpWin = new OperatorWindow(oldProjectFile);
+                    try  {
+                        OperatorWindow oldOpWin = new OperatorWindow(oldProjectFile, false);
                         OperatorRootNode oldOrn = (OperatorRootNode)oldOpWin.getModel().getRoot();
                         oldOrn.startSourcing();
                     }
-                    catch (IOException exception) 
-                    {
+                    catch (IOException exception) {
                         JOptionPane.showMessageDialog(MainFrame.this,
                                                       exception.getMessage(),
                                                       "Agent Export Error",
@@ -3442,7 +3456,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 				try {
 					jif.setClosed(true);
 				} catch (PropertyVetoException ex) {
-					/** should not happen.  ignore. nbd.*/
+					/* should not happen.  ignore. nbd.*/
 				}
 			}
 		}
