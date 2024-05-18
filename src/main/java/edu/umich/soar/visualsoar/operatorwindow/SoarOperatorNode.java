@@ -201,6 +201,60 @@ public class SoarOperatorNode extends FileNode {
         dataMapId = (SoarIdentifierVertex) swmm.getVertexForId(dataMapIdNumber);
     }
 
+    /** helper method for {@link #rename} that renames a source file
+     * @return a File object for the renamed file */
+    private File fileRename(String newName, File oldFile) throws IOException {
+        //Check for filename conflict
+        File newFile = new File(oldFile.getParent() + File.separator + newName + ".soar");
+        if (creationConflict(newFile)) {
+            throw new IOException();
+        }
+
+        if (!oldFile.renameTo(newFile)) {
+            //Caller must catch this and report fail to user
+            throw new IOException();
+        }
+
+        return newFile;
+    }
+
+
+    /**
+     * helper method for {@link #rename} that renames a high-level operator
+     */
+    private void highLevelRename(String newName, File oldFile) throws IOException {
+        // Check for folder name conflict
+        File oldFolder = new File(getFolderName());
+        File newFolder = new File(oldFolder.getParent() + File.separator + newName);
+        if (creationConflict(newFolder)) {
+            throw new IOException("Creation conflict with new folder name: " + newFolder.getPath());
+        }
+
+        //Check for name conflict with associated "_source" file
+        String oldSrcFileName = oldFolder.getPath() + File.separator + oldFile.getName();
+        oldSrcFileName = oldSrcFileName.replace(".soar","_source.soar");
+        String newSrcFileName = oldFolder.getPath() + File.separator + newName + "_source.soar";
+        File oldSrcFile = new File(oldSrcFileName);
+        File newSrcFile = new File(newSrcFileName);
+        if (newSrcFile.exists()) newSrcFile.delete();  //shouldn't happen but nbd if it does
+
+        //Rename the "_source" file inside the old folder
+        if (!oldSrcFile.renameTo(newSrcFile)) {
+            throw new IOException("Unable to rename" + oldSrcFileName + " to " + newSrcFileName);
+        }
+
+        // Rename old folder to the new folder
+        if (!oldFolder.renameTo(newFolder)) {
+            //If folder rename failed change file back to old name for the "_source" file
+            //(This should never fail since we just renamed it...)
+            newSrcFile.renameTo(oldSrcFile);
+            throw new IOException("Unable to rename folder" + oldFolder.getPath() + " to " + newFolder.getPath());
+        }
+
+        folderName = newFolder.getName();
+    }//highLevelRename
+
+
     /**
      * The user wants to rename this node
      *
@@ -209,50 +263,35 @@ public class SoarOperatorNode extends FileNode {
 
     public void rename(OperatorWindow operatorWindow,
                        String newName) throws IOException {
-        //Check for filename conflict
         File oldFile = new File(getFileName());
-        File newFile = new File(oldFile.getParent() + File.separator + newName + ".soar");
-        if (creationConflict(newFile)) {
-            throw new IOException();
-        }
-
-        //Rename the file
-        if (!oldFile.renameTo(newFile)) {
-            //Caller must catch this and report fail to user
-            throw new IOException();
-        }
+        File newFile = fileRename(newName, oldFile);
 
         //For high-level operators, the folder must also be renamed
         if (isHighLevel) {
-            // Check for folder name conflict
-            File oldFolder = new File(getFolderName());
-            File newFolder = new File(oldFolder.getParent() + File.separator + newName);
-            if ((creationConflict(newFolder)) || (creationConflict(newFile))) {
-                throw new IOException();
+            try {
+                highLevelRename(newName, oldFile);
             }
-
-            // Rename Folder
-            if (!oldFolder.renameTo(newFolder)) {
-                //If folder rename failed change file back to old name
-                //(This should never fail since we just renamed it...)
+            catch(IOException ioe) {
+                //On failure, undo the .soar file rename
                 newFile.renameTo(oldFile);
-                throw new IOException();
+
+                throw ioe;
             }
+        }
 
-            folderName = newFolder.getName();
-        }//if HL operator
 
-        //Update state to reflect the successful rename
+        //Update this object's instance variables to reflect the successful rename
         this.name = newName;
         fileAssociation = newFile.getName();
         if (ruleEditor != null) {
             ruleEditor.fileRenamed(newFile.getPath());
         }
+
+        //notify the Tree widget that this node has changed
         DefaultTreeModel model = (DefaultTreeModel) operatorWindow.getModel();
         model.nodeChanged(this);
 
     }//rename
-
     /**
      * This is the function that gets called when you want to add a sub-operator to this node
      *
