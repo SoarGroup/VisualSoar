@@ -189,7 +189,15 @@ public class SoarDocument extends DefaultStyledDocument {
     } // getElementString()
 
     void colorRange(int begPos, int length, int kind) {
-        Color theColor = colorTable[kind];
+        Color theColor;
+        try {
+           theColor = colorTable[kind];
+        }
+        catch(ArrayIndexOutOfBoundsException e) {
+            //Should never happen but just in case...
+            System.err.println("Syntax coloring failed for kind=" + kind + ". Using black.");
+            theColor = Color.black;
+        }
         SimpleAttributeSet attrib = new SimpleAttributeSet();
 
         //Check for bad location

@@ -16,7 +16,7 @@ class AboutVersionPanel extends JPanel {
     JLabel versionLabel =
             new JLabel("Visual Soar");
     JLabel versionLabel2 =
-            new JLabel("    Version 4.6.17 (10 Mar 2024)");
+            new JLabel("    Version 4.6.19 (21 May 2024)");
 
     public AboutVersionPanel() {
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));

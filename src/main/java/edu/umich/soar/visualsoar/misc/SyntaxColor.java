@@ -7,19 +7,16 @@ import java.awt.*;
 public class SyntaxColor extends Color {
     private static final long serialVersionUID = 20221225L;
 
+    /**
+     * This array must be large enough to guarantee there is an entry for
+     * each constant.  Making it extra big like this wastes a little RAM but
+     * bypasses crashes that can occur if you try to be efficient.
+     * -Nuxoll 21 May 2024
+     */
+    public static final int SH_ARRAY_SIZE = SoarParserConstants.tokenImage.length;
+
     public static SyntaxColor[] getDefaultSyntaxColors() {
-        SyntaxColor[] temp;
-
-        int size = SoarParserConstants.RARROW;
-
-        size = Math.max(size, SoarParserConstants.SP);
-        size = Math.max(size, SoarParserConstants.GP);
-        size = Math.max(size, SoarParserConstants.CARET);
-        size = Math.max(size, SoarParserConstants.VARIABLE);
-        size = Math.max(size, SoarParserConstants.SYMBOLIC_CONST);
-        size = Math.max(size, SoarParserConstants.DEFAULT);
-
-        temp = new SyntaxColor[size + 1];
+        SyntaxColor[] temp = new SyntaxColor[SH_ARRAY_SIZE];
 
         temp[SoarParserConstants.RARROW] = new SyntaxColor(Color.red, "\"-->\"");
         temp[SoarParserConstants.SP] = new SyntaxColor(Color.red, "\"sp\"");
