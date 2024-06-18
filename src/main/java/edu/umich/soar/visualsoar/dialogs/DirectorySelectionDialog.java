@@ -21,7 +21,7 @@ public class DirectorySelectionDialog extends JDialog {
     private static final long serialVersionUID = 20221225L;
 
     private JPanel rootSelectionPanel;
-    private JComboBox<File> rootSelector;
+    private JComboBox<File> rootSelector = null;
     private final DirectoryTree directoryTree;
     private final JPanel buttonPanel = new JPanel();
     private final JButton okButton = new JButton("Ok");
@@ -38,6 +38,9 @@ public class DirectorySelectionDialog extends JDialog {
         contentPane.setLayout(new BorderLayout());
 
         File[] roots = File.listRoots();
+        //If there is only one root, then no need for root selector
+        //  Note: usually Windows is the only OS with multiple roots but it's
+        //        possible for Windows to have only one root, especially on a network drive.
         if (roots.length != 1) {
             createRootSelector(roots);
             contentPane.add(rootSelectionPanel, BorderLayout.NORTH);
@@ -51,32 +54,48 @@ public class DirectorySelectionDialog extends JDialog {
         pack();
     }
 
+    /**
+     * set the current path of this dialog in the tree control
+     */
     public void setPath(File directory) {
         String fullPath = directory.getAbsolutePath();
         int pos = fullPath.indexOf(File.separator);
-        if (pos != -1) {
+
+        if (pos != -1) {  //nothing selected!
             String volumeName = fullPath.substring(0, pos + 1);
             File[] roots = File.listRoots();
 
             //This should never happen?
             if (roots == null) return;
 
-            //Unix-based OS
-            if ((roots.length == 1) && (roots[0].getPath().equals("/"))) {
-                directoryTree.setPath(directory);
-            }
-            //Windoze
-            else {
-                for (File root : roots) {
-                    if (root.getPath().compareTo(volumeName) == 0) {
-                        rootSelector.setSelectedItem(root);
-                        directoryTree.changeRoot(root);
-                        directoryTree.setPath(directory);
-                    }
+            try {
+                //likely (but not certainly) a Unix-based OS
+                if (roots.length == 1) {
+                    directoryTree.setPath(directory);
                 }
+                //Windoze
+                else {
+                    for (File root : roots) {
+                        if (root.getPath().compareTo(volumeName) == 0) {
+                            //Select the root to match this path
+                            //Example:  if path is "C:\foo\bar"  then "C:\" is the root
+                            if (rootSelector != null) {  //shouldn't be null...
+                                rootSelector.setSelectedItem(root);
+                                directoryTree.changeRoot(root);
+                            }
+                            directoryTree.setPath(directory);
+                        }
+                    }
+                }//else
+            }
+            catch(NullPointerException npe){
+                //If something goes wrong parsing folder names
+                //just revert back to the cwd
+                File cwd = new File(".");
+                directoryTree.setPath(cwd);
             }
         }
-    }
+    }//setPath
 
     public boolean wasApproved() {
         return wasApproved;
@@ -238,6 +257,9 @@ class DirectoryTree extends JTree {
             if (child != null) {
                 expansionPath = expansionPath.pathByAddingChild(child);
                 name = getNextName(directory, expansionPath);
+                if ((name != null) && (name.length() > 1) && (name.charAt(0) == File.separatorChar)) {
+                    name = name.substring(1);
+                }
                 parent = child;
             } else {
                 name = null;

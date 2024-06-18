@@ -320,13 +320,16 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 
 		//Check for auto-backups of the project files
 		if (operatorWindow != null) {
-			OperatorRootNode orn = (OperatorRootNode) (operatorWindow.getModel().getRoot());
-			File projectBackupFile = new File(orn.getProjectFile() + "~");
-			if (projectBackupFile.exists()) projectBackupFile.delete();
-			File dataMapBackupFile = new File(orn.getDataMapFile() + "~");
-			if (dataMapBackupFile.exists()) dataMapBackupFile.delete();
-			File commentBackupFile = new File(dataMapBackupFile.getParent() + File.separator + "comment.dm~");
-			if (commentBackupFile.exists()) commentBackupFile.delete();
+			Object root = operatorWindow.getModel().getRoot();
+			if (root instanceof OperatorRootNode) {
+				OperatorRootNode orn = (OperatorRootNode) root;
+				File projectBackupFile = new File(orn.getProjectFile() + "~");
+				if (projectBackupFile.exists()) projectBackupFile.delete();
+				File dataMapBackupFile = new File(orn.getDataMapFile() + "~");
+				if (dataMapBackupFile.exists()) dataMapBackupFile.delete();
+				File commentBackupFile = new File(dataMapBackupFile.getParent() + File.separator + "comment.dm~");
+				if (commentBackupFile.exists()) commentBackupFile.delete();
+			}
 		}
 	}
 
@@ -1416,9 +1419,14 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 	 * @return a File object representing where the project's .cfg file should be
 	 */
 	private File getCfgFile() {
-		OperatorRootNode orn = (OperatorRootNode) (operatorWindow.getModel().getRoot());
-		String cfgFN = orn.getFolderName() + File.separator + orn.getName() + ".cfg";
-		return new File(cfgFN);
+		Object root = operatorWindow.getModel().getRoot();
+		if (root instanceof OperatorRootNode) {
+			OperatorRootNode orn = (OperatorRootNode)root;
+			String cfgFN = orn.getFolderName() + File.separator + orn.getName() + ".cfg";
+			return new File(cfgFN);
+		}
+
+		return null;
 	}//getCfgFile
 
 	/**
@@ -1429,7 +1437,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 	private void readCfgFile() {
 		//Read file contents
 		File cfgFile = getCfgFile();
-		if (!cfgFile.exists()) return; //nothing to do
+		if ( (cfgFile == null) || (!cfgFile.exists()) ) return; //nothing to do
 		Scanner scan;
 		ArrayList<String> cfgLines = new ArrayList<>();
 		try {
@@ -1532,16 +1540,17 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 
 		//Write the .cfg file contents
 		File cfgFile = getCfgFile();
-		try {
-			PrintWriter pw = new PrintWriter(cfgFile);
-			for(String line : cfgLines) {
-				pw.println(line);
+		if ((cfgFile != null) && (cfgFile.exists())) {
+			try {
+				PrintWriter pw = new PrintWriter(cfgFile);
+				for (String line : cfgLines) {
+					pw.println(line);
+				}
+				pw.close();
+			} catch (FileNotFoundException fnfe) {
+				//the .cfg file is not essential so just report it if it can't be written
+				this.setStatusBarMsg("Unable to save current configuration to " + cfgFile.getName());
 			}
-			pw.close();
-		}
-		catch(FileNotFoundException fnfe) {
-			//the .cfg file is not essential so just report it if it can't be written
-			this.setStatusBarMsg("Unable to save current configuration to " + cfgFile.getName());
 		}
 	}//writeCfgFile
 
@@ -1914,7 +1923,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 				operatorDesktopSplit.setLeftComponent(new JScrollPane(operatorWindow));
 				
 				projectActionsEnable(true);
-                exportAgentAction.perform();
+                commitAction.perform();
 
 				//Set and monitor the divider position
 				operDividerSetup();
@@ -1924,6 +1933,9 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 
 				//Set the title bar to include the project name
                 setTitle(agentName);
+
+				//Add this new agent to the recently opened project list
+				Prefs.addRecentProject(agentNameFile, false);
 			}
 		}
 	}
@@ -2518,8 +2530,11 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
             Vector<OperatorNode> vecNodes = new Vector<>(10, 50);
 			while(bfe.hasMoreElements())
             {
-            	OperatorNode node = (OperatorNode) bfe.nextElement();
-				vecNodes.add(node);
+				Object obj = bfe.nextElement();
+				if (obj instanceof OperatorNode) {
+					OperatorNode node = (OperatorNode)obj;
+					vecNodes.add(node);
+				}
 			}
 			(new VerifyProjectThread(vecNodes, "Verifiying Project...")).start();
         }

@@ -41,6 +41,9 @@ class AgentPathPanel extends JPanel {
         if (! workingDir.exists()) {
             workingDirName = ".";
         }
+        if (!workingDir.isDirectory()) {
+            workingDirName = ".";
+        }
 
         // So that enter can affirmatively dismiss the dialog
         // pathField.getKeymap().removeKeyStrokeBinding(
