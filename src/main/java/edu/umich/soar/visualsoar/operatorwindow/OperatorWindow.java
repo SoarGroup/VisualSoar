@@ -1745,6 +1745,239 @@ public class OperatorWindow extends JTree {
     }
 
     /**
+     * verifies that a given line from a .vsa file that describes a node
+     * is valid.  These lines have this format:
+     *
+     * <node_id>(TAB)<parent_node_id>(TAB)<node_type> [node_name] [node_contents_filename] <type_sepcific_contents>
+     * where:
+     *    <node_id>        is a unique integer.  These ids should appear in
+     *                     sequential, numerical order in the file
+     *    <parent_mode_id> is the id of the parent node or ROOT if this is the
+     *                     root node.  The operator tree has only one root.
+     *    <node_type>      is one of the following:  HLOPERATOR, OPERATOR, HLFOPERATOR, FOPERATOR,
+     *                     HLIOPERATOR, IOPERATOR, FOLDER, FILE, ROOT, or LINK
+     *
+     * @param line
+     */
+    private void integrityCheckV4NodeLine(String line) {
+
+    }
+
+    /**
+     * helper method for integrityCheck() methods to extract the highest
+     * numbered operator node id from the lines of the file.
+     *
+     * @param lines a list of lines that may contain operator ids.  There are
+     *              presumed to be no blank lines and all lines should already
+     *              be trimmed.
+     *
+     * @return the highest node found or -1 if none found
+     */
+    private int getLastOpIdFromLines(Vector<String> lines) {
+        int lastId = -1;
+        for(String line : lines) {
+            String[] words = line.split("[ \\t]");  //split on spaces and tabs
+            int nodeId = -1;
+            try {
+                nodeId = Integer.parseInt(words[0]);
+            } catch (NumberFormatException nfe) {
+                //just ignore this line.  This method does not report parse errors
+            }
+
+            if (nodeId > lastId) lastId = nodeId;
+        }//for
+
+        return lastId;
+
+    }//getLastOpIdFromLines
+
+
+    /**
+     * helper method for integrityCheckV4.  It reads through a list of lines
+     * that contain operator node definitions and and places them in the proper
+     * slots in an array.  Dummy entries are inserted for missing nodes
+     *
+     * @param blankless  original lines from the file that should contain
+     *                   operator node definitions
+     * @param errors    Any missing or duplidate nodes are reported here.
+     *
+     *
+     * @return an array with exactly one entry for each node
+     */
+    private String[] fillOperatorNodeLineArray(Vector<String> blankless,
+                                               Vector<FeedbackListEntry> errors ) {
+        //Get the id number of the last valid line in the file.  This should also tell us the number of nodes
+        int lastId = getLastOpIdFromLines(blankless);
+        if (lastId < 0) return null;  //no operator node ids found!
+
+        //Since we now have an exact number of nodes, create an array to store each associated line
+        //This will allow us to detect duplicate and missing operator nodes
+        String[] nodeLines = new String[lastId + 1];  //+1 because id numbers start at zero
+        for(int i = 0; i < nodeLines.length; ++i) {
+            nodeLines[i] = null;
+        }
+
+        for(int i = 0; i < blankless.size(); ++i) {
+            String line = blankless.get(i);
+
+            //Extract the node id from the line
+            String[] words = line.split("[ \\t]");  //split on spaces and tabs
+            int foundNodeId = -1;
+            boolean errFlag = false;
+            try {
+                foundNodeId = Integer.parseInt(words[0]);
+            } catch (NumberFormatException nfe) {
+                errFlag = true;
+            }
+
+            //Check for mismatch or invalid id number
+            if (!errFlag) errFlag = (foundNodeId != i);
+            if (!errFlag) errFlag = (foundNodeId >= 0);
+            if (!errFlag) errFlag = (foundNodeId < nodeLines.length);
+
+            //report any unexpected node id
+            if (errFlag) {
+                String err = "Found invalid operator node id: " + foundNodeId;
+                err += " from this entry: " + line;
+                errors.add(new FeedbackListEntry(err));
+            }
+
+            //Check for duplicate id
+            if (nodeLines[foundNodeId] != null) {
+                String err = "Skipping duplicate entry for operator node with id: " + foundNodeId;
+                err += " original entry: " + nodeLines[foundNodeId];
+                err += " duplicate entry: " + line;
+                errors.add(new FeedbackListEntry(err));
+            }
+            else {
+                nodeLines[foundNodeId] = line;
+            }
+        }//for
+
+        //Detect if any node ids are missing
+        for(int i = 0; i < nodeLines.length; ++i) {
+            if (nodeLines[i] == null) {
+                String err = "No entry found for operator node with id: " + i + ".";
+                err += " A dummy entry will be substituted.";
+                errors.add(new FeedbackListEntry(err));
+
+                nodeLines[i] = "" + i + "\t0\tFOPERATOR dummy" + i + "  dummy" + i + ".soar 0";
+            }
+        }
+
+        return nodeLines;
+    }//fillOperatorNodeLineArray
+
+
+
+    /**
+     * scans each node line of a given version 4 .vsa file for integrity issues
+     *
+     * @param lines  the lines of the .vsa file. The first two lines of the
+     *               file (version number and relative path to .dm file) are
+     *               presumed to be absent.
+     * @param errors any errors found will be placed in this vector
+     *
+     * @return the valid operator node lines of the file (or null on unrecoverable failure)
+     */
+    private String[] integrityCheckV4(Vector<String> lines, Vector<FeedbackListEntry> errors) {
+        //The last line should be 'END'.
+        String lastLine = lines.lastElement().trim();
+        if (! lastLine.equals("END")) {
+            errors.add(new FeedbackListEntry("[line " + lines.size() + "] Project file (.vsa) is truncated.  Some operator nodes may be missing."));
+        }
+        lines.remove(lines.size() - 1);  //remove "END" so remaining lines are consistent
+
+        //Remove any blank lines
+        int skipped = 2; //number of lines skipped so far (counting the version num and .dm file name)
+        Vector<String> blankless = new Vector<>();
+        for(int i = 0; i < lines.size(); ++i) {
+            String line = lines.get(i).trim();
+            if (line.length() == 0) {
+                errors.add(new FeedbackListEntry("[line " + (i+skipped+1) + "] illegal blank line ignored."));
+                continue;
+            }
+            blankless.add(line);
+            skipped++;
+        }
+
+        //The lines should be numbered sequentially with no blank lines but things may be jumbled.
+        //Sort things out and make sure there is exactly one line for each id
+        return fillOperatorNodeLineArray(blankless, errors);
+
+    }//integrityCheckV4
+
+    /**
+     * readVersionFourSafe
+     *
+     * is a "safe" version of {@link #readVersionFour} that is better able to recover from corrupted
+     * input files
+     *
+     * @param r the Reader of the .vsa project file
+     * @see #makeNodeVersionFour(HashMap, java.util.List, Reader)
+     */
+    private void readVersionFourSafe(Reader r) throws IOException, NumberFormatException {
+        // This hash table has keys of ids and a pointer as a value
+        // it is used for parent lookup
+        Hashtable<Integer, VSTreeNode> ht = new Hashtable<>();
+        List<VSTreeNode> linkNodesToRestore = new LinkedList<>();
+        HashMap<Integer, VSTreeNode> persistentIdLookup = new HashMap<>();
+
+        //Read in the entire file
+        Vector<String> lines = new Vector<>();
+        Scanner scan = new Scanner(r);
+        while(scan.hasNextLine()) {
+            lines.add(scan.nextLine());
+        }
+
+        //Report any file format problems
+        Vector<FeedbackListEntry> errors = new Vector<>();
+        String[] nodeLines = integrityCheckV4(lines, errors);
+        if (errors.size() > 0) {
+            MainFrame.getMainFrame().setFeedbackListData(errors);
+        }
+        if (nodeLines == null) return;
+
+        //TODO: STOPPED HERE
+
+        // Special Case Root Node
+        // tree specific stuff
+        int rootId = ReaderUtils.getInteger(r);
+
+        // node stuff
+        VSTreeNode root = makeNodeVersionFour(persistentIdLookup, linkNodesToRestore, r);
+
+        // add the new node to the hash table
+        ht.put(rootId, root);
+
+        // Read in all the other nodes
+        boolean done = false;
+        for (; ; ) {
+            // again read in the tree specific stuff
+            SoarIdentifierVertex parentDataMapId = new SoarIdentifierVertex(0);              //reset datamap id to 0, the top level datamap
+
+            String nodeIdOrEnd = ReaderUtils.getWord(r);
+            if (!nodeIdOrEnd.equals("END")) {
+                int nodeId = Integer.parseInt(nodeIdOrEnd);
+                int parentId = ReaderUtils.getInteger(r);
+
+                OperatorNode node = makeNodeVersionFour(persistentIdLookup, linkNodesToRestore, r);
+                OperatorNode parent = (OperatorNode) ht.get(parentId);
+                addChild(parent, node);
+                // add that node to the hash table
+                ht.put(nodeId, node);
+            } else {
+                for (VSTreeNode vsTreeNode : linkNodesToRestore) {
+                    LinkNode linkNodeToRestore = (LinkNode) vsTreeNode;
+                    linkNodeToRestore.restore(persistentIdLookup);
+                }
+                setModel(new DefaultTreeModel(root));
+                return;
+            }
+        }
+    }
+
+    /**
      * Reads a Version Three .vsa project file and interprets it to create a Visual
      * Soar project from the file.
      *
@@ -1905,6 +2138,51 @@ public class OperatorWindow extends JTree {
      * @see #readVersionFour(Reader)
      */
     private OperatorNode makeNodeVersionFour(HashMap<Integer, VSTreeNode> linkedToMap, List<VSTreeNode> linkNodesToRestore, Reader r) throws IOException, NumberFormatException {
+        OperatorNode retVal;
+        String type = ReaderUtils.getWord(r);
+
+        if (type.equals("HLOPERATOR")) {
+            retVal = createSoarOperatorNode(ReaderUtils.getWord(r), ReaderUtils.getWord(r), ReaderUtils.getWord(r), ReaderUtils.getInteger(r));
+        } else if (type.equals("OPERATOR")) {
+            retVal = createSoarOperatorNode(ReaderUtils.getWord(r), ReaderUtils.getWord(r));
+        } else if (type.equals("HLFOPERATOR")) {
+            retVal = createFileOperatorNode(ReaderUtils.getWord(r), ReaderUtils.getWord(r), ReaderUtils.getWord(r), ReaderUtils.getInteger(r));
+        } else if (type.equals("FOPERATOR")) {
+            retVal = createFileOperatorNode(ReaderUtils.getWord(r), ReaderUtils.getWord(r));
+        } else if (type.equals("HLIOPERATOR")) {
+            retVal = createImpasseOperatorNode(ReaderUtils.getWord(r), ReaderUtils.getWord(r), ReaderUtils.getWord(r), ReaderUtils.getInteger(r));
+        } else if (type.equals("IOPERATOR")) {
+            retVal = createImpasseOperatorNode(ReaderUtils.getWord(r), ReaderUtils.getWord(r));
+        } else if (type.equals("FOLDER")) {
+            retVal = createFolderNode(ReaderUtils.getWord(r), ReaderUtils.getWord(r));
+        } else if (type.equals("FILE")) {
+            retVal = createFileOperatorNode(ReaderUtils.getWord(r), ReaderUtils.getWord(r));
+        } else if (type.equals("ROOT")) {
+            retVal = createOperatorRootNode(ReaderUtils.getWord(r), ReaderUtils.getWord(r));
+        } else if (type.equals("LINK")) {
+            retVal = createLinkNode(ReaderUtils.getWord(r), ReaderUtils.getWord(r), ReaderUtils.getInteger(r));
+            linkNodesToRestore.add(retVal);
+        } else {
+            throw new IOException("Parse Error");
+        }
+
+        if (retVal != null) {
+            linkedToMap.put(ReaderUtils.getInteger(r), retVal);
+        }
+        return retVal;
+    }
+
+    /**
+     * Opens a Visual Soar project by creating the appropriate node
+     *
+     * @param linkedToMap        hashmap used to keep track of linked nodes, not used
+     * @param linkNodesToRestore list of linked nodes needed to restore, not used
+     * @param r                  .vsa file that is being read to open project
+     * @return the created OperatorNode
+     * @see OperatorNode
+     * @see #readVersionFour(Reader)
+     */
+    private OperatorNode makeNodeVersionFourSafe(HashMap<Integer, VSTreeNode> linkedToMap, List<VSTreeNode> linkNodesToRestore, Reader r) throws IOException, NumberFormatException {
         OperatorNode retVal;
         String type = ReaderUtils.getWord(r);
 
