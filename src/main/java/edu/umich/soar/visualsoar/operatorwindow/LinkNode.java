@@ -16,7 +16,7 @@ import java.util.Map;
  * a child of this one.  Links can be created via drag and drop.
  * <p>
  * NOTE:  At some point in the past, LinkNodes were disabled (not accessible
- * via the UI).  Older .vsa files (version 5 or before) may still contain them.
+ * via the UI).  Older .vsa files (version 3 or before) may still contain them.
  * So, the code remains here to support it. -:AMN: Dec 2022
  */
 public class LinkNode extends FileNode {

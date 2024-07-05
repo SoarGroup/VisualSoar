@@ -43,7 +43,12 @@ import java.util.Vector;
 public abstract class OperatorNode extends VSTreeNode implements java.io.Serializable {
     private static final long serialVersionUID = 20221225L;
 
-///////////////////////////////////////////////////////////////////
+    //Operator node types are identified with these strings in a .vsa file
+    public static final String[] VSA_NODE_TYPES =
+            { "OPERATOR", "HLOPERATOR", "HLFOPERATOR", "FOPERATOR", "HLIOPERATOR",
+                    "IOPERATOR", "FOLDER", "FILE", "ROOT", "LINK" };
+
+    ///////////////////////////////////////////////////////////////////
 // Data Members
 ////////////////////////////////////////////////////////////////////
     static protected JPopupMenu contextMenu = new JPopupMenu();
