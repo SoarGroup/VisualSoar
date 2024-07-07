@@ -19,6 +19,10 @@ import javax.swing.*;
 public abstract class SoarVertex extends Vertex {
     private static final long serialVersionUID = 20221225L;
 
+    //These are valid vertex types that can be used in .dm files
+    public static final String[] VERTEX_TYPES =
+            { "SOAR_ID", "ENUMERATION", "INTEGER_RANGE", "INTEGER", "FLOAT_RANGE", "FLOAT", "STRING", "FOREIGN" };
+
 ///////////////////////////////////////////////
 // Constructors
 ///////////////////////////////////////////////
