@@ -234,6 +234,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
      * @param v the vector list of feedback data
      */
 	public void setFeedbackListData(Vector<FeedbackListEntry> v) {
+		if (v == null) v = new Vector<>(); //clear the list
 		feedbackList.setListData(v);
 	}
 

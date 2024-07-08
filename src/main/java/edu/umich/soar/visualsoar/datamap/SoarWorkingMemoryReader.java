@@ -171,8 +171,6 @@ public class SoarWorkingMemoryReader {
             errors.add(new FeedbackListEntry("Warning:  datamap entry has unexpected id.  Expected " + expectedId + " but found " + id));
         }
 
-
-
         //Special Case:  Foreign Node
         if (vertexType.equals("FOREIGN")) {
             if (words.length < 5) {
@@ -334,6 +332,7 @@ public class SoarWorkingMemoryReader {
     public static boolean readSafe(SoarWorkingMemoryModel swmm, Reader fr, Reader cr)  {
         //Any errors found will be stored here and reported at the end
         Vector<FeedbackListEntry> errors = new Vector<>();
+        int MAX_SANE = 999999;  //no sane datamap would have more vertices than this
 
         // Get the number of vertices from the file
         Scanner scanFR = new Scanner(fr);
@@ -349,7 +348,7 @@ public class SoarWorkingMemoryReader {
             errors.add(new FeedbackListEntry("Warning: First line of datamap file does not contain a valid number of vertices: " + lineOne));
 
             //Note:  We could abort here but let's continue with a large number and see if it works out
-            numVertices = 999999;
+            numVertices = MAX_SANE;
         }
 
         // Get the root node
@@ -368,7 +367,7 @@ public class SoarWorkingMemoryReader {
             /* no action needed here */
         }
         if (rootNodeId < 0) {
-            errors.add(new FeedbackListEntry("Root type must be Soar id.  Expected \"SOAR_ID 0\" but found \"" + lineTwo + "\""));
+            errors.add(new FeedbackListEntry("Datamap root must have a valid Soar id.  Expected \"SOAR_ID 0\" but found \"" + lineTwo + "\""));
             MainFrame.getMainFrame().setFeedbackListData(errors);
             return false;
         }
@@ -380,8 +379,9 @@ public class SoarWorkingMemoryReader {
         int numEdges = -1;  //this may be needed below if we reach the value early
         for (int i = 1; i < numVertices; ++i) {
             //check for end of file
-            if (! scanFR.hasNextLine() ) {
+            if (!scanFR.hasNextLine()) {
                 errors.add(new FeedbackListEntry("Error:  The .dm file appears to be truncated in the vertex list.  Aborting."));
+                MainFrame.getMainFrame().setFeedbackListData(errors);
                 return false;
             }
 
@@ -397,20 +397,29 @@ public class SoarWorkingMemoryReader {
             if (line.length() < 6) { //no Soar project will have more than 99999 edges, right?
                 try {
                     numEdges = Integer.parseInt(line);
-                }
-                catch(NumberFormatException nfe) {
+                } catch (NumberFormatException nfe) {
                     errors.add(new FeedbackListEntry("Warning:  Ignoring invalid vertex list entry in .dm file: " + line));
+                    continue;
                 }
 
                 if (numEdges > 0) {
-                    errors.add(new FeedbackListEntry("Warning:  reached end of vertex list section early in .dm file.  Was expecting " + numVertices + " vertices but found only " + (i-1) + " vertices."));
+                    if (numVertices < MAX_SANE) {  //This indicates we weren't given a max (see init of numVertices above)
+                        errors.add(new FeedbackListEntry("Warning:  reached end of vertex list section early in .dm file.  Was expecting " + numVertices + " vertices but found only " + (i - 1) + " vertices."));
+                    }
                     break;
                 }
             }//if
 
             //Okay, we're finally ready to parse the vertex definition
             SoarVertex vertexToAdd = readVertexSafe(line, i, errors);
-            swmm.addVertex(vertexToAdd);
+            if (vertexToAdd != null) {
+                swmm.addVertex(vertexToAdd);
+
+                //If the id is out of sync, fix it here
+                i = vertexToAdd.getValue();
+            }
+
+            //Note:  no need for an 'else' here as readVertexSafe() should have added a report to the errors list
         }//for
 
 

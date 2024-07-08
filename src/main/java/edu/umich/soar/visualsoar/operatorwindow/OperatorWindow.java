@@ -153,6 +153,7 @@ public class OperatorWindow extends JTree {
      */
     public OperatorWindow(File in_file, boolean readOnly) throws NumberFormatException, IOException {
         this();
+        MainFrame.getMainFrame().setFeedbackListData(null); //clear old msgs
         s_OperatorWindow = this;
         workingMemory = new SoarWorkingMemoryModel(false, null);
         openHierarchy(in_file);
@@ -1199,8 +1200,17 @@ public class OperatorWindow extends JTree {
         if (!success) {
             MainFrame.getMainFrame().setStatusBarError("Unable to parse " + dataMapFile.getName());
         }
-        restoreStateIds();
 
+        try {
+            restoreStateIds();
+        }
+        catch(ArrayIndexOutOfBoundsException aioobe) {
+            //if the parse was unsuccessful don't say anything since there are
+            // already more informative error messages in the feedback window
+            if (success) {
+                MainFrame.getMainFrame().setStatusBarError("Error! Unable to restore high-level ids for project.");
+            }
+        }
     }
 
     /**
@@ -1865,6 +1875,8 @@ public class OperatorWindow extends JTree {
 
     /** given a mal-formatted operator node string, this method tries to find
      * a valid identifier string in it
+     *
+     * @param nodeLine  search this string
      */
     private String findIdentifier(String nodeLine) {
         String[] words = nodeLine.split("[ \\t]");
@@ -1928,11 +1940,11 @@ public class OperatorWindow extends JTree {
         for(int i = 0; i < lines.size(); ++i) {
             String line = lines.get(i).trim();
             if (line.length() == 0) {
-                errors.add(new FeedbackListEntry("[line " + (i+skipped+1) + "] illegal blank line ignored."));
+                errors.add(new FeedbackListEntry("Error on line " + (i+skipped+1) + " of .vsa file: illegal blank line ignored."));
+                skipped++;
                 continue;
             }
             blankless.add(line);
-            skipped++;
         }
 
         //The lines should be numbered sequentially with no blank lines but things may be jumbled.
@@ -2265,7 +2277,7 @@ public class OperatorWindow extends JTree {
         //High level operators need 8 words
         boolean isHLOperator = words[2].startsWith("HL");
         if ( isHLOperator && (words.length < 8) ) {
-            errors.add(new FeedbackListEntry("Incomplete high-level operator node line found: " + line));
+            errors.add(new FeedbackListEntry("Incomplete high-level operator node line found in .vsa file: " + line));
             return false;
         }
 
@@ -2281,15 +2293,18 @@ public class OperatorWindow extends JTree {
 
         //--------------------------------------------------------------------
         //1. Parent id
+        int parentId = -1;
         try {
-            int parentId = Integer.parseInt(words[1]);
-            if (parentId < 0) throw new NumberFormatException();
-            if (parentId > maxOpId) throw new NumberFormatException();
-
+            parentId = Integer.parseInt(words[1]);
         } catch (NumberFormatException nfe) {
             errors.add(new FeedbackListEntry("Error!  Operator node line has invalid parent id number: " + line));
             return false;
         }
+        if ( (parentId < 0) || (parentId > maxOpId)) {
+            errors.add(new FeedbackListEntry("Error: Operator node line (\"" + line + "\") has an invalid parent id number: " + parentId));
+            return false;
+        }
+
 
 
         //--------------------------------------------------------------------
@@ -2332,7 +2347,7 @@ public class OperatorWindow extends JTree {
         //For non-folders filename should end with ".soar"
         if (! words[2].equals("FOLDER")) {
             if(! words[4].endsWith(".soar")) {
-                errors.add(new FeedbackListEntry("Warning: Operator node line has a source filename that does not end with .soar: " + line));
+                errors.add(new FeedbackListEntry("Warning: Operator node line has a source filename that does not have \".soar\" extension: " + line));
             }
         }
 
