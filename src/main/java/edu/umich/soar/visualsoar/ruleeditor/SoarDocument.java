@@ -635,7 +635,7 @@ public class SoarDocument extends DefaultStyledDocument {
 
     /**
      * Justifies a chunk of text from in the rule editor.
-     * If nothing is highlighted, then justifies the entire docusment
+     * If nothing is highlighted, then justifies the entire document
      *
      * TODO:  This method should be refactored to make more manageable
      *
