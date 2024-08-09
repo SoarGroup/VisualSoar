@@ -23,6 +23,8 @@ import sml.sml_Names;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
 import javax.swing.tree.DefaultTreeModel;
@@ -33,6 +35,8 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyVetoException;
 import java.io.*;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 import java.util.*;
 
@@ -2082,30 +2086,46 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 			aboutDialog.setVisible(true);		
 		}
   	}
-
+	private static final String KEY_BINDINGS_HELP_URL = "https://soar.eecs.umich.edu/reference/VisualSoarKeyboardAndMouseControls";
 	/**
 	 * This is where the user wants a list of keybindings.  The action
-     * loads the docs/KeyBindings.txt file.
-	 */	
-	class ViewKeyBindingsAction extends AbstractAction 
-    {
+	 * points the user to the online documentation.
+	 */
+	class ViewKeyBindingsAction extends AbstractAction
+	{
 		private static final long serialVersionUID = 20221225L;
 
 		public ViewKeyBindingsAction()
-        {
+		{
 			super("VisualSoar Keybindings");
 		}
-		
-		public void actionPerformed(ActionEvent e) 
-        {
+
+		public void actionPerformed(ActionEvent e) {
+			final JTextPane textPane = new JTextPane();
+			textPane.setContentType("text/html");
+			textPane.setText("<html>View VisualSoar key bindings help " +
+				"on the Soar website: <a href=\"" + KEY_BINDINGS_HELP_URL + "\">" +
+				KEY_BINDINGS_HELP_URL + "</a>.</html>");
+			textPane.setEditable(false);
+			// get rid of white background
+			textPane.setBackground(UIManager.getColor("OptionPane.background"));
+			// make the link clickable
+			textPane.addHyperlinkListener(new HyperlinkListener() {
+				@Override
+				public void hyperlinkUpdate(HyperlinkEvent he) {
+				if (HyperlinkEvent.EventType.ACTIVATED.equals(he.getEventType())) {
+					try {
+						Desktop.getDesktop().browse(new URI(he.getURL().toString()));
+					} catch (IOException | URISyntaxException ex) {
+						ex.printStackTrace();
+					}
+				}}
+			});
 			JOptionPane.showMessageDialog(
-                MainFrame.this,
-                "<html>View VisualSoar key bindings help " +
-                "<a href=\"https://soar.eecs.umich.edu/articles/articles/documentation/76-visual-soar-key-bindings\">" +
-                "on the wiki</a>.<br />" +
-                "https://soar.eecs.umich.edu/articles/articles/documentation/76-visual-soar-key-bindings</html>",
-                "Key Bindings Help",
-                JOptionPane.INFORMATION_MESSAGE);
+				MainFrame.this,
+				textPane,
+				"Key Bindings Help",
+				JOptionPane.INFORMATION_MESSAGE);
 		}
   	}//class ViewKeyBindingsAction
 
