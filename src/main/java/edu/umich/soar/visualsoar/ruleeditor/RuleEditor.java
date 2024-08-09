@@ -1148,9 +1148,9 @@ public class RuleEditor extends CustomInternalFrame {
 
         // register accel and remember thingys
         editMenu.setMnemonic('E');
-        undoItem.setMnemonic(KeyEvent.VK_D);
+        undoItem.setMnemonic(KeyEvent.VK_Z);
         undoItem.setAccelerator(KeyStroke.getKeyStroke("control Z"));
-        redoItem.setMnemonic(KeyEvent.VK_R);
+        redoItem.setMnemonic(KeyEvent.VK_R & KeyEvent.SHIFT_DOWN_MASK);
         redoItem.setAccelerator(KeyStroke.getKeyStroke("control shift Z"));
         cutItem.setMnemonic(KeyEvent.VK_T);
         cutItem.setAccelerator(KeyStroke.getKeyStroke("control X"));
