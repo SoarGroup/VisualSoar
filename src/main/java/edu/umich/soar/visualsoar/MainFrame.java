@@ -44,7 +44,7 @@ import java.util.*;
 
 // The global application class
 
-/** 
+/**
  * This is the main project window of VisualSoar
  * @author Brad Jones
  */
@@ -84,11 +84,11 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 	//Has the project been opened in read-only mode
 	//NOTE:  do not set this variable directly.  Use setReadOnly()
 	private boolean isReadOnly = false;
-	
+
 ////////////////////////////////////////
 // Access to data members
 ////////////////////////////////////////
-	
+
 // Dialogs
 	AboutDialog aboutDialog = new AboutDialog(this);
 
@@ -163,7 +163,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 	 * 3P Also initializes the STI library
 	 * @param s the name of the window
 	 */
-	public MainFrame(String s) 
+	public MainFrame(String s)
     {
 		// Set the Title of the window
 		super(s);
@@ -192,19 +192,18 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		//Perform Exit actions on window close
 		setJMenuBar(createMainMenu());
 		addWindowListener(
-            new WindowAdapter() 
+            new WindowAdapter()
             {
-                public void windowClosing(WindowEvent e) 
+                public void windowClosing(WindowEvent e)
                 {
-                    checkForUnsavedProjectOnClose();
-                    
+
                     exitAction.actionPerformed(
                         new ActionEvent(e.getSource(),e.getID(),"Exit"));
                 }
             });//addWindowListener()
-        
+
         d_templateManager.load();
-        
+
         List<Image> icons = new ArrayList<>();
 		Toolkit tk = Toolkit.getDefaultToolkit();
         icons.add(tk.getImage(MainFrame.class.getResource("/vs.png")));
@@ -229,8 +228,8 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 
         return false;
     }
-    
-    
+
+
 	/**
      * Method updates the FeedBack list window.  If your message is a single string
 	 * consider using the status bar to display your message instead.
@@ -280,7 +279,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
      * Gets the project TemplateManager
      * @return a <code>TemplateManager</code> in charge of all template matters.
      */
-	public TemplateManager getTemplateManager() 
+	public TemplateManager getTemplateManager()
     {
 		return d_templateManager;
 	}
@@ -289,7 +288,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
      * Gets the project OperatorWindow
      * @return the project's only <code>OperatorWindow</code>.
      */
-	public OperatorWindow getOperatorWindow() 
+	public OperatorWindow getOperatorWindow()
     {
 		return operatorWindow;
 	}
@@ -299,7 +298,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
      * @see CustomDesktopPane
      * @return the project's only <code>CustomDesktopPane</code>.
      */
-    public CustomDesktopPane getDesktopPane() 
+    public CustomDesktopPane getDesktopPane()
     {
         return desktopPane;
     }
@@ -342,7 +341,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 	 * A helper function to create the file menu
 	 * @return The file menu
 	 */
-	private JMenu createFileMenu() 
+	private JMenu createFileMenu()
     {
 		JMenu fileMenu = new JMenu("File");
 
@@ -372,12 +371,12 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		closeProjectItem.addActionListener(closeProjectAction);
 		closeProjectAction.addPropertyChangeListener(
             new ActionButtonAssociation(closeProjectAction,closeProjectItem));
-				
+
 		saveItem.addActionListener(commitAction);
         saveItem.setAccelerator(KeyStroke.getKeyStroke("control S"));
 		commitAction.addPropertyChangeListener(
             new ActionButtonAssociation(commitAction, saveItem));
-				
+
 		JMenuItem exitItem = new JMenuItem("Exit");
 		exitItem.addActionListener(exitAction);
 		exitAction.addPropertyChangeListener(
@@ -395,16 +394,16 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		fileMenu.add(openProjectReadOnlyItem);
         fileMenu.add(openFileItem);
 		fileMenu.add(closeProjectItem);
-		
+
 		fileMenu.addSeparator();
-		
+
 		fileMenu.add(saveItem);
 		fileMenu.add(saveProjectAsItem);
 
 		fileMenu.addSeparator();
 
 		fileMenu.add(exitItem);
-		
+
 		// register mnemonics and accelerators
 		fileMenu.setMnemonic('F');
 		newProjectItem.setAccelerator(KeyStroke.getKeyStroke("control N"));
@@ -448,7 +447,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 	 * A helper function to create the edit menu
 	 * @return The edit menu
 	 */
-	private JMenu createEditMenu() 
+	private JMenu createEditMenu()
     {
 		JMenu editMenu = new JMenu("Edit");
 
@@ -467,7 +466,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 	 * A helper function to create the search menu
 	 * @return The search menu
 	 */
-	private JMenu createSearchMenu() 
+	private JMenu createSearchMenu()
     {
 		final JMenu searchMenu = new JMenu("Search");
 		// View Menu
@@ -505,7 +504,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 	 * A helper function to create the Datamap menu
 	 * @return The datamap menu
 	 */
-	private JMenu createDatamapMenu() 
+	private JMenu createDatamapMenu()
     {
 		JMenu datamapMenu = new JMenu("Datamap");
 
@@ -580,12 +579,12 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 
         return datamapMenu;
     }
-	
+
 	/**
 	 * A helper function to create the view menu
 	 * @return The view menu
 	 */
-	private JMenu createViewMenu() 
+	private JMenu createViewMenu()
     {
 		final JMenu viewMenu = new JMenu("View");
 		//Close All Windows
@@ -602,32 +601,32 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		cascadeItem.addPropertyChangeListener(
             new ActionButtonAssociation(cascadeAction,cascadeItem));
 		viewMenu.add(cascadeItem);
-		
+
 		JMenuItem tileWindowItem = new JMenuItem("Tile Windows Horizontally");
 		tileWindowItem.addActionListener(tileWindowsAction);
 		tileWindowItem.addPropertyChangeListener(
             new ActionButtonAssociation(tileWindowsAction,tileWindowItem));
 		viewMenu.add(tileWindowItem);
-		
+
 		JMenuItem reTileWindowItem = new JMenuItem("Tile Windows Vertically");
 		reTileWindowItem.addActionListener(reTileWindowsAction);
 		reTileWindowItem.addPropertyChangeListener(
             new ActionButtonAssociation(reTileWindowsAction,reTileWindowItem));
 		viewMenu.add(reTileWindowItem);
-				
+
 		viewMenu.addMenuListener(
-            new MenuListener() 
+            new MenuListener()
             {
-                public void menuCanceled(MenuEvent e) {} 
-                public void menuDeselected(MenuEvent e) 
+                public void menuCanceled(MenuEvent e) {}
+                public void menuDeselected(MenuEvent e)
                     {
-                        for(int i = viewMenu.getMenuComponentCount() - 1; i > 2; --i) 
+                        for(int i = viewMenu.getMenuComponentCount() - 1; i > 2; --i)
                         {
                             viewMenu.remove(i);
                         }
                     }
-          	 	
-                public void menuSelected(MenuEvent e) 
+
+                public void menuSelected(MenuEvent e)
                     {
                         JInternalFrame[] frames = desktopPane.getAllFrames();
 						for (JInternalFrame frame : frames) {
@@ -635,8 +634,8 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 							menuItem.addActionListener(new WindowMenuListener(frame));
 							viewMenu.add(menuItem);
 						}
-                    }   	 		
-            });		
+                    }
+            });
 		viewMenu.setMnemonic('V');
 		//cascadeWindowItem.setMnemonic(KeyEvent.VK_C);
 		tileWindowItem.setMnemonic(KeyEvent.VK_T);
@@ -650,8 +649,10 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
      * due to window close, opening new project or selecting "Close Project"
      * from the File menu).  It detects unsaved changes and asks the user
      * what to do about it.
+	 *
+	 * @return true if it's okay to continue closing, false otherwise
      */
-    void checkForUnsavedProjectOnClose()
+    boolean checkForUnsavedProjectOnClose()
     {
         //If the user has modified files that have not been saved,
         //we need to ask the user what to do about it.
@@ -672,7 +673,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
             //If user hits Cancel button
             if (selectedValue == null)
             {
-                return;
+                return false;
             }
 
             //If user selects Save all files, then exit
@@ -680,7 +681,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
             {
                 saveAllFilesAction.perform();
             }
-                        
+
             //If user selects Exit without Saving
             if (selectedValue.equals(buttons[1]))
             {
@@ -689,10 +690,10 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 				for (CustomInternalFrame frame : frames) {
 					frame.setModified(false);
 				}
-                            
+
             }
         }//if
-                    
+		return true;
     }//checkForUnsavedProjectOnClose()
 
 
@@ -711,7 +712,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
             ruleEditor.setSelected(true);
             Prefs.highlightingEnabled.setBoolean(oldPref);  // Turn it back to what it was
         }
-        catch(IOException IOE) 
+        catch(IOException IOE)
         {
             JOptionPane.showMessageDialog(MainFrame.this,
                                           IOE.getMessage(),
@@ -810,52 +811,52 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 				// Add a "not connected" menu item
 				JMenuItem menuItem=new JMenuItem("<not connected>");
 				menuItem.setEnabled(false);
-				
+
 				soarRuntimeAgentMenu.add(menuItem);
 				return;
 			}
-			
+
 			// Get the connection names
 			int nAgents = m_Kernel.GetNumberAgents() ;
 
 			// If we don't have any connections then display the
 			// appropriate menu item.
 			if (nAgents == 0)
-			
+
             {
 				// Add the "no agents" menu item
 				JMenuItem menuItem=new JMenuItem("<no agents>");
 				menuItem.setEnabled(false);
-				
+
 				soarRuntimeAgentMenu.add(menuItem);
 				return;
 			}
-			
+
 			// Add each name
 			int i;
 			for (i=0; i < nAgents; i++)
-			
+
             {
 				// Get this agent's name
 				sml.Agent agent = m_Kernel.GetAgentByIndex(i) ;
 
 				if (agent == null)
 					continue ;
-				
+
 				String name = agent.GetAgentName() ;
-								
+
 				// Create the connection menu and add a listener to it
 				// which contains the connection index.
 				JRadioButtonMenuItem connectionMenuItem=new JRadioButtonMenuItem(name);
 
 				if (name.equals(m_ActiveAgent))
 					connectionMenuItem.setSelected(true) ;
-				
+
 				connectionMenuItem.addActionListener(new AgentConnectionActionListener(name));
-					
+
 				// Add the menu item
-				soarRuntimeAgentMenu.add(connectionMenuItem);	
-			}			
+				soarRuntimeAgentMenu.add(connectionMenuItem);
+			}
 		}
 	}
 
@@ -875,10 +876,10 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
         {
 			m_sAgentConnectionName = sAgentConnectionName;
 		}
-		
+
 		// Called when the action has been performed
 		public void actionPerformed(ActionEvent e)
-		
+
         {
 			m_ActiveAgent  = m_sAgentConnectionName ;
 		}
@@ -891,18 +892,18 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
      * @return a <code>soarRuntimeMenu</code> JMenu
      */
 	private JMenu createSoarRuntimeMenu()
-	
+
     {
 		// Add the menu as set the mnemonic
 		JMenu soarRuntimeMenu = new JMenu("Soar Runtime");
 		soarRuntimeMenu.setMnemonic('S');
-		
+
 		// Add the menu items
 		JMenuItem connectMenuItem= soarRuntimeMenu.add(soarRuntimeInitAction);
 		JMenuItem disconnectMenuItem= soarRuntimeMenu.add(soarRuntimeTermAction);
 		JMenuItem sendAllFilesMenuItem= soarRuntimeMenu.add(soarRuntimeSendAllFilesAction);
 		JMenuItem sendRawCommandMenuItem= soarRuntimeMenu.add(soarRuntimeSendRawCommandAction);
-			
+
 		// Build the "Connected Agents" menu
 		soarRuntimeAgentMenu = new JMenu("Connected Agents");
 		soarRuntimeAgentMenu.addMenuListener(
@@ -926,31 +927,31 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 	 * A helper function to create the help menu
 	 * @return The help menu
 	 */
-	private JMenu createHelpMenu() 
+	private JMenu createHelpMenu()
     {
 		JMenu helpMenu = new JMenu("Help");
 		// Help menu
-		helpMenu.add(contactUsAction); 
+		helpMenu.add(contactUsAction);
         helpMenu.add(viewKeyBindingsAction);
 		helpMenu.setMnemonic('H');
 		return helpMenu;
 	}
-	
+
 	/**
 	 * A Helper function that creates the main menu bar
 	 * @return The MenuBar just created
 	 */
-	private JMenuBar createMainMenu() 
+	private JMenuBar createMainMenu()
     {
 		JMenuBar MenuBar = new JMenuBar();
-		
+
 		// The Main Menu Bar
 		MenuBar.add(createFileMenu());
 		MenuBar.add(createEditMenu());
 		MenuBar.add(createSearchMenu());
         MenuBar.add(createDatamapMenu());
 		MenuBar.add(createViewMenu());
-		
+
 		// 3P
 		// Add the Soar Runtime menu
         MenuBar.add(createSoarRuntimeMenu());
@@ -976,7 +977,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
             catch (java.beans.PropertyVetoException pve)
             {
                 //Unable to maximize window.  Oh, well.
-            }				
+            }
         }
 		else if ( (Prefs.autoTileEnabled.getBoolean())
                   || (lastWindowViewOperation.equals("tile")) )
@@ -1001,12 +1002,12 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
         }
 
     }//setJIFShape
-    
+
 	/**
 	 * Creates a rule window opening with the given file name
 	 * @param re the rule editor file that the rule editor should open
 	 */
-	public void addRuleEditor(RuleEditor re) 
+	public void addRuleEditor(RuleEditor re)
     {
 		desktopPane.add(re);
 		re.moveToFront();
@@ -1019,7 +1020,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 	 * @param dm the datamap that the window should open
      * @see DataMap
 	 */
-	public void addDataMap(DataMap dm) 
+	public void addDataMap(DataMap dm)
     {
         if (!desktopPane.hasDataMap(dm))
         {
@@ -1050,9 +1051,9 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
      * and brings the window to the front of the frame.
      * @param re the specified rule editor window
      */
-	public void showRuleEditor(RuleEditor re) 
+	public void showRuleEditor(RuleEditor re)
     {
-		try 
+		try
         {
 			if (re.isIcon()) {
 				re.setIcon(false);
@@ -1063,9 +1064,9 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		catch (java.beans.PropertyVetoException pve)
         {
             System.err.println("Guess we can't do that");
-        }				
+        }
 	}
-						
+
 	/**
      * Selects a currently open editor window and brings it to the front.
      * If none are open then no action is taken.
@@ -1075,9 +1076,9 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
         JInternalFrame[] jif = desktopPane.getAllFrames();
 		for(int i = jif.length-1; i >= 0; i--)
         {
-            if(jif[i].isShowing()) 
+            if(jif[i].isShowing())
             {
-                try 
+                try
                 {
                     if (jif[i].isIcon())
                     {
@@ -1090,7 +1091,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
                 catch (java.beans.PropertyVetoException pve)
                 {
                     //Don't break;
-                }				
+                }
             }
         }//for
 
@@ -1104,8 +1105,8 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 	static class WindowMenuListener implements ActionListener
     {
 		JInternalFrame internalFrame;
-		
-		public WindowMenuListener(JInternalFrame jif) 
+
+		public WindowMenuListener(JInternalFrame jif)
         {
 			internalFrame = jif;
 		}
@@ -1113,29 +1114,29 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		public void actionPerformed(ActionEvent e)
         {
 			internalFrame.toFront();
-			try 
+			try
             {
 				internalFrame.setIcon(false);
 				internalFrame.setSelected(true);
 				internalFrame.moveToFront();
-			} catch (java.beans.PropertyVetoException pve) { 
+			} catch (java.beans.PropertyVetoException pve) {
 				System.err.println("Guess we can't do that"); }
 		}
 	}
 
-	
+
   	/**
   	 * Sets the main window
   	 */
-  	public static void setMainFrame(MainFrame mainFrame) 
+  	public static void setMainFrame(MainFrame mainFrame)
     {
   		s_mainFrame = mainFrame;
   	}
-  	
+
   	/**
   	 * Gets the main window
   	 */
-  	public static MainFrame getMainFrame() 
+  	public static MainFrame getMainFrame()
     {
   		return s_mainFrame;
   	}
@@ -1322,7 +1323,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 	/**
   	 * enables the corresponding actions for when a project is opened
   	 */
-  	private void projectActionsEnable(boolean areEnabled) 
+  	private void projectActionsEnable(boolean areEnabled)
     {
   		// Enable various actions
 		saveAllFilesAction.setEnabled(areEnabled);
@@ -1572,8 +1573,8 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 			super("Save All");
 			setEnabled(false);
 		}
-		
-		public void perform() 
+
+		public void perform()
         {
 			//Save the list of currently open windows
 			writeCfgFile();
@@ -1588,7 +1589,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 					}
 				}
 			}
-			catch(java.io.IOException ioe) 
+			catch(java.io.IOException ioe)
             {
 				JOptionPane.showMessageDialog(MainFrame.this,
                                               ioe.getMessage(),
@@ -1602,17 +1603,16 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 
 		}//perform SaveAllFilesAction
 
-		public void actionPerformed(ActionEvent event) 
+		public void actionPerformed(ActionEvent event)
         {
 			perform();
 		}
-		
+
 	}
 
 	/**
-	 * Exit command
-	 * First closes all the RuleEditor windows
-	 * if all the closes go successfully, then it closes
+	 * First confirms with user, hen saves and closes all the RuleEditor windows.
+	 * If all the closes go successfully, then it closes
 	 * the operator hierarchy then exits
 	 */
 	class ExitAction extends AbstractAction {
@@ -1622,15 +1622,19 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
         {
 			super("Exit");
 		}
-		public void actionPerformed(ActionEvent event) 
+		public void actionPerformed(ActionEvent event)
         {
 			perform();
 		}
 
 		public void perform() {
+			if (!checkForUnsavedProjectOnClose()) {
+				return;
+			}
+
 			JInternalFrame[] frames = desktopPane.getAllFrames();
 			Prefs.flush();
-			try 
+			try
             {
 				savePositionAndSize();
 
@@ -1645,11 +1649,11 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 				for (JInternalFrame frame : frames) {
 					frame.setClosed(true);
 				}
-				
+
 				// 3P
 				// Close down the STI library
 				SoarRuntimeTerm();
-								
+
 				dispose();
 				System.exit(0);
 			}
@@ -1668,18 +1672,18 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
         {
 			super("Save DataMap And Project Action");
 		}
-		
-		public void perform() 
+
+		public void perform()
         {
-			if(operatorWindow != null) 
+			if(operatorWindow != null)
             {
 				operatorWindow.saveHierarchy();
 			}
 		}
-		
-		public void actionPerformed(ActionEvent event) 
+
+		public void actionPerformed(ActionEvent event)
         {
-			perform();	
+			perform();
 			setStatusBarMsg("DataMap and Project Saved");
 		}
 	}
@@ -1694,7 +1698,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		operatorWindow = new OperatorWindow(file, readOnly);
 
 		operatorDesktopSplit.setLeftComponent(operatorWindow);
-		
+
 		projectActionsEnable(true);
 
 		//Set and monitor the divider position
@@ -1739,7 +1743,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 			perform();
 		}
 	}
-	
+
 	/**
 	 * Open Project Action
      * a filechooser is created to determine project file
@@ -1747,17 +1751,17 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
      * @see OperatorWindow
      * @see SoarFileFilter
 	 */
-	class OpenProjectAction extends AbstractAction 
+	class OpenProjectAction extends AbstractAction
     {
 		private static final long serialVersionUID = 20221225L;
 
 		public OpenProjectAction()
         {
 			super("Open Project...");
-		}	
-		public void actionPerformed(ActionEvent event) 
+		}
+		public void actionPerformed(ActionEvent event)
         {
-			try 
+			try
             {
 				File file = ghettoFileChooser();
 				if(file != null) {
@@ -1802,7 +1806,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
                                               "File Not Found",
                                               JOptionPane.ERROR_MESSAGE);
 			}
-			catch(IOException ioe) 
+			catch(IOException ioe)
             {
 				JOptionPane.showMessageDialog(MainFrame.this,
                                               ioe.getMessage(),
@@ -1810,7 +1814,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
                                               JOptionPane.ERROR_MESSAGE);
 				ioe.printStackTrace();
 			}
-			catch(NumberFormatException nfe) 
+			catch(NumberFormatException nfe)
             {
                 nfe.printStackTrace();
                 JOptionPane.showMessageDialog(MainFrame.this,
@@ -1825,7 +1829,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
      * Open a text file unrelated to the project in a rule editor
      * Opened file is not necessarily part of project and not soar formatted
      */
-    class OpenFileAction extends AbstractAction 
+    class OpenFileAction extends AbstractAction
     {
 		private static final long serialVersionUID = 20221225L;
 
@@ -1833,9 +1837,9 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
         {
             super("Open File...");
         }
-        public void actionPerformed(ActionEvent event) 
+        public void actionPerformed(ActionEvent event)
         {
-            try 
+            try
             {
                 JFileChooser fileChooser = new JFileChooser();
                 fileChooser.setFileFilter(new TextFileFilter());
@@ -1845,14 +1849,14 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 				}
                 int state = fileChooser.showOpenDialog(MainFrame.this);
                 File file = fileChooser.getSelectedFile();
-                if(file != null && state == JFileChooser.APPROVE_OPTION) 
+                if(file != null && state == JFileChooser.APPROVE_OPTION)
                 {
                     OpenFile(file);
                 }
 
             }
 
-			catch(NumberFormatException nfe) 
+			catch(NumberFormatException nfe)
             {
                 nfe.printStackTrace();
                 JOptionPane.showMessageDialog(MainFrame.this,
@@ -1867,12 +1871,12 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 
 	/**
 	 * New Project Action
-     * Creates a dialog that gets the new project name and then creates the new 
+     * Creates a dialog that gets the new project name and then creates the new
      * project by creating a new Operator Window.
      * @see NewAgentDialog
      * @see OperatorWindow
 	 */
-	class NewProjectAction extends AbstractAction 
+	class NewProjectAction extends AbstractAction
     {
 		private static final long serialVersionUID = 20221225L;
 
@@ -1880,13 +1884,13 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
         {
 			super("New Project...");
 		}
-		
-		public void actionPerformed(ActionEvent event) 
+
+		public void actionPerformed(ActionEvent event)
         {
 			// redo this a dialog should just pass back data to the main window for processing
 			NewAgentDialog newAgentDialog = new NewAgentDialog(MainFrame.this);
 			newAgentDialog.setVisible(true);
-			if (newAgentDialog.wasApproved()) 
+			if (newAgentDialog.wasApproved())
             {
                 //Verify that the path exists
 				String path = newAgentDialog.getNewAgentPath();
@@ -1921,12 +1925,12 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 
                     return;
                 }
-                
+
 				operatorWindow = new OperatorWindow(agentName,agentFileName,true);
-				
+
 				Prefs.openFolder.set(path);
 				operatorDesktopSplit.setLeftComponent(new JScrollPane(operatorWindow));
-				
+
 				projectActionsEnable(true);
                 commitAction.perform();
 
@@ -1944,12 +1948,12 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 			}
 		}
 	}
-	
+
 	/**
 	 * Close Project Action
      * Closes all open windows in the desktop pane
 	 */
-	class CloseProjectAction extends PerformableAction 
+	class CloseProjectAction extends PerformableAction
     {
 		private static final long serialVersionUID = 20221225L;
 
@@ -1958,13 +1962,15 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 			super("Close Project");
 			setEnabled(false);
 		}
-		
+
 		public void perform()
         {
-            checkForUnsavedProjectOnClose();
+			if (!checkForUnsavedProjectOnClose()) {
+				return;
+			}
 
 			JInternalFrame[] frames = desktopPane.getAllFrames();
-			try 
+			try
             {
 				if ( (!isReadOnly()) && (CustomInternalFrame.hasEverChanged()) ) commitAction.perform();
 				deleteAutoBackupFiles();
@@ -1986,20 +1992,20 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
             setTitle("VisualSoar");
 		}//perform()
 
-        
-        public void actionPerformed(ActionEvent event) 
+
+        public void actionPerformed(ActionEvent event)
         {
             perform();
         }
 
 	}
-	
+
 	/**
 	 * Export Agent
 	 * Writes all the <operator>_source.soar files necesary for sourcing agent
 	 * files written in  into the TSI
 	 */
-	class ExportAgentAction extends PerformableAction 
+	class ExportAgentAction extends PerformableAction
     {
 		private static final long serialVersionUID = 20221225L;
 
@@ -2007,16 +2013,16 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
         {
 			super("Export Agent");
 		}
-		
-		public void perform() 
+
+		public void perform()
         {
 			DefaultTreeModel tree = (DefaultTreeModel)operatorWindow.getModel();
 			OperatorRootNode root = (OperatorRootNode)tree.getRoot();
-			try 
+			try
             {
 				root.startSourcing();
 			}
-			catch (IOException exception) 
+			catch (IOException exception)
             {
 				JOptionPane.showMessageDialog(MainFrame.this,
                                               exception.getMessage(),
@@ -2024,7 +2030,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
                                               JOptionPane.ERROR_MESSAGE);
 			}
 		}
-		
+
 		public void actionPerformed(ActionEvent event)
         {
 			perform();
@@ -2071,8 +2077,8 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 	/**
 	 * This is where the user wants some info about the authors
      * @see AboutDialog
-	 */	
-	class ContactUsAction extends AbstractAction 
+	 */
+	class ContactUsAction extends AbstractAction
     {
 		private static final long serialVersionUID = 20221225L;
 
@@ -2080,10 +2086,10 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
         {
 			super("About VisualSoar");
 		}
-		
-		public void actionPerformed(ActionEvent e) 
+
+		public void actionPerformed(ActionEvent e)
         {
-			aboutDialog.setVisible(true);		
+			aboutDialog.setVisible(true);
 		}
   	}
 	private static final String KEY_BINDINGS_HELP_URL = "https://soar.eecs.umich.edu/reference/VisualSoarKeyboardAndMouseControls";
@@ -2134,17 +2140,17 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
      * @author ThreePenny
      */
 	protected void EditProductionByName(String sProductionName)
-	
+
     {
 		// TODO: Should we match case?
-		
+
 		OperatorWindow ow = getOperatorWindow();
-		
+
 		if (ow != null)
 		{
 			// Find the rule and open it
 			getOperatorWindow().findInProjectAndOpenRule(sProductionName, false /* match case */);
-		
+
 			// Bring our window to the front
 			toFront();
 		} else {
@@ -2156,7 +2162,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 
 		}
 	}
-	
+
 
     /**
      * Handles Soar Runtime|Connect menu option
@@ -2167,18 +2173,18 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		private static final long serialVersionUID = 20221225L;
 
 		public SoarRuntimeInitAction()
-		
+
         {
 			super("Connect");
 		}
-		
+
 		public void actionPerformed(ActionEvent e)
-		
+
         {
 			// Initialize the soar runtime
 			boolean ok = false ;
 			String message = "Error connecting to remote kernel" ;
-			
+
 			try
 			{
 				ok = SoarRuntimeInit() ;
@@ -2209,7 +2215,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
                                               "SML Connection Error",
                                               JOptionPane.ERROR_MESSAGE);
 			}
-		}	
+		}
 	}
 
 	public String stringEventHandler(int eventID, Object userData, Kernel kernel, String callbackData)
@@ -2228,7 +2234,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
     /**
      * Initializes the Soar Tool Interface (STI) object and enabled/disables
      * menu items as needed.
-     * 
+     *
      * @author ThreePenny
      */
 	boolean SoarRuntimeInit() {
@@ -2237,39 +2243,39 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 			SoarRuntimeTerm() ;
 			m_Kernel = null ;
 		}
-		
+
 		// This may throw if we can't find the SML libraries.
 		m_Kernel = Kernel.CreateRemoteConnection(true, null) ;
-		
+
 		if (m_Kernel.HadError())
 		{
 			m_Kernel = null ;
-			
+
 			// Disable all related menu items
 			soarRuntimeTermAction.setEnabled(false);
 			soarRuntimeInitAction.setEnabled(true);	// Allow us to try again later
 			soarRuntimeSendRawCommandAction.setEnabled(false);
 			soarRuntimeAgentMenu.setEnabled(false);
 			soarRuntimeSendAllFilesAction.setEnabled(false) ;
-            
+
 			return false ;
 		}
-		
+
 		if (m_Kernel.GetNumberAgents() > 0)
 		{
 			// Select the first agent if there is any as our current agent
 			m_ActiveAgent = m_Kernel.GetAgentByIndex(0).GetAgentName() ;
 		}
 		m_EditProductionCallback = m_Kernel.RegisterForStringEvent(smlStringEventId.smlEVENT_EDIT_PRODUCTION, this, null) ;
-		
+
 		soarRuntimeTermAction.setEnabled(true);
 		soarRuntimeInitAction.setEnabled(false);
 		soarRuntimeSendRawCommandAction.setEnabled(true);
 		soarRuntimeAgentMenu.setEnabled(true);
 		soarRuntimeSendAllFilesAction.setEnabled(true) ;
-		
+
 		m_Kernel.SetConnectionInfo("visual-soar", sml_Names.getKStatusReady(), sml_Names.getKStatusReady()) ;
-		
+
 		return true ;
 	}
 
@@ -2294,7 +2300,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 
 		m_EditProductionCallback = -1 ;
 		m_Kernel = null ;
-		
+
 		// Enable/Disable menu items
 		soarRuntimeTermAction.setEnabled(false);
 		soarRuntimeInitAction.setEnabled(true);
@@ -2342,12 +2348,12 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 			super("Disconnect");
 			setEnabled(false);
 		}
-		
+
 		public void actionPerformed(ActionEvent e)
         {
 			// Terminate the soar runtime
 			SoarRuntimeTerm();
-		}	
+		}
 	}//class SoarRuntimeTermAction
 
 	// Handles the "Runtime|Send All Files" menu item
@@ -2370,65 +2376,65 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
                 JOptionPane.showMessageDialog(MainFrame.this,"Not connected to an agent.","Error",JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            
+
             // Generate the path to the top level source file
             OperatorRootNode root = (OperatorRootNode)(operatorWindow.getModel().getRoot());
-            
+
             if (root == null)
             {
             	System.out.println("Couldn't find the top level project node") ;
             	return ;
             }
-            
+
             String projectFilename = root.getProjectFile() ;	// Includes .vsa
-            
+
             // Swap the extension from .vsa to .soar
             projectFilename = projectFilename.replaceFirst(".vsa", ".soar") ;
-            
+
             // Call source in Soar
             String result = agent.ExecuteCommandLine("source " + "\"" + projectFilename + "\"", true) ;
-            
+
             if (!agent.GetLastCommandLineResult())
             	result = agent.GetLastErrorDescription() ;
-            
+
 			MainFrame.getMainFrame().reportResult(result) ;
         }
     }//class SendFileToSoarAction
 
-	
+
     /**
      * Handles Soar Runtime|Send Raw Command menu option
      * @author ThreePenny
      */
-	class SoarRuntimeSendRawCommandAction extends AbstractAction 
+	class SoarRuntimeSendRawCommandAction extends AbstractAction
     {
 		private static final long serialVersionUID = 20221225L;
 
 		public SoarRuntimeSendRawCommandAction()
-		
+
         {
 			// Set the name and default to being disabled
 			super("Send Raw Command");
 			setEnabled(false);
 		}
-		
+
 		public void actionPerformed(ActionEvent e)
-		
+
         {
 			if (m_Kernel != null)
 			{
 				Agent agent = getActiveAgent() ;
-				
+
 				if (agent == null)
 				{
 					JOptionPane.showMessageDialog(MainFrame.getMainFrame(), "No agent is currently selected, so we can't send the command.\n\nPlease use the Connected Agent menu to select one.") ;
 					return ;
 				}
-				
+
 				SoarRuntimeSendRawCommandDialog theDialog = new SoarRuntimeSendRawCommandDialog(MainFrame.this, m_Kernel, getActiveAgent());
 				theDialog.setVisible(true);
 			}
-		}	
+		}
 	}
 
 	/**
@@ -2460,18 +2466,18 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 			progressDialog.setVisible(true);
             progressBar.getMaximum();
             progressBar.getMinimum();
-				
-            update = new Runnable() 
+
+            update = new Runnable()
             {
-                public void run() 
+                public void run()
                 {
                     value = progressBar.getValue() + 1;
                     updateProgressBar(value);
                 }
             };
-            finish = new Runnable() 
+            finish = new Runnable()
             {
-                public void run() 
+                public void run()
                 {
                     updateProgressBar(min);
                     progressDialog.dispose();
@@ -2479,12 +2485,12 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
             };
         }
 
-        public void run() 
+        public void run()
         {
             checkEntities();
         }
 
-        private void updateProgressBar(int value) 
+        private void updateProgressBar(int value)
         {
             progressBar.setValue(value);
         }
@@ -2500,7 +2506,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 
         public void checkEntities()
         {
-            try 
+            try
             {
                 boolean anyErrors = false;
                 for(int i = 0; i < max; i++)
@@ -2521,7 +2527,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
                 setFeedbackListData(vecErrors);
                 SwingUtilities.invokeLater(finish);
             }
-            catch (IOException ioe) 
+            catch (IOException ioe)
             {
                 ioe.printStackTrace();
             }
@@ -2559,7 +2565,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 			}
 			(new VerifyProjectThread(vecNodes, "Verifiying Project...")).start();
         }
-        
+
 		public void actionPerformed(ActionEvent ae)
         {
             perform();
@@ -2571,7 +2577,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
             {
                 super(v, title);
             }
-                
+
             public boolean checkEntity(Object node) {
                 OperatorNode opNode = (OperatorNode)node;
 
@@ -2580,7 +2586,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
                 {
                     return false;
                 }
-                
+
                 File f = new File(opNode.getFileName());
                 if (!f.canRead())
                 {
@@ -2589,7 +2595,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
                     vecErrors.add(new FeedbackListEntry(msg));
                     return true;
                 }
-                    
+
                 if (!f.canWrite())
                 {
 					String msg ="Error!  Unable to write to file: "
@@ -2603,7 +2609,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
                 return true;
             }
         }//class VerifyProjectThread
-	
+
 	}//class VerifyProjectAction
 
 	/**
@@ -2636,19 +2642,19 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
      * errors only.   Operation status is displayed in a progress bar.
      * Results are displayed in the feedback list
      */
-	class CheckSyntaxErrorsAction extends AbstractAction 
+	class CheckSyntaxErrorsAction extends AbstractAction
     {
 		private static final long serialVersionUID = 20221225L;
 
 		//a list of all production names seen is stored here so that duplicates can be found
 		private final Vector<String> allProdNames = new Vector<>();
 
-		public CheckSyntaxErrorsAction() 
+		public CheckSyntaxErrorsAction()
         {
 			super("Check All Productions for Syntax Errors");
 			setEnabled(false);
 		}
-	
+
 		public void actionPerformed(ActionEvent ae)
         {
         	//reset the list for the new duplicate name check
@@ -2740,7 +2746,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
                     vecErrors.add(opNode.parseParseException(pe));
                     return true;
                 }
-                catch(TokenMgrError tme) 
+                catch(TokenMgrError tme)
                 {
                     vecErrors.add(opNode.parseTokenMgrError(tme));
                     return true;
@@ -2749,11 +2755,11 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
                 return false;
             }
         }//class CheckSyntaxThread
-	
+
 	}//class CheckSyntaxErrorsAction
 
 
-    
+
 
  	/**
      * This class is responsible for comparing all productions in the project
@@ -2777,7 +2783,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
         {
             Vector<OperatorNode> vecNodes = new Vector<>(10, 50);
 			Enumeration<TreeNode> bfe = operatorWindow.breadthFirstEnumeration();
-			while(bfe.hasMoreElements()) 
+			while(bfe.hasMoreElements())
             {
 				vecNodes.add((OperatorNode) bfe.nextElement());
 			}
@@ -2799,16 +2805,16 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
             {
                 super(v, title);
             }
-                
+
             public boolean checkEntity(Object node) throws IOException
             {
                 return ((OperatorNode)node).CheckAgainstDatamap(vecErrors);
             }
-            
+
         }
 
 	}//class CheckAllProductionsAction
-    
+
 
 	/**
      * This action provides a framework for searching all datamaps for errors.
@@ -2823,19 +2829,19 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 
 		int numNodes = 0;       // number of operator nodes in the project
         int numChecks = 0;      // number of nodes scanned so far
-        
-		public SearchDataMapAction() 
+
+		public SearchDataMapAction()
         {
 			super("Check All Productions");
 			setEnabled(false);
 		}
 
-		public void actionPerformed(ActionEvent ae) 
+		public void actionPerformed(ActionEvent ae)
         {
             initializeEdges();
             numNodes = 0;
             numChecks = 0;
-            
+
 			Enumeration<TreeNode> bfe = operatorWindow.breadthFirstEnumeration();
             Vector<OperatorNode> vecNodes = new Vector<>(10, 50);
 			while(bfe.hasMoreElements())
@@ -2852,7 +2858,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
             {
 				vecNodes.add((OperatorNode) bfe.nextElement());
 			}
-            
+
 			(new DatamapTestThread(vecNodes, "Scanning Datamap...")).start();
 
 		}//actionPerformed()
@@ -2865,13 +2871,13 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
         public void initializeEdges()
         {
             Enumeration<NamedEdge> edges = operatorWindow.getDatamap().getEdges();
-            while(edges.hasMoreElements()) 
+            while(edges.hasMoreElements())
             {
                 NamedEdge currentEdge = edges.nextElement();
                 currentEdge.resetTestedStatus();
                 currentEdge.resetErrorNoted();
                 // initialize the output-link as already tested
-                if(currentEdge.getName().equals("output-link")) 
+                if(currentEdge.getName().equals("output-link"))
                 {
                     currentEdge.setOutputLinkTested(operatorWindow.getDatamap());
                 }
@@ -2882,8 +2888,8 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
         //The datamap associated with the given operator node is scanned and a
         //list of errors is placed in the given Vector.
         abstract public void searchDatamap(OperatorNode opNode, Vector<FeedbackListEntry> v);
-        
-		class DatamapTestThread extends UpdateThread 
+
+		class DatamapTestThread extends UpdateThread
         {
 			public DatamapTestThread(Vector<OperatorNode> v, String title)
             {
@@ -2922,7 +2928,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
                 Vector<FeedbackListEntry> v = new Vector<>();
                 searchDatamap(opNode, v);
                 numChecks++;
-                
+
                 if (!v.isEmpty())
                 {
                     vecErrors.addAll(v);
@@ -2931,11 +2937,11 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 
                 return false;
             }//checkEntity()
-           
+
 		}//class DatamapTestThread
 	}// end of SearchDataMapAction
 
-    
+
 	/**
      * Search for WMEs that are never tested
      */
@@ -2949,7 +2955,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
         }//searchDatamap
 	}// end of SearchDataMapTestAction
 
-    
+
 	/**
      * Search for WMEs that are never created
      */
@@ -3011,24 +3017,24 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
      * Add productions in the datamap are displayed as green until the user validates them.
      * Results are displayed in the feedback list
      */
-    class GenerateDataMapAction extends AbstractAction 
+    class GenerateDataMapAction extends AbstractAction
     {
 		private static final long serialVersionUID = 20221225L;
 
 		JProgressBar progressBar;
 		JDialog progressDialog;
 
-		public GenerateDataMapAction() 
+		public GenerateDataMapAction()
         {
 			super("Generate Datamap from Operator Hierarchy");
 			setEnabled(false);
 		}
 
-		public void actionPerformed(ActionEvent ae) 
+		public void actionPerformed(ActionEvent ae)
         {
 			int numNodes = 0;
 			Enumeration<TreeNode> bfe = operatorWindow.breadthFirstEnumeration();
-			while(bfe.hasMoreElements()) 
+			while(bfe.hasMoreElements())
             {
 				numNodes++;
 				bfe.nextElement();
@@ -3045,11 +3051,11 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 			(new UpdateThread()).start();
 		}
 
-		class UpdateThread extends Thread 
+		class UpdateThread extends Thread
         {
 			Runnable update, finish;
 			int value, min;
-			 
+
 
 			Vector<FeedbackListEntry> errors = new Vector<>();
 			int repCount = 0;
@@ -3057,23 +3063,23 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 			OperatorNode current;
 			Vector<FeedbackListEntry> vecErrors = new Vector<>();
 
-			public UpdateThread() 
+			public UpdateThread()
             {
 				progressBar.getMaximum();
 				progressBar.getMinimum();
 
-				update = new Runnable() 
+				update = new Runnable()
                 {
-					public void run() 
+					public void run()
                     {
 						value = progressBar.getValue() + 1;
 						updateProgressBar(value);
 						//System.out.println("Value is " + value);
 					}
 				};
-				finish = new Runnable() 
+				finish = new Runnable()
                 {
-					public void run() 
+					public void run()
                     {
 						updateProgressBar(min);
 						System.out.println("Done");
@@ -3082,7 +3088,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 				};
 			}
 
-			public void run() 
+			public void run()
             {
                 checkNodes();
                 repCount = 0;
@@ -3093,20 +3099,20 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 						JOptionPane.INFORMATION_MESSAGE);
 			}
 
-			private void updateProgressBar(int value) 
+			private void updateProgressBar(int value)
             {
 				progressBar.setValue(value);
 			}
-						
-			public void checkNodes() 
+
+			public void checkNodes()
             {
-                do 
+                do
                 {
                     repCount++;
                     errors.clear();
                     bfe = operatorWindow.breadthFirstEnumeration();
 
-                    while(bfe.hasMoreElements()) 
+                    while(bfe.hasMoreElements())
                     {
                         current = (OperatorNode)bfe.nextElement();
 
@@ -3117,7 +3123,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
                         updateProgressBar(value);
                         SwingUtilities.invokeLater(update);
                     } // while parsing operator nodes
-          
+
                 } while(!(errors.isEmpty()) && repCount < 5);
 
 
@@ -3132,7 +3138,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 				}
 
                 SwingUtilities.invokeLater(finish);
-                
+
 			}//checkNodes
 
 		}//class UpdateThread
@@ -3191,7 +3197,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 
 
 
-	class FindInProjectAction extends AbstractAction 
+	class FindInProjectAction extends AbstractAction
     {
 		private static final long serialVersionUID = 20221225L;
 
@@ -3200,15 +3206,15 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
   			super("Find in Project");
 			setEnabled(true);  //see the comment in projectActionsEnable()
   		}
-  	
+
         /**
          * Prompts the user for a string to find in the project
          * finds all instances of the string in the project
          * and displays a FindInProjectList in the DesktopPane with all instances
          * or tells the user that no instances were found
          * @see FindDialog
-         */  		
-		public void actionPerformed(ActionEvent e) 
+         */
+		public void actionPerformed(ActionEvent e)
         {
 			//If the user invokes this action when no project is open just ignore it
 			//For more info on why this is necessary, see the comment in projectActionsEnable()
@@ -3223,7 +3229,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 	}//class FindInProjectAction
 
 
-    class ReplaceInProjectAction extends AbstractAction 
+    class ReplaceInProjectAction extends AbstractAction
     {
 		private static final long serialVersionUID = 20221225L;
 
@@ -3240,7 +3246,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
          * for all files with matching strings.
          * @see ReplaceInProjectDialog
          */
-        public void actionPerformed(ActionEvent e) 
+        public void actionPerformed(ActionEvent e)
         {
 			//If the user invokes this action when no project is open just ignore it
 			//For more info on why this is necessary, see the comment in projectActionsEnable()
@@ -3302,7 +3308,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 	}//class FindAllProdsAction
 
 
-	class CommitAction extends PerformableAction 
+	class CommitAction extends PerformableAction
     {
 		private static final long serialVersionUID = 20221225L;
 
@@ -3311,25 +3317,25 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 			super("Commit");
 			setEnabled(false);
 		}
-		
-		public void perform() 
+
+		public void perform()
         {
 			saveAllFilesAction.perform();
-			if(operatorWindow != null) 
+			if(operatorWindow != null)
             {
 				exportAgentAction.perform();
 				saveDataMapAndProjectAction.perform();
 			}
 		}
-		
-		public void actionPerformed(ActionEvent e) 
+
+		public void actionPerformed(ActionEvent e)
         {
 			perform();
 			setStatusBarMsg("Save Finished");
 		}
 	}//class CommitAction
-	
-	class SaveProjectAsAction extends AbstractAction 
+
+	class SaveProjectAsAction extends AbstractAction
     {
 		private static final long serialVersionUID = 20221225L;
 
@@ -3416,7 +3422,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		}//copyAllFiles
 
 
-		public void actionPerformed(ActionEvent e) 
+		public void actionPerformed(ActionEvent e)
         {
 			SaveProjectAsDialog spad = new SaveProjectAsDialog(MainFrame.getMainFrame());
             spad.setVisible(true);
@@ -3425,7 +3431,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
             File oldProjectFile = new File(root.getProjectFile());
 			String oldProjPath = root.getFolderName();
 
-			if (spad.wasApproved()) 
+			if (spad.wasApproved())
             {
 				String newName = spad.getNewAgentName();
                 String newRootPath = spad.getNewAgentPath();
@@ -3464,14 +3470,14 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 
                     //Set the title bar to include the project name
                     setTitle(newName);
-                    
+
                 }
-				else 
+				else
                 {
 					JOptionPane.showMessageDialog(MainFrame.this,
                                                   "That is not a valid name for the project",
                                                   "Invalid Name",
-                                                  JOptionPane.ERROR_MESSAGE);				
+                                                  JOptionPane.ERROR_MESSAGE);
 				}
 			}
 		}
@@ -3498,7 +3504,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 		}
 	}
 
-    class TileWindowsAction extends AbstractAction 
+    class TileWindowsAction extends AbstractAction
     {
 		private static final long serialVersionUID = 20221225L;
 
@@ -3507,14 +3513,14 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
             super("Tile Windows");
         }
 
-        public void actionPerformed(ActionEvent e) 
+        public void actionPerformed(ActionEvent e)
         {
             desktopPane.performTileAction();
             lastWindowViewOperation = "tile";
         }
     }
 
-    class ReTileWindowsAction extends AbstractAction 
+    class ReTileWindowsAction extends AbstractAction
     {
 		private static final long serialVersionUID = 20221225L;
 
@@ -3523,14 +3529,14 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
             super("Re-Tile Windows");
         }
 
-        public void actionPerformed(ActionEvent e) 
+        public void actionPerformed(ActionEvent e)
         {
             desktopPane.performReTileAction();
             lastWindowViewOperation = "tile";
         }
     }//class TileWindowsAction
 
-    class CascadeAction extends AbstractAction 
+    class CascadeAction extends AbstractAction
     {
 		private static final long serialVersionUID = 20221225L;
 
@@ -3539,11 +3545,11 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
             super("Cascade Windows");
         }
 
-        public void actionPerformed(ActionEvent e) 
+        public void actionPerformed(ActionEvent e)
         {
             desktopPane.performCascadeAction();
             lastWindowViewOperation = "cascade";
         }
     }//class CascadeAction
 }//class MainFrame
-		
+
