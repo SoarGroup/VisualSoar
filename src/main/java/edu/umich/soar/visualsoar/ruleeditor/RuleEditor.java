@@ -91,6 +91,7 @@ public class RuleEditor extends CustomInternalFrame {
     private final Action cutAction = new DefaultEditorKit.CutAction();
     private final Action copyAction = new DefaultEditorKit.CopyAction();
     private final Action pasteAction = new PasteAction();
+	private final Action selectAllAction = new SelectAllAction();
     private final Action insertTextFromFileAction = new InsertTextFromFileAction();
 
     private final Action commentOutAction = new CommentOutAction();
@@ -1132,6 +1133,10 @@ public class RuleEditor extends CustomInternalFrame {
         pasteItem.addActionListener(pasteAction);
         editMenu.add(pasteItem);
 
+		JMenuItem selectAllItem = new JMenuItem("Select All");
+		selectAllItem.addActionListener(selectAllAction);
+		editMenu.add(selectAllItem);
+
         editMenu.addSeparator();
 
         JMenuItem insertTextFromFileItem = new JMenuItem("Insert Text From File...");
@@ -1158,6 +1163,8 @@ public class RuleEditor extends CustomInternalFrame {
         copyItem.setAccelerator(KeyStroke.getKeyStroke("control C"));
         pasteItem.setMnemonic(KeyEvent.VK_P);
         pasteItem.setAccelerator(KeyStroke.getKeyStroke("control V"));
+		selectAllItem.setMnemonic(KeyEvent.VK_A);
+		selectAllItem.setAccelerator(KeyStroke.getKeyStroke("control A"));
         reDrawItem.setMnemonic(KeyEvent.VK_D);
         reDrawItem.setAccelerator(KeyStroke.getKeyStroke("control D"));
         reJustifyItem.setMnemonic(KeyEvent.VK_J);
@@ -1559,6 +1566,17 @@ public class RuleEditor extends CustomInternalFrame {
             editorPane.colorSyntax();
         }
     }
+
+	class SelectAllAction extends AbstractAction {
+
+		public SelectAllAction() {
+			super(DefaultEditorKit.selectAllAction);
+		}
+
+		public void actionPerformed(ActionEvent e) {
+			editorPane.selectAll();
+		}
+	}
 
     class FindAction extends AbstractAction {
         private static final long serialVersionUID = 20221225L;
