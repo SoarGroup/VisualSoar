@@ -1826,7 +1826,8 @@ public class RuleEditor extends CustomInternalFrame {
 
     /**
      * This class comments (puts a # in the first position for every line) for the currently selected text
-     * of the text area
+     * of the text area. If the cursor sits at the beginning of a line, this line is not commented.
+	 * CommentOutAction UncommentOutAction are inverses, and should be able to repeatedly undo one another.
      */
     class CommentOutAction extends AbstractAction {
         private static final long serialVersionUID = 20221225L;
@@ -1847,11 +1848,6 @@ public class RuleEditor extends CustomInternalFrame {
 
         public void actionPerformed(ActionEvent e) {
             //Get the text to be commented out
-            try {
-                editorPane.expandSelectionToEntireLines();
-            } catch (BadLocationException ex) {
-                return; //shouldn't happen...
-            }
             String selectedText = editorPane.getSelectedText();
             if ((selectedText == null) || (selectedText.isEmpty())) {
                 return; //also shouldn't happen
@@ -1871,9 +1867,9 @@ public class RuleEditor extends CustomInternalFrame {
             //comment out the text
             String commentText = "#" + selectedText;
             int nl = commentText.indexOf('\n');
-            while (nl != -1) {
+            while (nl >= 0 && nl + 1 < commentText.length()) {
                 commentText = commentText.substring(0, nl + 1) + "#" + commentText.substring(nl + 1);
-                nl = (nl + 1) >= commentText.length() ? -1 : commentText.indexOf('\n', nl + 1);
+                nl = commentText.indexOf('\n', nl + 1);
 
                 //increment selection end to accommodate added char
                 selEnd++;
