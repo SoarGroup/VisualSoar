@@ -1874,8 +1874,10 @@ public class RuleEditor extends CustomInternalFrame {
             int selStart = editorPane.getSelectionStart();
             int selEnd = editorPane.getSelectionEnd();
 
-            //comment out the text
+            // comment out the text
             String commentText = "#" + selectedText;
+			// increment selection end to accommodate added char
+			selEnd++;
             int nl = commentText.indexOf('\n');
             while (nl >= 0 && nl + 1 < commentText.length()) {
                 commentText = commentText.substring(0, nl + 1) + "#" + commentText.substring(nl + 1);
