@@ -18,7 +18,6 @@ import edu.umich.soar.visualsoar.util.ActionButtonAssociation;
 import edu.umich.soar.visualsoar.util.MenuAdapter;
 import sml.Agent;
 import sml.Kernel;
-import sml.smlStringEventId;
 import sml.sml_Names;
 
 import javax.swing.*;
@@ -48,7 +47,7 @@ import java.util.*;
  * This is the main project window of VisualSoar
  * @author Brad Jones
  */
-public class MainFrame extends JFrame implements Kernel.StringEventInterface
+public class MainFrame extends JFrame
 {
 /////////////////////////////////////////
 // Constants
@@ -140,7 +139,6 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 	// 3P
     Kernel m_Kernel = null ;
     String m_ActiveAgent = null ;
-    long    m_EditProductionCallback = -1 ;
 	// Menu handlers for STI init, term, and "Send Raw Command"
 	Action soarRuntimeInitAction = new SoarRuntimeInitAction();
 	Action soarRuntimeTermAction = new SoarRuntimeTermAction();
@@ -2130,35 +2128,6 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
   	}//class ViewKeyBindingsAction
 
     /**
-     * Edits a production (in the project) based on its name.
-     * @author ThreePenny
-     */
-	protected void EditProductionByName(String sProductionName)
-	
-    {
-		// TODO: Should we match case?
-		
-		OperatorWindow ow = getOperatorWindow();
-		
-		if (ow != null)
-		{
-			// Find the rule and open it
-			getOperatorWindow().findInProjectAndOpenRule(sProductionName, false /* match case */);
-		
-			// Bring our window to the front
-			toFront();
-		} else {
-			JOptionPane.showMessageDialog(
-                    MainFrame.this,
-                    "Edit-production event ignored because there is no project loaded.",
-                    "Edit-production event ignored",
-                    JOptionPane.ERROR_MESSAGE);
-
-		}
-	}
-	
-
-    /**
      * Handles Soar Runtime|Connect menu option
      * @author ThreePenny
      */
@@ -2185,6 +2154,7 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 			}
 			catch (Throwable ex)
 			{
+				ex.printStackTrace();
 				message = "Exception when initializing the SML library.  Check that sml.jar is on the path along with soar-library." ;
 				Throwable cause = ex.getCause();
 				if (cause != null) {
@@ -2210,19 +2180,6 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
                                               JOptionPane.ERROR_MESSAGE);
 			}
 		}	
-	}
-
-	public String stringEventHandler(int eventID, Object userData, Kernel kernel, String callbackData)
-	{
-		if (eventID == smlStringEventId.smlEVENT_EDIT_PRODUCTION.swigValue())
-		{
-
-			if (callbackData != null)
-			{
-				EditProductionByName(callbackData) ;
-			}
-		}
-		return "" ;
 	}
 
     /**
@@ -2260,8 +2217,6 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 			// Select the first agent if there is any as our current agent
 			m_ActiveAgent = m_Kernel.GetAgentByIndex(0).GetAgentName() ;
 		}
-		m_EditProductionCallback = m_Kernel.RegisterForStringEvent(smlStringEventId.smlEVENT_EDIT_PRODUCTION, this, null) ;
-		
 		soarRuntimeTermAction.setEnabled(true);
 		soarRuntimeInitAction.setEnabled(false);
 		soarRuntimeSendRawCommandAction.setEnabled(true);
@@ -2291,8 +2246,6 @@ public class MainFrame extends JFrame implements Kernel.StringEventInterface
 			// Trouble shutting down.
 			ex.printStackTrace();
 		}
-
-		m_EditProductionCallback = -1 ;
 		m_Kernel = null ;
 		
 		// Enable/Disable menu items
