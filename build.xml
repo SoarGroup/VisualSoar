@@ -2,7 +2,7 @@
 
 	<property name="manifest.classpath" value="java/sml.jar bin/java/sml.jar lib/sml.jar" />
 	<property name="jar.main.class" value="edu.umich.soar.visualsoar.VisualSoar" />
-      
+
 
 	<property name="version" value="snapshot" />
 
@@ -17,9 +17,9 @@
 	<property name="target.classes" location="${target}/classes" />
 	<property name="main.resources" location="src/main/resources" />
 
-	<property name="java.source.level" value="1.7"/>
-	<property name="java.target.level" value="1.7"/>
-	
+	<property name="java.source.level" value="11"/>
+	<property name="java.target.level" value="11"/>
+
 	<property name="jar.name" value="VisualSoar.jar"/>
 
 	<property name="manifest.classpath" value=""/>
@@ -73,7 +73,7 @@
 				<attribute name="Class-Path" value=". ${manifest.classpath}" />
 			</manifest>
 		</jar>
-			
+
 	</target>
 
 	<target name="clean">
