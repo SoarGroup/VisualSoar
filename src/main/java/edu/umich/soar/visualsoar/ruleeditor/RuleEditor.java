@@ -1848,9 +1848,19 @@ public class RuleEditor extends CustomInternalFrame {
 
         public void actionPerformed(ActionEvent e) {
             //Get the text to be commented out
+			try {
+				// if the selection starts in the middle of the line, move the start back to the start of the line
+				// so that a comment character can be placed there. We don't expand to the end of the last line because
+				// it's not necessary, and would cause a line to be commented even if no characters in it are selected.
+				editorPane.expandSelectionToEntireLines(true, false);
+			} catch (BadLocationException ex) {
+				ex.printStackTrace();
+				return; //shouldn't happen...
+			}
             String selectedText = editorPane.getSelectedText();
             if ((selectedText == null) || (selectedText.isEmpty())) {
-                return; //also shouldn't happen
+				// action was called with nothing selected and cursor on empty line
+                return;
             }
 
             //If all the selected text is already commented out then

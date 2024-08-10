@@ -321,28 +321,34 @@ public class EditorPane extends javax.swing.JEditorPane {
      * Expands the current selection to include only entire lines
      * If nothing is currently selected, then the current line is
      * selected.
+     * @param setStart true if start of selection should be expanded backwards to include the entire line
+     * @param setEnd true if end of selection should be expanded backwards to include the entire line
      */
-    public void expandSelectionToEntireLines() throws BadLocationException {
+    public void expandSelectionToEntireLines(boolean setStart, boolean setEnd) throws BadLocationException {
         String selectedText = getSelectedText();
         if ((selectedText == null) || (selectedText.length() == 0)) {
             selectCurrLIne();
             return;
         }
 
-        //set new selection start position
         Document doc = getDocument();
         Element map = doc.getDefaultRootElement();
-        int lineNum = 1 + getLineOfOffset(getSelectionStart());
-        int startOffset = getLineStartOffset(lineNum - 1);
-        setSelectionStart(startOffset);
+		//set new selection start position
+		if (setStart) {
+			int lineNum = 1 + getLineOfOffset(getSelectionStart());
+			int startOffset = getLineStartOffset(lineNum - 1);
+			setSelectionStart(startOffset);
+		}
 
         //set new selection end position
-        lineNum = 1 + getLineOfOffset(getSelectionEnd());
-        int endOffset = doc.getLength() - 1;
-        if (lineNum + 1 < map.getElementCount()) {
-            endOffset = getLineStartOffset(lineNum) - 1;
-        }
-        setSelectionEnd(endOffset);
+		if(setEnd) {
+			int lineNum = 1 + getLineOfOffset(getSelectionEnd());
+			int endOffset = doc.getLength() - 1;
+			if (lineNum + 1 < map.getElementCount()) {
+				endOffset = getLineStartOffset(lineNum) - 1;
+			}
+			setSelectionEnd(endOffset);
+		}
 
     }//expandSelectionToEntireLines
 
