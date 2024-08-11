@@ -3,8 +3,6 @@ package edu.umich.soar.visualsoar.ruleeditor;
 import edu.umich.soar.visualsoar.MainFrame;
 import edu.umich.soar.visualsoar.datamap.SoarWorkingMemoryModel;
 import edu.umich.soar.visualsoar.dialogs.EditCustomTemplatesDialog;
-import edu.umich.soar.visualsoar.dialogs.FindDialog;
-import edu.umich.soar.visualsoar.dialogs.FindReplaceDialog;
 import edu.umich.soar.visualsoar.graph.EnumerationVertex;
 import edu.umich.soar.visualsoar.graph.SoarIdentifierVertex;
 import edu.umich.soar.visualsoar.graph.SoarVertex;
@@ -12,6 +10,7 @@ import edu.umich.soar.visualsoar.misc.*;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorNode;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorRootNode;
 import edu.umich.soar.visualsoar.parser.*;
+import edu.umich.soar.visualsoar.ruleeditor.actions.*;
 import edu.umich.soar.visualsoar.util.ActionButtonAssociation;
 import edu.umich.soar.visualsoar.util.EnumerationIteratorWrapper;
 import edu.umich.soar.visualsoar.util.MenuAdapter;
@@ -34,7 +33,6 @@ import java.beans.PropertyVetoException;
 import java.beans.VetoableChangeListener;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.List;
 
@@ -82,30 +80,30 @@ public class RuleEditor extends CustomInternalFrame {
 
 
     // ********** Actions ***********
-    private final Action saveAction = new SaveAction();
-    private final Action revertToSavedAction = new RevertToSavedAction();
-    private final Action closeAction = new CloseAction();
+    private final Action saveAction = new SaveAction(this);
+    private final Action revertToSavedAction = new RevertToSavedAction(editorPane, modifiedLabel);
+    private final Action closeAction = new CloseAction(this);
 
-    private final Action undoAction = new UndoAction();
-    private final Action redoAction = new RedoAction();
+    private final Action undoAction = new UndoAction(undoManager, getToolkit());
+    private final Action redoAction = new RedoAction(undoManager, getToolkit());
     private final Action cutAction = new DefaultEditorKit.CutAction();
     private final Action copyAction = new DefaultEditorKit.CopyAction();
-    private final Action pasteAction = new PasteAction();
-	private final Action selectAllAction = new SelectAllAction();
-    private final Action insertTextFromFileAction = new InsertTextFromFileAction();
+    private final Action pasteAction = new PasteAction(editorPane);
+	private final Action selectAllAction = new SelectAllAction(editorPane);
+    private final Action insertTextFromFileAction = new InsertTextFromFileAction(editorPane);
 
-    private final Action commentOutAction = new CommentOutAction();
-    private final Action uncommentOutAction = new UncommentOutAction();
+    private final Action uncommentOutAction = new UncommentOutAction(editorPane, getToolkit());
+	private final Action commentOutAction = new CommentOutAction(editorPane, uncommentOutAction);
 
-    private final Action reDrawAction = new ReDrawAction();
-    private final Action reJustifyAction = new ReJustifyAction();
+    private final Action reDrawAction = new ReDrawAction(editorPane);
+    private final Action reJustifyAction = new ReJustifyAction(editorPane);
 
-    private final Action findAction = new FindAction();
-    private final FindAgainAction findAgainAction = new FindAgainAction();
-    private final ReplaceAction replaceAction = new ReplaceAction();
-    private final ReplaceAndFindAgainAction replaceAndFindAgainAction = new ReplaceAndFindAgainAction();
-    private final ReplaceAllAction replaceAllAction = new ReplaceAllAction();
-    private final Action findAndReplaceAction = new FindAndReplaceAction();
+    private final Action findAction = new FindAction(this);
+    private final FindAgainAction findAgainAction = new FindAgainAction(this);
+    private final ReplaceAction replaceAction = new ReplaceAction(this);
+    private final ReplaceAndFindAgainAction replaceAndFindAgainAction = new ReplaceAndFindAgainAction(this);
+    private final ReplaceAllAction replaceAllAction = new ReplaceAllAction(this);
+    private final Action findAndReplaceAction = new FindAndReplaceAction(this);
 
     private final Action checkProductionsAction = new CheckProductionsAction();
     private final Action editCustomTemplatesAction = new EditCustomTemplatesAction();
@@ -117,8 +115,8 @@ public class RuleEditor extends CustomInternalFrame {
     private final Action sendProductionToSoarAction = new SendProductionToSoarAction();
     private final Action sendFileToSoarAction = new SendFileToSoarAction();
     private final Action sendAllFilesToSoarAction = new SendAllFilesToSoarAction();
-    private final Action sendMatchesToSoarAction = new SendMatchesToSoarAction();
-    private final Action sendExciseProductionToSoarAction = new SendExciseProductionToSoarAction();
+    private final Action sendMatchesToSoarAction = new SendMatchesToSoarAction(this);
+    private final Action sendExciseProductionToSoarAction = new SendExciseProductionToSoarAction(this);
 
     private BackupThread backupThread;
 
@@ -198,7 +196,7 @@ public class RuleEditor extends CustomInternalFrame {
             Keymap keymap = editorPane.getKeymap();
 
             KeyStroke dot = KeyStroke.getKeyStroke('.');
-            Action autoSoarCompleteAction = new AutoSoarCompleteAction();
+            Action autoSoarCompleteAction = new AutoSoarCompleteAction(editorPane, getToolkit());
             keymap.addActionForKeyStroke(dot, autoSoarCompleteAction);
 
             KeyStroke langle = KeyStroke.getKeyStroke('<');
@@ -214,7 +212,8 @@ public class RuleEditor extends CustomInternalFrame {
                         int offset = e.getDot();
 
                         try {
-                            lineNumberLabel.setText("Line: " + (1 + editorPane.getLineOfOffset(offset)));
+                            lineNumberLabel.setText("Line: " + (1 + EditingUtils.getLineOfOffset(
+								editorPane.getDocument(), offset)));
                             //editorPane.requestFocus();
 
                             //Remove any highlights
@@ -269,7 +268,8 @@ public class RuleEditor extends CustomInternalFrame {
                     public void caretUpdate(CaretEvent e) {
                         int offset = e.getDot();
                         try {
-                            lineNumberLabel.setText("Line: " + (1 + editorPane.getLineOfOffset(offset)));
+                            lineNumberLabel.setText("Line: " + (1 + EditingUtils.getLineOfOffset(
+								editorPane.getDocument(), offset)));
                             //editorPane.requestFocus();
                         } catch (BadLocationException ble) {
                             ble.printStackTrace();
@@ -978,25 +978,6 @@ public class RuleEditor extends CustomInternalFrame {
         return prod;
     }
 
-
-    /**
-     * Reverts the contents of the editor to it's saved copy
-     */
-    public void revert() throws IOException {
-        Reader theReader =
-                new edu.umich.soar.visualsoar.util.TabRemovingReader(
-                        new FileReader(fileName));
-
-        editorPane.read(theReader);
-        registerDocumentListeners();
-        theReader.close();
-
-        modifiedLabel.setText("");
-        setModified(false);
-
-        editorPane.colorSyntax();
-    }
-
     /**
      * @return returns the file that this window is associated with
      */
@@ -1300,7 +1281,13 @@ public class RuleEditor extends CustomInternalFrame {
             for (String templateName : customTemplates) {
                 File ctFile = Prefs.getCustomTemplateFile(templateName);
                 JMenuItem currentTemplateItem = new JMenuItem(templateName);
-                currentTemplateItem.addActionListener(new InsertCustomTemplateAction(ctFile.getAbsolutePath()));
+                currentTemplateItem.addActionListener(new InsertCustomTemplateAction(ctFile.getAbsolutePath(), editorPane, (macro) -> {
+					try {
+						return Template.lookupVariable(macro, this);
+					} catch (TemplateInstantiationException e) {
+						return "##invalid_template_macro##";
+					}
+				}));
                 parentMenu.add(currentTemplateItem);
             }
             parentMenu.addSeparator();
@@ -1396,69 +1383,19 @@ public class RuleEditor extends CustomInternalFrame {
     }
 
 
-    ////////////////////////////////////////////////////////
-    // ACTIONS
-    ////////////////////////////////////////////////////////
-    class InsertTextFromFileAction extends AbstractAction {
-        private static final long serialVersionUID = 20221225L;
-
-        public InsertTextFromFileAction() {
-            super("Insert Text From File");
-        }
-
-        public void actionPerformed(ActionEvent event) {
-            JFileChooser fileChooser = new JFileChooser();
-            if (JFileChooser.APPROVE_OPTION == fileChooser.showOpenDialog(MainFrame.getMainFrame())) {
-                try {
-                    Reader r = new FileReader(fileChooser.getSelectedFile());
-                    StringWriter w = new StringWriter();
-
-                    int rc = r.read();
-                    while (rc != -1) {
-                        w.write(rc);
-                        rc = r.read();
-                    }
-                    editorPane.insert(w.toString(), editorPane.getCaret().getDot());
-                } catch (IOException ioe) {
-                    JOptionPane.showMessageDialog(MainFrame.getMainFrame(),
-                            "There was an error inserting the text",
-                            "Error",
-                            JOptionPane.ERROR_MESSAGE);
-
-
-                }
-            }
-        }
-    }
-
-    /**
-     * Gets the currently selected rule editor and tells it to save itself
-     */
-    class SaveAction extends AbstractAction {
-        private static final long serialVersionUID = 20221225L;
-
-        public SaveAction() {
-            super("Save File");
-        }
-
-        public void actionPerformed(ActionEvent event) {
-            try {
-                write();
-            } catch (java.io.IOException ioe) {
-                ioe.printStackTrace();
-            }
-        }
-    }
-
-    /**
+	/**
      * reverts the editor's contents to its last saved state
      */
     class RevertToSavedAction extends AbstractAction {
         private static final long serialVersionUID = 20221225L;
+		private final EditorPane editorPane;
+		private final JLabel modifiedLabel;
 
-        public RevertToSavedAction() {
+		public RevertToSavedAction(EditorPane editorPane, JLabel modifiedLabel) {
             super("Revert To Saved");
-            setEnabled(true);
+			this.editorPane = editorPane;
+			this.modifiedLabel = modifiedLabel;
+			setEnabled(true);
         }
 
         public void actionPerformed(ActionEvent event) {
@@ -1468,196 +1405,29 @@ public class RuleEditor extends CustomInternalFrame {
                 ioe.printStackTrace();
             }
         }
-    }
 
-    /**
-     * Closes the current window
-     */
-    class CloseAction extends AbstractAction {
-        private static final long serialVersionUID = 20221225L;
+		/**
+		 * Reverts the contents of the editor to it's saved copy
+		 */
+		private void revert() throws IOException {
+			Reader theReader =
+				new edu.umich.soar.visualsoar.util.TabRemovingReader(
+					new FileReader(fileName));
 
-        public CloseAction() {
-            super("Close");
-        }
+			editorPane.read(theReader);
+			registerDocumentListeners();
+			theReader.close();
 
-        public void actionPerformed(ActionEvent event) {
-            try {
-                setClosed(true);
+			modifiedLabel.setText("");
+			setModified(false);
 
-            } catch (PropertyVetoException pve) {
-                // This is not an error
-            }
-            MainFrame mf = MainFrame.getMainFrame();
-            if (Prefs.autoTileEnabled.getBoolean()) {
-                mf.getDesktopPane().performTileAction();
-            }
-
-            mf.selectNewInternalFrame();
-        }
-    }
-
-    class UndoAction extends AbstractAction {
-        private static final long serialVersionUID = 20221225L;
-
-        public UndoAction() {
-            super("Undo");
-        }
-
-        public void actionPerformed(ActionEvent e) {
-            if (!undoManager.canUndo()) {
-                getToolkit().beep();
-                return;
-            }
-
-            undoManager.undo();
-        }
-    }
-
-    class ReDrawAction extends AbstractAction {
-        private static final long serialVersionUID = 20221225L;
-
-        public ReDrawAction() {
-            super("Redraw");
-        }
-
-        public void actionPerformed(ActionEvent e) {
-            editorPane.colorSyntax();
-        }
-    }
-
-    class ReJustifyAction extends AbstractAction {
-        private static final long serialVersionUID = 20221225L;
-
-        public ReJustifyAction() {
-            super("ReJustify");
-        }
-
-        public void actionPerformed(ActionEvent e) {
-            editorPane.justifyDocument();
-        }
-    }
-
-
-    class RedoAction extends AbstractAction {
-        private static final long serialVersionUID = 20221225L;
-
-        public RedoAction() {
-            super("Redo");
-        }
-
-        public void actionPerformed(ActionEvent e) {
-            if (undoManager.canRedo()) {
-                undoManager.redo();
-            } else {
-                getToolkit().beep();
-            }
-        }
-    }
-
-    class PasteAction extends DefaultEditorKit.PasteAction {
-        private static final long serialVersionUID = 20221225L;
-
-        public PasteAction() {
-            super();
-        }
-
-        public void actionPerformed(ActionEvent e) {
-            super.actionPerformed(e);
-            editorPane.colorSyntax();
-        }
-    }
-
-	class SelectAllAction extends AbstractAction {
-
-		public SelectAllAction() {
-			super(DefaultEditorKit.selectAllAction);
+			editorPane.colorSyntax();
 		}
-
-		public void actionPerformed(ActionEvent e) {
-			editorPane.selectAll();
-		}
-	}
-
-    class FindAction extends AbstractAction {
-        private static final long serialVersionUID = 20221225L;
-
-        public FindAction() {
-            super("Find");
-        }
-
-        public void actionPerformed(ActionEvent e) {
-            FindDialog findDialog = new FindDialog(MainFrame.getMainFrame(), RuleEditor.this);
-            findDialog.setVisible(true);
-        }
     }
 
-    class FindAndReplaceAction extends AbstractAction {
-        private static final long serialVersionUID = 20221225L;
 
-        public FindAndReplaceAction() {
-            super("Find And Replace");
-        }
-
-        public void actionPerformed(ActionEvent e) {
-            FindReplaceDialog findReplaceDialog = new FindReplaceDialog(MainFrame.getMainFrame(), RuleEditor.this);
-            findReplaceDialog.setVisible(true);
-        }
-    }
-
-    class FindAgainAction extends AbstractAction {
-        private static final long serialVersionUID = 20221225L;
-
-        public FindAgainAction() {
-            super("Find Again");
-            setEnabled(false);
-        }
-
-        public void actionPerformed(ActionEvent e) {
-            find();
-        }
-    }
-
-    class ReplaceAndFindAgainAction extends AbstractAction {
-        private static final long serialVersionUID = 20221225L;
-
-        public ReplaceAndFindAgainAction() {
-            super("Replace & Find Again");
-            setEnabled(false);
-        }
-
-        public void actionPerformed(ActionEvent e) {
-            replace();
-            find();
-        }
-    }
-
-    class ReplaceAction extends AbstractAction {
-        private static final long serialVersionUID = 20221225L;
-
-        public ReplaceAction() {
-            super("Replace");
-            setEnabled(false);
-        }
-
-        public void actionPerformed(ActionEvent e) {
-            replace();
-        }
-    }
-
-    class ReplaceAllAction extends AbstractAction {
-        private static final long serialVersionUID = 20221225L;
-
-        public ReplaceAllAction() {
-            super("Replace All");
-            setEnabled(false);
-        }
-
-        public void actionPerformed(ActionEvent e) {
-            replaceAll();
-        }
-    }
-
-    class CheckProductionsAction extends AbstractAction {
+//	TODO: fails if there's a ≈ character in a comment
+	class CheckProductionsAction extends AbstractAction {
         private static final long serialVersionUID = 20221225L;
 
         public CheckProductionsAction() {
@@ -1743,11 +1513,11 @@ public class RuleEditor extends CustomInternalFrame {
         }
 
         int pos = editorPane.getCaretPosition();
-        editorPane.insert(text, pos);
+        EditingUtils.insert(editorPane.getDocument(), text, pos);
         editorPane.setCaretPosition(pos + template.getCaretOffset());
 
         //add a newline because it's likely helpful
-        editorPane.insert("\n", pos);
+		EditingUtils.insert(editorPane.getDocument(), "\n", pos);
     }
 
     static class EditCustomTemplatesAction extends AbstractAction {
@@ -1763,191 +1533,7 @@ public class RuleEditor extends CustomInternalFrame {
         }
     }
 
-    /**
-     * This class puts the contents of a given file into the text area.
-     */
-    class InsertCustomTemplateAction extends AbstractAction {
-        private static final long serialVersionUID = 20230407L;
-
-        private final File file;
-
-        public InsertCustomTemplateAction(String initFN) {
-            super(initFN);
-            file = new File(initFN);
-        }
-
-        public void actionPerformed(ActionEvent e) {
-            //Open the file
-            Scanner scanner = null;
-            String content = "#Error Loading Custom Template. ";
-            boolean error = false;
-            try {
-                scanner = new Scanner(file, StandardCharsets.UTF_8.name());
-            } catch (FileNotFoundException ex) {
-                error = true;
-            }
-
-            //Retrieve the data from the file
-            if (! error) {
-                content = scanner.useDelimiter("\\A").next();
-                scanner.close();
-                content = content + " "; //add a space to guarantee '$' isn't the last char
-            }
-
-            //Do macro replacements
-            int startIndex = content.indexOf("$");
-            while(startIndex >= 0) {
-                int endIndex = content.indexOf("$",startIndex + 1);
-                if (endIndex == -1) break;
-                String macro = content.substring(startIndex+1, endIndex);
-                String replacement;
-                try {
-                    replacement = Template.lookupVariable(macro, RuleEditor.this);
-                } catch (TemplateInstantiationException ex) {
-                    replacement = "##invalid_template_macro##";
-                }
-                String before = content.substring(0, startIndex);
-                String after = content.substring(endIndex+1);
-                content = before + replacement + after;
-                startIndex = content.indexOf("$", startIndex);
-            }
-
-            //Remove the extra space that was added to the content (see above)
-            content = content.substring(0, content.length() - 1);
-
-            //Insert the contents into the RuleEditor
-            int pos = editorPane.getCaretPosition();
-            editorPane.insert(content, pos);
-            editorPane.setCaretPosition(pos + content.length());
-        }
-    }
-
-
-
-    /**
-     * This class comments (puts a # in the first position for every line) for the currently selected text
-     * of the text area. If the cursor sits at the beginning of a line, this line is not commented.
-	 * CommentOutAction UncommentOutAction are inverses, and should be able to repeatedly undo one another.
-     */
-    class CommentOutAction extends AbstractAction {
-        private static final long serialVersionUID = 20221225L;
-
-        public CommentOutAction() {
-            super("Comment Out");
-        }
-
-        private boolean isCommentedOut(String text) {
-            if (text.isEmpty()) return false;
-            String[] lines = text.split("[\r\n]+");
-            for (String line : lines) {
-                if (line.trim().isEmpty()) return false;
-                if (line.trim().charAt(0) != '#') return false;
-            }
-            return true;
-        }
-
-        public void actionPerformed(ActionEvent e) {
-            //Get the text to be commented out
-			try {
-				// if the selection starts in the middle of the line, move the start back to the start of the line
-				// so that a comment character can be placed there. We don't expand to the end of the last line because
-				// it's not necessary, and would cause a line to be commented even if no characters in it are selected.
-				editorPane.expandSelectionToEntireLines(true, false);
-			} catch (BadLocationException ex) {
-				ex.printStackTrace();
-				return; //shouldn't happen...
-			}
-            String selectedText = editorPane.getSelectedText();
-            if ((selectedText == null) || (selectedText.isEmpty())) {
-				// action was called with nothing selected and cursor on empty line
-                return;
-            }
-
-            //If all the selected text is already commented out then
-            //we want to uncomment instead (i.e., a toggle)
-            if (isCommentedOut(selectedText)) {
-                uncommentOutAction.actionPerformed(e);
-                return;
-            }
-
-            //Save the current selection to restore later
-            int selStart = editorPane.getSelectionStart();
-            int selEnd = editorPane.getSelectionEnd();
-
-            // comment out the text
-            String commentText = "#" + selectedText;
-			// increment selection end to accommodate added char
-			selEnd++;
-            int nl = commentText.indexOf('\n');
-            while (nl >= 0 && nl + 1 < commentText.length()) {
-                commentText = commentText.substring(0, nl + 1) + "#" + commentText.substring(nl + 1);
-                nl = commentText.indexOf('\n', nl + 1);
-
-                //increment selection end to accommodate added char
-                selEnd++;
-            }
-
-            editorPane.replaceRange(commentText, editorPane.getSelectionStart(), editorPane.getSelectionEnd());
-
-            //restore the selection
-            editorPane.setSelectionStart(selStart);
-            editorPane.setSelectionEnd(selEnd);
-
-        }//actionPerformed
-    }//class CommentOutAction
-
-    /**
-     * This class un-comments (takes out the # in the first position for every
-     * line) from the currently selected text of the text area.
-     */
-    class UncommentOutAction extends AbstractAction {
-        private static final long serialVersionUID = 20221225L;
-
-        public UncommentOutAction() {
-            super("Uncomment Out");
-        }
-
-        public void actionPerformed(ActionEvent e) {
-            String selectedText = editorPane.getSelectedText();
-            if (selectedText != null) {
-                //Save the current selection to restore later
-                int selStart = editorPane.getSelectionStart();
-                int selEnd = editorPane.getSelectionEnd();
-
-
-                String uncommentText = selectedText;
-                if (uncommentText.charAt(0) == '#') {
-                    uncommentText = uncommentText.substring(1);
-
-                    //decrease the selection range to accommodate missing char
-                    selEnd--;
-                }
-                int nlp = uncommentText.indexOf("\n#");
-                while (nlp != -1) {
-                    uncommentText = uncommentText.substring(0, nlp + 1) + uncommentText.substring(nlp + 2);
-                    nlp = uncommentText.indexOf("\n#", nlp + 1);
-
-                    //decrease the selection range to accommodate missing char
-                    selEnd--;
-                }
-
-                editorPane.replaceRange(uncommentText, editorPane.getSelectionStart(), editorPane.getSelectionEnd());
-
-                //restore the selection
-                if (selEnd > selStart) {
-                    editorPane.setSelectionStart(selStart);
-                    editorPane.setSelectionEnd(selEnd);
-                }
-
-
-            } else {
-                getToolkit().beep();
-            }
-        }
-    }
-
-
-    /**
+	/**
      * A simplified version of the TabCompleteAction that only displays
      * the next possible attribute in the feedback window following the user
      * typing a dot/period.
@@ -1956,10 +1542,14 @@ public class RuleEditor extends CustomInternalFrame {
      */
     class AutoSoarCompleteAction extends AbstractAction {
         private static final long serialVersionUID = 20221225L;
+		private final EditorPane editorPane;
+		private final Toolkit toolkit;
 
-        public AutoSoarCompleteAction() {
+		public AutoSoarCompleteAction(EditorPane editorPane, Toolkit toolkit) {
             super("Auto Soar Complete");
-        }
+			this.editorPane = editorPane;
+			this.toolkit = toolkit;
+		}
 
         public void actionPerformed(ActionEvent e) {
             // Do character insertion and caret adjustment stuff
@@ -1997,7 +1587,7 @@ public class RuleEditor extends CustomInternalFrame {
             String text = editorPane.getText();
             int sp_pos = text.lastIndexOf("sp ", pos);
             if (sp_pos == -1) {
-                getToolkit().beep();
+                toolkit.beep();
                 return;
             }
             String prodSoFar = text.substring(sp_pos, pos);
@@ -2145,7 +1735,7 @@ public class RuleEditor extends CustomInternalFrame {
 
             if (completeMatches.size() == 1) {
                 String matched = completeMatches.get(0);
-                editorPane.insert(matched.substring(userType.length()), pos);
+				EditingUtils.insert(editorPane.getDocument(), matched.substring(userType.length()), pos);
                 return;
             }
 
@@ -2171,7 +1761,7 @@ public class RuleEditor extends CustomInternalFrame {
                     ++curPos;
                 }
             }
-            editorPane.insert(addedCharacters, pos);
+			EditingUtils.insert(editorPane.getDocument(), addedCharacters, pos);
 
             //report all matches to the user
             MainFrame.getMainFrame().setStatusBarMsgList(completeMatches);
@@ -2352,59 +1942,7 @@ public class RuleEditor extends CustomInternalFrame {
         }
     }//class SendAllFilesToSoarAction
 
-    // 3P
-    // Handles the "Runtime|Matches Production" menu item
-    class SendMatchesToSoarAction extends AbstractAction {
-        private static final long serialVersionUID = 20221225L;
-
-        public SendMatchesToSoarAction() {
-            super("Matches Production");
-        }
-
-        public void actionPerformed(ActionEvent e) {
-            // Get the agent
-            Agent agent = MainFrame.getMainFrame().getActiveAgent();
-            if (agent == null) {
-                JOptionPane.showMessageDialog(RuleEditor.this, "Not connected to an agent.", "Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
-            // Call matches in Soar
-            String sProductionName = GetProductionNameUnderCaret();
-            if (sProductionName != null) {
-                String result = agent.ExecuteCommandLine("matches " + sProductionName, true);
-                MainFrame.getMainFrame().reportResult(result);
-            }
-        }
-    }//SendMatchesToSoarAction
-
-    // 3P
-    // Handles the "Runtime|Excise Production" menu item
-    class SendExciseProductionToSoarAction extends AbstractAction {
-        private static final long serialVersionUID = 20221225L;
-
-        public SendExciseProductionToSoarAction() {
-            super("Excise Production");
-        }
-
-        public void actionPerformed(ActionEvent e) {
-            // Get the agent
-            Agent agent = MainFrame.getMainFrame().getActiveAgent();
-            if (agent == null) {
-                JOptionPane.showMessageDialog(RuleEditor.this, "Not connected to an agent.", "Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
-            // Call excise in Soar
-            String sProductionName = GetProductionNameUnderCaret();
-            if (sProductionName != null) {
-                String result = agent.ExecuteCommandLine("excise " + sProductionName, true);
-                MainFrame.getMainFrame().reportResult(result);
-            }
-        }
-    }//class SendExciseProductionToSoarAction
-
-    class BackupThread extends Thread {
+	class BackupThread extends Thread {
         Runnable writeOutControl;
         boolean closed = false;
 

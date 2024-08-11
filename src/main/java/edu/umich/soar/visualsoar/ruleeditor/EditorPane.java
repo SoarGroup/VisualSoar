@@ -90,7 +90,7 @@ public class EditorPane extends javax.swing.JEditorPane {
                 return;
             }
 
-            insert(data, getCaretPosition());
+            EditingUtils.insert(getDocument(), data, getCaretPosition());
             e.dropComplete(true);
         }
     }
@@ -168,76 +168,6 @@ public class EditorPane extends javax.swing.JEditorPane {
     /**
      * Stolen from JTextArea...
      *
-     * @param str the text to insert
-     * @param pos the position at which to insert >= 0
-     * @throws IllegalArgumentException if pos is an
-     *                                  invalid position in the model
-     * @see JTextArea
-     * @see java.awt.TextComponent#setText
-     */
-    public void insert(String str, int pos) {
-        Document doc = getDocument();
-        if (doc != null) {
-            try {
-                doc.insertString(pos, str, null);
-            } catch (BadLocationException e) {
-                throw new IllegalArgumentException(e.getMessage());
-            }
-        }
-    }
-
-    /**
-     * Stolen from JTextArea...
-     *
-     * @param str   the text to use as the replacement
-     * @param start the start position >= 0
-     * @param end   the end position >= start
-     * @throws IllegalArgumentException if part of the range is an
-     *                                  invalid position in the model
-     * @see JTextArea
-     * @see #insert
-     * @see #replaceRange
-     */
-    public void replaceRange(String str, int start, int end) {
-        if (end < start) {
-            throw new IllegalArgumentException("end before start");
-        }
-        Document doc = getDocument();
-
-        if (doc != null) {
-            try {
-                doc.remove(start, end - start);
-                doc.insertString(start, str, null);
-            } catch (BadLocationException e) {
-                throw new IllegalArgumentException(e.getMessage());
-            }
-        }
-    }
-
-    /**
-     * Stolen from JTextArea...
-     *
-     * @param offset the offset >= 0
-     * @return the line number >= 0
-     * @throws BadLocationException thrown if the offset is
-     *                              less than zero or greater than the document length.
-     * @see JTextArea
-     */
-    public int getLineOfOffset(int offset) throws BadLocationException {
-        Document doc = getDocument();
-        if (offset < 0) {
-            throw new BadLocationException("Can't translate offset to line", -1);
-        } else if (offset > doc.getLength()) {
-            throw new BadLocationException("Can't translate offset to line", doc.getLength() + 1);
-        } else {
-            Element map = getDocument().getDefaultRootElement();
-            return map.getElementIndex(offset);
-        }
-    }
-
-    /**
-     * Stolen from JTextArea...
-     *
      * @param line the line number to translate >= 0
      * @return the offset >= 0
      * @throws BadLocationException thrown if the line is
@@ -247,15 +177,7 @@ public class EditorPane extends javax.swing.JEditorPane {
      * @see JTextArea
      */
     public int getLineStartOffset(int line) throws BadLocationException {
-        Element map = getDocument().getDefaultRootElement();
-        if (line < 0) {
-            throw new BadLocationException("Negative line", -1);
-        } else if (line >= map.getElementCount()) {
-            throw new BadLocationException("No such line", getDocument().getLength() + 1);
-        } else {
-            Element lineElem = map.getElement(line);
-            return lineElem.getStartOffset();
-        }
+        return EditingUtils.getLineStartOffset(getDocument(), line);
     }
 
     /**
@@ -294,63 +216,6 @@ public class EditorPane extends javax.swing.JEditorPane {
         return doc.getText(startOffset, endOffset - startOffset);
 
     }//getLineText()
-
-
-    /**
-     * sets the selection to the current line
-     *
-     * @author Andrew Nuxoll
-     * @version 22 Sep 2022
-     */
-    public void selectCurrLIne() throws BadLocationException {
-        int lineNum = 1 + getLineOfOffset(getCaretPosition());
-        Document doc = getDocument();
-        Element map = doc.getDefaultRootElement();
-        int startOffset = getLineStartOffset(lineNum - 1);
-        int endOffset = doc.getLength() - 1;
-
-        if (lineNum + 1 < map.getElementCount()) {
-            endOffset = getLineStartOffset(lineNum) - 1;
-        }
-
-        setSelectionStart(startOffset);
-        setSelectionEnd(endOffset);
-    }//selectCurrLIne
-
-    /**
-     * Expands the current selection to include only entire lines
-     * If nothing is currently selected, then the current line is
-     * selected.
-     * @param setStart true if start of selection should be expanded backwards to include the entire line
-     * @param setEnd true if end of selection should be expanded backwards to include the entire line
-     */
-    public void expandSelectionToEntireLines(boolean setStart, boolean setEnd) throws BadLocationException {
-        String selectedText = getSelectedText();
-        if ((selectedText == null) || (selectedText.length() == 0)) {
-            selectCurrLIne();
-            return;
-        }
-
-        Document doc = getDocument();
-        Element map = doc.getDefaultRootElement();
-		//set new selection start position
-		if (setStart) {
-			int lineNum = 1 + getLineOfOffset(getSelectionStart());
-			int startOffset = getLineStartOffset(lineNum - 1);
-			setSelectionStart(startOffset);
-		}
-
-        //set new selection end position
-		if(setEnd) {
-			int lineNum = 1 + getLineOfOffset(getSelectionEnd());
-			int endOffset = doc.getLength() - 1;
-			if (lineNum + 1 < map.getElementCount()) {
-				endOffset = getLineStartOffset(lineNum) - 1;
-			}
-			setSelectionEnd(endOffset);
-		}
-
-    }//expandSelectionToEntireLines
 
     /**
      * Stolen from JTextComponent...
