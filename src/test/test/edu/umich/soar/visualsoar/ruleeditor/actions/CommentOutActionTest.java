@@ -42,4 +42,9 @@ class CommentOutActionTest {
 	public void restoresSelectionAfterCommenting() {
 
 	}
+
+	@Test
+	public void entireActionIsOneEdit() {
+
+	}
 }

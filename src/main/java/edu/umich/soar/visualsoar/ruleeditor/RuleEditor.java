@@ -47,7 +47,7 @@ public class RuleEditor extends CustomInternalFrame {
     //********** Data Members  *****************
     private final OperatorNode associatedNode;
     private final EditorPane editorPane = new EditorPane();
-    private final UndoManager undoManager = new CustomUndoManager();
+    private final CustomUndoManager undoManager = new CustomUndoManager();
     private String fileName;
     private final JLabel lineNumberLabel = new JLabel("Line:");
     private final JLabel modifiedLabel = new JLabel("");
@@ -92,8 +92,8 @@ public class RuleEditor extends CustomInternalFrame {
 	private final Action selectAllAction = new SelectAllAction(editorPane);
     private final Action insertTextFromFileAction = new InsertTextFromFileAction(editorPane);
 
-    private final Action uncommentOutAction = new UncommentOutAction(editorPane, getToolkit());
-	private final Action commentOutAction = new CommentOutAction(editorPane, uncommentOutAction);
+    private final Action uncommentOutAction = new UncommentOutAction(editorPane, undoManager, getToolkit());
+	private final Action commentOutAction = new CommentOutAction(editorPane, undoManager, uncommentOutAction);
 
     private final Action reDrawAction = new ReDrawAction(editorPane);
     private final Action reJustifyAction = new ReJustifyAction(editorPane);
@@ -2147,10 +2147,24 @@ public class RuleEditor extends CustomInternalFrame {
      * I (Nuxoll) couldn't figure out how to fix that implementation, so I
      * replaced it with something simpler (if uglier) below (and above)
      * that seems to be working better.
+	 * TODO: I wish this would restore the selection start/end after undo/redo
      */
 
-    class CustomUndoManager extends UndoManager {
+    public class CustomUndoManager extends UndoManager {
         private static final long serialVersionUID = 20221225L;
+		private boolean inCompoundEdit;
+		private boolean firstInCompoundEditComplete;
+
+		public class CompoundModeManager implements AutoCloseable {
+			@Override
+			public void close() throws Exception {
+				if (!CustomUndoManager.this.inCompoundEdit) {
+					System.err.println("WARNING: CompoundModeManager closed after undo manager " +
+						"had already exited compound mode");
+				}
+				CustomUndoManager.this.endCompoundEdit();
+			}
+		}
 
         public CustomUndoManager() {
             super();
@@ -2160,20 +2174,62 @@ public class RuleEditor extends CustomInternalFrame {
         @Override
         public boolean addEdit(UndoableEdit anEdit) {
             CustomUndoableEdit customEdit = new CustomUndoableEdit(anEdit);
+			if (inCompoundEdit) {
+				if (firstInCompoundEditComplete) {
+					// we are in a compound edit and have already created the first edit in it
+					// signal that this edit should be merged with the previous one
+					customEdit.significant = false;
+				} else {
+					// beginning a new compound edit, so force a new edit
+					customEdit.significant = true;
+				}
+				firstInCompoundEditComplete = true;
+			}
 
             return super.addEdit(customEdit);
         }
 
+		/**
+		 * When this class is in compound mode, all edits are combined into one single edit. This is currently only
+		 * designed to be used in limited contexts
+		 * in limited
+		 *
+		 * @return A manager for compound mode that is {@link AutoCloseable auto-closeable}, meaning that the client
+		 * can restrict compound mode to a specific code block using a try-with-resources statement.
+		 */
+		public CompoundModeManager compoundMode() {
+			startCompoundEdit();
+			return new CompoundModeManager();
+		}
+
+		private void startCompoundEdit() {
+			inCompoundEdit = true;
+		}
+
+		private void endCompoundEdit() {
+			inCompoundEdit = false;
+			firstInCompoundEditComplete = false;
+		}
+
+		// Clients are not expected to undo/redo inside a compound edit, but to prevent undesired addition of edits to
+		// a compound edit (i.e. for safety), we immediately close compound mode if they try.
         @Override
         public void undo() {
             super.undo();
+			endCompoundEdit();
 
-            //If the user clears the undo queue then treat the buffer as if
+            // If the user clears the undo queue then treat the buffer as if
             // it has just been saved
             if (! this.canUndo()) {
                 RuleEditor.this.lastActionWasSave = true;
             }
         }
+
+		@Override
+		public void redo() {
+			super.redo();
+			endCompoundEdit();
+		}
     }//CustomUndoManager
 
 

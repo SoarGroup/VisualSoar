@@ -25,4 +25,9 @@ class UncommentOutActionTest {
 	public void restoresSelectionAfterUncomment() {
 
 	}
+
+	@Test
+	public void entireActionIsOneEdit() {
+
+	}
 }

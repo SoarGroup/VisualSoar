@@ -1,6 +1,7 @@
 package edu.umich.soar.visualsoar.ruleeditor.actions;
 
 import edu.umich.soar.visualsoar.ruleeditor.EditingUtils;
+import edu.umich.soar.visualsoar.ruleeditor.RuleEditor;
 
 import javax.swing.*;
 import javax.swing.text.BadLocationException;
@@ -16,10 +17,12 @@ public class CommentOutAction extends AbstractAction {
 	private static final long serialVersionUID = 20221225L;
 	private final JTextComponent editorPane;
 	private final Action uncommentOutAction;
+	private final RuleEditor.CustomUndoManager undoManager;
 
-	public CommentOutAction(JTextComponent editorPane, Action uncommentOutAction) {
+	public CommentOutAction(JTextComponent editorPane, RuleEditor.CustomUndoManager undoManager, Action uncommentOutAction) {
 		super("Comment Out");
 		this.editorPane = editorPane;
+		this.undoManager = undoManager;
 		this.uncommentOutAction = uncommentOutAction;
 	}
 
@@ -74,8 +77,13 @@ public class CommentOutAction extends AbstractAction {
 			selEnd++;
 		}
 
-		EditingUtils.replaceRange(editorPane.getDocument(), commentText, editorPane.getSelectionStart(),
-			editorPane.getSelectionEnd());
+		try(RuleEditor.CustomUndoManager.CompoundModeManager ignored = undoManager.compoundMode()) {
+			EditingUtils.replaceRange(editorPane.getDocument(), commentText, editorPane.getSelectionStart(),
+				editorPane.getSelectionEnd());
+		} catch(Exception exception) {
+			// should never happen, as CompoundManager doesn't throw any exceptions
+			exception.printStackTrace();
+		}
 
 		//restore the selection
 		editorPane.setSelectionStart(selStart);
