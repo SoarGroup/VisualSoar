@@ -10,8 +10,10 @@ import java.awt.event.ActionEvent;
 
 /**
  * This class comments (puts a # in the first position for every line) for the currently selected text
- * of the text area. If the cursor sits at the beginning of a line, this line is not commented.
- * CommentOutAction UncommentOutAction are inverses, and should be able to repeatedly undo one another.
+ * of the text area. If the cursor sits at the beginning of a line, this line is not commented. The lines are already
+ * commented, this runs UncommentOutAction instead.
+ * <br/>
+ * CommentOutAction and UncommentOutAction are inverses, and can repeatedly undo one another.
  */
 public class CommentOutAction extends AbstractAction {
 	private static final long serialVersionUID = 20221225L;
@@ -59,6 +61,8 @@ public class CommentOutAction extends AbstractAction {
 		//If all the selected text is already commented out then
 		//we want to uncomment instead (i.e., a toggle)
 		if (isCommentedOut(selectedText)) {
+			editorPane.setSelectionStart(selStart);
+			editorPane.setSelectionEnd(selEnd);
 			uncommentOutAction.actionPerformed(e);
 			return;
 		}

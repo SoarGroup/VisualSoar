@@ -30,4 +30,9 @@ class UncommentOutActionTest {
 	public void entireActionIsOneEdit() {
 
 	}
+
+	@Test
+	public void doesntChangeTextThatIsntCommented() {
+
+	}
 }
