@@ -59,13 +59,17 @@ public class EditingUtils {
 	 */
 	public static void selectCurrLine(JTextComponent textComponent) throws BadLocationException {
 		Document doc = textComponent.getDocument();
-		int lineNum = 1 + getLineOfOffset(doc, textComponent.getCaretPosition());
+		int lineNum = getLineOfOffset(doc, textComponent.getCaretPosition());
 		Element map = doc.getDefaultRootElement();
-		int startOffset = getLineStartOffset(doc, lineNum - 1);
-		int endOffset = doc.getLength() - 1;
+		int startOffset = getLineStartOffset(doc, lineNum);
+		int endOffset;
 
-		if (lineNum + 1 < map.getElementCount()) {
-			endOffset = getLineStartOffset(doc, lineNum) - 1;
+		if (lineNum >= map.getElementCount()) {
+			// last line? endOffset is the end of the document
+			endOffset = doc.getLength() - 1;
+		} else {
+			// not last line? endOffset is just before beginning of next line
+			endOffset = getLineStartOffset(doc, lineNum + 1) - 1;
 		}
 
 		textComponent.setSelectionStart(startOffset);

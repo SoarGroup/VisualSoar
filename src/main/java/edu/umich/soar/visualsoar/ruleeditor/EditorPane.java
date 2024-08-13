@@ -13,8 +13,7 @@ import java.io.Reader;
 import java.io.StringReader;
 
 /**
- * This is the EditorPane visual soar uses, it adds some functionality to make some actions nicer,
- * it isn't especially relevant now
+ * This is the EditorPane visual soar uses. It adds some functionality to make some actions nicer.
  */
 public class EditorPane extends javax.swing.JEditorPane {
     private static final long serialVersionUID = 20221225L;
