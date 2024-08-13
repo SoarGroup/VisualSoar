@@ -22,6 +22,11 @@ class UncommentOutActionTest {
 	}
 
 	@Test
+	public void doesntUncommentLastLineIfNoCharsSelected() {
+
+	}
+
+	@Test
 	public void restoresSelectionAfterUncomment() {
 
 	}

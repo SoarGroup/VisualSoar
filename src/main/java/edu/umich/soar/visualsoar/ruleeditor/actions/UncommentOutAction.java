@@ -36,8 +36,8 @@ public class UncommentOutAction extends AbstractAction {
 		try {
 			// if the selection starts in the middle of the line, move the start back to the start of the line
 			// so that a comment character can be removed there. We don't expand to the end of the last line because
-			// it's not necessary, and would cause a line to be commented even if no characters in it are selected.
-			EditingUtils.expandSelectionToEntireLines(editorPane, true, true);
+			// it's not necessary, and would cause a line to be uncommented even if no characters in it are selected.
+			EditingUtils.expandSelectionToEntireLines(editorPane, true, false);
 			selStartWasBeginningOfLine = editorPane.getSelectionStart() == selStart;
 		} catch (BadLocationException ex) {
 			ex.printStackTrace();
