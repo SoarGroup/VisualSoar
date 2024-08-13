@@ -112,26 +112,34 @@ public class RuleEditorUndoManager extends UndoManager {
     }
   }
 
-  // tried and failed: save last edit and set it to isSignificant=true; significant sentinel; insignificant sentinel.
-	// UndoManager seems to be designed with assumption that insignificant changes will always be followed by a significant one.
-	// The docs say <quote>
-	// Invoking redo results in invoking redo on all edits between the index of the next edit and the next significant
-	// edit (or the end of the list). Continuing with the previous example if redo were invoked, redo would in turn be
-	// invoked on A, b and c. In addition the index of the next edit is set to 3 (as shown in figure 2).
-	// </quote>
-	// However, the actual behavior appears to be that A would be redone but not b or c. To fix this we have to override
-	// editToBeRedone, and we need access to indexOfNextAdd, but unfortunately that can only be retrieved through the
-	// toString() (barf!). Attempting reflection results in a security error.
-	// This implementation finds the next significant edit and then all of the following insignificant edits and redoes
-	// them. This forms a correct inverse with undo().
-	// Probably a more robust way to do this would be to use a CompoundEdit instead of the isSignificant flag. See
-	// https://github.com/tips4java/tips4java/blob/main/source/CompoundUndoManager.java#L171.
-	// TODO: test the undo manager!
-	/**
-	 *
-	 * @return
-	 */
-	@Override
+  // tried and failed: save last edit and set it to isSignificant=true; significant sentinel;
+  // insignificant sentinel.
+  // UndoManager seems to be designed with assumption that insignificant changes will always be
+  // followed by a significant one.
+  // The docs say <quote>
+  // Invoking redo results in invoking redo on all edits between the index of the next edit and the
+  // next significant
+  // edit (or the end of the list). Continuing with the previous example if redo were invoked, redo
+  // would in turn be
+  // invoked on A, b and c. In addition the index of the next edit is set to 3 (as shown in figure
+  // 2).
+  // </quote>
+  // However, the actual behavior appears to be that A would be redone but not b or c. To fix this
+  // we have to override
+  // editToBeRedone, and we need access to indexOfNextAdd, but unfortunately that can only be
+  // retrieved through the
+  // toString() (barf!). Attempting reflection results in a security error.
+  // This implementation finds the next significant edit and then all of the following insignificant
+  // edits and redoes
+  // them. This forms a correct inverse with undo().
+  // Probably a more robust way to do this would be to use a CompoundEdit instead of the
+  // isSignificant flag. See
+  // https://github.com/tips4java/tips4java/blob/main/source/CompoundUndoManager.java#L171.
+  // TODO: test the undo manager!
+  /**
+   * @return
+   */
+  @Override
   protected UndoableEdit editToBeRedone() {
     String stringified = toString();
     String searchFor = "indexOfNextAdd: ";
@@ -179,61 +187,7 @@ public class RuleEditorUndoManager extends UndoManager {
 
     public RuleEditorUndoableEdit(UndoableEdit initParent, SoarDocument doc) {
       this.parent = initParent;
-
-      // style changes aren't significant
-      if (Objects.equals(this.parent.getPresentationName(), "style change")) {
-        return;
-      }
-
-      // Retrieve the text the user inserted or removed for this edit
-      // Also take note if it's an insert or delete
-      String lastText = doc.getLastInsertedText();
-      boolean wasInsert = (lastText != null);
-      if (!wasInsert) {
-        lastText = doc.getLastRemovedText();
-      }
-
-      // If there has been neither a preceding insert nor a preceding remove
-      // then this edit is significant (I think)
-      if (lastText == null) {
-        this.significant = true;
-        return;
-      }
-
-      // If the last insert/remove was a multi-character paste then
-      // this new insert/remove is significant
-      boolean sig = RuleEditorUndoManager.this.lastEditWasMultiChar;
-      RuleEditorUndoManager.this.lastEditWasMultiChar = (lastText.length() > 1);
-      if (sig) {
-        this.significant = true;
-        return;
-      }
-
-      // If the user just switched from insert to delete (or vice versa)
-      // then this edit is significant
-      boolean switched = (RuleEditorUndoManager.this.lastEditWasInsert != wasInsert);
-      RuleEditorUndoManager.this.lastEditWasInsert = wasInsert;
-      if (switched) {
-        this.significant = true;
-        return;
-      }
-
-      // the first edit after a user saves the document is significant
-      if (RuleEditorUndoManager.this.lastActionWasSave.get()) {
-        this.significant = true;
-        RuleEditorUndoManager.this.lastActionWasSave.set(false);
-        return;
-      }
-
-      // If the last insertion/deletion was the end of a word/line/phrase or
-      // a Soar coding element then it's significant  (see the SIG_CHARS
-      // constant)
-      for (char c : SIG_CHARS) {
-        if (lastText.indexOf(c) != -1) {
-          this.significant = true;
-          return;
-        }
-      }
+	  this.significant = examineNewEdit(initParent, doc);
     }
 
     /** these are methods whose behavior I've actually changed */
@@ -295,5 +249,61 @@ public class RuleEditorUndoManager extends UndoManager {
     public String getRedoPresentationName() {
       return this.parent.getRedoPresentationName();
     }
+  }
+
+	/**
+	 * @return true if significant (don't merge with previous), false otherwise
+	 */
+  private boolean examineNewEdit(UndoableEdit newEdit, SoarDocument doc) {
+    // style changes aren't significant
+    if (Objects.equals(newEdit.getPresentationName(), "style change")) {
+      return false;
+    }
+
+    // Retrieve the text the user inserted or removed for this edit
+    // Also take note if it's an insert or delete
+    String lastText = doc.getLastInsertedText();
+    boolean wasInsert = (lastText != null);
+    if (!wasInsert) {
+      lastText = doc.getLastRemovedText();
+    }
+
+    // If there has been neither a preceding insert nor a preceding remove
+    // then this edit is significant (I think)
+    if (lastText == null) {
+      return true;
+    }
+
+    // If the last insert/remove was a multi-character paste then
+    // this new insert/remove is significant
+    boolean sig = RuleEditorUndoManager.this.lastEditWasMultiChar;
+    lastEditWasMultiChar = (lastText.length() > 1);
+    if (sig) {
+      return true;
+    }
+
+    // If the user just switched from insert to delete (or vice versa)
+    // then this edit is significant
+    boolean switched = (RuleEditorUndoManager.this.lastEditWasInsert != wasInsert);
+    lastEditWasInsert = wasInsert;
+    if (switched) {
+      return true;
+    }
+
+    // the first edit after a user saves the document is significant
+    if (RuleEditorUndoManager.this.lastActionWasSave.get()) {
+      lastActionWasSave.set(false);
+      return true;
+    }
+
+    // If the last insertion/deletion was the end of a word/line/phrase or
+    // a Soar coding element then it's significant  (see the SIG_CHARS
+    // constant)
+    for (char c : SIG_CHARS) {
+      if (lastText.indexOf(c) != -1) {
+        return true;
+      }
+    }
+    return false;
   }
 }
