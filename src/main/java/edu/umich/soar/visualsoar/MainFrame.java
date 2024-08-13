@@ -194,10 +194,8 @@ public class MainFrame extends JFrame
             {
                 public void windowClosing(WindowEvent e)
                 {
-					if (checkForUnsavedProjectOnClose()) {
-						exitAction.actionPerformed(
-							new ActionEvent(e.getSource(),e.getID(),"Exit"));
-					}
+				exitAction.actionPerformed(
+					new ActionEvent(e.getSource(),e.getID(),"Exit"));
                 }
             });//addWindowListener()
 
@@ -412,6 +410,8 @@ public class MainFrame extends JFrame
         openFileItem.setAccelerator(KeyStroke.getKeyStroke("control F"));
         openFileItem.setMnemonic(KeyEvent.VK_F);
 
+		// Note: on Mac a ≈ character gets inserted before the document is saved. See
+		// https://github.com/SoarGroup/VisualSoar/issues/30
 		exitItem.setAccelerator(KeyStroke.getKeyStroke("alt X"));
 		exitItem.setMnemonic(KeyEvent.VK_X);
 
@@ -1627,6 +1627,9 @@ public class MainFrame extends JFrame
 		}
 
 		public void perform() {
+			if (!checkForUnsavedProjectOnClose()) {
+				return;
+			}
 			JInternalFrame[] frames = desktopPane.getAllFrames();
 			Prefs.flush();
 			try
