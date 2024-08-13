@@ -27,3 +27,5 @@ There is also an Ant script that does the same (we will likely remove it in the 
 
 The project does not have a consistent style, but a proposal for now is to use
 [google-java-format](https://github.com/google/google-java-format). There are plugins for Eclipse and IntelliJ.
+
+We have also included a .editorconfig in the project, which is supported by all major editors.
