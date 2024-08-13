@@ -55,6 +55,46 @@ class CompoundUndoManagerTest {
   }
 
   @Test
+  public void adjacentAtomicEditsAreNotJoinedInAtomicModeAreJoined() throws Exception {
+    JEditorPane editorPane = new JEditorPane();
+    Document doc = editorPane.getDocument();
+    CompoundUndoManager undoManager =
+        new CompoundUndoManager(editorPane, new BooleanProperty(true));
+
+    String inputString = "hello there";
+    doc.insertString(0, inputString, new SimpleAttributeSet());
+    try (CompoundUndoManager.AtomicModeManager ignored = undoManager.atomicMode()) {
+      doc.insertString(3, "xxxxxxxxxx", new SimpleAttributeSet());
+      doc.remove(0, 12);
+    }
+    assertEquals(
+        "xlo there",
+        editorPane.getText(),
+        "Confirming added text contents after first atomic edit");
+    try (CompoundUndoManager.AtomicModeManager ignored = undoManager.atomicMode()) {
+      doc.insertString(3, "yyyyy", new SimpleAttributeSet());
+      doc.remove(5, 2);
+    }
+    assertEquals(
+        "xloyyy there",
+        editorPane.getText(),
+        "Confirming added text contents after second atomic edit");
+
+    undoManager.undo();
+    assertEquals(
+        "xlo there", editorPane.getText(), "undo should apply only to edits in second atomic edit");
+    undoManager.undo();
+    assertEquals(
+        inputString, editorPane.getText(), "undo should apply only to edits in first atomic edit");
+
+    undoManager.redo();
+    assertEquals("xlo there", editorPane.getText(), "redo should apply first atomic edit again");
+    undoManager.redo();
+    assertEquals(
+        "xloyyy there", editorPane.getText(), "redo should apply second atomic edit again");
+  }
+
+  @Test
   public void allEditsInAtomicModeAreJoined() throws Exception {
     JEditorPane editorPane = new JEditorPane();
     Document doc = editorPane.getDocument();
@@ -118,46 +158,47 @@ class CompoundUndoManagerTest {
 
   @Test
   public void startNewEditAfterDocumentSave() throws BadLocationException {
-	  JEditorPane editorPane = new JEditorPane();
-	  BooleanProperty lastActionWasSave = new BooleanProperty(false);
-	  CompoundUndoManager undoManager =
-		  new CompoundUndoManager(editorPane, lastActionWasSave);
+    JEditorPane editorPane = new JEditorPane();
+    BooleanProperty lastActionWasSave = new BooleanProperty(false);
+    CompoundUndoManager undoManager = new CompoundUndoManager(editorPane, lastActionWasSave);
 
-	  editorPane.setText("hello world!");
-	  editorPane.setCaretPosition(5);
-	  insertOneChar(editorPane, 'a');
-	  insertOneChar(editorPane, 'b');
-	  insertOneChar(editorPane, 'c');
-	  lastActionWasSave.set(true);
-	  insertOneChar(editorPane, '1');
-	  assertFalse(lastActionWasSave.get(), "lastActionWasSave should be set to false on any undoable actions");
-	  insertOneChar(editorPane, '2');
-	  insertOneChar(editorPane, '3');
-	  lastActionWasSave.set(true);
-	  insertOneChar(editorPane, 'x');
-	  insertOneChar(editorPane, 'y');
-	  insertOneChar(editorPane, 'z');
-	  lastActionWasSave.set(true);
+    editorPane.setText("hello world!");
+    editorPane.setCaretPosition(5);
+    insertOneChar(editorPane, 'a');
+    insertOneChar(editorPane, 'b');
+    insertOneChar(editorPane, 'c');
+    lastActionWasSave.set(true);
+    insertOneChar(editorPane, '1');
+    assertFalse(
+        lastActionWasSave.get(),
+        "lastActionWasSave should be set to false on any undoable actions");
+    insertOneChar(editorPane, '2');
+    insertOneChar(editorPane, '3');
+    lastActionWasSave.set(true);
+    insertOneChar(editorPane, 'x');
+    insertOneChar(editorPane, 'y');
+    insertOneChar(editorPane, 'z');
+    lastActionWasSave.set(true);
 
-	  assertEquals("helloabc123xyz world!", editorPane.getText(), "Confirming fully-entered text");
-	  undoManager.undo();
-	  assertEquals("helloabc123 world!", editorPane.getText(), "First undo");
-	  undoManager.undo();
-	  assertEquals("helloabc world!", editorPane.getText(), "Second undo");
-	  undoManager.undo();
-	  assertEquals("hello world!", editorPane.getText(), "Third undo");
+    assertEquals("helloabc123xyz world!", editorPane.getText(), "Confirming fully-entered text");
+    undoManager.undo();
+    assertEquals("helloabc123 world!", editorPane.getText(), "First undo");
+    undoManager.undo();
+    assertEquals("helloabc world!", editorPane.getText(), "Second undo");
+    undoManager.undo();
+    assertEquals("hello world!", editorPane.getText(), "Third undo");
 
-	  undoManager.redo();
-	  assertEquals("helloabc world!", editorPane.getText(), "Redo third undo");
-	  undoManager.redo();
-	  assertEquals("helloabc123 world!", editorPane.getText(), "Redo second undo");
-	  undoManager.redo();
-	  assertEquals("helloabc123xyz world!", editorPane.getText(), "Redo first undo");
+    undoManager.redo();
+    assertEquals("helloabc world!", editorPane.getText(), "Redo third undo");
+    undoManager.redo();
+    assertEquals("helloabc123 world!", editorPane.getText(), "Redo second undo");
+    undoManager.redo();
+    assertEquals("helloabc123xyz world!", editorPane.getText(), "Redo first undo");
   }
 
   @Test
   public void styleChangesAreJoined() {
-	  // TODO: don't know how to add style change events
+    // TODO: don't know how to add style change events
   }
 
   //////////////// Util methods ///////////////////

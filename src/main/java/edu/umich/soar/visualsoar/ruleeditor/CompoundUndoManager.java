@@ -72,7 +72,6 @@ public class CompoundUndoManager extends UndoManager
     private AtomicModeManager() {
       endCompoundEdit();
       inAtomicEdit = true;
-      startCompoundEdit(null);
     }
 
     @Override
@@ -150,7 +149,7 @@ public class CompoundUndoManager extends UndoManager
       return;
     }
 
-    //  Not incremental edit, end previous edit and start a new one
+    //  Not incremental edit; end previous edit and start a new one
 
     if (!inAtomicEdit) {
       endCompoundEdit();
@@ -159,16 +158,26 @@ public class CompoundUndoManager extends UndoManager
   }
 
   private boolean shouldAddToExistingEdit(UndoableEdit ue) {
-    return
-    // we have an existing edit to add to
-    compoundEdit != null
-        &&
-        // start new edit after document save
-        !lastActionWasSave.get()
-        &&
-        // start new edit if user switches between insertion/deletion
-        !editingSwitchedBetweenInsertAndDelete()
-        && (isStyleChange(ue) || inAtomicEdit || isIncrementalEditOrBackspace());
+    if (compoundEdit == null) {
+      // impossible to add to one because none exists
+      return false;
+    }
+    // honor atomic guarantee if requested by client
+    if (inAtomicEdit) {
+      return true;
+    }
+
+    // after save, we start a new edit
+    if (lastActionWasSave.get()) {
+      return false;
+    }
+
+    // start new edit if user switches between insertion/deletion
+    if (editingSwitchedBetweenInsertAndDelete()) {
+      return false;
+    }
+
+    return (isStyleChange(ue) || isIncrementalEditOrBackspace());
   }
 
   private void updatePreviousEditInfo() {
@@ -313,6 +322,11 @@ public class CompoundUndoManager extends UndoManager
 
   @Override
   public void changedUpdate(DocumentEvent e) {}
+
+  @Override
+  public String toString() {
+    return "Compound" + super.toString();
+  }
 
   class MyCompoundEdit extends CompoundEdit {
     public boolean isInProgress() {
