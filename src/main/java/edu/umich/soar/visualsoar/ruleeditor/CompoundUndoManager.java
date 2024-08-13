@@ -1,3 +1,27 @@
+// Based on code from Rob Camick:
+// https://github.com/tips4java/tips4java/blob/main/source/CompoundUndoManager.java
+// Original license:
+// MIT License
+//
+// 	Copyright (c) 2023 Rob Camick
+//
+// 	Permission is hereby granted, free of charge, to any person obtaining a copy
+// 	of this software and associated documentation files (the "Software"), to deal
+// 	in the Software without restriction, including without limitation the rights
+// 	to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// 	copies of the Software, and to permit persons to whom the Software is
+// 	furnished to do so, subject to the following conditions:
+//
+// 	The above copyright notice and this permission notice shall be included in all
+// 	copies or substantial portions of the Software.
+//
+// 	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// 	IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// 	FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// 	AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// 	LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// 	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// 	SOFTWARE.
 package edu.umich.soar.visualsoar.ruleeditor;
 
 import edu.umich.soar.visualsoar.util.BooleanProperty;
@@ -8,11 +32,11 @@ import javax.swing.event.*;
 import javax.swing.text.*;
 import javax.swing.undo.*;
 
-/*
- **  This class will merge individual edits into a single larger edit.
- **  That is, characters entered sequentially will be grouped together and
- **  undone as a group. Any attribute changes will be considered as part
- **  of the group and will therefore be undone when the group is undone.
+/**
+ * This class will merge individual edits into a single larger edit based on some heuristics:
+ * incremental edits (e.g. typing) are merged together except where an element of {@link
+ * #BREAK_CHARS} is involved, and saving the document or changing between insertion/deletion will
+ * start new edits.
  */
 public class CompoundUndoManager extends UndoManager
     implements UndoableEditListener, DocumentListener {
@@ -41,8 +65,12 @@ public class CompoundUndoManager extends UndoManager
 
   private boolean inAtomicEdit;
 
+  /**
+   * @see #atomicMode()
+   */
   public class AtomicModeManager implements AutoCloseable {
     private AtomicModeManager() {
+      endCompoundEdit();
       inAtomicEdit = true;
       startCompoundEdit(null);
     }
@@ -51,8 +79,8 @@ public class CompoundUndoManager extends UndoManager
     public void close() throws Exception {
       if (!inAtomicEdit) {
         System.err.println(
-            "WARNING: CompoundModeManager closed after undo manager "
-                + "had already exited compound mode");
+            "WARNING: AtomicModeManager closed after undo manager "
+                + "had already exited atomic mode");
       }
       endCompoundEdit();
     }
@@ -79,9 +107,9 @@ public class CompoundUndoManager extends UndoManager
     this.lastActionWasSave = lastActionWasSave;
   }
 
-  /*
-   **  Add a DocumentLister before the undo is done so we can position
-   **  the Caret correctly as each edit is undone.
+  /**
+   * Add a DocumentLister before the undo is done so we can position the Caret correctly as each
+   * edit is undone.
    */
   public void undo() {
     textComponent.getDocument().addDocumentListener(this);
@@ -95,9 +123,9 @@ public class CompoundUndoManager extends UndoManager
     }
   }
 
-  /*
-   **  Add a DocumentLister before the redo is done so we can position
-   **  the Caret correctly as each edit is redone.
+  /**
+   * Add a DocumentLister before the redo is done so we can position the Caret correctly as each
+   * edit is redone.
    */
   public void redo() {
     textComponent.getDocument().addDocumentListener(this);
@@ -105,14 +133,14 @@ public class CompoundUndoManager extends UndoManager
     textComponent.getDocument().removeDocumentListener(this);
   }
 
-  /*
-   **  Whenever an UndoableEdit happens the edit will either be absorbed
-   **  by the current compound edit or a new compound edit will be started
+  /**
+   * Whenever an UndoableEdit happens the edit will either be absorbed by the current compound edit
+   * or a new compound edit will be started
    */
   @Override
   public void undoableEditHappened(UndoableEditEvent e) {
     UndoableEdit ue = e.getEdit();
-    System.out.println(ue.getPresentationName());
+    // System.out.println(ue.getPresentationName());
 
     boolean shouldAddToExistingEdit = shouldAddToExistingEdit(ue);
 
@@ -125,8 +153,8 @@ public class CompoundUndoManager extends UndoManager
     //  Not incremental edit, end previous edit and start a new one
 
     if (!inAtomicEdit) {
-		endCompoundEdit();
-	}
+      endCompoundEdit();
+    }
     startCompoundEdit(e.getEdit());
   }
 
@@ -159,7 +187,7 @@ public class CompoundUndoManager extends UndoManager
   }
 
   private boolean editingSwitchedBetweenInsertAndDelete() {
-    System.out.println(docLengthChanged() && wasInsert() != previousWasInsert);
+    // System.out.println(docLengthChanged() && wasInsert() != previousWasInsert);
     return docLengthChanged() && wasInsert() != previousWasInsert;
   }
 
@@ -175,6 +203,10 @@ public class CompoundUndoManager extends UndoManager
     return Objects.equals(ue.getPresentationName(), "style change");
   }
 
+  /**
+   * @return true if the user has typed or deleted a single char which is not a {@link
+   *     #isBreakChar(Character) breaking character}
+   */
   private boolean isIncrementalEditOrBackspace() {
     int caretPosition = textComponent.getCaretPosition();
     int docLength = textComponent.getDocument().getLength();
@@ -196,6 +228,9 @@ public class CompoundUndoManager extends UndoManager
     return false;
   }
 
+  /**
+   * @see #BREAK_CHARS
+   */
   private boolean isBreakChar(Character c) {
     for (char breakChar : BREAK_CHARS) {
       if (Objects.equals(breakChar, c)) {
@@ -206,8 +241,8 @@ public class CompoundUndoManager extends UndoManager
   }
 
   /**
-   * * Each CompoundEdit will store a group of related incremental edits * (ie. each character typed
-   * or backspaced is an incremental edit)
+   * Each CompoundEdit will store a group of related incremental edits (ie. each character typed or
+   * backspaced is an incremental edit)
    */
   private void startCompoundEdit(UndoableEdit anEdit) {
     //  Track Caret and Document information of this compound edit
@@ -239,17 +274,17 @@ public class CompoundUndoManager extends UndoManager
     }
   }
 
-  /*
-   *  The Action to Undo changes to the Document.
-   *  The state of the Action is managed by the CompoundUndoManager
+  /**
+   * The Action to Undo changes to the Document. The state of the Action is managed by the
+   * CompoundUndoManager
    */
   public Action getUndoAction() {
     return undoAction;
   }
 
-  /*
-   *  The Action to Redo changes to the Document.
-   *  The state of the Action is managed by the CompoundUndoManager
+  /**
+   * The Action to Redo changes to the Document. The state of the Action is managed by the
+   * CompoundUndoManager
    */
   public Action getRedoAction() {
     return redoAction;
@@ -258,10 +293,7 @@ public class CompoundUndoManager extends UndoManager
   //
   //  Implement DocumentListener
   //
-  /*
-   *  Updates to the Document as a result of Undo/Redo will cause the
-   *  Caret to be repositioned
-   */
+  /** Updates to the Document as a result of Undo/Redo will cause the Caret to be repositioned */
   @Override
   public void insertUpdate(final DocumentEvent e) {
     SwingUtilities.invokeLater(
@@ -297,14 +329,12 @@ public class CompoundUndoManager extends UndoManager
     }
   }
 
-  /*
-   *	Perform the Undo and update the state of the undo/redo Actions
-   */
+  /** Perform the Undo and update the state of the undo/redo Actions */
   class UndoAction extends AbstractAction {
     public UndoAction() {
       putValue(Action.NAME, "Undo");
       putValue(Action.SHORT_DESCRIPTION, getValue(Action.NAME));
-      putValue(Action.MNEMONIC_KEY, Integer.valueOf(KeyEvent.VK_U));
+      putValue(Action.MNEMONIC_KEY, KeyEvent.VK_U);
       putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke("control Z"));
       setEnabled(false);
     }
@@ -313,7 +343,7 @@ public class CompoundUndoManager extends UndoManager
       try {
         undoManager.undo();
         textComponent.requestFocusInWindow();
-      } catch (CannotUndoException ex) {
+      } catch (CannotUndoException ignored) {
       }
 
       updateUndoState();
@@ -325,14 +355,12 @@ public class CompoundUndoManager extends UndoManager
     }
   }
 
-  /*
-   *	Perform the Redo and update the state of the undo/redo Actions
-   */
+  /** Perform the Redo and update the state of the undo/redo Actions */
   class RedoAction extends AbstractAction {
     public RedoAction() {
       putValue(Action.NAME, "Redo");
       putValue(Action.SHORT_DESCRIPTION, getValue(Action.NAME));
-      putValue(Action.MNEMONIC_KEY, Integer.valueOf(KeyEvent.VK_R));
+      putValue(Action.MNEMONIC_KEY, KeyEvent.VK_R);
       putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke("Control Y"));
       setEnabled(false);
     }
@@ -341,7 +369,7 @@ public class CompoundUndoManager extends UndoManager
       try {
         undoManager.redo();
         textComponent.requestFocusInWindow();
-      } catch (CannotRedoException ex) {
+      } catch (CannotRedoException ignored) {
       }
 
       updateRedoState();
