@@ -133,13 +133,22 @@ public class EditorPane extends javax.swing.JEditorPane {
         return contextMenu;
     }
 
+	/**
+	 * Only safe to do after calling {@link #read(Reader in)}, where we set the
+	 * document to a {@link SoarDocument} instance.
+	 * @return the underlying {@link SoarDocument}
+	 */
+	public SoarDocument getSoarDocument() {
+		return (SoarDocument) super.getDocument();
+	}
+
     /**
      * changes current read-only status
      *
      * @param status read-only=true  editable=false
      */
     public void setReadOnly(boolean status) {
-        ((SoarDocument)getDocument()).isReadOnly = status;
+        getSoarDocument().isReadOnly = status;
     }
 
     /**
@@ -245,7 +254,7 @@ public class EditorPane extends javax.swing.JEditorPane {
      * Colors the syntax of the whole document
      */
     public void colorSyntax() {
-        ((SoarDocument) getDocument()).colorSyntax(new StringReader(getText()));
+        getSoarDocument().colorSyntax(new StringReader(getText()));
     }
 
     /**
@@ -253,7 +262,7 @@ public class EditorPane extends javax.swing.JEditorPane {
      * document
      */
     public void justifyDocument() {
-        ((SoarDocument) getDocument()).justifyDocument(getSelectionStart(),
+        getSoarDocument().justifyDocument(getSelectionStart(),
                 getSelectionEnd());
     }
 
@@ -262,7 +271,7 @@ public class EditorPane extends javax.swing.JEditorPane {
 
 
         public void actionPerformed(ActionEvent e) {
-            SoarDocument doc = (SoarDocument) getDocument();
+            SoarDocument doc = getSoarDocument();
 
             String textTyped = e.getActionCommand();
 

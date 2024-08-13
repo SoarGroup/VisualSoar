@@ -1,7 +1,7 @@
 package edu.umich.soar.visualsoar.ruleeditor.actions;
 
+import edu.umich.soar.visualsoar.ruleeditor.CustomUndoManager;
 import edu.umich.soar.visualsoar.ruleeditor.EditingUtils;
-import edu.umich.soar.visualsoar.ruleeditor.RuleEditor;
 
 import javax.swing.*;
 import javax.swing.text.BadLocationException;
@@ -18,10 +18,10 @@ import java.awt.event.ActionEvent;
 public class UncommentOutAction extends AbstractAction {
 	private static final long serialVersionUID = 20221225L;
 	private final JTextComponent editorPane;
-	private final RuleEditor.CustomUndoManager undoManager;
+	private final CustomUndoManager undoManager;
 	private final Toolkit toolkit;
 
-	public UncommentOutAction(JTextComponent editorPane, RuleEditor.CustomUndoManager undoManager, Toolkit toolkit) {
+	public UncommentOutAction(JTextComponent editorPane, CustomUndoManager undoManager, Toolkit toolkit) {
 		super("Uncomment Out");
 		this.undoManager = undoManager;
 		this.toolkit = toolkit;
@@ -63,7 +63,7 @@ public class UncommentOutAction extends AbstractAction {
 //decrease the selection range to accommodate missing char
 				selEnd--;
 			}
-			try(RuleEditor.CustomUndoManager.CompoundModeManager ignored = undoManager.compoundMode()) {
+			try(CustomUndoManager.CompoundModeManager ignored = undoManager.compoundMode()) {
 				EditingUtils.replaceRange(editorPane.getDocument(), uncommentText, editorPane.getSelectionStart(),
 					editorPane.getSelectionEnd());
 			} catch(Exception exception) {
