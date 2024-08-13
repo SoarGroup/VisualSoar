@@ -1,13 +1,12 @@
 package edu.umich.soar.visualsoar.ruleeditor.actions;
 
-import edu.umich.soar.visualsoar.ruleeditor.RuleEditorUndoManager;
+import edu.umich.soar.visualsoar.ruleeditor.CompoundUndoManager;
 import edu.umich.soar.visualsoar.ruleeditor.EditingUtils;
-
+import java.awt.*;
+import java.awt.event.ActionEvent;
 import javax.swing.*;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.JTextComponent;
-import java.awt.*;
-import java.awt.event.ActionEvent;
 
 /**
  * This class un-comments (takes out the # in the first position for every
@@ -18,10 +17,10 @@ import java.awt.event.ActionEvent;
 public class UncommentOutAction extends AbstractAction {
 	private static final long serialVersionUID = 20221225L;
 	private final JTextComponent editorPane;
-	private final RuleEditorUndoManager undoManager;
+	private final CompoundUndoManager undoManager;
 	private final Toolkit toolkit;
 
-	public UncommentOutAction(JTextComponent editorPane, RuleEditorUndoManager undoManager, Toolkit toolkit) {
+	public UncommentOutAction(JTextComponent editorPane, CompoundUndoManager undoManager, Toolkit toolkit) {
 		super("Uncomment Out");
 		this.undoManager = undoManager;
 		this.toolkit = toolkit;
@@ -61,7 +60,8 @@ public class UncommentOutAction extends AbstractAction {
 //decrease the selection range to accommodate missing char
 				selEnd--;
 			}
-			try(RuleEditorUndoManager.CompoundModeManager ignored = undoManager.compoundMode()) {
+			// TODO: next: continue migration to the CompoundUndoManager
+			try(CompoundUndoManager.AtomicModeManager ignored = undoManager.atomicMode()) {
 				EditingUtils.replaceRange(editorPane.getDocument(), uncommentText, editorPane.getSelectionStart(),
 					editorPane.getSelectionEnd());
 			} catch(Exception exception) {

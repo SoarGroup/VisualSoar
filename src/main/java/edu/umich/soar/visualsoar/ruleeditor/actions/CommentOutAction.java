@@ -1,6 +1,6 @@
 package edu.umich.soar.visualsoar.ruleeditor.actions;
 
-import edu.umich.soar.visualsoar.ruleeditor.RuleEditorUndoManager;
+import edu.umich.soar.visualsoar.ruleeditor.CompoundUndoManager;
 import edu.umich.soar.visualsoar.ruleeditor.EditingUtils;
 
 import javax.swing.*;
@@ -19,9 +19,9 @@ public class CommentOutAction extends AbstractAction {
 	private static final long serialVersionUID = 20221225L;
 	private final JTextComponent editorPane;
 	private final Action uncommentOutAction;
-	private final RuleEditorUndoManager undoManager;
+	private final CompoundUndoManager undoManager;
 
-	public CommentOutAction(JTextComponent editorPane, RuleEditorUndoManager undoManager, Action uncommentOutAction) {
+	public CommentOutAction(JTextComponent editorPane, CompoundUndoManager undoManager, Action uncommentOutAction) {
 		super("Comment Out");
 		this.editorPane = editorPane;
 		this.undoManager = undoManager;
@@ -81,7 +81,7 @@ public class CommentOutAction extends AbstractAction {
 			selEnd++;
 		}
 
-		try(RuleEditorUndoManager.CompoundModeManager ignored = undoManager.compoundMode()) {
+		try(CompoundUndoManager.AtomicModeManager ignored = undoManager.atomicMode()) {
 			EditingUtils.replaceRange(editorPane.getDocument(), commentText, editorPane.getSelectionStart(),
 				editorPane.getSelectionEnd());
 		} catch(Exception exception) {

@@ -4,8 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.times;
 
+import edu.umich.soar.visualsoar.ruleeditor.CompoundUndoManager;
 import edu.umich.soar.visualsoar.ruleeditor.EditorPane;
-import edu.umich.soar.visualsoar.ruleeditor.RuleEditorUndoManager;
 import edu.umich.soar.visualsoar.util.BooleanProperty;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
@@ -18,7 +18,8 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 class CommentOutActionTest {
-  @Mock RuleEditorUndoManager undoManager;
+  @Mock
+  CompoundUndoManager undoManager;
   @Mock UncommentOutAction uncommentOutAction;
   @Mock ActionEvent actionEvent;
 
@@ -150,8 +151,8 @@ class CommentOutActionTest {
   @Test
   public void entireActionIsOneEdit() throws IOException {
     EditorPane editorPane = new EditorPane();
-    RuleEditorUndoManager localUndoManager =
-        new RuleEditorUndoManager(editorPane, new BooleanProperty(false));
+	  CompoundUndoManager localUndoManager =
+        new CompoundUndoManager(editorPane, new BooleanProperty(false));
     CommentOutAction commentOutAction =
         new CommentOutAction(editorPane, localUndoManager, uncommentOutAction);
     String originalText = "hello\nhi\nbonjour\n\nwhat's up\n";

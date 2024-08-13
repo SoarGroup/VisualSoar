@@ -15,12 +15,6 @@ import edu.umich.soar.visualsoar.util.ActionButtonAssociation;
 import edu.umich.soar.visualsoar.util.BooleanProperty;
 import edu.umich.soar.visualsoar.util.EnumerationIteratorWrapper;
 import edu.umich.soar.visualsoar.util.MenuAdapter;
-import sml.Agent;
-
-import javax.swing.Action;
-import javax.swing.*;
-import javax.swing.event.*;
-import javax.swing.text.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -32,6 +26,11 @@ import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.List;
+import javax.swing.*;
+import javax.swing.Action;
+import javax.swing.event.*;
+import javax.swing.text.*;
+import sml.Agent;
 
 /**
  * This is the rule editor window
@@ -76,8 +75,8 @@ public class RuleEditor extends CustomInternalFrame {
 
 	// last thing the user did was save the document; bookkeeping used by undo manager
 	private final BooleanProperty lastActionWasSave = new BooleanProperty(true);
-	private final RuleEditorUndoManager undoManager = new RuleEditorUndoManager(editorPane, lastActionWasSave);
-
+	// private final RuleEditorUndoManager undoManager = new RuleEditorUndoManager(editorPane, lastActionWasSave);
+	private final CompoundUndoManager undoManager = new CompoundUndoManager(editorPane, lastActionWasSave);
 
     // ********** Actions ***********
     private final Action saveAction = new SaveAction(this);

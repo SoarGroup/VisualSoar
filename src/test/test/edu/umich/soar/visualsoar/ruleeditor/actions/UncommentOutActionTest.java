@@ -2,8 +2,8 @@ package edu.umich.soar.visualsoar.ruleeditor.actions;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import edu.umich.soar.visualsoar.ruleeditor.CompoundUndoManager;
 import edu.umich.soar.visualsoar.ruleeditor.EditorPane;
-import edu.umich.soar.visualsoar.ruleeditor.RuleEditorUndoManager;
 import edu.umich.soar.visualsoar.util.BooleanProperty;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -16,7 +16,8 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 class UncommentOutActionTest {
-  @Mock RuleEditorUndoManager undoManager;
+  @Mock
+  CompoundUndoManager undoManager;
   @Mock ActionEvent actionEvent;
 
   @Mock Toolkit toolkit;
@@ -156,8 +157,8 @@ class UncommentOutActionTest {
   @Test
   public void entireActionIsOneEdit() throws IOException {
     EditorPane editorPane = new EditorPane();
-    RuleEditorUndoManager localUndoManager =
-        new RuleEditorUndoManager(editorPane, new BooleanProperty(false));
+    CompoundUndoManager localUndoManager =
+        new CompoundUndoManager(editorPane, new BooleanProperty(false));
     UncommentOutAction uncommentOutAction =
         new UncommentOutAction(editorPane, localUndoManager, toolkit);
     String originalText = "#hello\n#hi\nbonjour\n\n#what's up\n";
