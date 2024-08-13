@@ -1,0 +1,57 @@
+name: Build and Test
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [
+          windows-latest,
+          ubuntu-latest,
+          # latest available X86_64 target
+          macos-12,
+          # latest is ARM
+          macos-latest,
+        ]
+    steps:
+      - uses: actions/checkout@v2 # Checkout the repository
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "21"
+
+      - name: Build with Gradle
+        run: ./gradlew build --no-daemon
+
+      - name: Run tests
+        run: ./gradlew test --no-daemon
+
+      # reports JUnit test results as GitHub PR check.
+      - name: publish test report
+        uses: mikepenz/action-junit-report@v3
+        # always run even if the previous step fails
+        if: always()
+        with:
+          report_paths: "build/reports/test-results/*.xml"
+          # disabled until https://github.com/mikepenz/action-junit-report/issues/40 is resolved
+          # fail_on_failure: true
+          annotate_only: true
+
+      - name: Jar
+        run: ./gradlew jar --no-daemon
+
+      - name: Archive build artifacts
+        # Only runs if the previous steps were successful, and only uploads Ubuntu build
+        # (it's a cross-platform jar, so we only need one)
+        if: success() &&  startsWith(matrix.os, 'ubuntu-')
+        uses: actions/upload-artifact@v2
+        with:
+          name: build-artifacts-${{ matrix.os }}
+          path: build/libs/VisualSoar.jar
