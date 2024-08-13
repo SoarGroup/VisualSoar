@@ -8,8 +8,6 @@ import javax.swing.undo.UndoManager;
 import javax.swing.undo.UndoableEdit;
 
 /**
- * class CustomUndoManager
- *
  * <p>The AbstractDocument that SoarDocument inherits from provides the ability to undo/redo. In
  * particular, it has an UndoManager that manages a series of UndoableEvent objects. However we have
  * to subclass these two classes (technically UndoableEvent is an interface not a class) in order to
@@ -19,18 +17,16 @@ import javax.swing.undo.UndoableEdit;
  * then one for each syntax highlight you've done to that character. If you hit Undo you'd like all
  * four of those events to be undone. Doing them one at a time is a chore.
  *
- * <p>Notably a more complex version of CustomUndoManager used to exist but had some buggy behavior.
+ * <p>Notably a more complex version of a custom UndoManager used to exist but had some buggy behavior.
  * In particular, it wasn't properly tracking syntax highlighting edits and creating exceptions.
  *
  * <p>I (Nuxoll) couldn't figure out how to fix that implementation, so I replaced it with something
  * simpler (if uglier) below (and above) that seems to be working better. TODO: I wish this would
  * restore the selection start/end after undo/redo
  */
-public class CustomUndoManager extends UndoManager {
+public class RuleEditorUndoManager extends UndoManager {
   private static final long serialVersionUID = 20221225L;
 
-  // These are characters are "significant" for the purpose of
-  // CustomUndoableEdit (below)
   private static final char[] SIG_CHARS = {' ', '.', '\n', '\t', '{', '}', '(', ')', '^', '*'};
 
   private final EditorPane editorPane;
@@ -45,16 +41,16 @@ public class CustomUndoManager extends UndoManager {
   public class CompoundModeManager implements AutoCloseable {
     @Override
     public void close() throws Exception {
-      if (!CustomUndoManager.this.inCompoundEdit) {
+      if (!RuleEditorUndoManager.this.inCompoundEdit) {
         System.err.println(
             "WARNING: CompoundModeManager closed after undo manager "
                 + "had already exited compound mode");
       }
-      CustomUndoManager.this.endCompoundEdit();
+      RuleEditorUndoManager.this.endCompoundEdit();
     }
   }
 
-  public CustomUndoManager(EditorPane editorPane, BooleanProperty lastActionWasSave) {
+  public RuleEditorUndoManager(EditorPane editorPane, BooleanProperty lastActionWasSave) {
     super();
     this.editorPane = editorPane;
     this.lastActionWasSave = lastActionWasSave;
@@ -63,7 +59,7 @@ public class CustomUndoManager extends UndoManager {
 
   @Override
   public boolean addEdit(UndoableEdit anEdit) {
-    CustomUndoableEdit customEdit = new CustomUndoableEdit(anEdit, editorPane.getSoarDocument());
+    RuleEditorUndoableEdit customEdit = new RuleEditorUndoableEdit(anEdit, editorPane.getSoarDocument());
     if (inCompoundEdit) {
 		// we are in a compound edit and have already created the first edit in it
 		// signal that this edit should be merged with the previous one
@@ -108,7 +104,7 @@ public class CustomUndoManager extends UndoManager {
     // If the user clears the undo queue then treat the buffer as if
     // it has just been saved
     if (!this.canUndo()) {
-      CustomUndoManager.this.lastActionWasSave.set(true);
+      RuleEditorUndoManager.this.lastActionWasSave.set(true);
     }
   }
 
@@ -119,8 +115,6 @@ public class CustomUndoManager extends UndoManager {
   }
 
   /**
-   * class CustomUndoableEvent
-   *
    * <p>We need to modify the isSignificant() method in AbstractDocument.DefaultDocumentEvent. I
    * don't want to subclass AbstractDocument.DefaultDocumentEvent because I'd have to also subclass
    * AbstractDocument which seems like a can of works. So, I've done a kludge-y subclass this way
@@ -129,12 +123,12 @@ public class CustomUndoManager extends UndoManager {
    * @author Andrew Nuxoll
    * @version 29 Sep 2022
    */
-  class CustomUndoableEdit implements UndoableEdit {
+  class RuleEditorUndoableEdit implements UndoableEdit {
 
     private final UndoableEdit parent;
     private boolean significant = false; // is this edit "significant"?
 
-    public CustomUndoableEdit(UndoableEdit initParent, SoarDocument doc) {
+    public RuleEditorUndoableEdit(UndoableEdit initParent, SoarDocument doc) {
       this.parent = initParent;
 
       // style changes aren't significant
@@ -159,8 +153,8 @@ public class CustomUndoManager extends UndoManager {
 
       // If the last insert/remove was a multi-character paste then
       // this new insert/remove is significant
-      boolean sig = CustomUndoManager.this.lastEditWasMultiChar;
-      CustomUndoManager.this.lastEditWasMultiChar = (lastText.length() > 1);
+      boolean sig = RuleEditorUndoManager.this.lastEditWasMultiChar;
+      RuleEditorUndoManager.this.lastEditWasMultiChar = (lastText.length() > 1);
       if (sig) {
         this.significant = true;
         return;
@@ -168,17 +162,17 @@ public class CustomUndoManager extends UndoManager {
 
       // If the user just switched from insert to delete (or vice versa)
       // then this edit is significant
-      boolean switched = (CustomUndoManager.this.lastEditWasInsert != wasInsert);
-      CustomUndoManager.this.lastEditWasInsert = wasInsert;
+      boolean switched = (RuleEditorUndoManager.this.lastEditWasInsert != wasInsert);
+      RuleEditorUndoManager.this.lastEditWasInsert = wasInsert;
       if (switched) {
         this.significant = true;
         return;
       }
 
       // the first edit after a user saves the document is significant
-      if (CustomUndoManager.this.lastActionWasSave.get()) {
+      if (RuleEditorUndoManager.this.lastActionWasSave.get()) {
         this.significant = true;
-        CustomUndoManager.this.lastActionWasSave.set(false);
+        RuleEditorUndoManager.this.lastActionWasSave.set(false);
         return;
       }
 

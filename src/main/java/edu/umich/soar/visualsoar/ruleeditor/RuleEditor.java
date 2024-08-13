@@ -76,7 +76,7 @@ public class RuleEditor extends CustomInternalFrame {
 
 	// last thing the user did was save the document; bookkeeping used by undo manager
 	private final BooleanProperty lastActionWasSave = new BooleanProperty(true);
-	private final CustomUndoManager undoManager = new CustomUndoManager(editorPane, lastActionWasSave);
+	private final RuleEditorUndoManager undoManager = new RuleEditorUndoManager(editorPane, lastActionWasSave);
 
 
     // ********** Actions ***********

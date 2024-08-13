@@ -25,9 +25,9 @@ public class SoarDocument extends DefaultStyledDocument {
     boolean inRHS = false; // Are we in the RHS of a production?
     private static int fontSize = DEFAULT_FONT_SIZE;
 
-    //A SoarDocument logs each last inserted/removed text so that
-    // RuleEditor.CustomUndoManager can decide whether that text is
-    // "significant" for the purposes of the CustomUndoableEvent.
+    // A SoarDocument logs each last inserted/removed text so that
+    // RuleEditorUndoManager can decide whether that text is
+    // "significant" for the purposes of merging edits.
     // Only one of these variables should be non-null at any time
     private String lastInsertedText = null;
     private String lastRemovedText = null;
@@ -459,7 +459,7 @@ public class SoarDocument extends DefaultStyledDocument {
                     return;
                 }
 
-            }  // iterate through tokens    
+            }  // iterate through tokens
         } // colorSyntax() (whole file)
 
     } // ColorSyntaxThread
@@ -605,7 +605,7 @@ public class SoarDocument extends DefaultStyledDocument {
         Token currToken = new Token();
 
         //Create a token manager with our best guess for the current lexical
-        //state and get the first token. 
+        //state and get the first token.
         SoarParserTokenManager mgr = guessLexicalState(r, currToken);
 
         //To make inline comments work we need track the end position of the
@@ -630,7 +630,7 @@ public class SoarDocument extends DefaultStyledDocument {
                 return;
             }
 
-        }  // iterate through tokens    
+        }  // iterate through tokens
     } // colorSyntax() (specific section)
 
     /**
