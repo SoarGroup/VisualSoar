@@ -70,10 +70,8 @@ public class UncommentOutAction extends AbstractAction {
 			}
 
 			//restore the selection
-			if (selEnd > selStart) {
-				editorPane.setSelectionStart(selStart);
-				editorPane.setSelectionEnd(selEnd);
-			}
+			editorPane.setSelectionStart(selStart);
+			editorPane.setSelectionEnd(selEnd);
 		} else {
 			toolkit.beep();
 		}

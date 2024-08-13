@@ -1,14 +1,14 @@
 package edu.umich.soar.visualsoar.ruleeditor;
 
 import edu.umich.soar.visualsoar.util.BooleanProperty;
-
 import javax.swing.undo.CannotRedoException;
 import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.UndoManager;
 import javax.swing.undo.UndoableEdit;
+import java.util.Objects;
 
 /**
- * <p>The AbstractDocument that SoarDocument inherits from provides the ability to undo/redo. In
+ * The AbstractDocument that SoarDocument inherits from provides the ability to undo/redo. In
  * particular, it has an UndoManager that manages a series of UndoableEvent objects. However we have
  * to subclass these two classes (technically UndoableEvent is an interface not a class) in order to
  * get the UndoManager to batch insignificant events together.
@@ -17,8 +17,9 @@ import javax.swing.undo.UndoableEdit;
  * then one for each syntax highlight you've done to that character. If you hit Undo you'd like all
  * four of those events to be undone. Doing them one at a time is a chore.
  *
- * <p>Notably a more complex version of a custom UndoManager used to exist but had some buggy behavior.
- * In particular, it wasn't properly tracking syntax highlighting edits and creating exceptions.
+ * <p>Notably a more complex version of a custom UndoManager used to exist but had some buggy
+ * behavior. In particular, it wasn't properly tracking syntax highlighting edits and creating
+ * exceptions.
  *
  * <p>I (Nuxoll) couldn't figure out how to fix that implementation, so I replaced it with something
  * simpler (if uglier) below (and above) that seems to be working better. TODO: I wish this would
@@ -31,12 +32,14 @@ public class RuleEditorUndoManager extends UndoManager {
 
   private final EditorPane editorPane;
   private final BooleanProperty lastActionWasSave;
+  // private final boolean lastEditWasSignificant;
   private boolean inCompoundEdit;
   private boolean firstInCompoundEditComplete;
   // bookkeeping for determining if an edit is significant
   private boolean lastEditWasInsert = true;
   // user pasted multiple characters at once into the buffer
   private boolean lastEditWasMultiChar = false;
+  private RuleEditorUndoableEdit lastEdit = null;
 
   public class CompoundModeManager implements AutoCloseable {
     @Override
@@ -59,12 +62,13 @@ public class RuleEditorUndoManager extends UndoManager {
 
   @Override
   public boolean addEdit(UndoableEdit anEdit) {
-    RuleEditorUndoableEdit customEdit = new RuleEditorUndoableEdit(anEdit, editorPane.getSoarDocument());
+    RuleEditorUndoableEdit customEdit =
+        new RuleEditorUndoableEdit(anEdit, editorPane.getSoarDocument());
     if (inCompoundEdit) {
-		// we are in a compound edit and have already created the first edit in it
-		// signal that this edit should be merged with the previous one
-		// beginning a new compound edit, so force a new edit
-		customEdit.significant = !firstInCompoundEditComplete;
+      // we are in a compound edit and have already created the first edit in it
+      // signal that this edit should be merged with the previous one
+      // beginning a new compound edit, so force a new edit
+      customEdit.significant = !firstInCompoundEditComplete;
       firstInCompoundEditComplete = true;
     }
 
@@ -72,12 +76,12 @@ public class RuleEditorUndoManager extends UndoManager {
   }
 
   /**
-   * When this class is in compound mode, all edits are combined into one single edit. This is
-   * currently only designed to be used in limited contexts in limited
+   * When this class is in compound mode, all edits are combined into one single edit. Using undo()
+   * or redo() immediately close compound mode.
    *
    * @return A manager for compound mode that is {@link AutoCloseable auto-closeable}, meaning that
    *     the client can restrict compound mode to a specific code block using a try-with-resources
-   *     statement.
+   *     statement. Compound mode will end early if undo() or redo() are called.
    */
   public CompoundModeManager compoundMode() {
     startCompoundEdit();
@@ -108,6 +112,51 @@ public class RuleEditorUndoManager extends UndoManager {
     }
   }
 
+  // tried and failed: save last edit and set it to isSignificant=true; significant sentinel; insignificant sentinel.
+	// UndoManager seems to be designed with assumption that insignificant changes will always be followed by a significant one.
+	// The docs say <quote>
+	// Invoking redo results in invoking redo on all edits between the index of the next edit and the next significant
+	// edit (or the end of the list). Continuing with the previous example if redo were invoked, redo would in turn be
+	// invoked on A, b and c. In addition the index of the next edit is set to 3 (as shown in figure 2).
+	// </quote>
+	// However, the actual behavior appears to be that A would be redone but not b or c. To fix this we have to override
+	// editToBeRedone, and we need access to indexOfNextAdd, but unfortunately that can only be retrieved through the
+	// toString() (barf!). Attempting reflection results in a security error.
+	// This implementation finds the next significant edit and then all of the following insignificant edits and redoes
+	// them. This forms a correct inverse with undo().
+	// Probably a more robust way to do this would be to use a CompoundEdit instead of the isSignificant flag. See
+	// https://github.com/tips4java/tips4java/blob/main/source/CompoundUndoManager.java#L171.
+	// TODO: test the undo manager!
+	/**
+	 *
+	 * @return
+	 */
+	@Override
+  protected UndoableEdit editToBeRedone() {
+    String stringified = toString();
+    String searchFor = "indexOfNextAdd: ";
+    int indexOfNextAdd =
+        Integer.parseInt(
+            stringified.substring(stringified.indexOf(searchFor) + searchFor.length()));
+    int count = edits.size();
+    int i = indexOfNextAdd;
+
+    UndoableEdit previousEdit = null;
+    boolean foundSignificantEdit = false;
+    while (i < count) {
+      UndoableEdit edit = edits.elementAt(i++);
+      if (edit.isSignificant()) {
+        if (foundSignificantEdit) {
+          return previousEdit;
+        }
+        foundSignificantEdit = true;
+      }
+      previousEdit = edit;
+    }
+
+    return previousEdit;
+  }
+
   @Override
   public void redo() {
     super.redo();
@@ -115,8 +164,8 @@ public class RuleEditorUndoManager extends UndoManager {
   }
 
   /**
-   * <p>We need to modify the isSignificant() method in AbstractDocument.DefaultDocumentEvent. I
-   * don't want to subclass AbstractDocument.DefaultDocumentEvent because I'd have to also subclass
+   * We need to modify the isSignificant() method in AbstractDocument.DefaultDocumentEvent. I don't
+   * want to subclass AbstractDocument.DefaultDocumentEvent because I'd have to also subclass
    * AbstractDocument which seems like a can of works. So, I've done a kludge-y subclass this way
    * (see the 'parent' instance variable). If you see a clever-er solution please be my guest...
    *
@@ -132,7 +181,7 @@ public class RuleEditorUndoManager extends UndoManager {
       this.parent = initParent;
 
       // style changes aren't significant
-      if (this.parent.getPresentationName().equals("style change")) {
+      if (Objects.equals(this.parent.getPresentationName(), "style change")) {
         return;
       }
 

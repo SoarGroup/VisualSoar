@@ -101,13 +101,10 @@ class CommentOutActionTest {
         "#hello\nhello\nhello",
         editorPane.getText(),
         "Some text selected; should comment first line");
-    // check that cursor location is correct
     assertEquals(
-        1,
-        editorPane.getSelectionStart(),
-        "Cursor location should be moved due to comment character");
-    assertEquals(
-        4, editorPane.getSelectionEnd(), "Cursor mark should be moved due to comment character");
+        "hel",
+        editorPane.getSelectedText(),
+        "selection should be updated to correspond to original selection");
   }
 
   @Test
@@ -127,7 +124,7 @@ class CommentOutActionTest {
     assertEquals(
         editorPane.getSelectedText(),
         "i\n#\n#こんにちは\n#bonjour\n#\n#what'",
-        "selection was updated to correspond to original selection");
+        "selection should be updated to correspond to original selection");
   }
 
   @Test
@@ -161,7 +158,7 @@ class CommentOutActionTest {
     // the only way to get EditorPane to load a SoarDocument object is by calling read()
     editorPane.read(new StringReader(originalText));
 
-	editorPane.getSoarDocument().addUndoableEditListener(localUndoManager);
+    editorPane.getSoarDocument().addUndoableEditListener(localUndoManager);
 
     // middle of "hi" through middle of "what's up"
     editorPane.setSelectionStart(7);

@@ -37,6 +37,12 @@ class EditingUtilsTest {
   // hello
   @Test
   void selectCurrLineOnEmptyLineEndOfDocument() {
-	//   TODO
+    //   TODO
+  }
+
+  @Test
+  void replaceRange() {
+    //   TODO
+    // TODO: isn't there a built-in for this? Do we really need our own?
   }
 }
