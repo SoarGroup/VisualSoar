@@ -1,6 +1,7 @@
 package edu.umich.soar.visualsoar.threepenny;
 
 import edu.umich.soar.visualsoar.MainFrame;
+import edu.umich.soar.visualsoar.util.SoarUtils;
 import sml.Agent;
 import sml.Kernel;
 
@@ -61,16 +62,15 @@ public class SoarRuntimeSendRawCommandDialog extends JDialog {
             }
         });
 
-        buttonPanel.sendButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                // Execute the command and echo the results to the debugger (if its connected)
-                if (m_Agent != null) {
-                    String result = m_Agent.ExecuteCommandLine(rawCommandPanel.getFieldText(), true);
-                    MainFrame.getMainFrame().reportResult(result);
-                }
-
-                dispose();
+    buttonPanel.sendButton.addActionListener(
+        new ActionListener() {
+          public void actionPerformed(ActionEvent e) {
+            if (!rawCommandPanel.getFieldText().isEmpty()) {
+              SoarUtils.executeCommandLine(
+                  rawCommandPanel.getFieldText(), SoarRuntimeSendRawCommandDialog.this, true);
+              dispose();
             }
+          }
         });
     }
 

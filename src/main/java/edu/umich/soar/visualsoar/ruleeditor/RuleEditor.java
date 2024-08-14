@@ -11,10 +11,8 @@ import edu.umich.soar.visualsoar.operatorwindow.OperatorNode;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorRootNode;
 import edu.umich.soar.visualsoar.parser.*;
 import edu.umich.soar.visualsoar.ruleeditor.actions.*;
-import edu.umich.soar.visualsoar.util.ActionButtonAssociation;
-import edu.umich.soar.visualsoar.util.BooleanProperty;
-import edu.umich.soar.visualsoar.util.EnumerationIteratorWrapper;
-import edu.umich.soar.visualsoar.util.MenuAdapter;
+import edu.umich.soar.visualsoar.util.*;
+
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -30,7 +28,6 @@ import javax.swing.*;
 import javax.swing.Action;
 import javax.swing.event.*;
 import javax.swing.text.*;
-import sml.Agent;
 
 /**
  * This is the rule editor window
@@ -114,8 +111,8 @@ public class RuleEditor extends CustomInternalFrame {
     private final Action sendProductionToSoarAction = new SendProductionToSoarAction();
     private final Action sendFileToSoarAction = new SendFileToSoarAction();
     private final Action sendAllFilesToSoarAction = new SendAllFilesToSoarAction();
-    private final Action sendMatchesToSoarAction = new SendMatchesToSoarAction(this);
-    private final Action sendExciseProductionToSoarAction = new SendExciseProductionToSoarAction(this);
+    private final Action sendMatchesToSoarAction = new SendMatchesToSoarAction(this, getToolkit());
+    private final Action sendExciseProductionToSoarAction = new SendExciseProductionToSoarAction(this, getToolkit());
 
     private BackupThread backupThread;
 
@@ -1826,23 +1823,17 @@ public class RuleEditor extends CustomInternalFrame {
             // Get the production string that our caret is over
             String sProductionString = GetProductionStringUnderCaret();
             if (sProductionString == null) {
-                getToolkit().beep();
-                return;
-            }
-
-            // Get the agent
-            Agent agent = MainFrame.getMainFrame().getActiveAgent();
-            if (agent == null) {
-                JOptionPane.showMessageDialog(RuleEditor.this, "Not connected to an agent.", "Error", JOptionPane.ERROR_MESSAGE);
-                return;
+              MainFrame.getMainFrame()
+                  .reportResult(
+                      "I don't know which production you wish to source; " +
+                        "please click inside of it before attempting to send it to Soar again.");
+              getToolkit().beep();
+              return;
             }
 
             // Send the production to Soar
-            String result = agent.ExecuteCommandLine(sProductionString, true);
-            MainFrame.getMainFrame().reportResult(result);
-
-
-        }//actionPerformed
+            SoarUtils.executeCommandLine(sProductionString, RuleEditor.this, true);
+        }
     }//class SendProductionToSoarAction
 
     // 3P
@@ -1855,26 +1846,13 @@ public class RuleEditor extends CustomInternalFrame {
         }
 
         public void actionPerformed(ActionEvent e) {
-            // Get the agent
-            Agent agent = MainFrame.getMainFrame().getActiveAgent();
-            if (agent == null) {
-                JOptionPane.showMessageDialog(RuleEditor.this, "Not connected to an agent.", "Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
-
             // Save the file
             try {
                 write();
             } catch (java.io.IOException ioe) {
                 ioe.printStackTrace();
             }
-
-            // Call source in Soar
-            if (fileName != null) {
-                String result = agent.ExecuteCommandLine("source " + "\"" + fileName + "\"", true);
-                MainFrame.getMainFrame().reportResult(result);
-            }
+            SoarUtils.sourceFile(fileName, RuleEditor.this);
         }
     }//class SendFileToSoarAction
 
@@ -1888,14 +1866,6 @@ public class RuleEditor extends CustomInternalFrame {
         }
 
         public void actionPerformed(ActionEvent e) {
-            // Get the agent
-            Agent agent = MainFrame.getMainFrame().getActiveAgent();
-            if (agent == null) {
-                JOptionPane.showMessageDialog(RuleEditor.this, "Not connected to an agent.", "Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
-
             // Save the file
             try {
                 write();
@@ -1912,8 +1882,9 @@ public class RuleEditor extends CustomInternalFrame {
             }
 
             if (node == null) {
-                System.out.println("Couldn't find the top level project node");
-                return;
+              MainFrame.getMainFrame()
+                  .reportResult("VisualSoar error: Couldn't find the top level project node");
+              return;
             }
 
             // Generate the path to the top level source file
@@ -1921,11 +1892,9 @@ public class RuleEditor extends CustomInternalFrame {
             String projectFilename = root.getProjectFile();    // Includes .vsa
 
             // Swap the extension from .vsa to .soar
-            projectFilename = projectFilename.replaceFirst(".vsa", ".soar");
+          projectFilename = projectFilename.replaceFirst(".vsa", ".soar");
 
-            // Call source in Soar
-            String result = agent.ExecuteCommandLine("source " + "\"" + projectFilename + "\"", true);
-            MainFrame.getMainFrame().reportResult(result);
+          SoarUtils.sourceFile(projectFilename, RuleEditor.this);
         }
     }//class SendAllFilesToSoarAction
 

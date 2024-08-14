@@ -16,6 +16,7 @@ import edu.umich.soar.visualsoar.ruleeditor.RuleEditor;
 import edu.umich.soar.visualsoar.threepenny.SoarRuntimeSendRawCommandDialog;
 import edu.umich.soar.visualsoar.util.ActionButtonAssociation;
 import edu.umich.soar.visualsoar.util.MenuAdapter;
+import edu.umich.soar.visualsoar.util.SoarUtils;
 import sml.Agent;
 import sml.Kernel;
 import sml.sml_Names;
@@ -2281,7 +2282,7 @@ public class MainFrame extends JFrame
 		}
 
 		setFeedbackListData(v);
-	}//reportResult
+	}
 
 
 
@@ -2320,20 +2321,12 @@ public class MainFrame extends JFrame
 
         public void actionPerformed(ActionEvent e)
         {
-            // Get the agent
-        	Agent agent = MainFrame.getMainFrame().getActiveAgent() ;
-            if (agent == null)
-            {
-                JOptionPane.showMessageDialog(MainFrame.this,"Not connected to an agent.","Error",JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
             // Generate the path to the top level source file
             OperatorRootNode root = (OperatorRootNode)(operatorWindow.getModel().getRoot());
 
             if (root == null)
             {
-            	System.out.println("Couldn't find the top level project node") ;
+            	System.out.println("Couldn't find the top-level project node") ;
             	return ;
             }
 
@@ -2342,15 +2335,9 @@ public class MainFrame extends JFrame
             // Swap the extension from .vsa to .soar
             projectFilename = projectFilename.replaceFirst(".vsa", ".soar") ;
 
-            // Call source in Soar
-            String result = agent.ExecuteCommandLine("source " + "\"" + projectFilename + "\"", true) ;
-
-            if (!agent.GetLastCommandLineResult())
-            	result = agent.GetLastErrorDescription() ;
-
-			MainFrame.getMainFrame().reportResult(result) ;
+            SoarUtils.sourceFile(projectFilename, MainFrame.this);
         }
-    }//class SendFileToSoarAction
+    }//class SendAllFilesToSoarAction
 
 
     /**
