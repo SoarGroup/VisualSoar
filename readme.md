@@ -19,6 +19,11 @@ There is also an Ant script that does the same (we will likely remove it in the 
 
     ant build
 
+### Running
+
+At runtime you need to have your SOAR_HOME environment variable set to the path to Soar's `bin/` directory.
+The main class is called VisualSoar.
+
 ### Testing
 
     ./gradlew test

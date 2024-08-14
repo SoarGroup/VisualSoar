@@ -1,5 +1,3 @@
-import org.gradle.api.tasks.testing.logging.TestExceptionFormat
-import org.gradle.api.tasks.testing.logging.TestLogEvent
 import java.time.LocalDate
 
 plugins {
@@ -21,6 +19,11 @@ dependencies {
 	implementation(fileTree("lib") {
 		include("*.jar")
 	})
+}
+
+// For loading the SML JNI library
+tasks.withType<JavaExec> {
+  systemProperty("java.library.path", System.getenv("SOAR_HOME"))
 }
 
 java {
