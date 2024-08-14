@@ -2326,7 +2326,7 @@ public class MainFrame extends JFrame
 
             if (root == null)
             {
-            	System.out.println("Couldn't find the top-level project node") ;
+              MainFrame.getMainFrame().reportResult("VisualSoar error: Couldn't find the top-level project node");
             	return ;
             }
 
