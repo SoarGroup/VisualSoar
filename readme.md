@@ -15,7 +15,8 @@ The slim jar we distribute with Soar:
 
     ./gradlew jar
 
-There is also an Ant script that does the same (we will likely remove it in the future):
+There is also an Ant script that does the same; it is outdated, however, and should not be used for distributing.
+We will likely remove it in the future:
 
     ant build
 
