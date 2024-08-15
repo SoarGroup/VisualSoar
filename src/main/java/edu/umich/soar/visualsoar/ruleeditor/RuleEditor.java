@@ -1824,7 +1824,7 @@ public class RuleEditor extends CustomInternalFrame {
             String sProductionString = GetProductionStringUnderCaret();
             if (sProductionString == null) {
               MainFrame.getMainFrame()
-                  .reportResult(
+                  .setStatusBarError(
                       "I don't know which production you wish to source; " +
                         "please click inside of it before attempting to send it to Soar again.");
               getToolkit().beep();

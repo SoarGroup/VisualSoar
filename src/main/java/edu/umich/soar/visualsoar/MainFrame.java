@@ -270,6 +270,7 @@ public class MainFrame extends JFrame
 		//Extra spaces make text align better with feedback window above it
 		statusBar.setForeground(Color.red);
 		statusBar.setText("  " + text);
+    getToolkit().beep();
 	}
 
 
@@ -553,7 +554,7 @@ public class MainFrame extends JFrame
 		searchDataMapNoTestNoCreateAction.addPropertyChangeListener(
             new ActionButtonAssociation(searchDataMapNoTestNoCreateAction,searchDataMapNoTestNoCreateItem));
 
-		JMenuItem linkDataMapItem = new JMenuItem("Link Entries from Another Project's  Datamap");
+		JMenuItem linkDataMapItem = new JMenuItem("Link Entries from Another Project's Datamap");
 		linkDataMapItem.addActionListener(linkDataMapAction);
 		linkDataMapItem.addPropertyChangeListener(
 				new ActionButtonAssociation(linkDataMapAction,linkDataMapItem));
@@ -3107,7 +3108,7 @@ public class MainFrame extends JFrame
 		public void actionPerformed(ActionEvent ae) {
 			//Only one datamap window can be open at a time
 			if (desktopPane.numDataMaps() > 0) {
-				setStatusBarMsg("Can not import from foreign datamap while local datamap is being edited.");
+				setStatusBarError("Cannot import from foreign datamap while local datamap is being edited.");
 				return;
 			}
 

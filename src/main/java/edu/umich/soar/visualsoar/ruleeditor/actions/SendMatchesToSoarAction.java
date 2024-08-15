@@ -29,7 +29,7 @@ public class SendMatchesToSoarAction extends AbstractAction {
 		String sProductionName = ruleEditor.GetProductionNameUnderCaret();
     if (sProductionName == null) {
       MainFrame.getMainFrame()
-          .reportResult(
+          .setStatusBarError(
               "I don't know which production you wish to find matches for; "
                   + "please click inside of it before attempting the command again.");
       toolkit.beep();
