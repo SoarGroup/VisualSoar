@@ -58,6 +58,6 @@ jobs:
         with:
           name: image-and-jar-${{ matrix.os }}
           path: |
-            build/libs/VisualSoar.jar
+            build/libs/*.jar
             build/image.zip
 
