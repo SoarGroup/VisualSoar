@@ -7,6 +7,7 @@ version = "4.6.22"
 plugins {
   java
   application
+  id("org.beryx.runtime") version "1.13.1"
 }
 
 repositories {
@@ -31,9 +32,6 @@ tasks.withType<JavaExec> {
 }
 
 java {
-  toolchain {
-    languageVersion = JavaLanguageVersion.of(11)
-  }
   sourceCompatibility = JavaVersion.VERSION_11
   targetCompatibility = JavaVersion.VERSION_11
 }
@@ -82,6 +80,21 @@ tasks.named<Test>("test") {
   // Use JUnit Platform for unit tests.
   useJUnitPlatform()
 }
+
+////////////////////////////////////
+// JVM-included application build //
+////////////////////////////////////
+
+runtime {
+  launcher {
+    // Runtime plugin replaces {{}} with environment variables in generated scripts.
+    // Works for JLink but not jpackage! Therefore any generated standalone apps or installers
+    // won't be able to connect to soar unless SOAR_HOME in is in the users path already :(
+    // See readme for details.
+    jvmArgs.add("-Djava.library.path={{SOAR_HOME}}")
+  }
+}
+
 
 /////////////////////////////////////////////////////////////////
 // Generate version/datetime string to show in the application //

@@ -47,11 +47,17 @@ jobs:
       - name: Jar
         run: ./gradlew jar --no-daemon
 
+      # create zip package (no jpackage for now; see README for why)
+      -   name: Runtime Zip
+          run: ./gradlew runtimeZip --no-daemon
+
       - name: Archive build artifacts
-        # Only runs if the previous steps were successful, and only uploads Ubuntu build
-        # (it's a cross-platform jar, so we only need one)
-        if: success() &&  startsWith(matrix.os, 'ubuntu-')
-        uses: actions/upload-artifact@v2
+        # Only runs if the previous steps were successful
+        if: success()
+        uses: actions/upload-artifact@v4
         with:
-          name: build-artifacts-${{ matrix.os }}
-          path: build/libs/VisualSoar.jar
+          name: image-and-jar-${{ matrix.os }}
+          path: |
+            build/libs/VisualSoar.jar
+            build/image.zip
+

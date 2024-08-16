@@ -9,7 +9,7 @@ To compile VisualSoar, you must put a copy of the latest version of sml.lib (fro
 The project is defined and managed via [Gradle](https://gradle.org/). Eclipse and
 IntelliJ can both use this project type.
 
-### Building
+### Building the jar for release with Soar
 
 The slim jar we distribute with Soar:
 
@@ -19,6 +19,32 @@ There is also an Ant script that does the same; it is outdated, however, and sho
 We will likely remove it in the future:
 
     ant build
+
+### JLink application image
+
+To use jlink to create a zip of the containing the application, a custom JRE, and appropriate start scripts:
+
+    ./gradle runtimeZip
+
+### JPackage standalone application and installer
+
+To create the standalone app for your OS:
+
+    ./gradlew jpackageImage
+
+To create an installer for your OS:
+
+    ./gradlew jpackageImage
+
+Unfortunately, these are not able to connect with Soar unless the user has placed the SOAR_HOME on their
+system `path`. This is due to a confluence of missing features:
+
+* To load the SML native library, Soar's Java bindings call `System.loadLibrary(name)`, which requires the library to be in `java.library.path`. This is called in a static block in the `sml` package, and I'm not sure how to mock that out.
+* Java doesn't allow modifying the library path at runtime
+* JPackage doesn't support using environment variables to form JVM arguments.
+  * Also, it's not straightforward to load the user's environment variables in a standalone application; on Mac, for example, running a .app file doesn't run my .bash_profile first, etc.
+
+I intend to revisit this after fixing the first point above in Soar: https://github.com/SoarGroup/Soar/issues/491..
 
 ### Running
 
