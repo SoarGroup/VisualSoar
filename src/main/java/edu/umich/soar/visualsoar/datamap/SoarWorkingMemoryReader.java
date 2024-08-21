@@ -435,12 +435,20 @@ public class SoarWorkingMemoryReader {
             }
         }
 
-        //If the comment file exists, read in all its comments
+        // If the comment file exists, read in all its comments
         Vector<String> commentVec = new Vector<>();
         if (cr != null) {
             Scanner scanCR = new Scanner(cr);
+            int lineNum = 0;
             while (scanCR.hasNextLine()) {
-                commentVec.add(scanCR.nextLine());
+                lineNum++;
+                String line = scanCR.nextLine();
+                if (line.isEmpty()) {
+                    errors.add(
+                        new FeedbackListEntry("Warning:  ignoring blank line at comment.dm line " + lineNum));
+                    continue;
+                }
+                commentVec.add(line);
             }
         }
 
