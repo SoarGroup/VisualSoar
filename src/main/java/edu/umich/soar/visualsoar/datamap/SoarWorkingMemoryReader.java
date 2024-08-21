@@ -318,231 +318,271 @@ public class SoarWorkingMemoryReader {
         return vertexToAdd;
     }//readVertexSafe
 
+  /**
+   * This is a new version of the {@link #read} method that handles mis-formatted .dm files without
+   * throwing exceptions on parse errors
+   *
+   * @param swmm the working memory model that the description should be read into
+   * @param fr the Reader that the description should be read from
+   * @param cr the Reader that datamap comments should be read from (if exists)
+   */
+  public static boolean readSafe(SoarWorkingMemoryModel swmm, Reader fr, Reader cr) {
+    // Any errors found will be stored here and reported at the end
+    Vector<FeedbackListEntry> errors = new Vector<>();
 
+    try {
+      int MAX_SANE = 999999; // no sane datamap would have more vertices than this
 
+      // Get the number of vertices from the file
+      Scanner scanFR = new Scanner(fr);
+      String lineOne = scanFR.nextLine().trim();
+      int numVertices = -1;
+      try {
+        numVertices = Integer.parseInt(lineOne);
+      } catch (NumberFormatException nfe) {
+        /* nothing to do here */
+      }
+      if (numVertices < 1) {
+        errors.add(
+            new FeedbackListEntry(
+                "Warning: First line of datamap file does not contain a valid number of vertices: "
+                    + lineOne));
 
-    /**
-     * This is a new version of the {@link #read} method that handles
-     * mis-formatted .dm files without throwing exceptions on parse errors
-     *
-     * @param swmm the working memory model that the description should be read into
-     * @param fr   the Reader that the description should be read from
-     * @param cr   the Reader that datamap comments should be read from (if exists)
-     */
-    public static boolean readSafe(SoarWorkingMemoryModel swmm, Reader fr, Reader cr)  {
-        //Any errors found will be stored here and reported at the end
-        Vector<FeedbackListEntry> errors = new Vector<>();
-        int MAX_SANE = 999999;  //no sane datamap would have more vertices than this
+        // Note:  We could abort here but let's continue with a large number and see if it works out
+        numVertices = MAX_SANE;
+      }
 
-        // Get the number of vertices from the file
-        Scanner scanFR = new Scanner(fr);
-        String lineOne = scanFR.nextLine().trim();
-        int numVertices = -1;
+      // Get the root node
+      String lineTwo = scanFR.nextLine().trim();
+      String[] words = lineTwo.split("[ \\t]"); // split on spaces and tabs
+      if (!words[0].equals("SOAR_ID")) {
+        errors.add(
+            new FeedbackListEntry(
+                "Error: Root type must be Soar id.  Expected \"SOAR_ID 0\" but found \""
+                    + lineTwo
+                    + "\""));
+        MainFrame.getMainFrame().setFeedbackListData(errors);
+        return false;
+      }
+      int rootNodeId = -1;
+      try {
+        rootNodeId = Integer.parseInt(words[1]);
+      } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
+        /* no action needed here */
+      }
+      if (rootNodeId < 0) {
+        errors.add(
+            new FeedbackListEntry(
+                "Datamap root must have a valid Soar id.  Expected \"SOAR_ID 0\" but found \""
+                    + lineTwo
+                    + "\""));
+        MainFrame.getMainFrame().setFeedbackListData(errors);
+        return false;
+      }
+      SoarIdentifierVertex topState = new SoarIdentifierVertex(rootNodeId);
+      swmm.setTopstate(topState);
+
+      // Get the rest of the vertices
+      int numEdges = -1; // this may be needed below if we reach the value early
+      for (int i = 1; i < numVertices; ++i) {
+        // check for end of file
+        if (!scanFR.hasNextLine()) {
+          errors.add(
+              new FeedbackListEntry(
+                  "Error:  The .dm file appears to be truncated in the vertex list.  Aborting."));
+          MainFrame.getMainFrame().setFeedbackListData(errors);
+          return false;
+        }
+
+        String line = scanFR.nextLine().trim();
+        if (line.length() == 0) {
+          errors.add(new FeedbackListEntry("Warning:  blank line found in .dm file's vertex list"));
+          i--; // to keep the count accurate (hopefully)
+          continue; // skip blank lines
+        }
+
+        // check here for a line that's a number only.  That means we've hit the
+        // number of edges early (probably)
+        if (line.length() < 6) { // no Soar project will have more than 99999 edges, right?
+          try {
+            numEdges = Integer.parseInt(line);
+          } catch (NumberFormatException nfe) {
+            errors.add(
+                new FeedbackListEntry(
+                    "Warning:  Ignoring invalid vertex list entry in .dm file: " + line));
+            continue;
+          }
+
+          if (numEdges > 0) {
+            if (numVertices
+                < MAX_SANE) { // This indicates we weren't given a max (see init of numVertices
+                              // above)
+              errors.add(
+                  new FeedbackListEntry(
+                      "Warning:  reached end of vertex list section early in .dm file.  Was expecting "
+                          + numVertices
+                          + " vertices but found only "
+                          + (i - 1)
+                          + " vertices."));
+            }
+            break;
+          }
+        } // if
+
+        // Okay, we're finally ready to parse the vertex definition
+        SoarVertex vertexToAdd = readVertexSafe(line, i, errors);
+        if (vertexToAdd != null) {
+          swmm.addVertex(vertexToAdd);
+
+          // If the id is out of sync, fix it here
+          i = vertexToAdd.getValue();
+        }
+
+        // Note:  no need for an 'else' here as readVertexSafe() should have added a report to the
+        // errors list
+      } // for
+
+      // Get the number edges
+      if (numEdges < 0) {
+        String line = scanFR.nextLine().trim();
         try {
-            numVertices = Integer.parseInt(lineOne);
+          Integer.parseInt(line);
+        } catch (NumberFormatException nfe) {
+          errors.add(
+              new FeedbackListEntry(
+                  "Warning:  expecting a number of edges in .dm file but found this instead: "
+                      + line));
+          // Note:  this method doesn't need to know how many edges there are anyway so just
+          // continue
         }
-        catch(NumberFormatException nfe) {
-            /* nothing to do here */
-        }
-        if (numVertices < 1) {
-            errors.add(new FeedbackListEntry("Warning: First line of datamap file does not contain a valid number of vertices: " + lineOne));
+      }
 
-            //Note:  We could abort here but let's continue with a large number and see if it works out
-            numVertices = MAX_SANE;
+      // If the comment file exists, read in all its comments
+      Vector<String> commentVec = new Vector<>();
+      if (cr != null) {
+        Scanner scanCR = new Scanner(cr);
+        int lineNum = 0;
+        while (scanCR.hasNextLine()) {
+          lineNum++;
+          String line = scanCR.nextLine();
+          if (line.isEmpty()) {
+            errors.add(
+                new FeedbackListEntry(
+                    "Warning:  ignoring blank line at comment.dm line " + lineNum));
+            continue;
+          }
+          commentVec.add(line);
+        }
+      }
+
+      // Read in the edges
+      int currEdgeNum = -1; // keep track so we know which comment line to use
+      while (scanFR.hasNextLine()) {
+        currEdgeNum++;
+        String line = scanFR.nextLine().trim();
+        if (line.length() == 0) {
+          errors.add(new FeedbackListEntry("Warning:  blank line found in .dm file's vertex list"));
+          continue; // skip blank lines
         }
 
-        // Get the root node
-        String lineTwo = scanFR.nextLine().trim();
-        String[] words = lineTwo.split("[ \\t]");  //split on spaces and tabs
-        if (! words[0].equals("SOAR_ID")) {
-            errors.add(new FeedbackListEntry("Error: Root type must be Soar id.  Expected \"SOAR_ID 0\" but found \"" + lineTwo + "\""));
-            MainFrame.getMainFrame().setFeedbackListData(errors);
-            return false;
+        words = line.split("[ \\t]"); // split on spaces and tabs
+        if (words.length != 3) {
+          errors.add(
+              new FeedbackListEntry("Warning:  Ignoring truncated datamap edge entry: " + line));
+          continue;
         }
-        int rootNodeId = -1;
+
+        // get the parent vertex
+        int parentVertexId;
         try {
-            rootNodeId = Integer.parseInt(words[1]);
+          parentVertexId = Integer.parseInt(words[0]);
+        } catch (NumberFormatException nfe) {
+          errors.add(
+              new FeedbackListEntry(
+                  "Warning:  Ignoring datamap edge entry with unparsable parent vertex id: "
+                      + line));
+          continue;
         }
-        catch(NumberFormatException | ArrayIndexOutOfBoundsException e) {
-            /* no action needed here */
-        }
-        if (rootNodeId < 0) {
-            errors.add(new FeedbackListEntry("Datamap root must have a valid Soar id.  Expected \"SOAR_ID 0\" but found \"" + lineTwo + "\""));
-            MainFrame.getMainFrame().setFeedbackListData(errors);
-            return false;
-        }
-        SoarIdentifierVertex topState = new SoarIdentifierVertex(rootNodeId);
-        swmm.setTopstate(topState);
-
-
-        // Get the rest of the vertices
-        int numEdges = -1;  //this may be needed below if we reach the value early
-        for (int i = 1; i < numVertices; ++i) {
-            //check for end of file
-            if (!scanFR.hasNextLine()) {
-                errors.add(new FeedbackListEntry("Error:  The .dm file appears to be truncated in the vertex list.  Aborting."));
-                MainFrame.getMainFrame().setFeedbackListData(errors);
-                return false;
-            }
-
-            String line = scanFR.nextLine().trim();
-            if (line.length() == 0) {
-                errors.add(new FeedbackListEntry("Warning:  blank line found in .dm file's vertex list"));
-                i--; //to keep the count accurate (hopefully)
-                continue;  //skip blank lines
-            }
-
-            //check here for a line that's a number only.  That means we've hit the
-            //number of edges early (probably)
-            if (line.length() < 6) { //no Soar project will have more than 99999 edges, right?
-                try {
-                    numEdges = Integer.parseInt(line);
-                } catch (NumberFormatException nfe) {
-                    errors.add(new FeedbackListEntry("Warning:  Ignoring invalid vertex list entry in .dm file: " + line));
-                    continue;
-                }
-
-                if (numEdges > 0) {
-                    if (numVertices < MAX_SANE) {  //This indicates we weren't given a max (see init of numVertices above)
-                        errors.add(new FeedbackListEntry("Warning:  reached end of vertex list section early in .dm file.  Was expecting " + numVertices + " vertices but found only " + (i - 1) + " vertices."));
-                    }
-                    break;
-                }
-            }//if
-
-            //Okay, we're finally ready to parse the vertex definition
-            SoarVertex vertexToAdd = readVertexSafe(line, i, errors);
-            if (vertexToAdd != null) {
-                swmm.addVertex(vertexToAdd);
-
-                //If the id is out of sync, fix it here
-                i = vertexToAdd.getValue();
-            }
-
-            //Note:  no need for an 'else' here as readVertexSafe() should have added a report to the errors list
-        }//for
-
-
-        // Get the number edges
-        if (numEdges < 0) {
-            String line = scanFR.nextLine().trim();
-            try {
-                Integer.parseInt(line);
-            }
-            catch(NumberFormatException nfe) {
-                errors.add(new FeedbackListEntry("Warning:  expecting a number of edges in .dm file but found this instead: " + line));
-                //Note:  this method doesn't need to know how many edges there are anyway so just continue
-            }
+        SoarVertex parentVertex;
+        try {
+          parentVertex = swmm.getVertexForId(parentVertexId);
+        } catch (ArrayIndexOutOfBoundsException aioobe) {
+          errors.add(
+              new FeedbackListEntry(
+                  "Warning:  Ignoring datamap edge entry with invalid parent vertex id: " + line));
+          continue;
         }
 
-        // If the comment file exists, read in all its comments
-        Vector<String> commentVec = new Vector<>();
-        if (cr != null) {
-            Scanner scanCR = new Scanner(cr);
-            int lineNum = 0;
-            while (scanCR.hasNextLine()) {
-                lineNum++;
-                String line = scanCR.nextLine();
-                if (line.isEmpty()) {
-                    errors.add(
-                        new FeedbackListEntry("Warning:  ignoring blank line at comment.dm line " + lineNum));
-                    continue;
-                }
-                commentVec.add(line);
-            }
+        // get the edge name
+        String edgeName = words[1];
+        if (!OperatorWindow.operatorNameIsValid(edgeName)) {
+          errors.add(
+              new FeedbackListEntry(
+                  "Warning:  Ignoring datamap edge entry with invalid edge name: " + line));
+          continue;
         }
 
-        //Read in the edges
-        int currEdgeNum = -1;  //keep track so we know which comment line to use
-        while(scanFR.hasNextLine()) {
-            currEdgeNum++;
-            String line = scanFR.nextLine().trim();
-            if (line.length() == 0) {
-                errors.add(new FeedbackListEntry("Warning:  blank line found in .dm file's vertex list"));
-                continue;  //skip blank lines
-            }
-
-            words = line.split("[ \\t]");  //split on spaces and tabs
-            if (words.length != 3) {
-                errors.add(new FeedbackListEntry("Warning:  Ignoring truncated datamap edge entry: " + line));
-                continue;
-            }
-
-            //get the parent vertex
-            int parentVertexId;
-            try {
-                parentVertexId = Integer.parseInt(words[0]);
-            }
-            catch(NumberFormatException nfe) {
-                errors.add(new FeedbackListEntry("Warning:  Ignoring datamap edge entry with unparsable parent vertex id: " + line));
-                continue;
-            }
-            SoarVertex parentVertex;
-            try {
-                parentVertex = swmm.getVertexForId(parentVertexId);
-            }
-            catch(ArrayIndexOutOfBoundsException aioobe) {
-                errors.add(new FeedbackListEntry("Warning:  Ignoring datamap edge entry with invalid parent vertex id: " + line));
-                continue;
-            }
-
-            //get the edge name
-            String edgeName = words[1];
-            if (! OperatorWindow.operatorNameIsValid(edgeName)) {
-                errors.add(new FeedbackListEntry("Warning:  Ignoring datamap edge entry with invalid edge name: " + line));
-                continue;
-            }
-
-            //get the child vertex
-            int childVertexId;
-            try {
-                childVertexId = Integer.parseInt(words[2]);
-            }
-            catch(NumberFormatException nfe) {
-                errors.add(new FeedbackListEntry("Warning:  Ignoring datamap edge entry with unparsable child vertex id: " + line));
-                continue;
-            }
-            SoarVertex childVertex;
-            try {
-                childVertex = swmm.getVertexForId(childVertexId);
-            }
-            catch(ArrayIndexOutOfBoundsException aioobe) {
-                errors.add(new FeedbackListEntry("Warning:  Ignoring datamap edge entry with invalid child vertex id: " + line));
-                continue;
-            }
-
-            //If there are no comments then we can create a triple now
-            if (commentVec.size() <= currEdgeNum) {
-                swmm.addTriple(parentVertex, edgeName, childVertex);
-                continue;
-            }
-
-            //Retrieve the 'generated' status (0 or 1)
-            line = commentVec.get(currEdgeNum);
-            int generated;
-            if (line.charAt(0) == '0') {
-                generated = 0;
-            }
-            else if (line.charAt(0) == '1') {
-                generated = 1;
-            }
-            else {
-                errors.add(new FeedbackListEntry("Warning:  Ignoring datamap comment.dm entry has invalid 'generated' status: " + line));
-                generated = 0;  //assume a default
-            }
-
-            //Retrieve any comment
-            String commentText = line.substring(1).trim();
-            swmm.addTriple(parentVertex, edgeName, childVertex, generated, commentText);
-        }//while
-
-        //if any issues were found, report them to the user
-        if (errors.size() > 0) {
-            MainFrame.getMainFrame().setFeedbackListData(errors);
+        // get the child vertex
+        int childVertexId;
+        try {
+          childVertexId = Integer.parseInt(words[2]);
+        } catch (NumberFormatException nfe) {
+          errors.add(
+              new FeedbackListEntry(
+                  "Warning:  Ignoring datamap edge entry with unparsable child vertex id: "
+                      + line));
+          continue;
         }
-        return true;
+        SoarVertex childVertex;
+        try {
+          childVertex = swmm.getVertexForId(childVertexId);
+        } catch (ArrayIndexOutOfBoundsException aioobe) {
+          errors.add(
+              new FeedbackListEntry(
+                  "Warning:  Ignoring datamap edge entry with invalid child vertex id: " + line));
+          continue;
+        }
 
-    }//readSafe
+        // If there are no comments then we can create a triple now
+        if (commentVec.size() <= currEdgeNum) {
+          swmm.addTriple(parentVertex, edgeName, childVertex);
+          continue;
+        }
+
+        // Retrieve the 'generated' status (0 or 1)
+        line = commentVec.get(currEdgeNum);
+        int generated;
+        if (line.charAt(0) == '0') {
+          generated = 0;
+        } else if (line.charAt(0) == '1') {
+          generated = 1;
+        } else {
+          errors.add(
+              new FeedbackListEntry(
+                  "Warning:  Ignoring datamap comment.dm entry has invalid 'generated' status: "
+                      + line));
+          generated = 0; // assume a default
+        }
+
+        // Retrieve any comment
+        String commentText = line.substring(1).trim();
+        swmm.addTriple(parentVertex, edgeName, childVertex, generated, commentText);
+      } // while
+    } catch (Throwable e) {
+      e.printStackTrace();
+      errors.add(
+          new FeedbackListEntry(
+              "Could not load datamap due to Exception: " + e.getMessage(), true));
+    }
+
+    // if any issues were found, report them to the user
+    if (errors.size() > 0) {
+      MainFrame.getMainFrame().setFeedbackListData(errors);
+    }
+    System.out.println("Returning " + errors.stream().filter(FeedbackListEntry::isError).findAny().isEmpty());
+    // return true if no errors were found
+    return errors.stream().filter(FeedbackListEntry::isError).findAny().isEmpty();
+  } // readSafe
 
     /**
      * reads the data in a given datamap (.dm) file into a given SWMM object
