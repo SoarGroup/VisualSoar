@@ -6,8 +6,10 @@ This is an IDE for [Soar](https://soar.eecs.umich.edu/) agent development.
 
 To compile VisualSoar, you must put a copy of the latest version of sml.lib (from the SoarSuite) into the lib directory.
 
-The project is defined and managed via [Gradle](https://gradle.org/). Eclipse and
-IntelliJ can both use this project type.
+The project is defined and managed via [Gradle](https://gradle.org/). To open in IntelliJ,
+simply open the project root folder, and IntelliJ will ask if you'd like to import the gradle
+project that it found. Select "yes" and you'll be able to run and debug files normally, as well
+as run the Gradle targets from IntelliJ. Eclipse understands Gradle projects, as well.
 
 ### Building the jar for release with Soar
 
@@ -44,7 +46,7 @@ system `path`. This is due to a confluence of missing features:
 * JPackage doesn't support using environment variables to form JVM arguments.
   * Also, it's not straightforward to load the user's environment variables in a standalone application; on Mac, for example, running a .app file doesn't run my .bash_profile first, etc.
 
-I intend to revisit this after fixing the first point above in Soar: https://github.com/SoarGroup/Soar/issues/491..
+I intend to revisit this after fixing the first point above in Soar: https://github.com/SoarGroup/Soar/issues/491.
 
 ### Running
 
