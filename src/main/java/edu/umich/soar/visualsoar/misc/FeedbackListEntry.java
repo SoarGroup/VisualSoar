@@ -1,12 +1,5 @@
 package edu.umich.soar.visualsoar.misc;
 
-import edu.umich.soar.visualsoar.MainFrame;
-import edu.umich.soar.visualsoar.datamap.DataMap;
-import edu.umich.soar.visualsoar.datamap.SoarWorkingMemoryModel;
-import edu.umich.soar.visualsoar.graph.NamedEdge;
-import edu.umich.soar.visualsoar.graph.SoarIdentifierVertex;
-import edu.umich.soar.visualsoar.operatorwindow.OperatorNode;
-
 
 /**
  * A FeedbackListEntry contains a message to be displayed to the user in the

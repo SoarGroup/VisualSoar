@@ -1,6 +1,6 @@
 package edu.umich.soar.visualsoar.misc;
 
-import edu.umich.soar.visualsoar.MainFrame;
+import edu.umich.soar.visualsoar.mainframe.MainFrame;
 import edu.umich.soar.visualsoar.ruleeditor.SoarDocument;
 
 import java.io.File;

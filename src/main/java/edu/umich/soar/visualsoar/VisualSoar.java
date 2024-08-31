@@ -1,4 +1,5 @@
 package edu.umich.soar.visualsoar;
+import edu.umich.soar.visualsoar.mainframe.MainFrame;
 import edu.umich.soar.visualsoar.misc.Prefs;
 
 import java.io.File;
@@ -7,7 +8,7 @@ import java.util.Vector;
 import javax.swing.JOptionPane;
 
 /**
- * This is the class that the user runs, all it does is create an instance of the 
+ * This is the class that the user runs, all it does is create an instance of the
  * main frame and sets it visible
  * @author Brad Jones 0.5a 5 Aug 1999
  * @author Jon Bauman
@@ -60,5 +61,5 @@ public class VisualSoar {
 
 
 	}
-	
+
 }

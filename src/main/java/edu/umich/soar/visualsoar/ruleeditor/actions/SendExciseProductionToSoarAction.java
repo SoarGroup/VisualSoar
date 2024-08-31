@@ -1,9 +1,8 @@
 package edu.umich.soar.visualsoar.ruleeditor.actions;
 
-import edu.umich.soar.visualsoar.MainFrame;
+import edu.umich.soar.visualsoar.mainframe.MainFrame;
 import edu.umich.soar.visualsoar.ruleeditor.RuleEditor;
 import edu.umich.soar.visualsoar.util.SoarUtils;
-import sml.Agent;
 
 import javax.swing.*;
 import java.awt.*;

@@ -1,6 +1,6 @@
 package edu.umich.soar.visualsoar.ruleeditor.actions;
 
-import edu.umich.soar.visualsoar.MainFrame;
+import edu.umich.soar.visualsoar.mainframe.MainFrame;
 import edu.umich.soar.visualsoar.ruleeditor.EditingUtils;
 import edu.umich.soar.visualsoar.ruleeditor.EditorPane;
 

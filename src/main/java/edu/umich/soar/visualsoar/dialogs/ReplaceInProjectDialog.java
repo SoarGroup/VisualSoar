@@ -1,6 +1,6 @@
 package edu.umich.soar.visualsoar.dialogs;
 
-import edu.umich.soar.visualsoar.MainFrame;
+import edu.umich.soar.visualsoar.mainframe.MainFrame;
 import edu.umich.soar.visualsoar.misc.FeedbackEntryOpNode;
 import edu.umich.soar.visualsoar.misc.FeedbackListEntry;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorNode;

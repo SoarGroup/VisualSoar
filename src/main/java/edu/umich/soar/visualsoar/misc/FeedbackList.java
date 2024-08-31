@@ -1,7 +1,6 @@
 package edu.umich.soar.visualsoar.misc;
 
-import edu.umich.soar.visualsoar.MainFrame;
-import edu.umich.soar.visualsoar.operatorwindow.FileOperatorNode;
+import edu.umich.soar.visualsoar.mainframe.MainFrame;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorNode;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorWindow;
 

@@ -1,14 +1,9 @@
 package edu.umich.soar.visualsoar.misc;
 
-import edu.umich.soar.visualsoar.MainFrame;
-import edu.umich.soar.visualsoar.datamap.DataMapTree;
-import edu.umich.soar.visualsoar.datamap.SoarWorkingMemoryModel;
+import edu.umich.soar.visualsoar.mainframe.MainFrame;
 import edu.umich.soar.visualsoar.graph.*;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorRootNode;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorWindow;
-
-import java.util.HashMap;
-import java.util.Vector;
 
 /**
  * class FeedbackEntryForeignDatamap

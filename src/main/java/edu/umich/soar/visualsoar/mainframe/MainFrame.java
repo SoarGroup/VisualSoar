@@ -1,4 +1,4 @@
-package edu.umich.soar.visualsoar;
+package edu.umich.soar.visualsoar.mainframe;
 
 import edu.umich.soar.visualsoar.datamap.CheckBoxDataMap;
 import edu.umich.soar.visualsoar.datamap.DataMap;

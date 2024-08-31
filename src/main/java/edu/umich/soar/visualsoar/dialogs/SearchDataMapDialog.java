@@ -1,6 +1,6 @@
 package edu.umich.soar.visualsoar.dialogs;
 
-import edu.umich.soar.visualsoar.MainFrame;
+import edu.umich.soar.visualsoar.mainframe.MainFrame;
 import edu.umich.soar.visualsoar.datamap.DataMap;
 import edu.umich.soar.visualsoar.datamap.DataMapTree;
 import edu.umich.soar.visualsoar.datamap.FakeTreeNode;

@@ -1,5 +1,6 @@
 package edu.umich.soar.visualsoar.dialogs;
 
+import edu.umich.soar.visualsoar.mainframe.MainFrame;
 import edu.umich.soar.visualsoar.misc.Prefs;
 
 import javax.swing.*;
@@ -51,7 +52,7 @@ class AgentPathPanel extends JPanel {
 
         browse.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                DirectorySelectionDialog dsd = new DirectorySelectionDialog(edu.umich.soar.visualsoar.MainFrame.getMainFrame());
+                DirectorySelectionDialog dsd = new DirectorySelectionDialog(MainFrame.getMainFrame());
                 dsd.setPath(new File(workingDirName));
                 dsd.setVisible(true);
                 if (dsd.wasApproved()) {

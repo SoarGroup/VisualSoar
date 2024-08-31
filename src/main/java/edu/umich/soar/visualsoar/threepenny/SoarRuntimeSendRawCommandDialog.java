@@ -1,6 +1,5 @@
 package edu.umich.soar.visualsoar.threepenny;
 
-import edu.umich.soar.visualsoar.MainFrame;
 import edu.umich.soar.visualsoar.util.SoarUtils;
 import sml.Agent;
 import sml.Kernel;

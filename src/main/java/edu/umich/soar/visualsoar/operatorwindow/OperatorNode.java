@@ -1,6 +1,6 @@
 package edu.umich.soar.visualsoar.operatorwindow;
 
-import edu.umich.soar.visualsoar.MainFrame;
+import edu.umich.soar.visualsoar.mainframe.MainFrame;
 import edu.umich.soar.visualsoar.datamap.SoarWorkingMemoryModel;
 import edu.umich.soar.visualsoar.dialogs.FileAlreadyExistsDialog;
 import edu.umich.soar.visualsoar.graph.SoarIdentifierVertex;

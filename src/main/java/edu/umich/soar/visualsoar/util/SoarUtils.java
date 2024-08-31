@@ -1,6 +1,6 @@
 package edu.umich.soar.visualsoar.util;
 
-import edu.umich.soar.visualsoar.MainFrame;
+import edu.umich.soar.visualsoar.mainframe.MainFrame;
 import sml.Agent;
 
 import javax.swing.*;
