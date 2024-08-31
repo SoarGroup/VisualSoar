@@ -7,6 +7,7 @@ import edu.umich.soar.visualsoar.datamap.SoarWorkingMemoryReader;
 import edu.umich.soar.visualsoar.dialogs.*;
 import edu.umich.soar.visualsoar.files.Backup;
 import edu.umich.soar.visualsoar.files.Cfg;
+import edu.umich.soar.visualsoar.files.Vsa;
 import edu.umich.soar.visualsoar.graph.NamedEdge;
 import edu.umich.soar.visualsoar.mainframe.actions.SaveAllFilesAction;
 import edu.umich.soar.visualsoar.misc.*;
@@ -1360,37 +1361,6 @@ public class MainFrame extends JFrame
   Actions
   ########################################################################################*/
 
-	/**
-	 * ghettoFileChooser
-	 * <p>
-	 * Uses a FileDialog to select a file with a .vsa extension
-	 * It's called "ghetto" because the original author of this code wrote
-	 * this about it:
-	 * 	  FIXME: This is totally ghetto
-	 * 	    Using a JFileChooser seems to cause hangs on OS X (10.4, at least)
-	 * 	    so I've converted the code to use a FileDialog instead
-	 * 	    Unfortunately, FilenameFilters don't work on Windows XP, so I have
-	 * 	    to set the file to *.vsa.  Yuck.
-	 * <p>
-	 * It's quite possible JFileChooser no longer crashes OS/X but why fix
-	 * something that seems to be working fine?    -- Nuxoll, Jan 2024
-	 *
-	 * @return the file selected (or null if none)
-	 */
-	private File ghettoFileChooser() {
-		FileDialog fileChooser = new FileDialog(MainFrame.this, "Open Project", FileDialog.LOAD);
-		File dir = new File(Prefs.openFolder.get());
-		if ((dir.exists()) && (dir.canRead())) {
-			fileChooser.setDirectory(dir.getAbsolutePath());
-		}
-		fileChooser.setFilenameFilter((dir1, name) -> name.toLowerCase().endsWith("vsa"));
-		fileChooser.setFile("*.vsa");
-		fileChooser.setVisible(true);
-		if (fileChooser.getFile() == null) return null;
-		return new File(fileChooser.getDirectory(), fileChooser.getFile());
-	}//ghettoFileChooser
-
-
   /**
 	 * Exit command
 	 * First closes all the RuleEditor windows
@@ -1544,7 +1514,7 @@ public class MainFrame extends JFrame
         {
 			try
             {
-				File file = ghettoFileChooser();
+				File file = Vsa.selectVsaFile(MainFrame.this);
 				if(file != null) {
 					//Get rid of the old project (if it exists)
 					if (operatorWindow != null) {
@@ -2894,7 +2864,7 @@ public class MainFrame extends JFrame
 			}
 
 			//The user selects a datamap file to import from
-			File vsaFile = ghettoFileChooser();
+			File vsaFile = Vsa.selectVsaFile(MainFrame.this);
 			if (vsaFile == null) return;
 
 			//read the data from the foreign datamap into a local SWMM object
