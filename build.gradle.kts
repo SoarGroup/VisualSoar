@@ -16,6 +16,7 @@ repositories {
 }
 
 dependencies {
+  implementation("org.jetbrains:annotations:24.0.0")
   testImplementation(libs.junit.jupiter)
   testImplementation("org.mockito:mockito-core:5.12.0")
 

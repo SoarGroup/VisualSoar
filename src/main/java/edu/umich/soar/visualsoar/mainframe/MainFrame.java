@@ -16,6 +16,7 @@ import edu.umich.soar.visualsoar.threepenny.SoarRuntimeSendRawCommandDialog;
 import edu.umich.soar.visualsoar.util.ActionButtonAssociation;
 import edu.umich.soar.visualsoar.util.MenuAdapter;
 import edu.umich.soar.visualsoar.util.SoarUtils;
+import org.jetbrains.annotations.NotNull;
 import sml.Agent;
 import sml.Kernel;
 import sml.sml_Names;
@@ -88,7 +89,7 @@ public class MainFrame extends JFrame
 
 	//Actions
 	Action newProjectAction = new NewProjectAction(this);
-	Action openProjectAction = new OpenProjectAction();
+	Action openProjectAction = new OpenProjectAction(this);
     Action openFileAction = new OpenFileAction(this);
 	PerformableAction closeProjectAction = new CloseProjectAction(this);
 	PerformableAction saveAllFilesAction = new SaveAllFilesAction(this);
@@ -1456,86 +1457,68 @@ public class MainFrame extends JFrame
 	}//tryOpenProject
 
 
-  /**
-	 * Open Project Action
-     * a filechooser is created to determine project file
-     * Opens a project by creating a new OperatorWindow
-     * @see OperatorWindow
-     * @see SoarFileFilter
-	 */
-	class OpenProjectAction extends AbstractAction
+  public void openProject(@NotNull File vsaFile, boolean readOnly) {
+    try
     {
-		private static final long serialVersionUID = 20221225L;
+      //Get rid of the old project (if it exists)
+      if (operatorWindow != null) {
+        closeProjectAction.perform();
+      }
 
-		public OpenProjectAction()
-        {
-			super("Open Project...");
-		}
-		public void actionPerformed(ActionEvent event)
-        {
-			try
-            {
-				File file = Vsa.selectVsaFile(MainFrame.this);
-				if(file != null) {
-					//Get rid of the old project (if it exists)
-					if (operatorWindow != null) {
-						closeProjectAction.perform();
-					}
+      //Open the new project
+      operatorWindow = new OperatorWindow(vsaFile, readOnly);
+      // TODO: move this
+      if(vsaFile.getParent() != null) {
+        Prefs.openFolder.set(vsaFile.getParentFile().getAbsolutePath());
+      }
+      operatorDesktopSplit.setLeftComponent(new JScrollPane(operatorWindow));
 
-					//Open the new project
-					boolean readOnly = event.getActionCommand().contains("Read-Only");
-					operatorWindow = new OperatorWindow(file, readOnly);
-					if(file.getParent() != null) {
-						Prefs.openFolder.set(file.getParentFile().getAbsolutePath());
-					}
-					operatorDesktopSplit.setLeftComponent(new JScrollPane(operatorWindow));
+      projectActionsEnable(true);
 
-					projectActionsEnable(true);
+      //Set and monitor the divider position
+      operDividerSetup();
 
-					//Set and monitor the divider position
-					operDividerSetup();
+      //Verify project integrity
+      // TODO: not done in tryOpenProject
+      verifyProjectAction.perform();
 
-					//Verify project integrity
-					verifyProjectAction.perform();
+      //Reset tracking whether any change has been made to this project
+      // TODO: not done in tryOpenProject
+      CustomInternalFrame.resetEverchanged();
 
-					//Reset tracking whether any change has been made to this project
-					CustomInternalFrame.resetEverchanged();
+      //Set the title bar to include the project name
+      setTitle(vsaFile.getName().replaceAll(".vsa", ""));
 
-					//Set the title bar to include the project name
-					setTitle(file.getName().replaceAll(".vsa", ""));
+      //Reopen windows that were open last time
+      Cfg.readCfgFile(this);
 
-					//Reopen windows that were open last time
-					Cfg.readCfgFile(MainFrame.this);
-
-					//Configure read-only status
-					setReadOnly(readOnly);
-				}
-			}
-			catch(FileNotFoundException fnfe)
-            {
-				JOptionPane.showMessageDialog(MainFrame.this,
-                                              fnfe.getMessage(),
-                                              "File Not Found",
-                                              JOptionPane.ERROR_MESSAGE);
-			}
-			catch(IOException ioe)
-            {
-				JOptionPane.showMessageDialog(MainFrame.this,
-                                              ioe.getMessage(),
-                                              "I/O Exception",
-                                              JOptionPane.ERROR_MESSAGE);
-				ioe.printStackTrace();
-			}
-			catch(NumberFormatException nfe)
-            {
-                nfe.printStackTrace();
-                JOptionPane.showMessageDialog(MainFrame.this,
-                                              "Error Reading File, Data Incorrectly Formatted",
-                                              "Bad File",
-                                              JOptionPane.ERROR_MESSAGE);
-			}
-		}
-	}
+      //Configure read-only status
+      setReadOnly(readOnly);
+    }
+    catch(FileNotFoundException fnfe)
+    {
+      JOptionPane.showMessageDialog(this,
+        fnfe.getMessage(),
+        "File Not Found",
+        JOptionPane.ERROR_MESSAGE);
+    }
+    catch(IOException ioe)
+    {
+      JOptionPane.showMessageDialog(this,
+        ioe.getMessage(),
+        "I/O Exception",
+        JOptionPane.ERROR_MESSAGE);
+      ioe.printStackTrace();
+    }
+    catch(NumberFormatException nfe)
+    {
+      nfe.printStackTrace();
+      JOptionPane.showMessageDialog(this,
+        "Error Reading File, Data Incorrectly Formatted",
+        "Bad File",
+        JOptionPane.ERROR_MESSAGE);
+    }
+  }
 
   /**
    * Creates a dialog that gets the new project name and then creates the new

@@ -17,7 +17,9 @@ public class Vsa {
     }
     fileChooser.setFilenameFilter((dir1, name) -> name.toLowerCase().endsWith("vsa"));
     fileChooser.setVisible(true);
-    if (fileChooser.getFile() == null) return null;
+    if (fileChooser.getFile() == null) {
+      return null;
+    }
     return new File(fileChooser.getDirectory(), fileChooser.getFile());
   }
 }
