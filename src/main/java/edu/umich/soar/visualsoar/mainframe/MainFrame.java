@@ -8,14 +8,9 @@ import edu.umich.soar.visualsoar.dialogs.*;
 import edu.umich.soar.visualsoar.files.Backup;
 import edu.umich.soar.visualsoar.files.Cfg;
 import edu.umich.soar.visualsoar.files.Vsa;
-import edu.umich.soar.visualsoar.graph.NamedEdge;
-import edu.umich.soar.visualsoar.mainframe.actions.SaveAllFilesAction;
+import edu.umich.soar.visualsoar.mainframe.actions.*;
 import edu.umich.soar.visualsoar.misc.*;
 import edu.umich.soar.visualsoar.operatorwindow.*;
-import edu.umich.soar.visualsoar.parser.ParseException;
-import edu.umich.soar.visualsoar.parser.SoarProduction;
-import edu.umich.soar.visualsoar.parser.SuppParseChecks;
-import edu.umich.soar.visualsoar.parser.TokenMgrError;
 import edu.umich.soar.visualsoar.ruleeditor.RuleEditor;
 import edu.umich.soar.visualsoar.threepenny.SoarRuntimeSendRawCommandDialog;
 import edu.umich.soar.visualsoar.util.ActionButtonAssociation;
@@ -27,11 +22,8 @@ import sml.sml_Names;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
-import javax.swing.event.HyperlinkEvent;
-import javax.swing.event.HyperlinkListener;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
-import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
 import java.awt.*;
 import java.awt.event.*;
@@ -39,8 +31,6 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyVetoException;
 import java.io.*;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.List;
 import java.util.*;
 
@@ -97,14 +87,14 @@ public class MainFrame extends JFrame
 	AboutDialog aboutDialog = new AboutDialog(this);
 
 	//Actions
-	Action newProjectAction = new NewProjectAction();
+	Action newProjectAction = new NewProjectAction(this);
 	Action openProjectAction = new OpenProjectAction();
-    Action openFileAction = new OpenFileAction();
-	PerformableAction closeProjectAction = new CloseProjectAction();
+    Action openFileAction = new OpenFileAction(this);
+	PerformableAction closeProjectAction = new CloseProjectAction(this);
 	PerformableAction saveAllFilesAction = new SaveAllFilesAction(this);
-	PerformableAction exportAgentAction = new ExportAgentAction();
-	PerformableAction saveDataMapAndProjectAction = new SaveDataMapAndProjectAction();
-	Action preferencesAction = new PreferencesAction();
+	PerformableAction exportAgentAction = new ExportAgentAction(this);
+	PerformableAction saveDataMapAndProjectAction = new SaveDataMapAndProjectAction(this);
+	Action preferencesAction = new PreferencesAction(this);
 
 	public static final String TOGGLE_RO_ON = "Turn On Read-Only...";
 	public static final String TOGGLE_RO_OFF = "Turn Off Read-Only...";
@@ -118,25 +108,25 @@ public class MainFrame extends JFrame
 	Action toggleReadOnlyAction = new ToggleReadOnlyAction();
 	PerformableAction commitAction = new CommitAction();
 	Action exitAction = new ExitAction();
-	Action closeAllWindowsAction = new CloseAllWindowsAction();
+	Action closeAllWindowsAction = new CloseAllWindowsAction(this);
     Action cascadeAction = new CascadeAction();
     Action tileWindowsAction = new TileWindowsAction();
     Action reTileWindowsAction = new ReTileWindowsAction();
-	PerformableAction verifyProjectAction = new VerifyProjectAction();
-	Action checkSyntaxErrorsAction = new CheckSyntaxErrorsAction();
-	Action loadTopStateDatamapAction = new LoadTopStateDatamapAction();
+	PerformableAction verifyProjectAction = new VerifyProjectAction(this);
+	Action checkSyntaxErrorsAction = new CheckSyntaxErrorsAction(this);
+	Action loadTopStateDatamapAction = new LoadTopStateDatamapAction(this);
 	Action linkDataMapAction = new LinkDataMapAction();
-	PerformableAction checkAllProductionsAction = new CheckAllProductionsAction();
-    Action searchDataMapCreateAction = new SearchDataMapCreateAction();
-    Action searchDataMapTestAction = new SearchDataMapTestAction();
-    Action searchDataMapCreateNoTestAction = new SearchDataMapCreateNoTestAction();
-    Action searchDataMapTestNoCreateAction = new SearchDataMapTestNoCreateAction();
-    Action searchDataMapNoTestNoCreateAction = new SearchDataMapNoTestNoCreateAction();
+	PerformableAction checkAllProductionsAction = new CheckAllProductionsAction(this);
+    Action searchDataMapCreateAction = new SearchDataMapCreateAction(this);
+    Action searchDataMapTestAction = new SearchDataMapTestAction(this);
+    Action searchDataMapCreateNoTestAction = new SearchDataMapCreateNoTestAction(this);
+    Action searchDataMapTestNoCreateAction = new SearchDataMapTestNoCreateAction(this);
+    Action searchDataMapNoTestNoCreateAction = new SearchDataMapNoTestNoCreateAction(this);
 
-    Action generateDataMapAction = new GenerateDataMapAction();
+    Action generateDataMapAction = new GenerateDataMapAction(this);
 	Action saveProjectAsAction = new SaveProjectAsAction();
 	Action contactUsAction = new ContactUsAction();
-    Action viewKeyBindingsAction = new ViewKeyBindingsAction();
+    Action viewKeyBindingsAction = new ViewKeyBindingsAction(this);
 	Action findInProjectAction = new FindInProjectAction();
     Action replaceInProjectAction = new ReplaceInProjectAction();
 	Action findAllProdsAction = new FindAllProdsAction();
@@ -413,7 +403,7 @@ public class MainFrame extends JFrame
 			for(int i = recentProjs.size() - 1; i >= 0; --i) {
 				Prefs.RecentProjInfo projEntry = recentProjs.get(i);
 				JMenuItem recentItem = new JMenuItem(projEntry.toString());
-				recentItem.addActionListener(new TryOpenProjectAction(projEntry));
+				recentItem.addActionListener(new TryOpenProjectAction(this, projEntry));
 				openRecentMenu.add(recentItem);
 			}
 		}//else
@@ -1412,34 +1402,33 @@ public class MainFrame extends JFrame
 		}
 	}
 
-	/**
-     * Attempts to save the datamap
-     * @see OperatorWindow#saveHierarchy()
-     */
-	class SaveDataMapAndProjectAction extends PerformableAction {
-		private static final long serialVersionUID = 20221225L;
+  public void closeProject() {
+    checkForUnsavedProjectOnClose();
 
-		public SaveDataMapAndProjectAction()
-        {
-			super("Save DataMap And Project Action");
-		}
+    JInternalFrame[] frames = desktopPane.getAllFrames();
+    try
+    {
+      if ( (!isReadOnly()) && (CustomInternalFrame.hasEverChanged()) ) commitAction.perform();
+      Backup.deleteAutoBackupFiles(MainFrame.this);
 
-		public void perform()
-        {
-			if(operatorWindow != null)
-            {
-				operatorWindow.saveHierarchy();
-			}
-		}
+      for (JInternalFrame frame : frames) {
+        frame.setClosed(true);
+      }
+      operatorDesktopSplit.setLeftComponent(null);
 
-		public void actionPerformed(ActionEvent event)
-        {
-			perform();
-			setStatusBarMsg("DataMap and Project Saved");
-		}
-	}
+      projectActionsEnable(false);
 
-    /**
+      feedbackList.clearListData();
+
+      //This acts as a flag to indicate there is no project
+      operatorWindow = null;
+    }
+    catch (java.beans.PropertyVetoException pve) { /* ignore */ }
+
+    setTitle("VisualSoar");
+  }
+
+  /**
      * Attempts to open a new project by creating a new OperatorWindow
      * @param file .vsa project file that is to be opened
      * @see OperatorWindow
@@ -1467,35 +1456,7 @@ public class MainFrame extends JFrame
 	}//tryOpenProject
 
 
-	public class TryOpenProjectAction extends PerformableAction {
-		private final Prefs.RecentProjInfo projInfo;
-
-		public TryOpenProjectAction(Prefs.RecentProjInfo rpi) {
-			super("Attempt to load project file: " + rpi);
-			this.projInfo = rpi;
-		}
-
-		@Override
-		public void perform() {
-			//Get rid of the old project (if it exists)
-			if (operatorWindow != null) {
-				closeProjectAction.perform();
-			}
-
-			try {
-				tryOpenProject(projInfo.file, projInfo.isReadOnly);
-			} catch(IOException ioe) {
-				JOptionPane.showMessageDialog(MainFrame.this, "Unable to open file: " + projInfo);
-			}
-		}
-
-		@Override
-		public void actionPerformed(ActionEvent e) {
-			perform();
-		}
-	}
-
-	/**
+  /**
 	 * Open Project Action
      * a filechooser is created to determine project file
      * Opens a project by creating a new OperatorWindow
@@ -1576,236 +1537,75 @@ public class MainFrame extends JFrame
 		}
 	}
 
-	/**
-     * Open a text file unrelated to the project in a rule editor
-     * Opened file is not necessarily part of project and not soar formatted
-     */
-    class OpenFileAction extends AbstractAction
+  /**
+   * Creates a dialog that gets the new project name and then creates the new
+   * project by creating a new Operator Window.
+   * @see NewAgentDialog
+   * @see OperatorWindow
+   */
+  public void newProject() {
+    // redo this a dialog should just pass back data to the main window for processing
+    NewAgentDialog newAgentDialog = new NewAgentDialog(MainFrame.this);
+    newAgentDialog.setVisible(true);
+    if (newAgentDialog.wasApproved())
     {
-		private static final long serialVersionUID = 20221225L;
+      //Verify that the path exists
+      String path = newAgentDialog.getNewAgentPath();
+      File pathFile = new File(path);
+      if (! pathFile.exists())
+      {
+        int choice = JOptionPane.showConfirmDialog(
+          getMainFrame(),
+          path + " does not exist.\nShould I create it for you?",
+          path + " Does Not Exist",
+          JOptionPane.OK_CANCEL_OPTION);
 
-		public OpenFileAction()
+        if (choice == JOptionPane.CANCEL_OPTION)
         {
-            super("Open File...");
+          return;
         }
-        public void actionPerformed(ActionEvent event)
-        {
-            try
-            {
-                JFileChooser fileChooser = new JFileChooser();
-                fileChooser.setFileFilter(new TextFileFilter());
-				File dir = new File(Prefs.openFolder.get());
-				if ((dir.exists()) && (dir.canRead())) {
-					fileChooser.setCurrentDirectory(dir);
-				}
-                int state = fileChooser.showOpenDialog(MainFrame.this);
-                File file = fileChooser.getSelectedFile();
-                if(file != null && state == JFileChooser.APPROVE_OPTION)
-                {
-                    OpenFile(file);
-                }
 
-            }
+        pathFile.mkdirs();
+      }//if
 
-			catch(NumberFormatException nfe)
-            {
-                nfe.printStackTrace();
-                JOptionPane.showMessageDialog(MainFrame.this,
-                                              "Error Reading File, Data Incorrectly Formatted",
-                                              "Bad File",
-                                              JOptionPane.ERROR_MESSAGE);
-			}
+      //Verify that the project doesn't already exist
+      String agentName = newAgentDialog.getNewAgentName();
+      String agentFileName = path + File.separator + agentName + ".vsa";
+      File agentNameFile = new File(agentFileName);
+      if (agentNameFile.exists())
+      {
+        JOptionPane.showMessageDialog(
+          getMainFrame(),
+          agentName + " already exists. Please try again with a different project name or path.",
+          agentName + " already exists!",
+          JOptionPane.ERROR_MESSAGE);
 
-        }
+        return;
+      }
+
+      operatorWindow = new OperatorWindow(agentName,agentFileName,true);
+
+      Prefs.openFolder.set(path);
+      operatorDesktopSplit.setLeftComponent(new JScrollPane(operatorWindow));
+
+      projectActionsEnable(true);
+      commitAction.perform();
+
+      //Set and monitor the divider position
+      operDividerSetup();
+
+      //Reset tracking whether any change has been made to this project
+      CustomInternalFrame.resetEverchanged();
+
+      //Set the title bar to include the project name
+      setTitle(agentName);
+
+      //Add this new agent to the recently opened project list
+      Prefs.addRecentProject(agentNameFile, false);
     }
+  }
 
-
-	/**
-	 * New Project Action
-     * Creates a dialog that gets the new project name and then creates the new
-     * project by creating a new Operator Window.
-     * @see NewAgentDialog
-     * @see OperatorWindow
-	 */
-	class NewProjectAction extends AbstractAction
-    {
-		private static final long serialVersionUID = 20221225L;
-
-		public NewProjectAction()
-        {
-			super("New Project...");
-		}
-
-		public void actionPerformed(ActionEvent event)
-        {
-			// redo this a dialog should just pass back data to the main window for processing
-			NewAgentDialog newAgentDialog = new NewAgentDialog(MainFrame.this);
-			newAgentDialog.setVisible(true);
-			if (newAgentDialog.wasApproved())
-            {
-                //Verify that the path exists
-				String path = newAgentDialog.getNewAgentPath();
-                File pathFile = new File(path);
-                if (! pathFile.exists())
-                {
-                    int choice = JOptionPane.showConfirmDialog(
-                        getMainFrame(),
-                            path + " does not exist.\nShould I create it for you?",
-                            path + " Does Not Exist",
-                            JOptionPane.OK_CANCEL_OPTION);
-
-                    if (choice == JOptionPane.CANCEL_OPTION)
-                    {
-                        return;
-                    }
-
-                    pathFile.mkdirs();
-                }//if
-
-                //Verify that the project doesn't already exist
-				String agentName = newAgentDialog.getNewAgentName();
-				String agentFileName = path + File.separator + agentName + ".vsa";
-                File agentNameFile = new File(agentFileName);
-                if (agentNameFile.exists())
-                {
-                    JOptionPane.showMessageDialog(
-                        getMainFrame(),
-                        agentName + " already exists. Please try again with a different project name or path.",
-                        agentName + " already exists!",
-                        JOptionPane.ERROR_MESSAGE);
-
-                    return;
-                }
-
-				operatorWindow = new OperatorWindow(agentName,agentFileName,true);
-
-				Prefs.openFolder.set(path);
-				operatorDesktopSplit.setLeftComponent(new JScrollPane(operatorWindow));
-
-				projectActionsEnable(true);
-                commitAction.perform();
-
-				//Set and monitor the divider position
-				operDividerSetup();
-
-				//Reset tracking whether any change has been made to this project
-				CustomInternalFrame.resetEverchanged();
-
-				//Set the title bar to include the project name
-                setTitle(agentName);
-
-				//Add this new agent to the recently opened project list
-				Prefs.addRecentProject(agentNameFile, false);
-			}
-		}
-	}
-
-	/**
-	 * Close Project Action
-     * Closes all open windows in the desktop pane
-	 */
-	class CloseProjectAction extends PerformableAction
-    {
-		private static final long serialVersionUID = 20221225L;
-
-		public CloseProjectAction()
-        {
-			super("Close Project");
-			setEnabled(false);
-		}
-
-		public void perform()
-        {
-            checkForUnsavedProjectOnClose();
-
-			JInternalFrame[] frames = desktopPane.getAllFrames();
-			try
-            {
-				if ( (!isReadOnly()) && (CustomInternalFrame.hasEverChanged()) ) commitAction.perform();
-				Backup.deleteAutoBackupFiles(MainFrame.this);
-
-				for (JInternalFrame frame : frames) {
-					frame.setClosed(true);
-				}
-				operatorDesktopSplit.setLeftComponent(null);
-
-				projectActionsEnable(false);
-
-				feedbackList.clearListData();
-
-				//This acts as a flag to indicate there is no project
-				operatorWindow = null;
-			}
-			catch (java.beans.PropertyVetoException pve) { /* ignore */ }
-
-            setTitle("VisualSoar");
-		}//perform()
-
-
-        public void actionPerformed(ActionEvent event)
-        {
-            perform();
-        }
-
-	}
-
-	/**
-	 * Export Agent
-	 * Writes all the <operator>_source.soar files necesary for sourcing agent
-	 * files written in  into the TSI
-	 */
-	class ExportAgentAction extends PerformableAction
-    {
-		private static final long serialVersionUID = 20221225L;
-
-		public ExportAgentAction()
-        {
-			super("Export Agent");
-		}
-
-		public void perform()
-        {
-			DefaultTreeModel tree = (DefaultTreeModel)operatorWindow.getModel();
-			OperatorRootNode root = (OperatorRootNode)tree.getRoot();
-			try
-            {
-				root.startSourcing();
-			}
-			catch (IOException exception)
-            {
-				JOptionPane.showMessageDialog(MainFrame.this,
-                                              exception.getMessage(),
-                                              "Agent Export Error",
-                                              JOptionPane.ERROR_MESSAGE);
-			}
-		}
-
-		public void actionPerformed(ActionEvent event)
-        {
-			perform();
-			setStatusBarMsg("Export Finished");
-		}
-	}
-
-	/**
-	 * Creates and shows the preferences dialog
-	 */
-	static class PreferencesAction extends AbstractAction
-	{
-		private static final long serialVersionUID = 20221225L;
-
-		public PreferencesAction()
-		{
-			super("Preferences Action");
-		}
-
-		public void actionPerformed(ActionEvent e)
-		{
-			PreferencesDialog	theDialog = new PreferencesDialog(MainFrame.getMainFrame());
-			theDialog.setVisible(true);
-		}//actionPerformed()
-	}
-	/**
+  /**
 	 * Toggles the project in/out of Read-Only Mode
 	 */
 	class ToggleReadOnlyAction extends AbstractAction
@@ -1841,50 +1641,8 @@ public class MainFrame extends JFrame
 			aboutDialog.setVisible(true);
 		}
   	}
-	private static final String KEY_BINDINGS_HELP_URL = "https://soar.eecs.umich.edu/reference/VisualSoarKeyboardAndMouseControls";
-	/**
-	 * This is where the user wants a list of keybindings.  The action
-	 * points the user to the online documentation.
-	 */
-	class ViewKeyBindingsAction extends AbstractAction
-	{
-		private static final long serialVersionUID = 20221225L;
 
-		public ViewKeyBindingsAction()
-		{
-			super("VisualSoar Keybindings");
-		}
-
-		public void actionPerformed(ActionEvent e) {
-			final JTextPane textPane = new JTextPane();
-			textPane.setContentType("text/html");
-			textPane.setText("<html>View VisualSoar key bindings help " +
-				"on the Soar website: <a href=\"" + KEY_BINDINGS_HELP_URL + "\">" +
-				KEY_BINDINGS_HELP_URL + "</a>.</html>");
-			textPane.setEditable(false);
-			// get rid of white background
-			textPane.setBackground(UIManager.getColor("OptionPane.background"));
-			// make the link clickable
-			textPane.addHyperlinkListener(new HyperlinkListener() {
-				@Override
-				public void hyperlinkUpdate(HyperlinkEvent he) {
-				if (HyperlinkEvent.EventType.ACTIVATED.equals(he.getEventType())) {
-					try {
-						Desktop.getDesktop().browse(new URI(he.getURL().toString()));
-					} catch (IOException | URISyntaxException ex) {
-						ex.printStackTrace();
-					}
-				}}
-			});
-			JOptionPane.showMessageDialog(
-				MainFrame.this,
-				textPane,
-				"Key Bindings Help",
-				JOptionPane.INFORMATION_MESSAGE);
-		}
-  	}//class ViewKeyBindingsAction
-
-    /**
+  /**
      * Handles Soar Runtime|Connect menu option
      * @author ThreePenny
      */
@@ -2127,714 +1885,8 @@ public class MainFrame extends JFrame
 		}
 	}
 
-	/**
-     * This is a generic class for scanning a set of entities for errors in a
-     * separate thread and providing a progress dialog while you do so.  You
-     * must subclass this class to use it.
-     */
-    abstract class UpdateThread extends Thread
-    {
-        Runnable update, finish;
-        int value, min, max;
-		JProgressBar progressBar;
-		JDialog progressDialog;
-        Vector<OperatorNode> vecEntities;
-        Vector<FeedbackListEntry> vecErrors = new Vector<>();
-        int entityNum = 0;
 
-        public UpdateThread(Vector<OperatorNode> v, String title)
-        {
-            vecEntities = v;
-            max = v.size();
-			progressBar = new JProgressBar(0, max);
-			progressDialog = new JDialog(MainFrame.this, title);
-			progressDialog.getContentPane().setLayout(new FlowLayout());
-			progressDialog.getContentPane().add(progressBar);
-			progressBar.setStringPainted(true);
-			progressDialog.setLocationRelativeTo(MainFrame.this);
-			progressDialog.pack();
-			progressDialog.setVisible(true);
-            progressBar.getMaximum();
-            progressBar.getMinimum();
-
-            update = new Runnable()
-            {
-                public void run()
-                {
-                    value = progressBar.getValue() + 1;
-                    updateProgressBar(value);
-                }
-            };
-            finish = new Runnable()
-            {
-                public void run()
-                {
-                    updateProgressBar(min);
-                    progressDialog.dispose();
-                }
-            };
-        }
-
-        public void run()
-        {
-            checkEntities();
-        }
-
-        private void updateProgressBar(int value)
-        {
-            progressBar.setValue(value);
-        }
-
-        /**
-         * Override this function in your subclass.  It scans the given entity
-         * for errors and places them in the vecErrors vector.  vecErrors can
-         * either contain Strings or FeedbackListEntry objects
-         * @param o object to scan
-         * @return true if any errors were found
-         */
-        abstract public boolean checkEntity(Object o) throws IOException;
-
-        public void checkEntities()
-        {
-            try
-            {
-                boolean anyErrors = false;
-                for(int i = 0; i < max; i++)
-                {
-                    boolean errDetected = checkEntity(vecEntities.elementAt(i));
-                    if (errDetected)
-                    {
-                        anyErrors = true;
-                    }
-                    updateProgressBar(++entityNum);
-                    SwingUtilities.invokeLater(update);
-                }
-
-                if(!anyErrors)
-                {
-                    vecErrors.add(new FeedbackListEntry("There were no errors detected in this project."));
-                }
-                setFeedbackListData(vecErrors);
-                SwingUtilities.invokeLater(finish);
-            }
-            catch (IOException ioe)
-            {
-                ioe.printStackTrace();
-            }
-        }//checkEntities()
-
-    }//class UpdateThread
-
-
- 	/**
-     * This action verifies that a project is intact.  Specifically
-     * it checks that all the project's files are present and can
-     * be loaded.
-     */
-	class VerifyProjectAction extends PerformableAction
-    {
-		private static final long serialVersionUID = 20221225L;
-
-		public VerifyProjectAction()
-        {
-			super("Verify Project Integrity");
-			setEnabled(false);
-		}
-
-        public void perform()
-        {
-			Enumeration<TreeNode> bfe = operatorWindow.breadthFirstEnumeration();
-            Vector<OperatorNode> vecNodes = new Vector<>(10, 50);
-			while(bfe.hasMoreElements())
-            {
-				Object obj = bfe.nextElement();
-				if (obj instanceof OperatorNode) {
-					OperatorNode node = (OperatorNode)obj;
-					vecNodes.add(node);
-				}
-			}
-			(new VerifyProjectThread(vecNodes, "Verifiying Project...")).start();
-        }
-
-		public void actionPerformed(ActionEvent ae)
-        {
-            perform();
-		}
-
-        class VerifyProjectThread extends UpdateThread
-        {
-            public VerifyProjectThread(Vector<OperatorNode> v, String title)
-            {
-                super(v, title);
-            }
-
-            public boolean checkEntity(Object node) {
-                OperatorNode opNode = (OperatorNode)node;
-
-                //Only file nodes need to be examined
-                if ( ! (opNode instanceof FileNode))
-                {
-                    return false;
-                }
-
-                File f = new File(opNode.getFileName());
-                if (!f.canRead())
-                {
-                	String msg = "Error!  Project Corrupted:  Unable to open file: "
-								+ opNode.getFileName();
-                    vecErrors.add(new FeedbackListEntry(msg));
-                    return true;
-                }
-
-                if (!f.canWrite())
-                {
-					String msg ="Error!  Unable to write to file: "
-								+ opNode.getFileName();
-							vecErrors.add(new FeedbackListEntry(msg));
-                    return true;
-                }
-
-                //We lie and say there are errors no matter what so that
-                //the "there were no errors..." message won't appear.
-                return true;
-            }
-        }//class VerifyProjectThread
-
-	}//class VerifyProjectAction
-
-	/**
-	 * class LoadTopStateDatamapAction
-	 *
-	 * This action loads the top-state datamap
-	 *
-	 * @author Andrew Nuxoll
-	 * @version 08 Sep 2022
-	 */
-	class LoadTopStateDatamapAction extends AbstractAction
-	{
-		private static final long serialVersionUID = 20221225L;
-
-		public LoadTopStateDatamapAction()
-		{
-			super("Load Top-State Data Map");
-			setEnabled(false);
-		}
-
-		public void actionPerformed(ActionEvent ae)
-		{
-			openTopStateDatamap();
-		}
-
-	}//class LoadTopStateDatamapAction
-
-	/**
-     * This action searches all productions in the project for syntax
-     * errors only.   Operation status is displayed in a progress bar.
-     * Results are displayed in the feedback list
-     */
-	class CheckSyntaxErrorsAction extends AbstractAction
-    {
-		private static final long serialVersionUID = 20221225L;
-
-		//a list of all production names seen is stored here so that duplicates can be found
-		private final Vector<String> allProdNames = new Vector<>();
-
-		public CheckSyntaxErrorsAction()
-        {
-			super("Check All Productions for Syntax Errors");
-			setEnabled(false);
-		}
-
-		public void actionPerformed(ActionEvent ae)
-        {
-        	//reset the list for the new duplicate name check
-			this.allProdNames.clear();
-
-
-			Enumeration<TreeNode> bfe = operatorWindow.breadthFirstEnumeration();
-            Vector<OperatorNode> vecNodes = new Vector<>(10, 50);
-			while(bfe.hasMoreElements())
-            {
-				vecNodes.add((OperatorNode)bfe.nextElement());
-			}
-			(new CheckSyntaxThread(vecNodes, "Checking Productions...")).start();
-		}
-
-        class CheckSyntaxThread extends UpdateThread
-        {
-            public CheckSyntaxThread(Vector<OperatorNode> v, String title)
-            {
-                super(v, title);
-            }
-
-            /** Check for duplicate production names */
-            private void checkDuplicateProdNames(OperatorNode opNode) {
-				Vector<String> prodNames = opNode.getProdNames();
-				for(String prodName : prodNames) {
-					for(String allName : CheckSyntaxErrorsAction.this.allProdNames) {
-						if (allName.startsWith(prodName)) {
-							//We *may* have a name conflict, but it's possible that
-							//allName has a longer name.
-							//trim allName to just the name and check for match
-							String allNameOnly = allName.trim();
-							int spaceIndex = allNameOnly.indexOf(" ");
-							if (spaceIndex > 0) {
-								allNameOnly = allName.substring(0,spaceIndex);
-							}
-
-							//now check for equality
-							if (allNameOnly.equals(prodName)) {
-								//Construct and add a FeedbackListObj
-								String errStr = "Warning: " + allName + " name conflicts with " + prodName + " in " + opNode.getFileName();
-								int lineNo = opNode.getLineNumForString(prodName);
-								FeedbackListEntry flobj = new FeedbackEntryOpNode(opNode, lineNo, errStr);
-								vecErrors.add(flobj);
-							}
-						}
-					}
-					//save each name in this file to check against future files
-					allProdNames.add(prodName + " in " + opNode.getFileName());
-				}//for
-			}//checkDuplicateProdNames
-
-			public boolean checkEntity(Object node) throws IOException
-            {
-                OperatorNode opNode = (OperatorNode)node;
-
-                //do this check first since it only generates warnings
-				checkDuplicateProdNames(opNode);
-
-                try
-                {
-					//This is the main parsing here
-                    Vector<SoarProduction> prods = opNode.parseProductions();
-
-                    //Check for Supplemental Errors and Warnings
-                    if ((prods != null) && (!prods.isEmpty())) {
-
-						// Variable on RHS never created or tested
-						for (SoarProduction sprod : prods) {
-							FeedbackListEntry flobj = SuppParseChecks.checkUndefinedVarRHS(opNode, sprod);
-							if (flobj != null) {
-								vecErrors.add(flobj);
-								return true;
-							}
-						}
-
-						//angle brackets used in constants
-						FeedbackListEntry flobj = SuppParseChecks.warnSuspiciousConstants(opNode, prods);
-						if (flobj != null) {
-							vecErrors.add(flobj);
-							return true;
-						}
-					}
-
-
-                }
-                catch(ParseException pe)
-                {
-                    vecErrors.add(opNode.parseParseException(pe));
-                    return true;
-                }
-                catch(TokenMgrError tme)
-                {
-                    vecErrors.add(opNode.parseTokenMgrError(tme));
-                    return true;
-                }
-
-                return false;
-            }
-        }//class CheckSyntaxThread
-
-	}//class CheckSyntaxErrorsAction
-
-
-
-
- 	/**
-     * This class is responsible for comparing all productions in the project
-     * with the project's model of working memory - the datamap.
-     * Operation status is displayed in a progress bar.
-     * Results are displayed in the feedback list
-     */
-	class CheckAllProductionsAction extends PerformableAction
-    {
-		private static final long serialVersionUID = 20221225L;
-
-		public CheckAllProductionsAction()
-        {
-			super("Check All Productions");
-			setEnabled(false);
-		}
-
-        //Same as actionPerformed() but this function waits for the thread to
-        //complete before returning (i.e., it's effectively not threaded)
-        public void perform()
-        {
-            Vector<OperatorNode> vecNodes = new Vector<>(10, 50);
-			Enumeration<TreeNode> bfe = operatorWindow.breadthFirstEnumeration();
-			while(bfe.hasMoreElements())
-            {
-				vecNodes.add((OperatorNode) bfe.nextElement());
-			}
-
-            CheckProductionsThread cpt =
-                new CheckProductionsThread(vecNodes,
-                                           "Checking Productions...");
-            cpt.start();
-        }
-
-		public void actionPerformed(ActionEvent ae)
-        {
-            perform();
-		}
-
-        class CheckProductionsThread extends UpdateThread
-        {
-            public CheckProductionsThread(Vector<OperatorNode> v, String title)
-            {
-                super(v, title);
-            }
-
-            public boolean checkEntity(Object node) throws IOException
-            {
-                return ((OperatorNode)node).CheckAgainstDatamap(vecErrors);
-            }
-
-        }
-
-	}//class CheckAllProductionsAction
-
-
-	/**
-     * This action provides a framework for searching all datamaps for errors.
-     * It is intended to be subclassed.  Operation status is displayed in
-     * a progress bar.  Results are displayed in the feedback list
-     * Double-clicking on an item in the feedback list should display the rogue
-     * node in the datamap.
-     */
-	abstract class SearchDataMapAction extends AbstractAction
-    {
-		private static final long serialVersionUID = 20221225L;
-
-		int numNodes = 0;       // number of operator nodes in the project
-        int numChecks = 0;      // number of nodes scanned so far
-
-		public SearchDataMapAction()
-        {
-			super("Check All Productions");
-			setEnabled(false);
-		}
-
-		public void actionPerformed(ActionEvent ae)
-        {
-            initializeEdges();
-            numNodes = 0;
-            numChecks = 0;
-
-			Enumeration<TreeNode> bfe = operatorWindow.breadthFirstEnumeration();
-            Vector<OperatorNode> vecNodes = new Vector<>(10, 50);
-			while(bfe.hasMoreElements())
-            {
-				vecNodes.add((OperatorNode) bfe.nextElement());
-                numNodes++;
-			}
-
-            //Add the nodes a second time because we'll be scanning them twice,
-            //once to check productions against the datamap and again to check
-            //the datamap for untested WMEs.  (See checkEntity() below.)
-			bfe = operatorWindow.breadthFirstEnumeration();
-			while(bfe.hasMoreElements())
-            {
-				vecNodes.add((OperatorNode) bfe.nextElement());
-			}
-
-			(new DatamapTestThread(vecNodes, "Scanning Datamap...")).start();
-
-		}//actionPerformed()
-
-        /**
-             *  This initializes the status of all the edges to zero, which
-             *  means that the edges have not been used by a production in any
-             *  way.
-             */
-        public void initializeEdges()
-        {
-            Enumeration<NamedEdge> edges = operatorWindow.getDatamap().getEdges();
-            while(edges.hasMoreElements())
-            {
-                NamedEdge currentEdge = edges.nextElement();
-                currentEdge.resetTestedStatus();
-                currentEdge.resetErrorNoted();
-                // initialize the output-link as already tested
-                if(currentEdge.getName().equals("output-link"))
-                {
-                    currentEdge.setOutputLinkTested(operatorWindow.getDatamap());
-                }
-            }
-        }// initializeEdges()
-
-        //This function performs the actual error check
-        //The datamap associated with the given operator node is scanned and a
-        //list of errors is placed in the given Vector.
-        abstract public void searchDatamap(OperatorNode opNode, Vector<FeedbackListEntry> v);
-
-		class DatamapTestThread extends UpdateThread
-        {
-			public DatamapTestThread(Vector<OperatorNode> v, String title)
-            {
-                super(v, title);
-			}
-
-            /**
-             *  Search through the datamap and look for extra WMEs by looking at
-             *  the status of the named edge (as determined by the check nodes
-             *  function) and the edge's location within the datamap.  Extra
-             *  WMEs are classified in this action by never being tested by a
-             *  production, not including any item within the output-link.
-             */
-            public boolean checkEntity(Object node) throws IOException
-            {
-                OperatorNode opNode = (OperatorNode)node;
-
-                //For the first run, do a normal production check
-                if (numChecks < numNodes)
-                {
-                    Vector<FeedbackListEntry> v = new Vector<>();
-                    boolean rc = opNode.CheckAgainstDatamap(v);
-                    if (rc)
-                    {
-                    	String msg = "WARNING:  datamap errors were found in "
-									+ opNode.getFileName()
-									+ "'s productions.  This may invalidate the current scan.";
-                        vecErrors.add(new FeedbackListEntry(msg));
-                    }
-
-                    numChecks++;
-                    return rc;
-                }//if
-
-                //For the second run, do the requested datamap scan
-                Vector<FeedbackListEntry> v = new Vector<>();
-                searchDatamap(opNode, v);
-                numChecks++;
-
-                if (!v.isEmpty())
-                {
-                    vecErrors.addAll(v);
-                    return true;
-                }
-
-                return false;
-            }//checkEntity()
-
-		}//class DatamapTestThread
-	}// end of SearchDataMapAction
-
-
-	/**
-     * Search for WMEs that are never tested
-     */
-	class SearchDataMapTestAction extends SearchDataMapAction
-    {
-		private static final long serialVersionUID = 20221225L;
-
-		public void searchDatamap(OperatorNode opNode, Vector<FeedbackListEntry> v)
-        {
-            opNode.searchTestDataMap(operatorWindow.getDatamap(), v);
-        }//searchDatamap
-	}// end of SearchDataMapTestAction
-
-
-	/**
-     * Search for WMEs that are never created
-     */
-	class SearchDataMapCreateAction extends SearchDataMapAction
-    {
-		private static final long serialVersionUID = 20221225L;
-
-		public void searchDatamap(OperatorNode opNode, Vector<FeedbackListEntry> v)
-        {
-            opNode.searchCreateDataMap(operatorWindow.getDatamap(), v);
-        }//searchDatamap
-	}// class SearchDataMapCreateAction
-
-	/**
-     * Search for WMEs that are tested but never created
-     */
-	class SearchDataMapTestNoCreateAction extends SearchDataMapAction
-    {
-		private static final long serialVersionUID = 20221225L;
-
-		public void searchDatamap(OperatorNode opNode, Vector<FeedbackListEntry> v)
-        {
-            opNode.searchTestNoCreateDataMap(operatorWindow.getDatamap(), v);
-        }//searchDatamap
-	}//class SearchDataMapTestNoCreateAction
-
-	/**
-     * Search for WMEs that are created but never tested
-     */
-	class SearchDataMapCreateNoTestAction extends SearchDataMapAction
-    {
-		private static final long serialVersionUID = 20221225L;
-
-		public void searchDatamap(OperatorNode opNode, Vector<FeedbackListEntry> v)
-        {
-            opNode.searchCreateNoTestDataMap(operatorWindow.getDatamap(), v);
-        }//searchDatamap
-	}//class SearchDataMapCreateNoTestAction
-
-	/**
-     * Search for WMEs that are never created and never tested
-     */
-	class SearchDataMapNoTestNoCreateAction extends SearchDataMapAction
-    {
-		private static final long serialVersionUID = 20221225L;
-
-		public void searchDatamap(OperatorNode opNode, Vector<FeedbackListEntry> v)
-        {
-            opNode.searchNoTestNoCreateDataMap(operatorWindow.getDatamap(), v);
-        }//searchDatamap
-	}//class SearchDataMapNoTestNoCreateAction
-
-
-    /**
-     * This class is responsible for comparing all productions in the project
-     * with the project's datamaps and 'fixing' any discrepancies
-     * by adding missing productions to the datamap.
-     * Operation status is displayed in a progress bar.
-     * Add productions in the datamap are displayed as green until the user validates them.
-     * Results are displayed in the feedback list
-     */
-    class GenerateDataMapAction extends AbstractAction
-    {
-		private static final long serialVersionUID = 20221225L;
-
-		JProgressBar progressBar;
-		JDialog progressDialog;
-
-		public GenerateDataMapAction()
-        {
-			super("Generate Datamap from Operator Hierarchy");
-			setEnabled(false);
-		}
-
-		public void actionPerformed(ActionEvent ae)
-        {
-			int numNodes = 0;
-			Enumeration<TreeNode> bfe = operatorWindow.breadthFirstEnumeration();
-			while(bfe.hasMoreElements())
-            {
-				numNodes++;
-				bfe.nextElement();
-			}
-			System.out.println("Nodes: " + numNodes);
-			progressBar = new JProgressBar(0, numNodes * 7);
-			progressDialog = new JDialog(MainFrame.this, "Generating Datamap from Productions");
-			progressDialog.getContentPane().setLayout(new FlowLayout());
-			progressDialog.getContentPane().add(progressBar);
-			progressBar.setStringPainted(true);
-			progressDialog.setLocationRelativeTo(MainFrame.this);
-			progressDialog.pack();
-			progressDialog.setVisible(true);
-			(new UpdateThread()).start();
-		}
-
-		class UpdateThread extends Thread
-        {
-			Runnable update, finish;
-			int value, min;
-
-
-			Vector<FeedbackListEntry> errors = new Vector<>();
-			int repCount = 0;
-			Enumeration<TreeNode> bfe = operatorWindow.breadthFirstEnumeration();
-			OperatorNode current;
-			Vector<FeedbackListEntry> vecErrors = new Vector<>();
-
-			public UpdateThread()
-            {
-				progressBar.getMaximum();
-				progressBar.getMinimum();
-
-				update = new Runnable()
-                {
-					public void run()
-                    {
-						value = progressBar.getValue() + 1;
-						updateProgressBar(value);
-						//System.out.println("Value is " + value);
-					}
-				};
-				finish = new Runnable()
-                {
-					public void run()
-                    {
-						updateProgressBar(min);
-						System.out.println("Done");
-						progressDialog.dispose();
-					}
-				};
-			}
-
-			public void run()
-            {
-                checkNodes();
-                repCount = 0;
-
-                JOptionPane.showMessageDialog(s_mainFrame,
-						"DataMap Generation Completed",
-						"DataMap Generator",
-						JOptionPane.INFORMATION_MESSAGE);
-			}
-
-			private void updateProgressBar(int value)
-            {
-				progressBar.setValue(value);
-			}
-
-			public void checkNodes()
-            {
-                do
-                {
-                    repCount++;
-                    errors.clear();
-                    bfe = operatorWindow.breadthFirstEnumeration();
-
-                    while(bfe.hasMoreElements())
-                    {
-                        current = (OperatorNode)bfe.nextElement();
-
-                        operatorWindow.generateDataMap(current, errors, vecErrors);
-
-                        setFeedbackListData(vecErrors);
-                        value = progressBar.getValue() + 1;
-                        updateProgressBar(value);
-                        SwingUtilities.invokeLater(update);
-                    } // while parsing operator nodes
-
-                } while(!(errors.isEmpty()) && repCount < 5);
-
-
-                //Instruct all open datamap windows to display
-                //the newly generated nodes
-                JInternalFrame[] jif = desktopPane.getAllFrames();
-				for (JInternalFrame jInternalFrame : jif) {
-					if (jInternalFrame instanceof DataMap) {
-						DataMap dm = (DataMap) jInternalFrame;
-						dm.displayGeneratedNodes();
-					}
-				}
-
-                SwingUtilities.invokeLater(finish);
-
-			}//checkNodes
-
-		}//class UpdateThread
-	}//class GenerateDataMapAction
-
-	/**
+  /**
 	 * class LinkDataMapAction
 	 *
 	 * This action loads a datamap from another project and allows the user to import
@@ -3174,27 +2226,7 @@ public class MainFrame extends JFrame
 	}//class SaveProjectAsAction
 
 
-	class CloseAllWindowsAction extends AbstractAction {
-		private static final long serialVersionUID = 20240426L;
-
-		public CloseAllWindowsAction()
-		{
-			super("Close All Windows");
-		}
-
-		public void actionPerformed(ActionEvent e) {
-			JInternalFrame[] frames = desktopPane.getAllFrames();
-			for (JInternalFrame jif : frames) {
-				try {
-					jif.setClosed(true);
-				} catch (PropertyVetoException ex) {
-					/* should not happen.  ignore. nbd.*/
-				}
-			}
-		}
-	}
-
-    class TileWindowsAction extends AbstractAction
+  class TileWindowsAction extends AbstractAction
     {
 		private static final long serialVersionUID = 20221225L;
 
