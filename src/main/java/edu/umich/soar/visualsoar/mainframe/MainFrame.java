@@ -404,7 +404,8 @@ public class MainFrame extends JFrame
 			for(int i = recentProjs.size() - 1; i >= 0; --i) {
 				Prefs.RecentProjInfo projEntry = recentProjs.get(i);
 				JMenuItem recentItem = new JMenuItem(projEntry.toString());
-				recentItem.addActionListener(new TryOpenProjectAction(this, projEntry));
+				recentItem.addActionListener(
+          new OpenProjectAction(this, projEntry.file, projEntry.isReadOnly));
 				openRecentMenu.add(recentItem);
 			}
 		}//else
@@ -1458,16 +1459,14 @@ public class MainFrame extends JFrame
 
 
   public void openProject(@NotNull File vsaFile, boolean readOnly) {
-    try
-    {
-      //Get rid of the old project (if it exists)
-      if (operatorWindow != null) {
-        closeProjectAction.perform();
-      }
+    //Get rid of the old project (if it exists)
+    if (operatorWindow != null) {
+      closeProjectAction.perform();
+    }
 
+    try {
       //Open the new project
       operatorWindow = new OperatorWindow(vsaFile, readOnly);
-      // TODO: move this
       if(vsaFile.getParent() != null) {
         Prefs.openFolder.set(vsaFile.getParentFile().getAbsolutePath());
       }
@@ -1479,11 +1478,9 @@ public class MainFrame extends JFrame
       operDividerSetup();
 
       //Verify project integrity
-      // TODO: not done in tryOpenProject
       verifyProjectAction.perform();
 
       //Reset tracking whether any change has been made to this project
-      // TODO: not done in tryOpenProject
       CustomInternalFrame.resetEverchanged();
 
       //Set the title bar to include the project name
@@ -1494,26 +1491,19 @@ public class MainFrame extends JFrame
 
       //Configure read-only status
       setReadOnly(readOnly);
-    }
-    catch(FileNotFoundException fnfe)
-    {
-      JOptionPane.showMessageDialog(this,
-        fnfe.getMessage(),
-        "File Not Found",
-        JOptionPane.ERROR_MESSAGE);
-    }
-    catch(IOException ioe)
-    {
-      JOptionPane.showMessageDialog(this,
-        ioe.getMessage(),
-        "I/O Exception",
-        JOptionPane.ERROR_MESSAGE);
+    } catch (FileNotFoundException fnfe) {
+      JOptionPane.showMessageDialog(
+        this, fnfe.getMessage(), "File Not Found", JOptionPane.ERROR_MESSAGE);
+    } catch (IOException ioe) {
+      JOptionPane.showMessageDialog(
+        this, ioe.getMessage(), "I/O Exception", JOptionPane.ERROR_MESSAGE);
       ioe.printStackTrace();
-    }
-    catch(NumberFormatException nfe)
-    {
+    } catch (NumberFormatException nfe) {
+      // TODO: find where this is getting thrown and change it to a (possibly custom) checked
+      // exception
       nfe.printStackTrace();
-      JOptionPane.showMessageDialog(this,
+      JOptionPane.showMessageDialog(
+        this,
         "Error Reading File, Data Incorrectly Formatted",
         "Bad File",
         JOptionPane.ERROR_MESSAGE);
