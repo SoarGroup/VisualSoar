@@ -579,7 +579,6 @@ public class SoarWorkingMemoryReader {
     if (errors.size() > 0) {
       MainFrame.getMainFrame().setFeedbackListData(errors);
     }
-    System.out.println("Returning " + errors.stream().filter(FeedbackListEntry::isError).findAny().isEmpty());
     // return true if no errors were found
     return errors.stream().filter(FeedbackListEntry::isError).findAny().isEmpty();
   } // readSafe
