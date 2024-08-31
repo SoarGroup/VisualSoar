@@ -5,8 +5,10 @@ import edu.umich.soar.visualsoar.datamap.DataMap;
 import edu.umich.soar.visualsoar.datamap.SoarWorkingMemoryModel;
 import edu.umich.soar.visualsoar.datamap.SoarWorkingMemoryReader;
 import edu.umich.soar.visualsoar.dialogs.*;
+import edu.umich.soar.visualsoar.files.Backup;
 import edu.umich.soar.visualsoar.files.Cfg;
 import edu.umich.soar.visualsoar.graph.NamedEdge;
+import edu.umich.soar.visualsoar.mainframe.actions.SaveAllFilesAction;
 import edu.umich.soar.visualsoar.misc.*;
 import edu.umich.soar.visualsoar.operatorwindow.*;
 import edu.umich.soar.visualsoar.parser.ParseException;
@@ -98,7 +100,7 @@ public class MainFrame extends JFrame
 	Action openProjectAction = new OpenProjectAction();
     Action openFileAction = new OpenFileAction();
 	PerformableAction closeProjectAction = new CloseProjectAction();
-	PerformableAction saveAllFilesAction = new SaveAllFilesAction();
+	PerformableAction saveAllFilesAction = new SaveAllFilesAction(this);
 	PerformableAction exportAgentAction = new ExportAgentAction();
 	PerformableAction saveDataMapAndProjectAction = new SaveDataMapAndProjectAction();
 	Action preferencesAction = new PreferencesAction();
@@ -308,36 +310,7 @@ public class MainFrame extends JFrame
 	 */
 	public boolean isReadOnly() { return this.isReadOnly; }
 
-	/** VS periodically creates auto backups of open files.  This method can be called to delete all of them. */
-	public void deleteAutoBackupFiles() {
-
-		//Check for any auto-backups of rule files
-		CustomInternalFrame[] frames = desktopPane.getAllCustomFrames();
-		for (CustomInternalFrame frame : frames) {
-			if (frame instanceof RuleEditor) {
-				RuleEditor re = (RuleEditor) frame;
-				String tempFN = re.getFile() + "~";
-				File f = new File(tempFN);
-				if (f.exists()) f.delete();
-			}
-		}
-
-		//Check for auto-backups of the project files
-		if (operatorWindow != null) {
-			Object root = operatorWindow.getModel().getRoot();
-			if (root instanceof OperatorRootNode) {
-				OperatorRootNode orn = (OperatorRootNode) root;
-				File projectBackupFile = new File(orn.getProjectFile() + "~");
-				if (projectBackupFile.exists()) projectBackupFile.delete();
-				File dataMapBackupFile = new File(orn.getDataMapFile() + "~");
-				if (dataMapBackupFile.exists()) dataMapBackupFile.delete();
-				File commentBackupFile = new File(dataMapBackupFile.getParent() + File.separator + "comment.dm~");
-				if (commentBackupFile.exists()) commentBackupFile.delete();
-			}
-		}
-	}
-
-	/**
+  /**
 	 * A helper function to create the file menu
 	 * @return The file menu
 	 */
@@ -1405,7 +1378,6 @@ public class MainFrame extends JFrame
 	 * @return the file selected (or null if none)
 	 */
 	private File ghettoFileChooser() {
-
 		FileDialog fileChooser = new FileDialog(MainFrame.this, "Open Project", FileDialog.LOAD);
 		File dir = new File(Prefs.openFolder.get());
 		if ((dir.exists()) && (dir.canRead())) {
@@ -1420,55 +1392,6 @@ public class MainFrame extends JFrame
 
 
   /**
-* Runs through all the Rule Editors in the Desktop Pane and tells them to save
-* themselves.
-*/
-	class SaveAllFilesAction extends PerformableAction {
-		private static final long serialVersionUID = 20221225L;
-
-		public SaveAllFilesAction()
-        {
-			super("Save All");
-			setEnabled(false);
-		}
-
-		public void perform()
-        {
-			//Save the list of currently open windows
-			Cfg.writeCfgFile(MainFrame.this);
-
-			try
-            {
-				JInternalFrame[] jif = desktopPane.getAllFrames();
-				for (JInternalFrame jInternalFrame : jif) {
-					if (jInternalFrame instanceof RuleEditor) {
-						RuleEditor re = (RuleEditor) jInternalFrame;
-						re.write();
-					}
-				}
-			}
-			catch(java.io.IOException ioe)
-            {
-				JOptionPane.showMessageDialog(MainFrame.this,
-                                              ioe.getMessage(),
-                                              "I/O Error",
-                                              JOptionPane.ERROR_MESSAGE);
-				return;
-			}
-
-			//Since save was successful, discard auto-backup files
-			deleteAutoBackupFiles();
-
-		}//perform SaveAllFilesAction
-
-		public void actionPerformed(ActionEvent event)
-        {
-			perform();
-		}
-
-	}
-
-	/**
 	 * Exit command
 	 * First closes all the RuleEditor windows
 	 * if all the closes go successfully, then it closes
@@ -1501,7 +1424,7 @@ public class MainFrame extends JFrame
 				}
 				else {
 					Cfg.writeCfgFile(MainFrame.this);
-					deleteAutoBackupFiles();
+					Backup.deleteAutoBackupFiles(MainFrame.this);
 				}
 
 				for (JInternalFrame frame : frames) {
@@ -1829,7 +1752,7 @@ public class MainFrame extends JFrame
 			try
             {
 				if ( (!isReadOnly()) && (CustomInternalFrame.hasEverChanged()) ) commitAction.perform();
-				deleteAutoBackupFiles();
+				Backup.deleteAutoBackupFiles(MainFrame.this);
 
 				for (JInternalFrame frame : frames) {
 					frame.setClosed(true);
