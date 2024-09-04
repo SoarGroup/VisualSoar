@@ -238,7 +238,7 @@ public class SoarWorkingMemoryReader {
                 }
             }//for
             if (vals.size() != enumerationSize) {
-                errors.add(new FeedbackListEntry("Warning:  datamap ENUMERATION entry specifies " + enumerationSize + " values but only " + vals.size() + " values were found in line: " + line));
+                errors.add(new FeedbackListEntry("Warning:  datamap ENUMERATION entry specifies " + enumerationSize + " values but " + vals.size() + " values were found in line: " + line));
             }
             vertexToAdd = new EnumerationVertex(id, vals);
         }
