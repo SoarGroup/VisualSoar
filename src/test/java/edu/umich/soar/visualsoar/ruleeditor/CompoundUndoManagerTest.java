@@ -55,7 +55,7 @@ class CompoundUndoManagerTest {
   }
 
   @Test
-  public void adjacentAtomicEditsAreNotJoinedInAtomicModeAreJoined() throws Exception {
+  public void adjacentAtomicEditsAreNotJoinedInAtomicModeAreJoined() throws BadLocationException {
     JEditorPane editorPane = new JEditorPane();
     Document doc = editorPane.getDocument();
     CompoundUndoManager undoManager =
@@ -95,7 +95,7 @@ class CompoundUndoManagerTest {
   }
 
   @Test
-  public void allEditsInAtomicModeAreJoined() throws Exception {
+  public void allEditsInAtomicModeAreJoined() throws BadLocationException {
     JEditorPane editorPane = new JEditorPane();
     Document doc = editorPane.getDocument();
     CompoundUndoManager undoManager =

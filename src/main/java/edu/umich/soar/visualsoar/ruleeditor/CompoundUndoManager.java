@@ -75,7 +75,7 @@ public class CompoundUndoManager extends UndoManager
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
       if (!inAtomicEdit) {
         System.err.println(
             "WARNING: AtomicModeManager closed after undo manager "

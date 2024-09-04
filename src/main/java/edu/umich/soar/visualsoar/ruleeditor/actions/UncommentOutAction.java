@@ -64,9 +64,6 @@ public class UncommentOutAction extends AbstractAction {
 			try(CompoundUndoManager.AtomicModeManager ignored = undoManager.atomicMode()) {
 				EditingUtils.replaceRange(editorPane.getDocument(), uncommentText, editorPane.getSelectionStart(),
 					editorPane.getSelectionEnd());
-			} catch(Exception exception) {
-				// should never happen, as CompoundManager doesn't throw any exceptions
-				exception.printStackTrace();
 			}
 
 			//restore the selection
