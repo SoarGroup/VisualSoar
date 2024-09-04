@@ -2,6 +2,8 @@ package edu.umich.soar.visualsoar.mainframe;
 
 import edu.umich.soar.visualsoar.misc.FeedbackListEntry;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorNode;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -79,12 +81,29 @@ public abstract class UpdateThread extends Thread {
       }
 
       if (!anyErrors) {
-        vecErrors.add(new FeedbackListEntry("There were no errors detected in this project."));
+        String message = getSuccessMessage();
+        if (message != null) {
+          vecErrors.add(new FeedbackListEntry(message));
+        }
+      } else if (vecErrors.isEmpty()) {
+        // This should never happen, as errors should be added to vecErrors.
+        // TODO: return vecErrors from checkEntities instead so we don't have
+        // two separate indicators for errors.
+        vecErrors.add(new FeedbackListEntry("Unknown error occurred"));
       }
       mainFrame.setFeedbackListData(vecErrors);
       SwingUtilities.invokeLater(finish);
     } catch (IOException ioe) {
       ioe.printStackTrace();
     }
-  } // checkEntities()
-} // class UpdateThread
+  }
+
+  /**
+   *
+   * @return If not null, show the message to the user on success. Otherwise, show no message.
+   */
+  @Nullable
+  protected String getSuccessMessage() {
+    return "There were no errors detected in this project.";
+  }
+}

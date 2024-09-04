@@ -6,6 +6,8 @@ import edu.umich.soar.visualsoar.misc.FeedbackListEntry;
 import edu.umich.soar.visualsoar.misc.PerformableAction;
 import edu.umich.soar.visualsoar.operatorwindow.FileNode;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorNode;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.tree.TreeNode;
 import java.awt.event.ActionEvent;
@@ -71,9 +73,13 @@ public class VerifyProjectAction extends PerformableAction {
         return true;
       }
 
-      // We lie and say there are errors no matter what so that
-      // the "there were no errors..." message won't appear.
-      return true;
+      return false;
+    }
+
+    @Override
+    public @Nullable String getSuccessMessage() {
+      // User doesn't need to know that files are all present and RW-able
+      return null;
     }
   }
 }
