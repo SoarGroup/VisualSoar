@@ -17,14 +17,15 @@ repositories {
 
 dependencies {
   implementation("org.jetbrains:annotations:24.0.0")
-  testImplementation(libs.junit.jupiter)
-  testImplementation("org.mockito:mockito-core:5.12.0")
-
-  testRuntimeOnly("org.junit.platform:junit-platform-launcher")
   // load all the jars in the lib/ folder
   implementation(fileTree("lib") {
     include("*.jar")
   })
+
+  testImplementation(libs.junit.jupiter)
+  testImplementation("org.mockito:mockito-core:5.12.0")
+//  testImplementation("org.junit.jupiter:junit-jupiter-params")
+  testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 // For loading the SML JNI library

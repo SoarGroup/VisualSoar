@@ -1,6 +1,8 @@
 package edu.umich.soar.visualsoar.graph;
 
 import javax.swing.*;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * This class is the base class for all Soar Working memory
@@ -20,8 +22,16 @@ public abstract class SoarVertex extends Vertex {
     private static final long serialVersionUID = 20221225L;
 
     //These are valid vertex types that can be used in .dm files
-    public static final String[] VERTEX_TYPES =
-            { "SOAR_ID", "ENUMERATION", "INTEGER_RANGE", "INTEGER", "FLOAT_RANGE", "FLOAT", "STRING", "FOREIGN" };
+    public static final Set<String> VERTEX_TYPES = new HashSet<>(){{
+      add("SOAR_ID");
+      add("ENUMERATION");
+      add("INTEGER_RANGE");
+      add("INTEGER");
+      add("FLOAT_RANGE");
+      add("FLOAT");
+      add("STRING");
+      add("FOREIGN");
+    }};
 
 ///////////////////////////////////////////////
 // Constructors
@@ -123,4 +133,4 @@ public abstract class SoarVertex extends Vertex {
     }
 
 }
-	
+

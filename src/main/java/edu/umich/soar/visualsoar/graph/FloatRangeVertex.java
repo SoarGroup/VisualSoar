@@ -5,7 +5,7 @@ import edu.umich.soar.visualsoar.dialogs.EditNumberDialog;
 public class FloatRangeVertex extends SoarVertex {
     private static final long serialVersionUID = 20221225L;
 
-//////////////////////////////////////////
+  //////////////////////////////////////////
 // Data Members
 //////////////////////////////////////////
     private double low, high;
@@ -14,19 +14,19 @@ public class FloatRangeVertex extends SoarVertex {
     //////////////////////////////////////////
 // Constructors
 //////////////////////////////////////////
-    public FloatRangeVertex(int id, double _low, double _high) {
+    public FloatRangeVertex(int id, double low, double high) {
         super(id);
         if (low > high) {
             throw new IllegalArgumentException("Low cannot be greater than high");
         }
-        low = _low;
-        high = _high;
+        this.low = low;
+        this.high = high;
         rep = ": float" + getRangeString();
     }
 
 //////////////////////////////////////////
 // Accessors
-//////////////////////////////////////////	
+//////////////////////////////////////////
     @Override
     public boolean allowsEmanatingEdges() {
     return false;
@@ -62,11 +62,11 @@ public class FloatRangeVertex extends SoarVertex {
 
     //////////////////////////////////////////
 // Manipulators
-//////////////////////////////////////////	
+//////////////////////////////////////////
     public boolean edit(java.awt.Frame owner) {
         EditNumberDialog theDialog = new EditNumberDialog(owner, "Float");
-        theDialog.setLow(new Float(low));
-        theDialog.setHigh(new Float(high));
+        theDialog.setLow((float) low);
+        theDialog.setHigh((float) high);
         theDialog.setVisible(true);
 
         if (theDialog.wasApproved()) {
@@ -81,6 +81,14 @@ public class FloatRangeVertex extends SoarVertex {
     @Override
     public void write(java.io.Writer w) throws java.io.IOException {
         w.write("FLOAT_RANGE " + number + " " + low + " " + high + '\n');
+    }
+
+    public double getLow() {
+      return low;
+    }
+
+    public double getHigh() {
+      return high;
     }
 
    /** creates a string representing this integer's range.

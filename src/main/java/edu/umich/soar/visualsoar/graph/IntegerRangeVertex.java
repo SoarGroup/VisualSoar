@@ -7,7 +7,7 @@ import java.awt.*;
 public class IntegerRangeVertex extends SoarVertex {
     private static final long serialVersionUID = 20221225L;
 
-    private int low, high;
+  private int low, high;
     private String rep;
 
     public IntegerRangeVertex(int id, int _low, int _high) {
@@ -70,6 +70,14 @@ public class IntegerRangeVertex extends SoarVertex {
             return true;
         }
         return false;
+    }
+
+    public int getLow() {
+      return low;
+    }
+
+    public int getHigh() {
+      return high;
     }
 
     /** creates a string representing this integer's range.

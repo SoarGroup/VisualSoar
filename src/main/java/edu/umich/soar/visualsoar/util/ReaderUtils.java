@@ -40,8 +40,13 @@ public class ReaderUtils {
         boolean inDelim = false;
 
         // Get rid of leading whitespace
-        while (!wordend && r.ready()) {
-            char c = (char) r.read();
+        while (!wordend) {
+            int readResult = r.read();
+            // reader is out of chars to read
+            if (readResult == -1) {
+              break;
+            }
+            char c = (char) readResult;
             if (!inDelim && Character.isWhitespace(c)) {
                 if (wordbegin) {
                     wordend = true;

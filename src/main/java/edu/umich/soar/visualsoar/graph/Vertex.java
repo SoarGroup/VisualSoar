@@ -24,6 +24,10 @@ public class Vertex implements java.io.Serializable {
     ////////////////////////////////////////
 // Methods
 ////////////////////////////////////////
+
+    /**
+     * @return the vertex ID
+     */
     public int getValue() {
         return number;
     }

@@ -23,7 +23,7 @@ public class SoarWorkingMemoryReader {
      *
      * Note:  will recurse for foreign nodes
      */
-    private static SoarVertex readVertex(Reader fr) throws IOException {
+    static SoarVertex readVertex(Reader fr) throws IOException {
         String type = ReaderUtils.getWord(fr);
         SoarVertex vertexToAdd = null;
         int id = ReaderUtils.getInteger(fr);
@@ -131,26 +131,21 @@ public class SoarWorkingMemoryReader {
      *
      * @return a SoarVertex object or null on failure
      */
-    private static SoarVertex readVertexSafe(String line, int expectedId, Vector<FeedbackListEntry> errors)  {
+    static SoarVertex readVertexSafe(String line, int expectedId, Vector<FeedbackListEntry> errors)  {
         //Any vertex definition must have at least two words
         if (line == null) return null;
         if (line.trim().length() == 0) return null;
-        String[] words = line.split("[ \\t]");  //split on spaces and tabs
+        // split on spaces and tabs; rest will require further parsing
+        String[] words = line.split("[ \\t]");//, 3);
         if (words.length < 2) {
             errors.add(new FeedbackListEntry("Error:  truncated datamap entry: " + line));
             return null;
         }
+//        String rest = words[2];
 
         //Verify a valid type
-        boolean valid = false;
         String vertexType = words[0];
-        for(String validType : SoarVertex.VERTEX_TYPES) {
-            if (validType.equals(vertexType)) {
-                valid = true;
-                break;
-            }
-        }
-        if (! valid) {
+        if (!SoarVertex.VERTEX_TYPES.contains(vertexType)) {
             errors.add(new FeedbackListEntry("Error:  datamap entry has invalid type: " + line));
             return null;
         }
@@ -161,7 +156,7 @@ public class SoarWorkingMemoryReader {
             id = Integer.parseInt(words[1]);
         }
         catch(NumberFormatException nfe) {
-            /* nothing to do here */
+            /* handled below */
         }
         if (id < 0) {
             errors.add(new FeedbackListEntry("Error:  datamap entry has invalid id: " + line));
