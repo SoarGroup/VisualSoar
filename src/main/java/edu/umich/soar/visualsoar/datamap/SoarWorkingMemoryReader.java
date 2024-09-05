@@ -5,6 +5,7 @@ import edu.umich.soar.visualsoar.graph.*;
 import edu.umich.soar.visualsoar.mainframe.feedback.FeedbackListEntry;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorWindow;
 import edu.umich.soar.visualsoar.util.ReaderUtils;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
 import java.util.Scanner;
@@ -19,6 +20,8 @@ import java.util.Vector;
 public class SoarWorkingMemoryReader {
 
     /**
+     * This should not be used by clients; it is package-private for testing purposes.
+     * <p/>
      * reads one SoarVertex object from a file
      *
      * Note:  will recurse for foreign nodes
@@ -118,200 +121,179 @@ public class SoarWorkingMemoryReader {
         }
     }
 
-    /**
-     * reads one SoarVertex object from a file.  Unlike {@link #readVertex}
-     * this method does not throw exceptions on a parse error but, instead,
-     * logs the error
-     *
-     * Note:  will recurse for foreign nodes
-     *
-     * @param line        a line from a .dm file that describes a vertex
-     * @param expectedId  this vertex is expected to have the given id.  You can pass -1 if not known.
-     * @param errors      any parse error found will be placed in this vertex
-     *
-     * @return a SoarVertex object or null on failure
-     */
-    static SoarVertex readVertexSafe(String line, int expectedId, Vector<FeedbackListEntry> errors)  {
-        //Any vertex definition must have at least two words
-        if (line == null) return null;
-        if (line.trim().length() == 0) return null;
-        // split on spaces and tabs; rest will require further parsing
-        String[] words = line.split("[ \\t]");//, 3);
-        if (words.length < 2) {
-            errors.add(new FeedbackListEntry("Error:  truncated datamap entry: " + line));
-            return null;
-        }
-//        String rest = words[2];
+  /**
+   * This should not be used by clients; it is package-private for testing purposes.
+   *
+   * <p>reads one SoarVertex object from a file. Unlike {@link #readVertex} this method does not
+   * throw exceptions on a parse error but, instead, logs the error.
+   *
+   * <p>Note: will recurse for foreign nodes
+   *
+   * @param line a line from a .dm file that describes a vertex
+   * @param expectedId this vertex is expected to have the given id. You can pass -1 if not known.
+   * @param errors any parse error found will be placed in this vertex
+   * @return a SoarVertex object or null on failure
+   */
+  static SoarVertex readVertexSafe(
+      @NotNull String line, int expectedId, @NotNull Vector<FeedbackListEntry> errors) {
+    SoarVertex vertexToAdd = null;
+    Reader lineReader = new StringReader(line);
 
-        //Verify a valid type
-        String vertexType = words[0];
-        if (!SoarVertex.VERTEX_TYPES.contains(vertexType)) {
-            errors.add(new FeedbackListEntry("Error:  datamap entry has invalid type: " + line));
-            return null;
-        }
+    try {
+      String vertexType = ReaderUtils.getWord(lineReader);
+      if (!SoarVertex.VERTEX_TYPES.contains(vertexType)) {
+        errors.add(new FeedbackListEntry("Error:  datamap entry has invalid type: " + line));
+        return null;
+      }
 
-        //Verify a valid id
-        int id = -1;
-        try {
-            id = Integer.parseInt(words[1]);
-        }
-        catch(NumberFormatException nfe) {
-            /* handled below */
-        }
-        if (id < 0) {
-            errors.add(new FeedbackListEntry("Error:  datamap entry has invalid id: " + line));
-            return null;
-        }
-        if ( (expectedId >= 0) && (id != expectedId) ) {
-            errors.add(new FeedbackListEntry("Warning:  datamap entry has unexpected id.  Expected " + expectedId + " but found " + id));
-        }
+      int id = -1;
+      try {
+        id = ReaderUtils.getInteger(lineReader);
+      } catch (NumberFormatException ignored) {
+        /* handled below */
+      }
+      if (id < 0) {
+        errors.add(new FeedbackListEntry("Error:  datamap entry has invalid id: " + line));
+        return null;
+      } else if ((expectedId >= 0) && (id != expectedId)) {
+        errors.add(
+            new FeedbackListEntry(
+                "Warning:  datamap entry has unexpected id.  Expected "
+                    + expectedId
+                    + " but found "
+                    + id));
+      }
 
-        //Special Case:  Foreign Node
-        if (vertexType.equals("FOREIGN")) {
-            if (words.length < 5) {
-                errors.add(new FeedbackListEntry("Error:  truncated FOREIGN datamap entry: " + line));
-                return null;
-            }
-
-            String foreignDM = words[2];
-            StringBuilder subline = new StringBuilder();
-            for(int i = 3; i < words.length; ++i) {
-                subline.append(words[i]);
-                subline.append(" ");
-            }
-            SoarVertex foreignSV = readVertexSafe(subline.toString(), -1, errors);  //recurse to read foreign vertex
+      // Special Case;  Foreign Node
+      switch (vertexType) {
+        case "FOREIGN":
+          {
+            String foreignDM = ReaderUtils.getWord(lineReader);
+            String remainingLine = ReaderUtils.getLine(lineReader);
+            SoarVertex foreignSV =
+                readVertexSafe(remainingLine, -1, errors); // recurse to read foreign vertex
             if (foreignSV == null) {
-                return null;
+              return null;
             }
-            else {
-                return new ForeignVertex(id, foreignDM, foreignSV);
-            }
-        }
-
-        //SOAR_ID
-        SoarVertex vertexToAdd;
-        if (vertexType.equals("SOAR_ID")) {
-            if (words.length != 2) {
-                errors.add(new FeedbackListEntry("Error:  Extraneous data found on SOAR_ID datamap entry: " + line));
-            }
+            vertexToAdd = new ForeignVertex(id, foreignDM, foreignSV);
+            break;
+          }
+        case "SOAR_ID":
+          {
             vertexToAdd = new SoarIdentifierVertex(id);
-        }
-
-        //ENUMERATION
-        else if (vertexType.equals("ENUMERATION")) {
-            if (words.length < 4) {
-                errors.add(new FeedbackListEntry("Error:  Truncated ENUMERATION datamap entry: " + line));
-            }
-
-            //Read in specified number of values for the enumeration
+            break;
+          }
+        case "ENUMERATION":
+          {
             int enumerationSize = -1;
             try {
-                enumerationSize = Integer.parseInt(words[2]);
-            }
-            catch(NumberFormatException nfe) {
-                /* nothing to do here */
+              enumerationSize = ReaderUtils.getInteger(lineReader);
+            } catch (NumberFormatException nfe) {
+              /* handled below */
             }
             if (enumerationSize <= 0) {
-                errors.add(new FeedbackListEntry("Error:  datamap ENUMERATION entry has invalid number of values: " + line));
-                return null;
+              errors.add(
+                  new FeedbackListEntry(
+                      "Error:  datamap ENUMERATION entry has invalid number of values: " + line));
+              return null;
             }
+
             Vector<String> vals = new Vector<>();
-            for(int i = 3; i < words.length; ++i) {
-                if (words[i].charAt(0) != '|') {
-                    vals.add(words[i]);
-                }
-                else {
-                    //The pipe delimeter can be uesd to include spaces in ENUMERATION values.
-                    //This is handled here.
-                    StringBuilder compound = new StringBuilder();
-                    for(int j = i; j < words.length; ++j) {
-                        compound.append(words[i]);
-                        if (words[i].endsWith("|")) break;
-                        compound.append(" "); //if you use more than one space in your compound enum value this will be a problem
-                    }
-                    vals.add(compound.toString());
-                }
-            }//for
+            for (int j = 0; j < enumerationSize; ++j) {
+              vals.add(ReaderUtils.getWord(lineReader, '|'));
+            }
             if (vals.size() != enumerationSize) {
-                errors.add(new FeedbackListEntry("Warning:  datamap ENUMERATION entry specifies " + enumerationSize + " values but " + vals.size() + " values were found in line: " + line));
+              errors.add(
+                  new FeedbackListEntry(
+                      "Warning:  datamap ENUMERATION entry specifies "
+                          + enumerationSize
+                          + " values but "
+                          + vals.size()
+                          + " values were found in line: "
+                          + line));
             }
+
             vertexToAdd = new EnumerationVertex(id, vals);
-        }
-
-        //INTEGER_RANGE
-        else if (vertexType.equals("INTEGER_RANGE")) {
-            int min = Integer.MIN_VALUE;
-            int max = Integer.MAX_VALUE;
-            if (words.length < 4) {
-                errors.add(new FeedbackListEntry("Error:  Truncated INTEGER_RANGE datamap entry: " + line));
+            break;
+          }
+        case "INTEGER_RANGE":
+          {
+            int low = Integer.MIN_VALUE - 1;
+            try {
+              low = ReaderUtils.getInteger(lineReader);
+            } catch (NumberFormatException ignored) {
+              errors.add(
+                  new FeedbackListEntry(
+                      "Error:  Invalid minimum on INTEGER_RANGE datamap entry: " + line));
             }
-            else if (words.length > 4) {
-                errors.add(new FeedbackListEntry("Warning:  Extraneous data on INTEGER_RANGE datamap entry: " + line));
+            int high = -1;
+            try {
+              high = ReaderUtils.getInteger(lineReader);
+            } catch (NumberFormatException ignored) {
+              errors.add(
+                  new FeedbackListEntry(
+                      "Error:  Invalid maximum on INTEGER_RANGE datamap entry: " + line));
             }
-            else {
-                try {
-                    min = Integer.parseInt(words[2]);
-                }
-                catch(NumberFormatException nfe) {
-                    errors.add(new FeedbackListEntry("Error:  Invalid minimum on INTEGER_RANGE datamap entry: " + line));
-                }
-
-                try {
-                    max = Integer.parseInt(words[3]);
-                }
-                catch(NumberFormatException nfe) {
-                    errors.add(new FeedbackListEntry("Error:  Invalid maximum on INTEGER_RANGE datamap entry: " + line));
-                }
-            }
-
-            vertexToAdd = new IntegerRangeVertex(id, min, max);
-        }
-
-        //INTEGER
-        else if (vertexType.equals("INTEGER")) {
+            vertexToAdd = new IntegerRangeVertex(id, low, high);
+            break;
+          }
+        case "INTEGER":
+          {
             vertexToAdd = new IntegerRangeVertex(id, Integer.MIN_VALUE, Integer.MAX_VALUE);
-        }
-
-        //FLOAT_RANGE
-        else if (vertexType.equals("FLOAT_RANGE")) {
-            float min = Float.NEGATIVE_INFINITY;
-            float max = Float.POSITIVE_INFINITY;
-            if (words.length < 4) {
-                errors.add(new FeedbackListEntry("Error:  Truncated FLOAT_RANGE datamap entry: " + line));
+            break;
+          }
+        case "FLOAT_RANGE":
+          {
+            float low = Float.NEGATIVE_INFINITY;
+            try {
+              low = ReaderUtils.getFloat(lineReader);
+            } catch (NumberFormatException ignored) {
+              errors.add(
+                  new FeedbackListEntry(
+                      "Error:  Invalid minimum on FLOAT_RANGE datamap entry: " + line));
             }
-            else if (words.length > 4) {
-                errors.add(new FeedbackListEntry("Warning:  Extraneous data on FLOAT_RANGE datamap entry: " + line));
+            float high = Float.POSITIVE_INFINITY;
+            try {
+              high = ReaderUtils.getFloat(lineReader);
+            } catch (NumberFormatException ignored) {
+              errors.add(
+                  new FeedbackListEntry(
+                      "Error:  Invalid maximum on FLOAT_RANGE datamap entry: " + line));
             }
-            else {
-                try {
-                    min = Float.parseFloat(words[2]);
-                }
-                catch(NumberFormatException nfe) {
-                    errors.add(new FeedbackListEntry("Error:  Invalid minimum on FLOAT_RANGE datamap entry: " + line));
-                }
-
-                try {
-                    max = Float.parseFloat(words[3]);
-                }
-                catch(NumberFormatException nfe) {
-                    errors.add(new FeedbackListEntry("Error:  Invalid maximum on FLOAT_RANGE datamap entry: " + line));
-                }
-            }
-
-            vertexToAdd = new FloatRangeVertex(id, min, max);
-        }
-
-        //FLOAT
-        else if (vertexType.equals("FLOAT")) {
-            vertexToAdd = new FloatRangeVertex(id, Float.NEGATIVE_INFINITY, Float.POSITIVE_INFINITY);
-        }
-
-        //STRING
-        else {
+            vertexToAdd = new FloatRangeVertex(id, low, high);
+            break;
+          }
+        case "FLOAT":
+          {
+            vertexToAdd =
+                new FloatRangeVertex(id, Float.NEGATIVE_INFINITY, Float.POSITIVE_INFINITY);
+            break;
+          }
+        case "STRING":
+          {
             vertexToAdd = new StringVertex(id);
-        }
-        return vertexToAdd;
-    }//readVertexSafe
+            break;
+          }
+        default:
+          {
+            System.err.println(
+                "Unknown type in datamap entry. Please update readVertexSafe to handle " + vertexType + ".");
+            break;
+          }
+      }
+      if (!ReaderUtils.getWord(lineReader).isEmpty()) {
+        errors.add(
+            new FeedbackListEntry("Error:  Extraneous data found in datamap entry. Fix and reload project or risk losing data. Line: " + line));
+      }
+    } catch (IOException e) {
+      // This is purely programmer error if it ever happens, as we've created the StringReader
+      // ourselves
+      errors.add(
+          new FeedbackListEntry(
+              "Error:  Unknown logic error led to an IOException while reading entry: " + line));
+    }
+    return vertexToAdd;
+  } // readVertexSafe
 
   /**
    * This is a new version of the {@link #read} method that handles mis-formatted .dm files without

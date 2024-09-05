@@ -24,7 +24,7 @@ public class VisualSoar {
 	 * of the MainFrame
 	 * @param args an array of strings representing command line arguments
 	 */
-	public static void main(String[] args) throws Exception {
+	public static void main(String[] args) {
 		MainFrame mainFrame = new MainFrame("VisualSoar");
 		MainFrame.setMainFrame(mainFrame);
 		mainFrame.setVisible(true);

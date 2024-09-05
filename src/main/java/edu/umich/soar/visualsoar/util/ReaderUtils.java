@@ -126,6 +126,7 @@ public class ReaderUtils {
             ch = r.read();
         }
         if (ch == '\r') {
+            // skip next \n. TODO: skips a char if there's a rogue \r with no \n
             r.read();
         }
         w.write("\n");
