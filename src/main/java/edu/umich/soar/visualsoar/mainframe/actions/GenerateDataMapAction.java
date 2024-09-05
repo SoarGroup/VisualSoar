@@ -2,7 +2,7 @@ package edu.umich.soar.visualsoar.mainframe.actions;
 
 import edu.umich.soar.visualsoar.datamap.DataMap;
 import edu.umich.soar.visualsoar.mainframe.MainFrame;
-import edu.umich.soar.visualsoar.misc.FeedbackListEntry;
+import edu.umich.soar.visualsoar.mainframe.feedback.FeedbackListEntry;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorNode;
 
 import javax.swing.*;
@@ -108,7 +108,7 @@ public class GenerateDataMapAction extends AbstractAction {
 
           mainFrame.getOperatorWindow().generateDataMap(current, errors, vecErrors);
 
-          mainFrame.setFeedbackListData(vecErrors);
+          mainFrame.getFeedbackManager().showFeedback(vecErrors);
           value = progressBar.getValue() + 1;
           updateProgressBar(value);
           SwingUtilities.invokeLater(update);

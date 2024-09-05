@@ -1,7 +1,7 @@
 package edu.umich.soar.visualsoar.parser;
 
-import edu.umich.soar.visualsoar.misc.FeedbackEntryOpNode;
-import edu.umich.soar.visualsoar.misc.FeedbackListEntry;
+import edu.umich.soar.visualsoar.mainframe.feedback.FeedbackEntryOpNode;
+import edu.umich.soar.visualsoar.mainframe.feedback.FeedbackListEntry;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorNode;
 import edu.umich.soar.visualsoar.ruleeditor.RuleEditor;
 

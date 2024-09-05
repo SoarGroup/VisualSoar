@@ -35,7 +35,7 @@ public class SoarUtils {
     }
 
     if (reportToMainframe) {
-      MainFrame.getMainFrame().setStatusBarMsg("Sent command: " + command);
+      MainFrame.getMainFrame().getFeedbackManager().setStatusBarMsg("Sent command: " + command);
       MainFrame.getMainFrame().reportResult(result);
     }
   }

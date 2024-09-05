@@ -5,8 +5,8 @@ import edu.umich.soar.visualsoar.graph.ForeignVertex;
 import edu.umich.soar.visualsoar.graph.NamedEdge;
 import edu.umich.soar.visualsoar.graph.SoarIdentifierVertex;
 import edu.umich.soar.visualsoar.graph.SoarVertex;
-import edu.umich.soar.visualsoar.misc.FeedbackEntryForeignDatamap;
-import edu.umich.soar.visualsoar.misc.FeedbackListEntry;
+import edu.umich.soar.visualsoar.mainframe.feedback.FeedbackEntryForeignDatamap;
+import edu.umich.soar.visualsoar.mainframe.feedback.FeedbackListEntry;
 
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
@@ -66,7 +66,7 @@ public class CheckBoxDataMapTree extends DataMapTree implements MouseListener {
         //These are the level 1 datamap entries the user selected for import
         Vector<FakeTreeNode> level1FTNs = this.renderer.getAllSelectedEntries();
         if (level1FTNs.isEmpty()) {
-            MainFrame.getMainFrame().setStatusBarMsg("Nothing to import!");
+            MainFrame.getMainFrame().getFeedbackManager().setStatusBarMsg("Nothing to import!");
             return;
         }
 
@@ -123,7 +123,7 @@ public class CheckBoxDataMapTree extends DataMapTree implements MouseListener {
 
         //Report the success to the user
         addedEntries.add(0, new FeedbackListEntry("The following " + addedEntries.size() + " entries were imported from " + foreignDM + ":"));
-        MainFrame.getMainFrame().setFeedbackListData(addedEntries);
+        MainFrame.getMainFrame().getFeedbackManager().showFeedback(addedEntries);
         MainFrame.getMainFrame().openTopStateDatamap();
 
     }//importFromForeignDataMap

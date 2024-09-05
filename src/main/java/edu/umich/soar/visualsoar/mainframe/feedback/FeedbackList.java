@@ -1,4 +1,4 @@
-package edu.umich.soar.visualsoar.misc;
+package edu.umich.soar.visualsoar.mainframe.feedback;
 
 import edu.umich.soar.visualsoar.mainframe.MainFrame;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorNode;
@@ -11,6 +11,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.Collection;
 import java.util.Enumeration;
 import java.util.Vector;
 
@@ -31,11 +32,11 @@ public class FeedbackList extends JList<FeedbackListEntry> implements ActionList
 // Instance Variables
 ///////////////////////////////////////////////////////////////////
 
-    DefaultListModel<FeedbackListEntry> dlm = new DefaultListModel<>();
-    FeedbackListEntry selectedObj = null;  //currently selected object in the list
-    JPopupMenu rightClickContextMenu;
-    JMenuItem gotoSourceMenuItem = new JMenuItem("See Related Source Code or Datamap Entry");
-    JMenuItem dmAddMenuItem = new JMenuItem("Add Non-Validated Support to Datamap");
+    private final DefaultListModel<FeedbackListEntry> dlm = new DefaultListModel<>();
+    private FeedbackListEntry selectedObj = null;  //currently selected object in the list
+    private final JPopupMenu rightClickContextMenu;
+    private final JMenuItem gotoSourceMenuItem = new JMenuItem("See Related Source Code or Datamap Entry");
+    private final JMenuItem dmAddMenuItem = new JMenuItem("Add Non-Validated Support to Datamap");
 
 
 ///////////////////////////////////////////////////////////////////
@@ -56,6 +57,7 @@ public class FeedbackList extends JList<FeedbackListEntry> implements ActionList
         //handle double click and right click
         addMouseListener(
                 new MouseAdapter() {
+                    @Override
                     public void mouseClicked(MouseEvent e) {
                         //record currently selected object
                         int index = locationToIndex(e.getPoint());
@@ -141,44 +143,29 @@ public class FeedbackList extends JList<FeedbackListEntry> implements ActionList
                     }
                 }
             }
-            MainFrame.getMainFrame().setFeedbackListData(vecErrors);
+            MainFrame.getMainFrame().getFeedbackManager().showFeedback(vecErrors);
         }
     }
 
     /**
      * Override the default implementation.  We want to update the
      * DefaultListModel class we're using here.
-     *
-     * Important Note:  You may be tempted to create an overloaded
-     * version of this method that takes a Vector<String>.  Unfortunately,
-     * if you do this, it creates a compile error: "ambiguous method call"
-     *
      */
+    @Override
     public void setListData(Vector<? extends FeedbackListEntry> v) {
         dlm.removeAllElements();
-        //dlm has no "addAll" method so roll our own
-        dlm.ensureCapacity(v.size());
-        for (FeedbackListEntry flobj : v) {
-            dlm.addElement(flobj);
-        }
-
-        //Make sure no-one's been fiddling with the list model
-        //TODO: I don't understand why we need this? -:AMN:
-        if (getModel() != dlm) {
-            setModel(dlm);
-        }
+        dlm.addAll(v);
     }//setListData
+
+    public void appendListData(Collection<? extends FeedbackListEntry> v) {
+      dlm.addAll(v);
+    }
 
     /**
      * Remove all the data in the list.
      */
     public void clearListData() {
         dlm.removeAllElements();
-
-        //Make sure no-one's been fiddling with the list model
-        if (getModel() != dlm) {
-            setModel(dlm);
-        }
     }//clearListData
 
 
@@ -197,6 +184,7 @@ public class FeedbackList extends JList<FeedbackListEntry> implements ActionList
             setFont(new Font("SansSerif", Font.PLAIN, 12));
         }
 
+        @Override
         public Component getListCellRendererComponent(JList list,
                                                       FeedbackListEntry entry,
                                                       int index,

@@ -1,8 +1,8 @@
 package edu.umich.soar.visualsoar.datamap;
 
 import edu.umich.soar.visualsoar.graph.*;
-import edu.umich.soar.visualsoar.misc.FeedbackEntryOpNode;
-import edu.umich.soar.visualsoar.misc.FeedbackListEntry;
+import edu.umich.soar.visualsoar.mainframe.feedback.FeedbackEntryOpNode;
+import edu.umich.soar.visualsoar.mainframe.feedback.FeedbackListEntry;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorNode;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorWindow;
 import edu.umich.soar.visualsoar.parser.SoarProduction;
@@ -25,7 +25,7 @@ public class SoarWorkingMemoryModel {
     //////////////////////////////////////////////////////////
 // Data Members
 //////////////////////////////////////////////////////////
-    // A Directed Graph that is supposed to represent WM    
+    // A Directed Graph that is supposed to represent WM
     private final DirectedGraph rep = new DirectedGraphAsAdjacencyLists();
     private final Vector<WorkingMemoryListener> listeners = new Vector<>();
     private final TreeMap<String, SoarVertex> properties = new TreeMap<>();

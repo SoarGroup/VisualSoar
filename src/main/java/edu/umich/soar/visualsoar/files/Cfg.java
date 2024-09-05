@@ -37,7 +37,7 @@ public class Cfg {
       while (scan.hasNextLine()) cfgLines.add(scan.nextLine());
       scan.close();
     } catch (FileNotFoundException fnfe) {
-      mainFrame.setStatusBarMsg("Unable to read previous configuration from " + cfgFile.getName());
+      mainFrame.getFeedbackManager().setStatusBarMsg("Unable to read previous configuration from " + cfgFile.getName());
       return;
     }
 
@@ -131,7 +131,7 @@ public class Cfg {
         pw.close();
       } catch (FileNotFoundException fnfe) {
         // the .cfg file is not essential so just report it if it can't be written
-        mainFrame.setStatusBarMsg("Unable to save current configuration to " + cfgFile.getName());
+        mainFrame.getFeedbackManager().setStatusBarMsg("Unable to save current configuration to " + cfgFile.getName());
       }
     }
   }

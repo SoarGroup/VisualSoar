@@ -1,8 +1,8 @@
 package edu.umich.soar.visualsoar.dialogs;
 
 import edu.umich.soar.visualsoar.mainframe.MainFrame;
-import edu.umich.soar.visualsoar.misc.FeedbackEntryOpNode;
-import edu.umich.soar.visualsoar.misc.FeedbackListEntry;
+import edu.umich.soar.visualsoar.mainframe.feedback.FeedbackEntryOpNode;
+import edu.umich.soar.visualsoar.mainframe.feedback.FeedbackListEntry;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorNode;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorWindow;
 import edu.umich.soar.visualsoar.ruleeditor.RuleEditor;
@@ -220,7 +220,7 @@ public class ReplaceInProjectDialog extends JDialog {
                             findInProject(toFind, toReplace, caseSensitive, true);
                         }
 
-                        MainFrame.getMainFrame().setFeedbackListData(v);
+                        MainFrame.getMainFrame().getFeedbackManager().showFeedback(v);
 
                         if (!buttonPanel.keepDialog.isSelected()) {
                             dispose();

@@ -3,7 +3,10 @@ package edu.umich.soar.visualsoar.datamap;
 import edu.umich.soar.visualsoar.mainframe.MainFrame;
 import edu.umich.soar.visualsoar.dialogs.*;
 import edu.umich.soar.visualsoar.graph.*;
-import edu.umich.soar.visualsoar.misc.*;
+import edu.umich.soar.visualsoar.mainframe.feedback.FeedbackEntryDatamap;
+import edu.umich.soar.visualsoar.mainframe.feedback.FeedbackEntryForeignDatamap;
+import edu.umich.soar.visualsoar.mainframe.feedback.FeedbackEntryOpNode;
+import edu.umich.soar.visualsoar.mainframe.feedback.FeedbackListEntry;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorNode;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorRootNode;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorWindow;
@@ -847,7 +850,7 @@ public class DataMapTree extends JTree implements ClipboardOwner, PopupMenuListe
             vecErrors.add(new FeedbackListEntry("No matches found."));
         }
 
-        MainFrame.getMainFrame().setFeedbackListData(vecErrors);
+        MainFrame.getMainFrame().getFeedbackManager().showFeedback(vecErrors);
 
 
     }//findProds
@@ -1046,7 +1049,7 @@ public class DataMapTree extends JTree implements ClipboardOwner, PopupMenuListe
                     //Is this a legal paste?
                     if (! parent.allowsEmanatingEdges()) {
                         String msg = "Paste of " + child + " to " + parent + " is illegal.  " + parent + " is not an identifier.";
-                        MainFrame.getMainFrame().setStatusBarError(msg);
+                        MainFrame.getMainFrame().getFeedbackManager().setStatusBarError(msg);
                         return;
                     }
 
@@ -1098,7 +1101,7 @@ public class DataMapTree extends JTree implements ClipboardOwner, PopupMenuListe
                 //Is this a legal link?
                 if (! parent.allowsEmanatingEdges()) {
                     String msg = "Link of " + child + " to " + parent + " is illegal.  " + parent + " is not an identifier.";
-                    MainFrame.getMainFrame().setStatusBarError(msg);
+                    MainFrame.getMainFrame().getFeedbackManager().setStatusBarError(msg);
                     return;
                 }
 
@@ -1601,7 +1604,7 @@ public class DataMapTree extends JTree implements ClipboardOwner, PopupMenuListe
 
         //Report the results to the user
         addedEntries.add(0, new FeedbackListEntry("The following " + addedEntries.size() + " entries were imported from " + fv.getForeignDMName() + ":"));
-        MainFrame.getMainFrame().setFeedbackListData(addedEntries);
+        MainFrame.getMainFrame().getFeedbackManager().showFeedback(addedEntries);
 
     }//reimportSubtree
 
@@ -1656,7 +1659,7 @@ public class DataMapTree extends JTree implements ClipboardOwner, PopupMenuListe
         else {
             diffsList.add(new FeedbackListEntry("No mismatches found."));
         }
-        MainFrame.getMainFrame().setFeedbackListData(diffsList);
+        MainFrame.getMainFrame().getFeedbackManager().showFeedback(diffsList);
     }//verifySubtree
 
 
@@ -2107,7 +2110,7 @@ public class DataMapTree extends JTree implements ClipboardOwner, PopupMenuListe
             }
 
             if (getSelectionCount() > 1) {
-                MainFrame.getMainFrame().setStatusBarError("Only one item may be dragged at a time");
+                MainFrame.getMainFrame().getFeedbackManager().setStatusBarError("Only one item may be dragged at a time");
                 return;
             }
 

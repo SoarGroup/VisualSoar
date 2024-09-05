@@ -9,6 +9,10 @@ import edu.umich.soar.visualsoar.files.Backup;
 import edu.umich.soar.visualsoar.files.Cfg;
 import edu.umich.soar.visualsoar.files.Vsa;
 import edu.umich.soar.visualsoar.mainframe.actions.*;
+import edu.umich.soar.visualsoar.mainframe.feedback.FeedbackEntryOpNode;
+import edu.umich.soar.visualsoar.mainframe.feedback.FeedbackList;
+import edu.umich.soar.visualsoar.mainframe.feedback.FeedbackListEntry;
+import edu.umich.soar.visualsoar.mainframe.feedback.FeedbackManager;
 import edu.umich.soar.visualsoar.misc.*;
 import edu.umich.soar.visualsoar.operatorwindow.*;
 import edu.umich.soar.visualsoar.ruleeditor.RuleEditor;
@@ -70,9 +74,11 @@ public class MainFrame extends JFrame
 	private final TemplateManager d_templateManager = new TemplateManager();
 	private final JSplitPane operatorDesktopSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
 	private final JSplitPane feedbackDesktopSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
-	public FeedbackList feedbackList = new FeedbackList();
-    public JLabel statusBar = new JLabel("  Welcome to Visual Soar.");
-	String lastWindowViewOperation = "none"; // can also be "tile" or "cascade"
+	private final FeedbackList feedbackList = new FeedbackList();
+  private final JLabel statusBar = new JLabel("  Welcome to Visual Soar.");
+  private final FeedbackManager feedbackManager = new FeedbackManager(feedbackList, statusBar);
+
+	private String lastWindowViewOperation = "none"; // can also be "tile" or "cascade"
 
 	private JMenu soarRuntimeAgentMenu = null;
 
@@ -222,52 +228,9 @@ public class MainFrame extends JFrame
         return false;
     }
 
-
-	/**
-     * Method updates the FeedBack list window.  If your message is a single string
-	 * consider using the status bar to display your message instead.
-	 *
-     * @param v the vector list of feedback data
-     */
-	public void setFeedbackListData(Vector<FeedbackListEntry> v) {
-		if (v == null) v = new Vector<>(); //clear the list
-		feedbackList.setListData(v);
-	}
-
-	/**
-	 * Method updates the status bar text with a message
-	 */
-	public void setStatusBarMsg(String text) {
-		//Extra spaces make text align better with feedback window above it
-		statusBar.setForeground(Color.black);
-		statusBar.setText("  " + text);
-	}
-
-	/**
-	 * Method updates the status bar text with list of strings.  These
-	 * are displayed on a single line.
-	 */
-	public void setStatusBarMsgList(List<String> msgs) {
-		if (msgs.isEmpty()) return; //nop
-		StringBuilder sb = new StringBuilder();
-		for (String match : msgs) {
-			sb.append("   ");
-			sb.append(match);
-		}
-		statusBar.setText(sb.toString());
-	}
-
-	/**
-	 * Method updates the status bar text with a message that indicates a user error
-	 */
-	public void setStatusBarError(String text)
-	{
-		//Extra spaces make text align better with feedback window above it
-		statusBar.setForeground(Color.red);
-		statusBar.setText("  " + text);
-    getToolkit().beep();
-	}
-
+    public FeedbackManager getFeedbackManager() {
+      return feedbackManager;
+    }
 
 	/**
      * Gets the project TemplateManager
@@ -1265,7 +1228,7 @@ public class MainFrame extends JFrame
 	 * the error.
 	 */
 	public void rejectForReadOnly() {
-		setStatusBarMsg("You must turn off Read-Only mode to edit this project.");
+		getFeedbackManager().setStatusBarMsg("You must turn off Read-Only mode to edit this project.");
 		getToolkit().beep();
 	}
 
@@ -1764,7 +1727,7 @@ public class MainFrame extends JFrame
 			v.add(new FeedbackListEntry(line));
 		}
 
-		setFeedbackListData(v);
+    getFeedbackManager().showFeedback(v);
 	}
 
 
@@ -1884,7 +1847,7 @@ public class MainFrame extends JFrame
 		public void actionPerformed(ActionEvent ae) {
 			//Only one datamap window can be open at a time
 			if (desktopPane.numDataMaps() > 0) {
-				setStatusBarError("Cannot import from foreign datamap while local datamap is being edited.");
+        getFeedbackManager().setStatusBarError("Cannot import from foreign datamap while local datamap is being edited.");
 				return;
 			}
 
@@ -2018,7 +1981,7 @@ public class MainFrame extends JFrame
 			}
 
 			//Share the final list with the user
-			setFeedbackListData(vecFeedback);
+      getFeedbackManager().showFeedback(vecFeedback);
 		}//actionPerformed
 	}//class FindAllProdsAction
 
@@ -2046,7 +2009,7 @@ public class MainFrame extends JFrame
 		public void actionPerformed(ActionEvent e)
         {
 			perform();
-			setStatusBarMsg("Save Finished");
+      getFeedbackManager().setStatusBarMsg("Save Finished");
 		}
 	}//class CommitAction
 

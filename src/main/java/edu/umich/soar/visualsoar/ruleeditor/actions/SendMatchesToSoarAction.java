@@ -26,7 +26,7 @@ public class SendMatchesToSoarAction extends AbstractAction {
 		// Call matches in Soar
 		String sProductionName = ruleEditor.GetProductionNameUnderCaret();
     if (sProductionName == null) {
-      MainFrame.getMainFrame()
+      MainFrame.getMainFrame().getFeedbackManager()
           .setStatusBarError(
               "I don't know which production you wish to find matches for; "
                   + "please click inside of it before attempting the command again.");

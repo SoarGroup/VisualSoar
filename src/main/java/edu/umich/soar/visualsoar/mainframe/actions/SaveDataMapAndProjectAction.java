@@ -28,6 +28,6 @@ public class SaveDataMapAndProjectAction extends PerformableAction {
 
   public void actionPerformed(ActionEvent event) {
     perform();
-    mainFrame.setStatusBarMsg("DataMap and Project Saved");
+    mainFrame.getFeedbackManager().setStatusBarMsg("DataMap and Project Saved");
   }
 }

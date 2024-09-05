@@ -1,8 +1,7 @@
 package edu.umich.soar.visualsoar.mainframe;
 
-import edu.umich.soar.visualsoar.misc.FeedbackListEntry;
+import edu.umich.soar.visualsoar.mainframe.feedback.FeedbackListEntry;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorNode;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -91,7 +90,7 @@ public abstract class UpdateThread extends Thread {
         // two separate indicators for errors.
         vecErrors.add(new FeedbackListEntry("Unknown error occurred"));
       }
-      mainFrame.setFeedbackListData(vecErrors);
+      mainFrame.getFeedbackManager().showFeedback(vecErrors);
       SwingUtilities.invokeLater(finish);
     } catch (IOException ioe) {
       ioe.printStackTrace();

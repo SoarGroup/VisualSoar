@@ -9,8 +9,8 @@ import edu.umich.soar.visualsoar.dialogs.NameDialog;
 import edu.umich.soar.visualsoar.dialogs.ReplaceInProjectDialog;
 import edu.umich.soar.visualsoar.graph.SoarIdentifierVertex;
 import edu.umich.soar.visualsoar.graph.SoarVertex;
-import edu.umich.soar.visualsoar.misc.FeedbackEntryOpNode;
-import edu.umich.soar.visualsoar.misc.FeedbackListEntry;
+import edu.umich.soar.visualsoar.mainframe.feedback.FeedbackEntryOpNode;
+import edu.umich.soar.visualsoar.mainframe.feedback.FeedbackListEntry;
 import edu.umich.soar.visualsoar.misc.Prefs;
 import edu.umich.soar.visualsoar.misc.Template;
 import edu.umich.soar.visualsoar.parser.ParseException;
@@ -153,12 +153,12 @@ public class OperatorWindow extends JTree {
      */
     public OperatorWindow(File in_file, boolean readOnly) throws NumberFormatException, IOException {
         this();
-        MainFrame.getMainFrame().setFeedbackListData(null); //clear old msgs
+        MainFrame.getMainFrame().getFeedbackManager().clearFeedback();
         s_OperatorWindow = this;
         workingMemory = new SoarWorkingMemoryModel(false, null);
         openHierarchy(in_file);
         Prefs.addRecentProject(in_file, readOnly);
-        MainFrame.getMainFrame().setStatusBarMsg("Opened " + in_file.getName());
+        MainFrame.getMainFrame().getFeedbackManager().setStatusBarMsg("Opened " + in_file.getName());
     }
 
     public static OperatorWindow getOperatorWindow() {
@@ -510,7 +510,7 @@ public class OperatorWindow extends JTree {
             node.export(new File(projectFolder + File.separator + node + ".vse"));
 
             //Let the user know it was successful
-            MainFrame.getMainFrame().setStatusBarMsg("Export Complete");
+            MainFrame.getMainFrame().getFeedbackManager().setStatusBarMsg("Export Complete");
         } catch (IOException ioe) {
             JOptionPane.showMessageDialog(MainFrame.getMainFrame(),
                     "Error Writing File to Disk",
@@ -549,7 +549,7 @@ public class OperatorWindow extends JTree {
                 r.close();
 
                 //Inform user of success
-                MainFrame.getMainFrame().setStatusBarMsg("Import Complete");
+                MainFrame.getMainFrame().getFeedbackManager().setStatusBarMsg("Import Complete");
             }
 
 
@@ -890,7 +890,7 @@ public class OperatorWindow extends JTree {
         if (vecErrors.isEmpty()) {
             vecErrors.add(new FeedbackListEntry("No errors detected in children."));
         }
-        MainFrame.getMainFrame().setFeedbackListData(vecErrors);
+        MainFrame.getMainFrame().getFeedbackManager().showFeedback(vecErrors);
     }
 
     /**
@@ -1079,7 +1079,7 @@ public class OperatorWindow extends JTree {
         }
         r.close();
         if (!success) {
-            MainFrame.getMainFrame().setStatusBarError("Unable to parse " + dataMapFile.getName());
+            MainFrame.getMainFrame().getFeedbackManager().setStatusBarError("Unable to parse " + dataMapFile.getName());
         }
         restoreStateIds();
     }
@@ -1120,7 +1120,7 @@ public class OperatorWindow extends JTree {
         }
         r.close();
         if (!success) {
-            MainFrame.getMainFrame().setStatusBarError("Unable to parse " + dataMapFile.getName());
+            MainFrame.getMainFrame().getFeedbackManager().setStatusBarError("Unable to parse " + dataMapFile.getName());
         }
         restoreStateIds();
     }
@@ -1159,7 +1159,7 @@ public class OperatorWindow extends JTree {
         }
         r.close();
         if (!success) {
-            MainFrame.getMainFrame().setStatusBarError("Unable to parse " + dataMapFile.getName());
+            MainFrame.getMainFrame().getFeedbackManager().setStatusBarError("Unable to parse " + dataMapFile.getName());
         }
         restoreStateIds();
     }
@@ -1198,7 +1198,7 @@ public class OperatorWindow extends JTree {
         }
         r.close();
         if (!success) {
-            MainFrame.getMainFrame().setStatusBarError("Unable to parse " + dataMapFile.getName());
+            MainFrame.getMainFrame().getFeedbackManager().setStatusBarError("Unable to parse " + dataMapFile.getName());
         }
 
         try {
@@ -1208,7 +1208,7 @@ public class OperatorWindow extends JTree {
             //if the parse was unsuccessful don't say anything since there are
             // already more informative error messages in the feedback window
             if (success) {
-                MainFrame.getMainFrame().setStatusBarError("Error! Unable to restore high-level ids for project.");
+                MainFrame.getMainFrame().getFeedbackManager().setStatusBarError("Error! Unable to restore high-level ids for project.");
             }
         }
     }
@@ -1248,7 +1248,7 @@ public class OperatorWindow extends JTree {
         }
         r.close();
         if (!success) {
-            MainFrame.getMainFrame().setStatusBarError("Unable to parse " + dataMapFile.getName());
+            MainFrame.getMainFrame().getFeedbackManager().setStatusBarError("Unable to parse " + dataMapFile.getName());
         }
         restoreStateIds();
 
@@ -1544,7 +1544,7 @@ public class OperatorWindow extends JTree {
             vecErrs.add(new FeedbackListEntry(stringToFind + " not found in project"));
         }
 
-        MainFrame.getMainFrame().setFeedbackListData(vecErrs);
+        MainFrame.getMainFrame().getFeedbackManager().showFeedback(vecErrs);
     }
 
 
@@ -2009,7 +2009,7 @@ public class OperatorWindow extends JTree {
 
         //Report errors
         if (errors.size() > 0) {
-            MainFrame.getMainFrame().setFeedbackListData(errors);
+            MainFrame.getMainFrame().getFeedbackManager().showFeedback(errors);
 
             //TODO:  At this point we could present the user with these choices:
             //       a) abort the project load operation

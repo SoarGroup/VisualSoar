@@ -1,4 +1,4 @@
-package edu.umich.soar.visualsoar.misc;
+package edu.umich.soar.visualsoar.mainframe.feedback;
 
 
 /**
@@ -17,7 +17,7 @@ package edu.umich.soar.visualsoar.misc;
  *  2.  text associated with a place in the code
  *         Example: "tanksoar/wander(22): Parse exception: '}' expected"
  *  3.  text associated with a mismatch between a place in the code and a
- *      a particular datamap entry
+ *      particular datamap entry
  *         Example: "propose*wander(17) does not match constraint (&lt;s&gt; name foo)"
  *
  * @author Brad Jones

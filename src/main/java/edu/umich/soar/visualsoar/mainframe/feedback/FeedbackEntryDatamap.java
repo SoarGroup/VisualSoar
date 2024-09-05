@@ -1,4 +1,4 @@
-package edu.umich.soar.visualsoar.misc;
+package edu.umich.soar.visualsoar.mainframe.feedback;
 
 import edu.umich.soar.visualsoar.mainframe.MainFrame;
 import edu.umich.soar.visualsoar.datamap.DataMap;

@@ -6,6 +6,8 @@ import edu.umich.soar.visualsoar.dialogs.EditCustomTemplatesDialog;
 import edu.umich.soar.visualsoar.graph.EnumerationVertex;
 import edu.umich.soar.visualsoar.graph.SoarIdentifierVertex;
 import edu.umich.soar.visualsoar.graph.SoarVertex;
+import edu.umich.soar.visualsoar.mainframe.feedback.FeedbackEntryOpNode;
+import edu.umich.soar.visualsoar.mainframe.feedback.FeedbackListEntry;
 import edu.umich.soar.visualsoar.misc.*;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorNode;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorRootNode;
@@ -866,7 +868,7 @@ public class RuleEditor extends CustomInternalFrame {
             }
         }
 
-        MainFrame.getMainFrame().setStatusBarMsg("Replaced " + count + " occurrences of \"" + findString + "\" with \"" + replaceString + "\"");
+        MainFrame.getMainFrame().getFeedbackManager().setStatusBarMsg("Replaced " + count + " occurrences of \"" + findString + "\" with \"" + replaceString + "\"");
     }
 
     /**
@@ -1459,7 +1461,7 @@ public class RuleEditor extends CustomInternalFrame {
                     }
                 }
             }
-            MainFrame.getMainFrame().setFeedbackListData(vecErrors);
+            MainFrame.getMainFrame().getFeedbackManager().showFeedback(vecErrors);
         }
     }
 
@@ -1612,10 +1614,10 @@ public class RuleEditor extends CustomInternalFrame {
          */
         private void display(List<String> completeMatches) {
             if (completeMatches.isEmpty()) {
-                MainFrame.getMainFrame().setStatusBarMsg("no auto-complete matches found");
+                MainFrame.getMainFrame().getFeedbackManager().setStatusBarMsg("no auto-complete matches found");
             }
             else {
-                MainFrame.getMainFrame().setStatusBarMsgList(completeMatches);
+                MainFrame.getMainFrame().getFeedbackManager().setStatusBarMsgList(completeMatches);
             }
         }    // end of display()
 
@@ -1748,7 +1750,7 @@ public class RuleEditor extends CustomInternalFrame {
 			EditingUtils.insert(editorPane.getDocument(), addedCharacters, pos);
 
             //report all matches to the user
-            MainFrame.getMainFrame().setStatusBarMsgList(completeMatches);
+            MainFrame.getMainFrame().getFeedbackManager().setStatusBarMsgList(completeMatches);
 
         }//complete
 
@@ -1823,7 +1825,7 @@ public class RuleEditor extends CustomInternalFrame {
             // Get the production string that our caret is over
             String sProductionString = GetProductionStringUnderCaret();
             if (sProductionString == null) {
-              MainFrame.getMainFrame()
+              MainFrame.getMainFrame().getFeedbackManager()
                   .setStatusBarError(
                       "I don't know which production you wish to source; " +
                         "please click inside of it before attempting to send it to Soar again.");

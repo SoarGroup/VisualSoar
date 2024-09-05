@@ -1,7 +1,6 @@
 package edu.umich.soar.visualsoar.datamap;
 
-import edu.umich.soar.visualsoar.misc.FeedbackEntryOpNode;
-import edu.umich.soar.visualsoar.misc.FeedbackListEntry;
+import edu.umich.soar.visualsoar.mainframe.feedback.FeedbackEntryOpNode;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorNode;
 
 /**

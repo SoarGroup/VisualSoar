@@ -35,6 +35,6 @@ public class ExportAgentAction extends PerformableAction {
 
   public void actionPerformed(ActionEvent event) {
     perform();
-    mainFrame.setStatusBarMsg("Export Finished");
+    mainFrame.getFeedbackManager().setStatusBarMsg("Export Finished");
   }
 }

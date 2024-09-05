@@ -4,8 +4,8 @@ import edu.umich.soar.visualsoar.mainframe.MainFrame;
 import edu.umich.soar.visualsoar.datamap.SoarWorkingMemoryModel;
 import edu.umich.soar.visualsoar.dialogs.FileAlreadyExistsDialog;
 import edu.umich.soar.visualsoar.graph.SoarIdentifierVertex;
-import edu.umich.soar.visualsoar.misc.FeedbackEntryOpNode;
-import edu.umich.soar.visualsoar.misc.FeedbackListEntry;
+import edu.umich.soar.visualsoar.mainframe.feedback.FeedbackEntryOpNode;
+import edu.umich.soar.visualsoar.mainframe.feedback.FeedbackListEntry;
 import edu.umich.soar.visualsoar.parser.ParseException;
 import edu.umich.soar.visualsoar.parser.SoarProduction;
 import edu.umich.soar.visualsoar.parser.TokenMgrError;
@@ -214,7 +214,7 @@ public abstract class OperatorNode extends VSTreeNode implements java.io.Seriali
                 ow.generateDataMap(null, parseErrors, vecGenerations);
 
                 //Report the results
-                MainFrame.getMainFrame().setFeedbackListData(vecGenerations);
+                MainFrame.getMainFrame().getFeedbackManager().showFeedback(vecGenerations);
 
             }//actionPerformed
         });

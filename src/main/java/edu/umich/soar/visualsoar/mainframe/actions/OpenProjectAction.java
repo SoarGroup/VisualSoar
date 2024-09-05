@@ -2,6 +2,8 @@ package edu.umich.soar.visualsoar.mainframe.actions;
 
 import edu.umich.soar.visualsoar.files.Vsa;
 import edu.umich.soar.visualsoar.mainframe.MainFrame;
+import edu.umich.soar.visualsoar.mainframe.feedback.FeedbackManager;
+
 import java.awt.event.ActionEvent;
 import java.io.File;
 import javax.swing.*;
@@ -52,7 +54,11 @@ public class OpenProjectAction extends AbstractAction {
       return;
     }
     final boolean readOnly = this.readOnly || event.getActionCommand().contains("Read-Only");
-
-    mainFrame.openProject(vsaFile, readOnly);
+    try (FeedbackManager.AtomicContext ignored = mainFrame.getFeedbackManager().beginAtomicContext()) {
+      mainFrame.openProject(vsaFile, readOnly);
+    } catch (Exception e) {
+      // There are no exceptions to catch from the feedback manager, but if there are, let's
+      throw new RuntimeException(e);
+    }
   }
 }

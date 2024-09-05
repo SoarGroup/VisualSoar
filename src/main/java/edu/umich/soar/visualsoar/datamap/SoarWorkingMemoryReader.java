@@ -2,7 +2,7 @@ package edu.umich.soar.visualsoar.datamap;
 
 import edu.umich.soar.visualsoar.mainframe.MainFrame;
 import edu.umich.soar.visualsoar.graph.*;
-import edu.umich.soar.visualsoar.misc.FeedbackListEntry;
+import edu.umich.soar.visualsoar.mainframe.feedback.FeedbackListEntry;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorWindow;
 import edu.umich.soar.visualsoar.util.ReaderUtils;
 
@@ -361,7 +361,7 @@ public class SoarWorkingMemoryReader {
                 "Error: Root type must be Soar id.  Expected \"SOAR_ID 0\" but found \""
                     + lineTwo
                     + "\""));
-        MainFrame.getMainFrame().setFeedbackListData(errors);
+        MainFrame.getMainFrame().getFeedbackManager().showFeedback(errors);
         return false;
       }
       int rootNodeId = -1;
@@ -376,7 +376,7 @@ public class SoarWorkingMemoryReader {
                 "Datamap root must have a valid Soar id.  Expected \"SOAR_ID 0\" but found \""
                     + lineTwo
                     + "\""));
-        MainFrame.getMainFrame().setFeedbackListData(errors);
+        MainFrame.getMainFrame().getFeedbackManager().showFeedback(errors);
         return false;
       }
       SoarIdentifierVertex topState = new SoarIdentifierVertex(rootNodeId);
@@ -390,7 +390,7 @@ public class SoarWorkingMemoryReader {
           errors.add(
               new FeedbackListEntry(
                   "Error:  The .dm file appears to be truncated in the vertex list.  Aborting."));
-          MainFrame.getMainFrame().setFeedbackListData(errors);
+          MainFrame.getMainFrame().getFeedbackManager().showFeedback(errors);
           return false;
         }
 
@@ -577,7 +577,7 @@ public class SoarWorkingMemoryReader {
 
     // if any issues were found, report them to the user
     if (errors.size() > 0) {
-      MainFrame.getMainFrame().setFeedbackListData(errors);
+      MainFrame.getMainFrame().getFeedbackManager().showFeedback(errors);
     }
     // return true if no errors were found
     return errors.stream().filter(FeedbackListEntry::isError).findAny().isEmpty();
@@ -598,7 +598,7 @@ public class SoarWorkingMemoryReader {
         try {
             rDM = new FileReader(dataMapFile);
         } catch (FileNotFoundException fnfe) {
-            MainFrame.getMainFrame().setStatusBarError("Error opening " + dataMapFile.getName() + ": " + fnfe.getMessage());
+            MainFrame.getMainFrame().getFeedbackManager().setStatusBarError("Error opening " + dataMapFile.getName() + ": " + fnfe.getMessage());
             return null;
         }
         Reader rComment = null;
@@ -607,14 +607,14 @@ public class SoarWorkingMemoryReader {
                 rComment = new FileReader(commentFile);
             }
         } catch (FileNotFoundException fnfe) {
-            MainFrame.getMainFrame().setStatusBarError("Error opening " + commentFile.getName() + ": " + fnfe.getMessage());
+            MainFrame.getMainFrame().getFeedbackManager().setStatusBarError("Error opening " + commentFile.getName() + ": " + fnfe.getMessage());
             return null;
         }
 
         //Read the datamap into memory
         boolean success = SoarWorkingMemoryReader.readSafe(swmm, rDM, rComment);
         if (!success) {
-            MainFrame.getMainFrame().setStatusBarError("Unable to parse " + dataMapFile.getName());
+            MainFrame.getMainFrame().getFeedbackManager().setStatusBarError("Unable to parse " + dataMapFile.getName());
             return null;
         }
 
@@ -651,7 +651,7 @@ public class SoarWorkingMemoryReader {
         //verify it's there
         File dmFile = new File(dmPath);
         if (!dmFile.exists()) {
-            MainFrame.getMainFrame().setStatusBarMsg("Could not find datamap file for this project.  Expected:  " + dmFile.getName());
+            MainFrame.getMainFrame().getFeedbackManager().setStatusBarMsg("Could not find datamap file for this project.  Expected:  " + dmFile.getName());
             return null;
         }
 
