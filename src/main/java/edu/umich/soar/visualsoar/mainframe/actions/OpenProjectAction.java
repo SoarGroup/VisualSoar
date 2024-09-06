@@ -56,9 +56,6 @@ public class OpenProjectAction extends AbstractAction {
     final boolean readOnly = this.readOnly || event.getActionCommand().contains("Read-Only");
     try (FeedbackManager.AtomicContext ignored = mainFrame.getFeedbackManager().beginAtomicContext()) {
       mainFrame.openProject(vsaFile, readOnly);
-    } catch (Exception e) {
-      // There are no exceptions to catch from the feedback manager, but if there are, let's
-      throw new RuntimeException(e);
     }
   }
 }
