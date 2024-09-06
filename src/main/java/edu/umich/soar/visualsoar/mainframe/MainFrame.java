@@ -1393,34 +1393,6 @@ public class MainFrame extends JFrame
     setTitle("VisualSoar");
   }
 
-  /**
-     * Attempts to open a new project by creating a new OperatorWindow
-     * @param file .vsa project file that is to be opened
-     * @see OperatorWindow
-     */
-	public void tryOpenProject (File file, boolean readOnly) throws IOException
-    {
-		operatorWindow = new OperatorWindow(file, readOnly);
-
-		operatorDesktopSplit.setLeftComponent(operatorWindow);
-
-		projectActionsEnable(true);
-
-		//Set and monitor the divider position
-		operDividerSetup();
-
-		//Update the title to include the project name
-		setTitle(file.getName().replaceAll(".vsa", ""));
-
-		//Reopen windows that were open last time
-		Cfg.readCfgFile(this);
-
-		//Configure read-only status
-		setReadOnly(readOnly);
-
-	}//tryOpenProject
-
-
   public void openProject(@NotNull File vsaFile, boolean readOnly) {
     //Get rid of the old project (if it exists)
     if (operatorWindow != null) {
@@ -2102,62 +2074,64 @@ public class MainFrame extends JFrame
 
 		public void actionPerformed(ActionEvent e)
         {
-			SaveProjectAsDialog spad = new SaveProjectAsDialog(MainFrame.getMainFrame());
-            spad.setVisible(true);
+      try (FeedbackManager.AtomicContext ignored = getFeedbackManager().beginAtomicContext()) {
+        SaveProjectAsDialog spad = new SaveProjectAsDialog(MainFrame.getMainFrame());
+        spad.setVisible(true);
 
-            OperatorRootNode root = (OperatorRootNode)(operatorWindow.getModel().getRoot());
-            File oldProjectFile = new File(root.getProjectFile());
-			String oldProjPath = root.getFolderName();
+        OperatorRootNode root = (OperatorRootNode) (operatorWindow.getModel().getRoot());
+        File oldProjectFile = new File(root.getProjectFile());
+        String oldProjPath = root.getFolderName();
 
-			if (spad.wasApproved())
-            {
-				String newName = spad.getNewAgentName();
-                String newRootPath = spad.getNewAgentPath();
-                String newProjPath = newRootPath + File.separator + newName;
-				if(OperatorWindow.isProjectNameValid(newName))
-                {
-					operatorWindow.saveProjectAs(newName, newRootPath);
+        if (spad.wasApproved()) {
+          String newName = spad.getNewAgentName();
+          String newRootPath = spad.getNewAgentPath();
+          String newProjPath = newRootPath + File.separator + newName;
+          if (OperatorWindow.isProjectNameValid(newName)) {
+            operatorWindow.saveProjectAs(newName, newRootPath);
 
-                    // Regenerate the *_source.soar files in the old project
-                    try  {
-                        OperatorWindow oldOpWin = new OperatorWindow(oldProjectFile, false);
-                        OperatorRootNode oldOrn = (OperatorRootNode)oldOpWin.getModel().getRoot();
-                        oldOrn.startSourcing();
-                    }
-                    catch (IOException exception) {
-                        JOptionPane.showMessageDialog(MainFrame.this,
-                                                      exception.getMessage(),
-                                                      "Agent Export Error",
-                                                      JOptionPane.ERROR_MESSAGE);
-                        return;
-                    }
+            // Regenerate the *_source.soar files in the old project
+            try {
+              OperatorWindow oldOpWin = new OperatorWindow(oldProjectFile, false);
+              OperatorRootNode oldOrn = (OperatorRootNode) oldOpWin.getModel().getRoot();
+              oldOrn.startSourcing();
+            } catch (IOException exception) {
+              JOptionPane.showMessageDialog(
+                  MainFrame.this,
+                  exception.getMessage(),
+                  "Agent Export Error",
+                  JOptionPane.ERROR_MESSAGE);
+              return;
+            }
 
-					copyAllFiles(oldProjPath, newProjPath, root);
+            copyAllFiles(oldProjPath, newProjPath, root);
 
-                    JInternalFrame[] jif = desktopPane.getAllFrames();
-					for (JInternalFrame jInternalFrame : jif) {
-						if (jInternalFrame instanceof RuleEditor) {
-							RuleEditor oldRuleEditor = (RuleEditor) jInternalFrame;
-							OperatorNode newNode = oldRuleEditor.getNode();
-							oldRuleEditor.fileRenamed(newNode.getFileName());         // Update the Rule editor with the correct updated file name
-						}
-					}
-                    saveAllFilesAction.perform();     // Save all open Rule Editors to the new project directory
-                    exportAgentAction.perform();
-                    saveDataMapAndProjectAction.perform();    // Save DataMap and Project file (.vsa)
+            JInternalFrame[] jif = desktopPane.getAllFrames();
+            for (JInternalFrame jInternalFrame : jif) {
+              if (jInternalFrame instanceof RuleEditor) {
+                RuleEditor oldRuleEditor = (RuleEditor) jInternalFrame;
+                OperatorNode newNode = oldRuleEditor.getNode();
+                oldRuleEditor.fileRenamed(
+                    newNode
+                        .getFileName()); // Update the Rule editor with the correct updated file
+                                         // name
+              }
+            }
+            saveAllFilesAction.perform(); // Save all open Rule Editors to the new project directory
+            exportAgentAction.perform();
+            saveDataMapAndProjectAction.perform(); // Save DataMap and Project file (.vsa)
 
-                    //Set the title bar to include the project name
-                    setTitle(newName);
+            // Set the title bar to include the project name
+            setTitle(newName);
 
-                }
-				else
-                {
-					JOptionPane.showMessageDialog(MainFrame.this,
-                                                  "That is not a valid name for the project",
-                                                  "Invalid Name",
-                                                  JOptionPane.ERROR_MESSAGE);
-				}
-			}
+          } else {
+            JOptionPane.showMessageDialog(
+                MainFrame.this,
+                "That is not a valid name for the project",
+                "Invalid Name",
+                JOptionPane.ERROR_MESSAGE);
+          }
+        }
+      }
 		}
 	}//class SaveProjectAsAction
 
