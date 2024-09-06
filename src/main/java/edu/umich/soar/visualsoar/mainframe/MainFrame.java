@@ -1429,7 +1429,9 @@ public class MainFrame extends JFrame
     } catch (FileNotFoundException fnfe) {
       JOptionPane.showMessageDialog(
         this, fnfe.getMessage(), "File Not Found", JOptionPane.ERROR_MESSAGE);
+      getFeedbackManager().setStatusBarError("Failed to open " + vsaFile);
     } catch (IOException ioe) {
+      getFeedbackManager().setStatusBarError("Failed to open " + vsaFile);
       JOptionPane.showMessageDialog(
         this, ioe.getMessage(), "I/O Exception", JOptionPane.ERROR_MESSAGE);
       ioe.printStackTrace();
@@ -1437,9 +1439,18 @@ public class MainFrame extends JFrame
       // TODO: find where this is getting thrown and change it to a (possibly custom) checked
       // exception
       nfe.printStackTrace();
+      getFeedbackManager().setStatusBarError("Failed to open " + vsaFile);
       JOptionPane.showMessageDialog(
         this,
         "Error Reading File, Data Incorrectly Formatted",
+        "Bad File",
+        JOptionPane.ERROR_MESSAGE);
+    } catch (Throwable e) {
+      e.printStackTrace();
+      getFeedbackManager().setStatusBarError("Failed to open " + vsaFile);
+      JOptionPane.showMessageDialog(
+        this,
+        "Error: Failed to read project due to unknown error",
         "Bad File",
         JOptionPane.ERROR_MESSAGE);
     }

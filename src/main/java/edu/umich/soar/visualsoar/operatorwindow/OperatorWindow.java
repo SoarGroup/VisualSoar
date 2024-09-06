@@ -11,6 +11,7 @@ import edu.umich.soar.visualsoar.graph.SoarIdentifierVertex;
 import edu.umich.soar.visualsoar.graph.SoarVertex;
 import edu.umich.soar.visualsoar.mainframe.feedback.FeedbackEntryOpNode;
 import edu.umich.soar.visualsoar.mainframe.feedback.FeedbackListEntry;
+import edu.umich.soar.visualsoar.mainframe.feedback.FeedbackManager;
 import edu.umich.soar.visualsoar.misc.Prefs;
 import edu.umich.soar.visualsoar.misc.Template;
 import edu.umich.soar.visualsoar.parser.ParseException;
@@ -1201,16 +1202,7 @@ public class OperatorWindow extends JTree {
             MainFrame.getMainFrame().getFeedbackManager().setStatusBarError("Unable to parse " + dataMapFile.getName());
         }
 
-        try {
-            restoreStateIds();
-        }
-        catch(ArrayIndexOutOfBoundsException aioobe) {
-            //if the parse was unsuccessful don't say anything since there are
-            // already more informative error messages in the feedback window
-            if (success) {
-                MainFrame.getMainFrame().getFeedbackManager().setStatusBarError("Error! Unable to restore high-level ids for project.");
-            }
-        }
+        restoreStateIds();
     }
 
     /**
@@ -1256,7 +1248,8 @@ public class OperatorWindow extends JTree {
 
 
     /**
-     * This is a helper function restores the ids to high-level operators
+     * The VSA file contains operators and their DM ID numbers. This helper connects the Soar IDs loaded from the datamap
+     * to the high-level operator nodes loaded from the VSA file.
      */
     private void restoreStateIds() {
         Enumeration<TreeNode> nodeEnum = ((OperatorRootNode) getModel().getRoot()).breadthFirstEnumeration();
@@ -1930,7 +1923,7 @@ public class OperatorWindow extends JTree {
         //The last line should be 'END'.
         String lastLine = lines.lastElement().trim();
         if (! lastLine.equals("END")) {
-            errors.add(new FeedbackListEntry("[line " + lines.size() + "] Project file (.vsa) is truncated.  Some operator nodes may be missing."));
+            errors.add(new FeedbackListEntry("[line " + lines.size() + "] Project file (.vsa) is truncated.  Some operator nodes may be missing.", true));
         }
         lines.remove(lines.size() - 1);  //remove "END" so remaining lines are consistent
 
@@ -1940,7 +1933,7 @@ public class OperatorWindow extends JTree {
         for(int i = 0; i < lines.size(); ++i) {
             String line = lines.get(i).trim();
             if (line.length() == 0) {
-                errors.add(new FeedbackListEntry("Error on line " + (i+skipped+1) + " of .vsa file: illegal blank line ignored."));
+                errors.add(new FeedbackListEntry("Error on line " + (i+skipped+1) + " of .vsa file: illegal blank line ignored.", true));
                 skipped++;
                 continue;
             }
@@ -1961,7 +1954,7 @@ public class OperatorWindow extends JTree {
             String err = "Root node has improper format.";
             err += "  Expecting '0\\tROOT <name> <name> 1'";
             err += "  Received '" + nodeLines[0] + "' instead.";
-            errors.add(new FeedbackListEntry(err));
+            errors.add(new FeedbackListEntry(err, true));
 
             //Replace this node with something in the correct format
             String projName = findIdentifier(nodeLines[0]);
@@ -2009,7 +2002,11 @@ public class OperatorWindow extends JTree {
 
         //Report errors
         if (errors.size() > 0) {
-            MainFrame.getMainFrame().getFeedbackManager().showFeedback(errors);
+            FeedbackManager fb = MainFrame.getMainFrame().getFeedbackManager();
+            fb.showFeedback(errors);
+            fb.showFeedback(new FeedbackListEntry("TAKE NOTE: Saving this project may result in data loss. " +
+              "If you think you can fix the above errors yourself, please fix them and re-open the project.",
+              true));
 
             //TODO:  At this point we could present the user with these choices:
             //       a) abort the project load operation
@@ -2271,13 +2268,13 @@ public class OperatorWindow extends JTree {
         //The line should contain at least 6 words
         String[] words = line.split("[ \\t]");  //split on spaces and tabs
         if (words.length < 6) {
-            errors.add(new FeedbackListEntry("Incomplete operator node line found: " + line));
+            errors.add(new FeedbackListEntry("Incomplete operator node line found: " + line, true));
             return false;
         }
         //High level operators need 8 words
         boolean isHLOperator = words[2].startsWith("HL");
         if ( isHLOperator && (words.length < 8) ) {
-            errors.add(new FeedbackListEntry("Incomplete high-level operator node line found in .vsa file: " + line));
+            errors.add(new FeedbackListEntry("Incomplete high-level operator node line found in .vsa file: " + line, true));
             return false;
         }
 
@@ -2287,7 +2284,7 @@ public class OperatorWindow extends JTree {
             Integer.parseInt(words[0]);
         }
         catch(NumberFormatException nfe) {
-            errors.add(new FeedbackListEntry("Error!  Operator node line has invalid id number: " + line));
+            errors.add(new FeedbackListEntry("Error!  Operator node line has invalid id number: " + line, true));
             return false;
         }
 
@@ -2297,11 +2294,11 @@ public class OperatorWindow extends JTree {
         try {
             parentId = Integer.parseInt(words[1]);
         } catch (NumberFormatException nfe) {
-            errors.add(new FeedbackListEntry("Error!  Operator node line has invalid parent id number: " + line));
+            errors.add(new FeedbackListEntry("Error!  Operator node line has invalid parent id number: " + line, true));
             return false;
         }
         if ( (parentId < 0) || (parentId > maxOpId)) {
-            errors.add(new FeedbackListEntry("Error: Operator node line (\"" + line + "\") has an invalid parent id number: " + parentId));
+            errors.add(new FeedbackListEntry("Error: Operator node line (\"" + line + "\") has an invalid parent id number: " + parentId, true));
             return false;
         }
 
@@ -2318,26 +2315,26 @@ public class OperatorWindow extends JTree {
             }
         }
         if (!isValid) {
-            errors.add(new FeedbackListEntry("Error!  Operator node line has unknown type: " + line));
+            errors.add(new FeedbackListEntry("Error!  Operator node line has unknown type: " + line, true));
             return false;
         }
 
         //Check for extraneous ROOT
         if (words[2].equals("ROOT")) {
-            errors.add(new FeedbackListEntry("Error!  Non-root operator node line has ROOT type: " + line));
+            errors.add(new FeedbackListEntry("Error!  Non-root operator node line has ROOT type: " + line, true));
             return false;
         }
 
         //Check for types that aren't used in V4
         if ( (words[2].equals("LINK")) || (words[2].equals("FILE")) ) {
-            errors.add(new FeedbackListEntry("Error!: Operator node line has obsolete type: " + line));
+            errors.add(new FeedbackListEntry("Error!: Operator node line has obsolete type: " + line, true));
             return false;
         }
 
         //--------------------------------------------------------------------
         //3. Node Name
         if (! operatorNameIsValid(words[3])) {
-            errors.add(new FeedbackListEntry("Error!: Operator node line has invalid name: " + line));
+            errors.add(new FeedbackListEntry("Error!: Operator node line has invalid name: " + line, true));
             return false;
         }
 
@@ -2371,7 +2368,6 @@ public class OperatorWindow extends JTree {
         //For high-level operators verify that an integer datamap id is present.
         //The value of this id can not be checked with the datamap since the
         // datamap has not yet been loaded.  So, we
-        // The value of this id can not be checked with the datamap since the datamap has not yet been loaded.  So, we
         //just verify it is a positive number
         if (words[2].startsWith("HL")) {
             try {
@@ -2379,7 +2375,7 @@ public class OperatorWindow extends JTree {
                 if (datamapId < 1) throw new NumberFormatException();
             }
             catch(NumberFormatException nfe) {
-                errors.add(new FeedbackListEntry("Error: Operator node line is missing a valid datamap root id: " + line));
+                errors.add(new FeedbackListEntry("Error: Operator node line is missing a valid datamap root id: " + line, true));
                 return false;
             }
         }

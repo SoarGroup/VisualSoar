@@ -4,6 +4,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.Collection;
 import java.util.List;
 import java.util.Vector;
 
@@ -30,8 +31,11 @@ public class FeedbackManager {
     public void close() {
       if (!inAtomicFeedback) {
         System.err.println(
-          "WARNING: AtomicFeedbackManager closed after MainFrame "
-            + "had already exited atomic feedback mode");
+            "WARNING: "
+                + getClass().getName()
+                + " closed after "
+                + FeedbackManager.this.getClass().getName()
+                + " had already exited atomic feedback mode");
       }
     }
   }
@@ -54,12 +58,19 @@ public class FeedbackManager {
    * @param v the vector list of feedback data; {@code null} either clears or doesn't modify the list.
    */
   public void showFeedback(
-    @NotNull Vector<FeedbackListEntry> v) {
+    @NotNull Collection<? extends FeedbackListEntry> v) {
     if (inAtomicFeedback) {
       feedbackList.appendListData(v);
     } else {
-      feedbackList.setListData(v);
+      feedbackList.setListData(new Vector<>(v));
     }
+  }
+
+  /**
+   * @see #showFeedback(Collection)
+   */
+  public void showFeedback(@NotNull FeedbackListEntry e) {
+    showFeedback(List.of(e));
   }
 
   public void clearFeedback() {
