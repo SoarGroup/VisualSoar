@@ -179,7 +179,7 @@ public class DataMapTree extends JTree implements ClipboardOwner, PopupMenuListe
                 new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
                         DataMapTree dmt = (DataMapTree) contextMenu.getInvoker();
-                        dmt.changeTypeTo(0);
+                        dmt.changeTypeTo(NodeType.IDENTIFIER);
                     }
                 });
 
@@ -188,7 +188,7 @@ public class DataMapTree extends JTree implements ClipboardOwner, PopupMenuListe
                 new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
                         DataMapTree dmt = (DataMapTree) contextMenu.getInvoker();
-                        dmt.changeTypeTo(1);
+                        dmt.changeTypeTo(NodeType.ENUMERATION);
                     }
                 });
 
@@ -197,7 +197,7 @@ public class DataMapTree extends JTree implements ClipboardOwner, PopupMenuListe
                 new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
                         DataMapTree dmt = (DataMapTree) contextMenu.getInvoker();
-                        dmt.changeTypeTo(2);
+                        dmt.changeTypeTo(NodeType.INTEGER);
                     }
                 });
 
@@ -206,7 +206,7 @@ public class DataMapTree extends JTree implements ClipboardOwner, PopupMenuListe
                 new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
                         DataMapTree dmt = (DataMapTree) contextMenu.getInvoker();
-                        dmt.changeTypeTo(3);
+                        dmt.changeTypeTo(NodeType.FLOAT);
                     }
                 });
 
@@ -215,7 +215,7 @@ public class DataMapTree extends JTree implements ClipboardOwner, PopupMenuListe
                 new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
                         DataMapTree dmt = (DataMapTree) contextMenu.getInvoker();
-                        dmt.changeTypeTo(4);
+                        dmt.changeTypeTo(NodeType.STRING);
                     }
                 });
 
@@ -855,14 +855,16 @@ public class DataMapTree extends JTree implements ClipboardOwner, PopupMenuListe
 
     }//findProds
 
+
+    private enum NodeType {
+        IDENTIFIER, ENUMERATION, INTEGER, FLOAT, STRING;
+    }
+
     /**
      * Function changeTypeTo() changes the selected DataMap item to
-     * another type with the same name.
-     * Function takes in an integer representing which type to change to
-     *
-     * @param type determines what to change it too, 0=identifier, 1=enumeration, 2=integer, 3=float, 4=string
+     * the specified type with the same name.
      */
-    public void changeTypeTo(int type) {
+    private void changeTypeTo(NodeType type) {
         TreePath[] paths = getSelectionPaths();
         FakeTreeNode ftn;
         NamedEdge ne;
@@ -876,16 +878,18 @@ public class DataMapTree extends JTree implements ClipboardOwner, PopupMenuListe
             componentName = ne.getName();
 
             swmm.removeTriple(ne.V0(), ne.getName(), ne.V1());
-            if (type == 1) {
+            if (type == NodeType.IDENTIFIER) {
+                v1 = swmm.createNewSoarId();
+            } else if (type == NodeType.ENUMERATION) {
                 v1 = swmm.createNewEnumeration("nil");
-            } else if (type == 2) {
+            } else if (type == NodeType.INTEGER) {
                 v1 = swmm.createNewInteger();
-            } else if (type == 3) {
+            } else if (type == NodeType.FLOAT) {
                 v1 = swmm.createNewFloat();
-            } else if (type == 4) {
+            } else if (type == NodeType.STRING) {
                 v1 = swmm.createNewString();
             } else {
-                v1 = swmm.createNewSoarId();
+                throw new IllegalArgumentException("Unknown node type " + type);
             }
 
             swmm.addTriple(ne.V0(), componentName, v1);
@@ -1612,7 +1616,7 @@ public class DataMapTree extends JTree implements ClipboardOwner, PopupMenuListe
 
     /**
      * This method verifies that a ForeignVertex object and all its descendents still match the
-     * corresponding entires in the foreign datamap
+     * corresponding entries in the foreign datamap
      *
      * Note:  a lot of this code is copied from {@link #reimportSubtree}
      *        but I don't see any easy way to refactor it into a shared helper.
