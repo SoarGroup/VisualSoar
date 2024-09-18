@@ -176,217 +176,165 @@ public class DataMapTree extends JTree implements ClipboardOwner, PopupMenuListe
 
         ChangeTypeSubMenu.add(ChangeToIdentifierItem);
         ChangeToIdentifierItem.addActionListener(
-                new ActionListener() {
-                    public void actionPerformed(ActionEvent e) {
-                        DataMapTree dmt = (DataMapTree) contextMenu.getInvoker();
-                        dmt.changeTypeTo(NodeType.IDENTIFIER);
-                    }
-                });
+          e -> {
+              DataMapTree dmt = (DataMapTree) contextMenu.getInvoker();
+              dmt.changeTypeTo(NodeType.IDENTIFIER);
+          });
 
         ChangeTypeSubMenu.add(ChangeToEnumerationItem);
         ChangeToEnumerationItem.addActionListener(
-                new ActionListener() {
-                    public void actionPerformed(ActionEvent e) {
-                        DataMapTree dmt = (DataMapTree) contextMenu.getInvoker();
-                        dmt.changeTypeTo(NodeType.ENUMERATION);
-                    }
-                });
+          e -> {
+              DataMapTree dmt = (DataMapTree) contextMenu.getInvoker();
+              dmt.changeTypeTo(NodeType.ENUMERATION);
+          });
 
         ChangeTypeSubMenu.add(ChangeToIntegerItem);
         ChangeToIntegerItem.addActionListener(
-                new ActionListener() {
-                    public void actionPerformed(ActionEvent e) {
-                        DataMapTree dmt = (DataMapTree) contextMenu.getInvoker();
-                        dmt.changeTypeTo(NodeType.INTEGER);
-                    }
-                });
+          e -> {
+              DataMapTree dmt = (DataMapTree) contextMenu.getInvoker();
+              dmt.changeTypeTo(NodeType.INTEGER);
+          });
 
         ChangeTypeSubMenu.add(ChangeToFloatItem);
         ChangeToFloatItem.addActionListener(
-                new ActionListener() {
-                    public void actionPerformed(ActionEvent e) {
-                        DataMapTree dmt = (DataMapTree) contextMenu.getInvoker();
-                        dmt.changeTypeTo(NodeType.FLOAT);
-                    }
-                });
+          e -> {
+              DataMapTree dmt = (DataMapTree) contextMenu.getInvoker();
+              dmt.changeTypeTo(NodeType.FLOAT);
+          });
 
         ChangeTypeSubMenu.add(ChangeToStringItem);
         ChangeToStringItem.addActionListener(
-                new ActionListener() {
-                    public void actionPerformed(ActionEvent e) {
-                        DataMapTree dmt = (DataMapTree) contextMenu.getInvoker();
-                        dmt.changeTypeTo(NodeType.STRING);
-                    }
-                });
+          e -> {
+              DataMapTree dmt = (DataMapTree) contextMenu.getInvoker();
+              dmt.changeTypeTo(NodeType.STRING);
+          });
 
 
         AddIdentifierItem.addActionListener(
-                new ActionListener() {
-                    public void actionPerformed(ActionEvent e) {
-                        DataMapTree dmt = (DataMapTree) contextMenu.getInvoker();
-                        dmt.addIdentifier();
-                    }
-                });
+          e -> {
+              DataMapTree dmt = (DataMapTree) contextMenu.getInvoker();
+              dmt.addIdentifier();
+          });
 
         AddEnumerationItem.addActionListener(
-                new ActionListener() {
-                    public void actionPerformed(ActionEvent e) {
-                        DataMapTree dmt = (DataMapTree) contextMenu.getInvoker();
-                        dmt.addEnumeration();
-                    }
-                });
+          e -> {
+              DataMapTree dmt = (DataMapTree) contextMenu.getInvoker();
+              dmt.addEnumeration();
+          });
 
         AddIntegerItem.addActionListener(
-                new ActionListener() {
-                    public void actionPerformed(ActionEvent e) {
-                        DataMapTree dmt = (DataMapTree) contextMenu.getInvoker();
-                        dmt.addInteger();
-                    }
-                });
+          e -> {
+              DataMapTree dmt = (DataMapTree) contextMenu.getInvoker();
+              dmt.addInteger();
+          });
 
-        AddFloatItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                DataMapTree dmt = (DataMapTree) contextMenu.getInvoker();
-                dmt.addFloat();
-            }
+        AddFloatItem.addActionListener(e -> {
+            DataMapTree dmt = (DataMapTree) contextMenu.getInvoker();
+            dmt.addFloat();
         });
 
         AddStringItem.addActionListener(
-                new ActionListener() {
-                    public void actionPerformed(ActionEvent e) {
-                        DataMapTree dmt = (DataMapTree) contextMenu.getInvoker();
-                        dmt.addString();
-                    }
-                });
+          e -> {
+              DataMapTree dmt = (DataMapTree) contextMenu.getInvoker();
+              dmt.addString();
+          });
 
         CopyItem.addActionListener(
-                new ActionListener() {
-                    public void actionPerformed(ActionEvent e) {
-                        DataMapTree dmt = (DataMapTree) contextMenu.getInvoker();
-                        dmt.copyAction.actionPerformed(e);
-                    }
-                });
+          e -> {
+              DataMapTree dmt = (DataMapTree) contextMenu.getInvoker();
+              dmt.copyAction.actionPerformed(e);
+          });
 
         PasteItem.addActionListener(
-                new ActionListener() {
-                    public void actionPerformed(ActionEvent e) {
-                        DataMapTree dmt = (DataMapTree) contextMenu.getInvoker();
-                        dmt.pasteAction.actionPerformed(e);
-                    }
-                });
+          e -> {
+              DataMapTree dmt = (DataMapTree) contextMenu.getInvoker();
+              dmt.pasteAction.actionPerformed(e);
+          });
 
         LinkItem.addActionListener(
-                new ActionListener() {
-                    public void actionPerformed(ActionEvent e) {
-                        DataMapTree dmt = (DataMapTree) contextMenu.getInvoker();
-                        dmt.linkAction.actionPerformed(e);
-                    }
-                });
+          e -> {
+              DataMapTree dmt = (DataMapTree) contextMenu.getInvoker();
+              dmt.linkAction.actionPerformed(e);
+          });
 
         SearchForItem.addActionListener(
-                new ActionListener() {
-                    public void actionPerformed(ActionEvent e) {
-                        DataMapTree dmt = (DataMapTree) contextMenu.getInvoker();
-                        dmt.searchFor();
-                    }
-                });
+          e -> {
+              DataMapTree dmt = (DataMapTree) contextMenu.getInvoker();
+              dmt.searchFor();
+          });
 
 
         FindUsingProdsItem.addActionListener(
-                new ActionListener() {
-                    public void actionPerformed(ActionEvent e) {
-                        DataMapTree dmt = (DataMapTree) contextMenu.getInvoker();
-                        dmt.findProds(true, true);
-                    }
-                });
+          e -> {
+              DataMapTree dmt = (DataMapTree) contextMenu.getInvoker();
+              dmt.findProds(true, true);
+          });
 
         FindTestingProdsItem.addActionListener(
-                new ActionListener() {
-                    public void actionPerformed(ActionEvent e) {
-                        DataMapTree dmt = (DataMapTree) contextMenu.getInvoker();
-                        dmt.findProds(true, false);
-                    }
-                });
+          e -> {
+              DataMapTree dmt = (DataMapTree) contextMenu.getInvoker();
+              dmt.findProds(true, false);
+          });
 
         FindCreatingProdsItem.addActionListener(
-                new ActionListener() {
-                    public void actionPerformed(ActionEvent e) {
-                        DataMapTree dmt = (DataMapTree) contextMenu.getInvoker();
-                        dmt.findProds(false, true);
-                    }
-                });
+          e -> {
+              DataMapTree dmt = (DataMapTree) contextMenu.getInvoker();
+              dmt.findProds(false, true);
+          });
 
         RemoveAttributeItem.addActionListener(
-                new ActionListener() {
-                    public void actionPerformed(ActionEvent e) {
-                        DataMapTree dmt = (DataMapTree) contextMenu.getInvoker();
-                        dmt.removeEdge();
-                    }
-                });
+          e -> {
+              DataMapTree dmt = (DataMapTree) contextMenu.getInvoker();
+              dmt.removeEdge();
+          });
 
         RenameAttributeItem.addActionListener(
-                new ActionListener() {
-                    public void actionPerformed(ActionEvent e) {
-                        DataMapTree dmt = (DataMapTree) contextMenu.getInvoker();
-                        dmt.renameEdge();
-                    }
-                });
+          e -> {
+              DataMapTree dmt = (DataMapTree) contextMenu.getInvoker();
+              dmt.renameEdge();
+          });
 
         EditValueItem.addActionListener(
-                new ActionListener() {
-                    public void actionPerformed(ActionEvent e) {
-                        DataMapTree dmt = (DataMapTree) contextMenu.getInvoker();
-                        dmt.editValue();
-                    }
-                });
+          e -> {
+              DataMapTree dmt = (DataMapTree) contextMenu.getInvoker();
+              dmt.editValue();
+          });
 
         EditCommentItem.addActionListener(
-                new ActionListener() {
-                    public void actionPerformed(ActionEvent e) {
-                        DataMapTree dmt = (DataMapTree) contextMenu.getInvoker();
-                        dmt.editComment();
-                    }
-                });
+          e -> {
+              DataMapTree dmt = (DataMapTree) contextMenu.getInvoker();
+              dmt.editComment();
+          });
 
         RemoveCommentItem.addActionListener(
-                new ActionListener() {
-                    public void actionPerformed(ActionEvent e) {
-                        DataMapTree dmt = (DataMapTree) contextMenu.getInvoker();
-                        dmt.removeComment();
-                    }
-                });
+          e -> {
+              DataMapTree dmt = (DataMapTree) contextMenu.getInvoker();
+              dmt.removeComment();
+          });
 
         ValidateEntryItem.addActionListener(
-                new ActionListener() {
-                    public void actionPerformed(ActionEvent e) {
-                        DataMapTree dmt = (DataMapTree) contextMenu.getInvoker();
-                        dmt.validateEntry();
-                    }
-                });
+          e -> {
+              DataMapTree dmt = (DataMapTree) contextMenu.getInvoker();
+              dmt.validateEntry();
+          });
 
         ValidateAllItem.addActionListener(
-                new ActionListener() {
-                    public void actionPerformed(ActionEvent e) {
-                        DataMapTree dmt = (DataMapTree) contextMenu.getInvoker();
-                        dmt.validateAll();
-                    }
-                });
+          e -> {
+              DataMapTree dmt = (DataMapTree) contextMenu.getInvoker();
+              dmt.validateAll();
+          });
 
         ReimportSubtree.addActionListener(
-                new ActionListener() {
-                    public void actionPerformed(ActionEvent e) {
-                        DataMapTree dmt = (DataMapTree) contextMenu.getInvoker();
-                        dmt.reimportSubtree();
-                    }
-                });
+          e -> {
+              DataMapTree dmt = (DataMapTree) contextMenu.getInvoker();
+              dmt.reimportSubtree();
+          });
 
         VerifySubtree.addActionListener(
-                new ActionListener() {
-                    public void actionPerformed(ActionEvent e) {
-                        DataMapTree dmt = (DataMapTree) contextMenu.getInvoker();
-                        dmt.verifySubtree();
-                    }
-                });
+          e -> {
+              DataMapTree dmt = (DataMapTree) contextMenu.getInvoker();
+              dmt.verifySubtree();
+          });
 
     }//static
 
@@ -431,36 +379,26 @@ public class DataMapTree extends JTree implements ClipboardOwner, PopupMenuListe
         setAutoscrolls(true);
 
         registerKeyboardAction(
-                new ActionListener() {
-                    public void actionPerformed(ActionEvent e) {
-                        removeEdge();
-                    }
-                },
+          e -> removeEdge(),
                 KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, 0),
                 WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
 
         registerKeyboardAction(
-                new ActionListener() {
-                    public void actionPerformed(ActionEvent e) {
-                        removeEdge();
-                    }
-                },
+          e -> removeEdge(),
                 KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0),
                 WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
 
         registerKeyboardAction(
-                new ActionListener() {
-                    public void actionPerformed(ActionEvent e) {
-                        TreePath path = getSelectionPath();
-                        if (path == null) return;
-                        FakeTreeNode ftn = ((FakeTreeNode) path.getLastPathComponent());
-                        if (ftn == null) return;
-                        SoarVertex theVertex = ftn.getEnumeratingVertex();
-                        if (theVertex.isEditable()) {
-                            editValue();
-                        }
-                    }
-                },
+          e -> {
+              TreePath path = getSelectionPath();
+              if (path == null) return;
+              FakeTreeNode ftn = ((FakeTreeNode) path.getLastPathComponent());
+              if (ftn == null) return;
+              SoarVertex theVertex = ftn.getEnumeratingVertex();
+              if (theVertex.isEditable()) {
+                  editValue();
+              }
+          },
                 KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0),
                 WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
 
