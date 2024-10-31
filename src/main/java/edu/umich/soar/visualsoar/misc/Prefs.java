@@ -35,7 +35,8 @@ public enum Prefs {
     lastXPos(null),
     lastYPos(null),
     lastWidth(null),
-    lastHeight(null);
+    lastHeight(null),
+    soarHome("");
 
     private static final Preferences preferences = Preferences.userRoot().node("edu/umich/soar/visualsoar");
     private static final SyntaxColor[] colors = SyntaxColor.getDefaultSyntaxColors();
@@ -60,6 +61,15 @@ public enum Prefs {
     //Load custom templates
     static {
         loadCustomTemplates();
+    }
+
+    // Load Soar home, if possible
+    static {
+        try {
+          soarHome.set(System.getenv("SOAR_HOME"));
+        } catch(SecurityException e) {
+          System.err.println("SOAR_HOME variable not accessible; if needed, user will have to set it manually");
+        }
     }
 
     public static SyntaxColor[] getSyntaxColors() {

@@ -33,7 +33,11 @@ public class DirectorySelectionDialog extends JDialog {
     private File selectedDirectory;
 
     public DirectorySelectionDialog(Frame owner) {
-        super(owner, "Select A Directory", true);
+      this(owner, "Select A Directory");
+    }
+
+    public DirectorySelectionDialog(Frame owner, String title) {
+        super(owner, title, true);
         Container contentPane = getContentPane();
         contentPane.setLayout(new BorderLayout());
 

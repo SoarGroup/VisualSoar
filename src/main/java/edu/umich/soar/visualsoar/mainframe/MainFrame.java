@@ -36,6 +36,8 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyVetoException;
 import java.io.*;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.*;
 
@@ -1589,7 +1591,7 @@ public class MainFrame extends JFrame
 			catch (Throwable ex)
 			{
 				ex.printStackTrace();
-				message = "Exception when initializing the SML library.  Check that sml.jar is on the path along with soar-library." ;
+				message = "Exception when initializing the SML library.  Check that sml.jar is on the path along with Soar native library." ;
 				Throwable cause = ex.getCause();
 				if (cause != null) {
 					String causeMsg = cause.toString();
@@ -1629,10 +1631,9 @@ public class MainFrame extends JFrame
 			m_Kernel = null ;
 		}
 
-		// This may throw if we can't find the SML libraries.
-		m_Kernel = Kernel.CreateRemoteConnection(true, null) ;
+    m_Kernel = loadSoarKernel();
 
-		if (m_Kernel.HadError())
+    if (m_Kernel.HadError())
 		{
 			m_Kernel = null ;
 
@@ -1662,8 +1663,72 @@ public class MainFrame extends JFrame
 		return true ;
 	}
 
+  private String getSoarLibFilename() {
+    String osName = System.getProperty("os.name");
+    if (osName.contains("mac")) {
+      return "libJava_sml_ClientInterface.jnilib";
+    } else if (osName.contains("win")) {
+      return "Java_sml_ClientInterface.dll";
+    } else {
+      return "libJava_sml_ClientInterface.so";
+    }
+  }
 
-    /**
+  /**
+   * Load the Soar library and return a loaded kernel. We try several fallback mechanisms to find the Soar library
+   * if it is not on the path.
+   */
+  private Kernel loadSoarKernel() {
+    try {
+      m_Kernel = Kernel.CreateRemoteConnection(true, null);
+      return m_Kernel;
+    } catch (UnsatisfiedLinkError e) {
+      // it's not in the library path
+    }
+    if (!Prefs.soarHome.get().isEmpty()) {
+      Path fullPath = Paths.get(Prefs.soarHome.get(), getSoarLibFilename());
+      try {
+        System.load(fullPath.toAbsolutePath().toString());
+      } catch (UnsatisfiedLinkError e) {
+        // not found in Soar home, for some reason
+      }
+    }
+
+    // Check if we are inside the Soar distribution
+    try {
+    String containingDir = this.getClass().getProtectionDomain().getCodeSource().getLocation().getPath();
+      Path fullPath = Paths.get(containingDir, "../bin", getSoarLibFilename());
+      System.load(fullPath.toAbsolutePath().toString());
+    } catch(UnsatisfiedLinkError e) {
+      // didn't find the lib, so we're not in the Soar distribution
+    } catch (SecurityException e) {
+      // we're not allowed to find the containing directory for some reason
+    }
+
+    // ask user where Soar is and load the library from there
+    feedbackManager.setStatusBarError("Cannot find Soar; please locate it for me so I can create a kernel");
+    while (true) {
+      DirectorySelectionDialog dsd = new DirectorySelectionDialog(MainFrame.getMainFrame(), "Please locate Soar directory");
+      dsd.setVisible(true);
+
+      if (dsd.wasApproved()) {
+        File file = dsd.getSelectedDirectory();
+        Path fullPath = file.toPath().resolve(getSoarLibFilename());
+        try {
+          System.load(fullPath.toAbsolutePath().toString());
+        } catch (UnsatisfiedLinkError e) {
+          feedbackManager.setStatusBarError("Failed to load Soar lib from path: " + fullPath);
+          // not found in that directory :(
+        }
+        Prefs.soarHome.set(file.getAbsolutePath());
+      } else {
+        // user cancelled
+        return null;
+      }
+    }
+  }
+
+  /**
      * Terminates the Soar Tool Interface (STI) object and enabled/disables
      * menu items as needed.
      * @author ThreePenny
