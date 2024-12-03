@@ -37,6 +37,7 @@ public class FeedbackManager {
                 + FeedbackManager.this.getClass().getName()
                 + " had already exited atomic feedback mode");
       }
+      inAtomicFeedback = false;
     }
   }
 
