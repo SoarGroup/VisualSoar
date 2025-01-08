@@ -1,6 +1,14 @@
 package edu.umich.soar.visualsoar.files;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
+
+import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
@@ -8,21 +16,52 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.logging.Logger;
 
+import static com.fasterxml.jackson.core.json.JsonReadFeature.ALLOW_JAVA_COMMENTS;
+import static com.fasterxml.jackson.core.json.JsonReadFeature.ALLOW_LEADING_DECIMAL_POINT_FOR_NUMBERS;
+import static com.fasterxml.jackson.core.json.JsonReadFeature.ALLOW_LEADING_PLUS_SIGN_FOR_NUMBERS;
+import static com.fasterxml.jackson.core.json.JsonReadFeature.ALLOW_LEADING_ZEROS_FOR_NUMBERS;
+import static com.fasterxml.jackson.core.json.JsonReadFeature.ALLOW_NON_NUMERIC_NUMBERS;
+import static com.fasterxml.jackson.core.json.JsonReadFeature.ALLOW_SINGLE_QUOTES;
+import static com.fasterxml.jackson.core.json.JsonReadFeature.ALLOW_TRAILING_COMMA;
+import static com.fasterxml.jackson.core.json.JsonReadFeature.ALLOW_TRAILING_DECIMAL_POINT_FOR_NUMBERS;
+import static com.fasterxml.jackson.core.json.JsonReadFeature.ALLOW_UNQUOTED_FIELD_NAMES;
+import static com.fasterxml.jackson.databind.MapperFeature.SORT_PROPERTIES_ALPHABETICALLY;
+import static com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT;
+import static com.fasterxml.jackson.databind.SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS;
 import static java.nio.file.StandardCopyOption.ATOMIC_MOVE;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 public class Util {
   private static final Logger LOGGER = Logger.getLogger(Util.class.getName());
+  public static final JsonFactory JSON_FACTORY =
+      JsonFactory.builder()
+          // configure, if necessary:
+          .enable(ALLOW_JAVA_COMMENTS)
+          .enable(ALLOW_UNQUOTED_FIELD_NAMES)
+          .enable(ALLOW_TRAILING_COMMA)
+          .enable(ALLOW_SINGLE_QUOTES)
+          // TODO: are we sure that NaN's could be used for anything?
+          .enable(ALLOW_NON_NUMERIC_NUMBERS)
+          .enable(ALLOW_LEADING_ZEROS_FOR_NUMBERS)
+          .enable(ALLOW_LEADING_PLUS_SIGN_FOR_NUMBERS)
+          .enable(ALLOW_LEADING_DECIMAL_POINT_FOR_NUMBERS)
+          .enable(ALLOW_TRAILING_DECIMAL_POINT_FOR_NUMBERS)
+          .build();
+
+  public static final ObjectMapper JSON_OBJECT_MAPPER =
+      JsonMapper.builder(JSON_FACTORY)
+          .enable(INDENT_OUTPUT)
+          .enable(ORDER_MAP_ENTRIES_BY_KEYS)
+          .enable(SORT_PROPERTIES_ALPHABETICALLY)
+          .build();
 
   @FunctionalInterface
   public interface Writer {
-    void write(OutputStream out);
+    void write(OutputStream out) throws IOException;
   }
 
-  /**
-   * Write to the destination file from {@code writer} as atomically as possible.
-   */
-  public void Save(Path destination, Writer writer) throws java.io.IOException {
+  /** Write to the destination file from {@code writer} as atomically as possible. */
+  public static void saveToFile(Path destination, Writer writer) throws java.io.IOException {
     // Write to a temp file first, then make the final changes via a rename,
     // which can often be done atomically. This prevents issues such as overwriting a file with a
     // incomplete data, as could be the case if we hit an IO exception in the middle of writing the
