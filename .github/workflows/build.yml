@@ -15,7 +15,7 @@ jobs:
           windows-latest,
           ubuntu-latest,
           # latest available X86_64 target
-          macos-14,
+          macos-15,
           # latest is ARM
           macos-latest,
         ]
