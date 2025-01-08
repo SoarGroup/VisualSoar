@@ -10,13 +10,13 @@ public class IntegerRangeVertex extends SoarVertex {
   private int low, high;
     private String rep;
 
-    public IntegerRangeVertex(int id, int _low, int _high) {
+    public IntegerRangeVertex(int id, int low, int high) {
         super(id);
+        this.low = low;
+        this.high = high;
         if (high < low) {
             throw new IllegalArgumentException("the low cannot be greater than the high");
         }
-        low = _low;
-        high = _high;
         rep = ": integer" + getRangeString();
     }
 

@@ -84,13 +84,7 @@ public class EnumerationVertex extends SoarVertex {
     }
 
     public void remove(String s) {
-        Iterator<String> iter = theStrings.iterator();
-        while (iter.hasNext()) {
-            String t = iter.next();
-            if (t.equals(s)) {
-                iter.remove();
-            }
-        }
+      theStrings.removeIf(t -> t.equals(s));
     }
 
     public boolean contains(String s) {
