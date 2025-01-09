@@ -1,5 +1,6 @@
 package edu.umich.soar.visualsoar.files;
 
+import static com.fasterxml.jackson.core.StreamReadFeature.STRICT_DUPLICATE_DETECTION;
 import static com.fasterxml.jackson.core.json.JsonReadFeature.ALLOW_JAVA_COMMENTS;
 import static com.fasterxml.jackson.core.json.JsonReadFeature.ALLOW_LEADING_DECIMAL_POINT_FOR_NUMBERS;
 import static com.fasterxml.jackson.core.json.JsonReadFeature.ALLOW_LEADING_PLUS_SIGN_FOR_NUMBERS;
@@ -15,6 +16,7 @@ import static com.fasterxml.jackson.databind.SerializationFeature.ORDER_MAP_ENTR
 import static java.nio.file.StandardCopyOption.ATOMIC_MOVE;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.json.JsonWriteFeature;
@@ -46,6 +48,7 @@ public class Util {
           .enable(ALLOW_LEADING_PLUS_SIGN_FOR_NUMBERS)
           .enable(ALLOW_LEADING_DECIMAL_POINT_FOR_NUMBERS)
           .enable(ALLOW_TRAILING_DECIMAL_POINT_FOR_NUMBERS)
+          .enable(STRICT_DUPLICATE_DETECTION)
           .build();
 
   //  TODO: ensure array values are all on separate lines
@@ -57,11 +60,17 @@ public class Util {
           .disable(JsonWriteFeature.ESCAPE_NON_ASCII.mappedFeature())
           .enable(ORDER_MAP_ENTRIES_BY_KEYS)
           .enable(SORT_PROPERTIES_ALPHABETICALLY)
+          .serializationInclusion(JsonInclude.Include.NON_NULL)
           .defaultPrettyPrinter(
               new DefaultPrettyPrinter() {
                 @Override
                 public DefaultPrettyPrinter createInstance() {
                   return this;
+                }
+
+                @Override
+                public void writeObjectFieldValueSeparator(JsonGenerator g) throws IOException {
+                  g.writeRaw(": ");
                 }
 
                 @Override

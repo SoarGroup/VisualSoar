@@ -15,6 +15,10 @@ import static edu.umich.soar.visualsoar.files.datamapjson.Datamap.writeJsonToFil
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class DatamapTest {
+  // TODO: more test JSON files to test separate things
+  // TODO: test that parsing fails for duplicate keys
+  // TODO: test that foreign vertices are validated (failure check)
+
   @Test
   public void roundTripTestFile() throws IOException, URISyntaxException {
     String originalRawJson =

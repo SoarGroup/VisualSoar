@@ -84,5 +84,5 @@ public class Datamap {
     return Objects.hash(version, rootId, vertices);
   }
 
-  //  TODO NEXT: Continue reading SoarWorkingMemoryReader and implementing checks and parsings. Next is foreign vertex.
+  //  TODO NEXT: Continue reading SoarWorkingMemoryReader and implementing checks and parsings.
 }
