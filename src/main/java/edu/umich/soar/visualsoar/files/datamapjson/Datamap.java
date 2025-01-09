@@ -10,6 +10,7 @@ import java.util.Objects;
 public class Datamap {
   public final String version;
   public final String rootId;
+//  TODO: change to array with id key in vertex class. id key will be clearer to user; right now the id can be confused for something else. Will need to ensure that we sort by ID.
   public final Map<String, Vertex> vertices;
 
   @JsonCreator

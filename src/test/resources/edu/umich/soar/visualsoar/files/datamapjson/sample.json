@@ -9,6 +9,14 @@
         "c"
       ]
     },
+    "floatRangeTest": {
+      "max": 10.1,
+      "min": 5.2,
+      "vertexType": "FLOAT_RANGE"
+    },
+    "floatTest": {
+      "vertexType": "FLOAT"
+    },
     "foreignTest": {
       "foreignDMPath": "../foo/foo.dm",
       "foreignVertex": {
@@ -19,6 +27,17 @@
     },
     "idTest": {
       "vertexType": "SOAR_ID"
+    },
+    "intRangeTest": {
+      "max": 10,
+      "min": 5,
+      "vertexType": "INTEGER_RANGE"
+    },
+    "intTest": {
+      "vertexType": "INTEGER"
+    },
+    "stringTest": {
+      "vertexType": "STRING"
     },
     "こんにちは🤓\n": {
       "comment": {
