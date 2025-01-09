@@ -2,32 +2,42 @@ package edu.umich.soar.visualsoar.files.datamapjson;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.Map;
-import java.util.Objects;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 // TODO: create custom exception for document validation
 // TODO: make sure to present JSON parsing errors kindly to the user somehow
 public class Datamap {
   public final String version;
   public final String rootId;
-//  TODO: change to array with id key in vertex class. id key will be clearer to user; right now the id can be confused for something else. Will need to ensure that we sort by ID.
-  public final Map<String, Vertex> vertices;
+  public final List<Vertex> vertices;
 
   @JsonCreator
   public Datamap(
       @JsonProperty("version") String version,
       @JsonProperty("rootId") String rootId,
-      @JsonProperty("vertices") Map<String, Vertex> vertices) {
+      @JsonProperty("vertices") List<Vertex> vertices) {
     this.version = version;
     this.rootId = rootId;
-    this.vertices = vertices;
+    this.vertices =
+        vertices.stream().sorted(Comparator.comparing(v -> v.id)).collect(Collectors.toList());
+    Map<String, Vertex> id2Vertex = new HashMap<>();
+    for (Vertex v : vertices) {
+      if (id2Vertex.containsKey(v.id)) {
+        throw new IllegalArgumentException(
+            "The vertex ID " + v.id + " was used more than once. Vertex IDs must be unique.");
+      }
+      id2Vertex.put(v.id, v);
+    }
 
-    if (!vertices.containsKey(rootId)) {
+    if (!id2Vertex.containsKey(rootId)) {
       throw new IllegalArgumentException(
           "rootId is " + rootId + " but no vertex with that ID can be found");
     }
-    Vertex root = vertices.get(rootId);
-//    TODO: this should probably be checked when we create the real datamap object, rather than here
+    Vertex root = id2Vertex.get(rootId);
+    //    TODO: this should probably be checked when we create the real datamap object, rather than
+    // here
     if (root.vertexType != Vertex.VertexType.SOAR_ID) {
       throw new IllegalArgumentException(
           "Root vertex must be of type "
@@ -51,6 +61,4 @@ public class Datamap {
   public int hashCode() {
     return Objects.hash(version, rootId, vertices);
   }
-
-  //  TODO NEXT: Continue reading SoarWorkingMemoryReader and implementing checks and parsings.
 }
