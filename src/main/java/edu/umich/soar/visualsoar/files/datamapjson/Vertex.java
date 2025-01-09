@@ -3,6 +3,7 @@ package edu.umich.soar.visualsoar.files.datamapjson;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
+import java.util.Arrays;
 import java.util.Objects;
 
 @JsonDeserialize(builder = Vertex.Builder.class)
@@ -43,7 +44,12 @@ public class Vertex {
     this.comment = comment;
     this.foreignDMPath = foreignDMPath;
     this.foreignVertex = foreignVertex;
-    this.enumChoices = enumChoices;
+    if (enumChoices != null) {
+      this.enumChoices = Arrays.copyOf(enumChoices, enumChoices.length);
+      Arrays.sort(this.enumChoices);
+    } else {
+      this.enumChoices = null;
+    }
     this.min = min;
     this.max = max;
 
