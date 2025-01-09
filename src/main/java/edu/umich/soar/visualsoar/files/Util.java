@@ -1,21 +1,5 @@
 package edu.umich.soar.visualsoar.files;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.json.JsonMapper;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.file.AtomicMoveNotSupportedException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.logging.Logger;
-
 import static com.fasterxml.jackson.core.json.JsonReadFeature.ALLOW_JAVA_COMMENTS;
 import static com.fasterxml.jackson.core.json.JsonReadFeature.ALLOW_LEADING_DECIMAL_POINT_FOR_NUMBERS;
 import static com.fasterxml.jackson.core.json.JsonReadFeature.ALLOW_LEADING_PLUS_SIGN_FOR_NUMBERS;
@@ -30,6 +14,22 @@ import static com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT;
 import static com.fasterxml.jackson.databind.SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS;
 import static java.nio.file.StandardCopyOption.ATOMIC_MOVE;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.json.JsonWriteFeature;
+import com.fasterxml.jackson.core.util.DefaultIndenter;
+import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.logging.Logger;
 
 public class Util {
   private static final Logger LOGGER = Logger.getLogger(Util.class.getName());
@@ -48,11 +48,40 @@ public class Util {
           .enable(ALLOW_TRAILING_DECIMAL_POINT_FOR_NUMBERS)
           .build();
 
+  //  TODO: ensure array values are all on separate lines
+  //  TODO: ensure always uses \n to terminate lines (or use
+  // https://github.com/FasterXML/jackson-databind/issues/585#issuecomment-643163524)
   public static final ObjectMapper JSON_OBJECT_MAPPER =
       JsonMapper.builder(JSON_FACTORY)
           .enable(INDENT_OUTPUT)
+          .disable(JsonWriteFeature.ESCAPE_NON_ASCII.mappedFeature())
           .enable(ORDER_MAP_ENTRIES_BY_KEYS)
           .enable(SORT_PROPERTIES_ALPHABETICALLY)
+          .defaultPrettyPrinter(
+              new DefaultPrettyPrinter() {
+                @Override
+                public DefaultPrettyPrinter createInstance() {
+                  return this;
+                }
+
+                @Override
+                public void writeEndObject(JsonGenerator g, int nrOfEntries) throws IOException {
+                  super.writeEndObject(g, nrOfEntries);
+                  //                  place newline at end of file
+                  if (g.getOutputContext().getNestingDepth() == 1) {
+                    g.writeRaw('\n');
+                  }
+                }
+
+                @Override
+                public void writeEndArray(JsonGenerator g, int nrOfValues) throws IOException {
+                  super.writeEndArray(g, nrOfValues);
+                  //                  place newline at end of file
+                  if (g.getOutputContext().getNestingDepth() == 1) {
+                    g.writeRaw('\n');
+                  }
+                }
+              })
           .build();
 
   @FunctionalInterface
@@ -60,6 +89,8 @@ public class Util {
     void write(OutputStream out) throws IOException;
   }
 
+  //  TODO: API is clumsy. Can we implement a streaming writer where the close method does the
+  // atomic rename instead?
   /** Write to the destination file from {@code writer} as atomically as possible. */
   public static void saveToFile(Path destination, Writer writer) throws java.io.IOException {
     // Write to a temp file first, then make the final changes via a rename,

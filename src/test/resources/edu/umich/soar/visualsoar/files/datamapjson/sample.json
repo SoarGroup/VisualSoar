@@ -1,0 +1,20 @@
+{
+  "rootId" : "XYZ",
+  "version" : "6",
+  "vertices" : {
+    "ABC" : {
+      "comment" : {
+        "contents" : "bar\n\t",
+        "generated" : true
+      },
+      "vertexType" : "FLOAT"
+    },
+    "こんにちは🤓\n" : {
+      "comment" : {
+        "contents" : "foo",
+        "generated" : true
+      },
+      "vertexType" : "FLOAT"
+    }
+  }
+}
