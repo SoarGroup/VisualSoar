@@ -2,6 +2,13 @@
   "rootId": "idTest",
   "version": "6",
   "vertices": {
+    "enumTest": {
+      "enumChoices": [
+        "a",
+        "b",
+        "c"
+      ]
+    },
     "foreignTest": {
       "foreignDMPath": "../foo/foo.dm",
       "foreignVertex": {

@@ -24,18 +24,20 @@ public class Vertex {
   public final String foreignDMPath;
   public final String foreignVertexId;
   public final Vertex foreignVertex;
+  public final String[] enumChoices;
 
   Vertex(
-      VertexType vertexType,
-      Comment comment,
-      String foreignDMPath,
-      String foreignVertexId,
-      Vertex foreignVertex) {
+    VertexType vertexType,
+    Comment comment,
+    String foreignDMPath,
+    String foreignVertexId,
+    Vertex foreignVertex, String[] enumChoices) {
     this.vertexType = vertexType;
     this.comment = comment;
     this.foreignDMPath = foreignDMPath;
     this.foreignVertexId = foreignVertexId;
     this.foreignVertex = foreignVertex;
+    this.enumChoices = enumChoices;
 
     if (vertexType == VertexType.FOREIGN) {
       if (foreignVertexId == null) {
@@ -51,6 +53,12 @@ public class Vertex {
             "vertices of type " + VertexType.FOREIGN + " must have a foreignVertex defined");
       }
     }
+
+    if(vertexType == VertexType.ENUMERATION) {
+      if (enumChoices == null) {
+        throw new IllegalArgumentException("vertices of type " + VertexType.ENUMERATION + " must have an enumChoices defined");
+      }
+    }
   }
 
   @JsonPOJOBuilder(buildMethodName = "build", withPrefix = "with")
@@ -60,6 +68,7 @@ public class Vertex {
     private Vertex foreignVertex;
     private String foreignDMPath;
     private String foreignVertexId;
+    private String[] enumChoices;
 
     public Builder withVertexType(Vertex.VertexType vertexType) {
       this.vertexType = vertexType;
@@ -72,7 +81,7 @@ public class Vertex {
     }
 
     public Vertex build() {
-      return new Vertex(vertexType, comment, foreignDMPath, foreignVertexId, foreignVertex);
+      return new Vertex(vertexType, comment, foreignDMPath, foreignVertexId, foreignVertex, enumChoices);
     }
 
     public void withForeignVertex(Vertex foreignVertex) {
@@ -85,6 +94,10 @@ public class Vertex {
 
     public void withForeignVertexId(String foreignVertexId) {
       this.foreignVertexId = foreignVertexId;
+    }
+
+    public void withEnumChoices(String[] enumChoices) {
+      this.enumChoices = enumChoices;
     }
   }
 
