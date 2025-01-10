@@ -35,12 +35,12 @@ public class Datamap {
     Vertex root = id2Vertex.get(rootId);
     //    TODO: this should probably be checked when we create the real datamap object, rather than
     // here
-    if (root.vertexType != Vertex.VertexType.SOAR_ID) {
+    if (root.type != Vertex.VertexType.SOAR_ID) {
       throw new IllegalArgumentException(
           "Root vertex must be of type "
               + Vertex.VertexType.SOAR_ID
               + ", but found "
-              + root.vertexType);
+              + root.type);
     }
   }
 

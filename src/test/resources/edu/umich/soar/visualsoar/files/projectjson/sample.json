@@ -8,44 +8,48 @@
           "b",
           "c"
         ],
-        "id": "enumTest"
+        "id": "enumTest",
+        "type": "ENUMERATION"
       },
       {
         "id": "floatRangeTest",
         "max": 10.1,
         "min": 5.2,
-        "vertexType": "FLOAT_RANGE"
+        "type": "FLOAT_RANGE"
       },
       {
         "id": "floatTest",
-        "vertexType": "FLOAT"
+        "type": "FLOAT",
+        "value": 1.0
       },
       {
         "foreignDMPath": "../foo/foo.dm",
-        "foreignVertex": {
-          "id": "bar",
-          "vertexType": "SOAR_ID"
-        },
         "id": "foreignTest",
-        "vertexType": "SOAR_ID"
+        "importedVertex": {
+          "id": "bar",
+          "type": "SOAR_ID"
+        },
+        "type": "FOREIGN"
       },
       {
         "id": "idTest",
-        "vertexType": "SOAR_ID"
+        "type": "SOAR_ID"
       },
       {
         "id": "intRangeTest",
         "max": 10,
         "min": 5,
-        "vertexType": "INTEGER_RANGE"
+        "type": "INTEGER_RANGE"
       },
       {
         "id": "intTest",
-        "vertexType": "INTEGER"
+        "type": "INTEGER",
+        "value": 42
       },
       {
         "id": "stringTest",
-        "vertexType": "STRING"
+        "type": "STRING",
+        "value": "Hello world!|🌏|"
       },
       {
         "comment": {
@@ -53,7 +57,7 @@
           "generated": true
         },
         "id": "こんにちは🤓\n",
-        "vertexType": "SOAR_ID"
+        "type": "SOAR_ID"
       }
     ]
   },

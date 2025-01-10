@@ -17,8 +17,11 @@ import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 
+import static com.fasterxml.jackson.core.StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION;
 import static com.fasterxml.jackson.core.StreamReadFeature.STRICT_DUPLICATE_DETECTION;
 import static com.fasterxml.jackson.core.json.JsonReadFeature.*;
+import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES;
+import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_READING_DUP_TREE_KEY;
 import static com.fasterxml.jackson.databind.MapperFeature.SORT_PROPERTIES_ALPHABETICALLY;
 import static com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT;
 import static com.fasterxml.jackson.databind.SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS;
@@ -42,10 +45,13 @@ public class Json {
           .enable(ALLOW_LEADING_DECIMAL_POINT_FOR_NUMBERS)
           .enable(ALLOW_TRAILING_DECIMAL_POINT_FOR_NUMBERS)
           .enable(STRICT_DUPLICATE_DETECTION)
+          .enable(INCLUDE_SOURCE_IN_LOCATION)
           .build();
   private static final ObjectMapper JSON_OBJECT_MAPPER =
       JsonMapper.builder(JSON_FACTORY)
           .enable(INDENT_OUTPUT)
+          .enable(FAIL_ON_NULL_FOR_PRIMITIVES)
+        .enable(FAIL_ON_READING_DUP_TREE_KEY)
           .disable(JsonWriteFeature.ESCAPE_NON_ASCII.mappedFeature())
           .enable(ORDER_MAP_ENTRIES_BY_KEYS)
           .enable(SORT_PROPERTIES_ALPHABETICALLY)
@@ -89,8 +95,6 @@ public class Json {
     }
   }
 
-
-
   public static <T> T loadFromJson(Reader src, Class<T> clazz) throws IOException {
     return JSON_OBJECT_MAPPER.readValue(src, clazz);
   }
@@ -113,5 +117,4 @@ public class Json {
   public static <T> void writeJsonToFile(Path destination, T toWrite) throws IOException {
     saveToFile(destination, new JsonWriter<T>(toWrite));
   }
-
 }
