@@ -94,7 +94,8 @@ public abstract class Vertex {
                 + type
                 + " and therefore must have an enumChoices defined");
       }
-      this.enumChoices = enumChoices;
+      this.enumChoices = Arrays.copyOf(enumChoices, enumChoices.length);
+      Arrays.sort(this.enumChoices);
     }
 
     @Override

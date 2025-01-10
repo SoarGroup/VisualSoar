@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 // TODO: create custom exception for document validation
 // TODO: make sure to present JSON parsing errors kindly to the user somehow
 public class Datamap {
+//  TODO: rootVertex field instead of rootId
   public final String rootId;
   public final List<Vertex> vertices;
 
