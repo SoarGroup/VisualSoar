@@ -1,4 +1,4 @@
-package edu.umich.soar.visualsoar.files.datamapjson;
+package edu.umich.soar.visualsoar.files.projectjson;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonFactory;
@@ -105,7 +105,7 @@ public class Json {
     @Override
     public void write(OutputStream out) throws IOException {
       try (OutputStreamWriter writer = new OutputStreamWriter(out, StandardCharsets.UTF_8)) {
-        JSON_OBJECT_MAPPER.writerFor(Datamap.class).writeValue(writer, toWrite);
+        JSON_OBJECT_MAPPER.writerFor(toWrite.getClass()).writeValue(writer, toWrite);
       }
     }
   }

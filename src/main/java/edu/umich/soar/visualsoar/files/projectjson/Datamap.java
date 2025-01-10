@@ -1,4 +1,4 @@
-package edu.umich.soar.visualsoar.files.datamapjson;
+package edu.umich.soar.visualsoar.files.projectjson;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -9,16 +9,13 @@ import java.util.stream.Collectors;
 // TODO: create custom exception for document validation
 // TODO: make sure to present JSON parsing errors kindly to the user somehow
 public class Datamap {
-  public final String version;
   public final String rootId;
   public final List<Vertex> vertices;
 
   @JsonCreator
   public Datamap(
-      @JsonProperty("version") String version,
       @JsonProperty("rootId") String rootId,
       @JsonProperty("vertices") List<Vertex> vertices) {
-    this.version = version;
     this.rootId = rootId;
     this.vertices =
         vertices.stream().sorted(Comparator.comparing(v -> v.id)).collect(Collectors.toList());
@@ -52,13 +49,12 @@ public class Datamap {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
     Datamap datamap = (Datamap) o;
-    return Objects.equals(version, datamap.version)
-        && Objects.equals(rootId, datamap.rootId)
+    return Objects.equals(rootId, datamap.rootId)
         && Objects.equals(vertices, datamap.vertices);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(version, rootId, vertices);
+    return Objects.hash(rootId, vertices);
   }
 }

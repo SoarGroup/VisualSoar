@@ -1,4 +1,4 @@
-package edu.umich.soar.visualsoar.files.datamapjson;
+package edu.umich.soar.visualsoar.files.projectjson;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
@@ -194,11 +194,20 @@ public class Vertex {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
     Vertex vertex = (Vertex) o;
-    return vertexType == vertex.vertexType && Objects.equals(comment, vertex.comment);
+    return Objects.equals(id, vertex.id)
+        && vertexType == vertex.vertexType
+        && Objects.equals(comment, vertex.comment)
+        && Objects.equals(foreignDMPath, vertex.foreignDMPath)
+        && Objects.equals(foreignVertex, vertex.foreignVertex)
+        && Arrays.equals(enumChoices, vertex.enumChoices)
+        && Objects.equals(min, vertex.min)
+        && Objects.equals(max, vertex.max);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(vertexType, comment);
+    int result = Objects.hash(id, vertexType, comment, foreignDMPath, foreignVertex, min, max);
+    result = 31 * result + Arrays.hashCode(enumChoices);
+    return result;
   }
 }

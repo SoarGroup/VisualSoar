@@ -1,7 +1,7 @@
-package edu.umich.soar.visualsoar.files.datamapjson;
+package edu.umich.soar.visualsoar.files.projectjson;
 
-import static edu.umich.soar.visualsoar.files.datamapjson.Json.loadFromJson;
-import static edu.umich.soar.visualsoar.files.datamapjson.Json.writeJsonToFile;
+import static edu.umich.soar.visualsoar.files.projectjson.Json.loadFromJson;
+import static edu.umich.soar.visualsoar.files.projectjson.Json.writeJsonToFile;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
@@ -12,7 +12,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import org.junit.jupiter.api.Test;
 
-class DatamapTest {
+class ProjectTest {
   // TODO: more test JSON files to test separate things
   // TODO: test that parsing fails for duplicate keys
   // TODO: test that foreign vertices are validated (failure check)
@@ -21,17 +21,17 @@ class DatamapTest {
   @Test
   public void roundTripTestFile() throws IOException, URISyntaxException {
     String originalRawJson =
-        Files.readString(Paths.get(DatamapTest.class.getResource("sample.json").toURI()));
-    Datamap originalDatamap = loadFromJson(new StringReader(originalRawJson), Datamap.class);
+        Files.readString(Paths.get(ProjectTest.class.getResource("sample.json").toURI()));
+    Project originalProject = loadFromJson(new StringReader(originalRawJson), Project.class);
 
     Path destination = Files.createTempFile("sample-roundtripped", ".json");
-    writeJsonToFile(destination, originalDatamap);
+    writeJsonToFile(destination, originalProject);
 
     String roundTrippedRawJson = Files.readString(destination);
-    Datamap roundTrippedDatamap =
-        loadFromJson(new StringReader(roundTrippedRawJson), Datamap.class);
+    Project roundTrippedProject =
+        loadFromJson(new StringReader(roundTrippedRawJson), Project.class);
 
-    assertEquals(originalDatamap, roundTrippedDatamap);
+    assertEquals(originalProject, roundTrippedProject);
     assertEquals(originalRawJson, roundTrippedRawJson);
   }
 }

@@ -1,4 +1,4 @@
-package edu.umich.soar.visualsoar.files.datamapjson;
+package edu.umich.soar.visualsoar.files.projectjson;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
