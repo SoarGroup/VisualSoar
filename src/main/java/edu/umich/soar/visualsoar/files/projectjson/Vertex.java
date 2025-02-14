@@ -13,16 +13,16 @@ import java.util.Objects;
     property = "type",
     visible = true)
 @JsonSubTypes({
-  @JsonSubTypes.Type(value = Vertex.SoarIdVertex.class, name = "SOAR_ID"),
+  @JsonSubTypes.Type(value = Vertex.class, name = "SOAR_ID"),
   @JsonSubTypes.Type(value = Vertex.EnumerationVertex.class, name = "ENUMERATION"),
   @JsonSubTypes.Type(value = Vertex.IntegerRangeVertex.class, name = "INTEGER_RANGE"),
-  @JsonSubTypes.Type(value = Vertex.IntegerVertex.class, name = "INTEGER"),
+  @JsonSubTypes.Type(value = Vertex.class, name = "INTEGER"),
   @JsonSubTypes.Type(value = Vertex.FloatRangeVertex.class, name = "FLOAT_RANGE"),
-  @JsonSubTypes.Type(value = Vertex.FloatVertex.class, name = "FLOAT"),
-  @JsonSubTypes.Type(value = Vertex.StringVertex.class, name = "STRING"),
+  @JsonSubTypes.Type(value = Vertex.class, name = "FLOAT"),
+  @JsonSubTypes.Type(value = Vertex.class, name = "STRING"),
   @JsonSubTypes.Type(value = Vertex.ForeignVertex.class, name = "FOREIGN")
 })
-public abstract class Vertex {
+public class Vertex {
 
   enum VertexType {
     SOAR_ID,
@@ -39,7 +39,10 @@ public abstract class Vertex {
   public final VertexType type;
   public final Comment comment;
 
-  Vertex(String id, VertexType type, Comment comment) {
+  Vertex(
+      @JsonProperty("id") String id,
+      @JsonProperty("type") VertexType type,
+      @JsonProperty("comment") Comment comment) {
     this.id = id;
     this.type = type;
     this.comment = comment;
@@ -48,32 +51,21 @@ public abstract class Vertex {
   private void assertType(VertexType expectedType) {
     if (type != expectedType) {
       throw new IllegalArgumentException(
-          "Vertex type for " + getClass().getSimpleName() + " should be " + expectedType + " but is " + type);
+          "Vertex type for "
+              + getClass().getSimpleName()
+              + " should be "
+              + expectedType
+              + " but is "
+              + type);
     }
   }
 
-  private boolean baseEquals(Vertex other) {
-    return Objects.equals(id, other.id)
-        && type == other.type
-        && Objects.equals(comment, other.comment);
-  }
-
-  public static class SoarIdVertex extends Vertex {
-    SoarIdVertex(
-        @JsonProperty("id") String id,
-        @JsonProperty("type") VertexType type,
-        @JsonProperty("comment") Comment comment) {
-      super(id, type, comment);
-      super.assertType(VertexType.SOAR_ID);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) return true;
-      if (o == null || getClass() != o.getClass()) return false;
-      SoarIdVertex vertex = (SoarIdVertex) o;
-      return super.baseEquals(vertex);
-    }
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    Vertex v = (Vertex) o;
+    return Objects.equals(id, v.id) && type == v.type && Objects.equals(comment, v.comment);
   }
 
   public static class EnumerationVertex extends Vertex {
@@ -100,32 +92,12 @@ public abstract class Vertex {
 
     @Override
     public boolean equals(Object o) {
-      if (this == o) return true;
-      if (o == null || getClass() != o.getClass()) return false;
+      if (!super.equals(o)) {
+        return false;
+      }
+
       EnumerationVertex vertex = (EnumerationVertex) o;
-      return super.baseEquals(vertex) && Arrays.equals(enumChoices, vertex.enumChoices);
-    }
-  }
-
-  public static class IntegerVertex extends Vertex {
-    public final int value;
-
-    IntegerVertex(
-        @JsonProperty("id") String id,
-        @JsonProperty("type") VertexType type,
-        @JsonProperty("comment") Comment comment,
-        @JsonProperty("value") int value) {
-      super(id, type, comment);
-      super.assertType(VertexType.INTEGER);
-      this.value = value;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) return true;
-      if (o == null || getClass() != o.getClass()) return false;
-      IntegerVertex vertex = (IntegerVertex) o;
-      return super.baseEquals(vertex) && value == vertex.value;
+      return Arrays.equals(enumChoices, vertex.enumChoices);
     }
   }
 
@@ -151,32 +123,12 @@ public abstract class Vertex {
       if (this == o) return true;
       if (o == null || getClass() != o.getClass()) return false;
       IntegerRangeVertex vertex = (IntegerRangeVertex) o;
-      return super.baseEquals(vertex) && min == vertex.min && max == vertex.max;
+      return super.equals(vertex) && min == vertex.min && max == vertex.max;
     }
   }
 
-  public static class FloatVertex extends Vertex {
-    public final double value;
-
-    FloatVertex(
-        @JsonProperty("id") String id,
-        @JsonProperty("type") VertexType type,
-        @JsonProperty("comment") Comment comment,
-        @JsonProperty("value") double value) {
-      super(id, type, comment);
-      super.assertType(VertexType.FLOAT);
-      this.value = value;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) return true;
-      if (o == null || getClass() != o.getClass()) return false;
-      FloatVertex vertex = (FloatVertex) o;
-      return super.baseEquals(vertex) && value == vertex.value;
-    }
-  }
-
+  //  We have to use strings in the JSON because JSON floats don't support infinities; Jackson
+  // does support it, but we want to write JSON that is easily parseable by other tools.
   public static class FloatRangeVertex extends Vertex {
     public final double min;
     public final double max;
@@ -185,46 +137,40 @@ public abstract class Vertex {
         @JsonProperty("id") String id,
         @JsonProperty("type") VertexType type,
         @JsonProperty("comment") Comment comment,
-        @JsonProperty("min") double min,
-        @JsonProperty("max") double max) {
+        @JsonProperty("min") String min,
+        @JsonProperty("max") String max) {
       super(id, type, comment);
       super.assertType(VertexType.FLOAT_RANGE);
-      this.min = min;
-      this.max = max;
-    }
+      this.min = Double.parseDouble(min);
+      this.max = Double.parseDouble(max);
 
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) return true;
-      if (o == null || getClass() != o.getClass()) return false;
-      FloatRangeVertex vertex = (FloatRangeVertex) o;
-      return super.baseEquals(vertex) && min == vertex.min && max == vertex.max;
-    }
-  }
-
-  public static class StringVertex extends Vertex {
-    public final String value;
-
-    StringVertex(
-        @JsonProperty("id") String id,
-        @JsonProperty("type") VertexType type,
-        @JsonProperty("comment") Comment comment,
-        @JsonProperty("value") String value) {
-      super(id, type, comment);
-      super.assertType(VertexType.STRING);
-      this.value = value;
-      if (value == null) {
+      if (Double.isNaN(this.min)) {
         throw new IllegalArgumentException(
-            "Vertex " + id + " is of type " + type + " and therefore must have a value defined");
+            "Float range vertex " + id + " has unparseable min value");
+      }
+      if (Double.isNaN(this.max)) {
+        throw new IllegalArgumentException(
+            "Float range vertex " + id + " has unparseable max value");
       }
     }
 
+    @JsonProperty("min")
+    public String getMinStringified() {
+      return Double.toString(min);
+    }
+
+    @JsonProperty("max")
+    public String getMaxStringified() {
+      return Double.toString(max);
+    }
+
     @Override
     public boolean equals(Object o) {
-      if (this == o) return true;
-      if (o == null || getClass() != o.getClass()) return false;
-      StringVertex vertex = (StringVertex) o;
-      return super.baseEquals(vertex) && Objects.equals(value, vertex.value);
+      if (!super.equals(o)) {
+        return false;
+      }
+      FloatRangeVertex vertex = (FloatRangeVertex) o;
+      return min == vertex.min && max == vertex.max;
     }
   }
 
@@ -266,11 +212,11 @@ public abstract class Vertex {
 
     @Override
     public boolean equals(Object o) {
-      if (this == o) return true;
-      if (o == null || getClass() != o.getClass()) return false;
+      if (!super.equals(o)) {
+        return false;
+      }
       ForeignVertex vertex = (ForeignVertex) o;
-      return super.baseEquals(vertex)
-          && Objects.equals(foreignDMPath, vertex.foreignDMPath)
+      return Objects.equals(foreignDMPath, vertex.foreignDMPath)
           && Objects.equals(importedVertex, vertex.importedVertex);
     }
   }

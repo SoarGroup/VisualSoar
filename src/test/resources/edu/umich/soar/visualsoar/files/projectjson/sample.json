@@ -12,15 +12,20 @@
         "type": "ENUMERATION"
       },
       {
+        "id": "floatRangeInfTest",
+        "max": "-Infinity",
+        "min": "Infinity",
+        "type": "FLOAT_RANGE"
+      },
+      {
         "id": "floatRangeTest",
-        "max": 10.1,
-        "min": 5.2,
+        "max": "10.1",
+        "min": "5.2",
         "type": "FLOAT_RANGE"
       },
       {
         "id": "floatTest",
-        "type": "FLOAT",
-        "value": 1.0
+        "type": "FLOAT"
       },
       {
         "foreignDMPath": "../foo/foo.dm",
@@ -43,13 +48,11 @@
       },
       {
         "id": "intTest",
-        "type": "INTEGER",
-        "value": 42
+        "type": "INTEGER"
       },
       {
         "id": "stringTest",
-        "type": "STRING",
-        "value": "Hello world!|🌏|"
+        "type": "STRING"
       },
       {
         "comment": {

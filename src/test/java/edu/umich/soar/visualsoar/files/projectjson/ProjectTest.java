@@ -13,6 +13,7 @@ import java.nio.file.Paths;
 import org.junit.jupiter.api.Test;
 
 class ProjectTest {
+  // TODO: separate round-trip stringification and structure tests
   // TODO: more test JSON files to test separate things
   // TODO: test that parsing fails for duplicate keys
   // TODO: test that foreign vertices are validated (failure check)

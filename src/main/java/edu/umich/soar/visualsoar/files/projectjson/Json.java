@@ -38,8 +38,6 @@ public class Json {
           .enable(ALLOW_UNQUOTED_FIELD_NAMES)
           .enable(ALLOW_TRAILING_COMMA)
           .enable(ALLOW_SINGLE_QUOTES)
-          // TODO: are we sure that NaN's could be used for anything?
-          .enable(ALLOW_NON_NUMERIC_NUMBERS)
           .enable(ALLOW_LEADING_ZEROS_FOR_NUMBERS)
           .enable(ALLOW_LEADING_PLUS_SIGN_FOR_NUMBERS)
           .enable(ALLOW_LEADING_DECIMAL_POINT_FOR_NUMBERS)
