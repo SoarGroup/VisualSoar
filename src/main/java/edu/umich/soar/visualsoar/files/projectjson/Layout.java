@@ -33,6 +33,20 @@ public class Layout {
     this.nodes = nodes;
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    Layout layout = (Layout) o;
+    return Objects.equals(rootId, layout.rootId) && Objects.equals(nodes, layout.nodes);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(rootId, nodes);
+  }
+
+
   @JsonTypeInfo(
       use = JsonTypeInfo.Id.NAME,
       include = JsonTypeInfo.As.EXISTING_PROPERTY,
@@ -74,10 +88,14 @@ public class Layout {
       }
     }
 
-    private boolean baseEquals(Node other) {
-      return Objects.equals(id, other.id)
-          && type == other.type
-          && Objects.equals(children, other.children);
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+      Node node = (Node) o;
+      return Objects.equals(id, node.id)
+          && type == node.type
+          && Objects.equals(children, node.children);
     }
 
     //  TODO: copy remaining data/logic from makeNodeVersionFive

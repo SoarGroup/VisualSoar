@@ -3,7 +3,7 @@
     "rootId": "idTest",
     "vertices": [
       {
-        "enumChoices": [
+        "choices": [
           "a",
           "b",
           "c"
@@ -12,16 +12,10 @@
         "type": "ENUMERATION"
       },
       {
-        "id": "floatRangeInfTest",
-        "max": "-Infinity",
-        "min": "Infinity",
-        "type": "FLOAT_RANGE"
-      },
-      {
         "id": "floatRangeTest",
-        "max": "10.1",
-        "min": "5.2",
-        "type": "FLOAT_RANGE"
+        "max": 10.1,
+        "min": 5.2,
+        "type": "FLOAT"
       },
       {
         "id": "floatTest",
@@ -32,19 +26,48 @@
         "id": "foreignTest",
         "importedVertex": {
           "id": "bar",
+          "outEdges": [
+            {
+              "comment": "The first letter of the alphabet",
+              "name": "ay",
+              "toId": "a"
+            },
+            {
+              "name": "bee",
+              "toId": "b"
+            },
+            {
+              "name": "see",
+              "toId": "c"
+            }
+          ],
           "type": "SOAR_ID"
         },
         "type": "FOREIGN"
       },
       {
         "id": "idTest",
+        "outEdges": [
+          {
+            "name": "first",
+            "toId": "1"
+          },
+          {
+            "name": "second",
+            "toId": "2"
+          },
+          {
+            "name": "third",
+            "toId": "3"
+          }
+        ],
         "type": "SOAR_ID"
       },
       {
         "id": "intRangeTest",
         "max": 10,
         "min": 5,
-        "type": "INTEGER_RANGE"
+        "type": "INTEGER"
       },
       {
         "id": "intTest",
@@ -55,11 +78,14 @@
         "type": "STRING"
       },
       {
-        "comment": {
-          "contents": "testing that non-ASCII chars are not escaped\n\t",
-          "generated": true
-        },
         "id": "こんにちは🤓\n",
+        "outEdges": [
+          {
+            "comment": "testing that non-ASCII chars are not escaped\n\t",
+            "name": "int",
+            "toId": "intTest"
+          }
+        ],
         "type": "SOAR_ID"
       }
     ]

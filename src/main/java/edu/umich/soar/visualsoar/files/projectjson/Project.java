@@ -3,6 +3,7 @@ package edu.umich.soar.visualsoar.files.projectjson;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.io.IOException;
 import java.util.Objects;
 
 public class Project {
@@ -36,11 +37,22 @@ public class Project {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
     Project project = (Project) o;
-    return Objects.equals(datamap, project.datamap);
+    return version.equals(project.version)
+        && Objects.equals(layout, project.layout)
+        && Objects.equals(datamap, project.datamap);
   }
 
   @Override
   public int hashCode() {
     return Objects.hash(datamap);
+  }
+
+  @Override
+  public String toString() {
+    try {
+      return Json.serializeToJson(this);
+    } catch (IOException e) {
+      return "Failed to stringify Project: " + e;
+    }
   }
 }

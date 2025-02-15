@@ -88,6 +88,7 @@ public class OperatorOperatorNode extends SoarOperatorNode {
         }
     }
 
+    @Override
     public void write(Writer w) throws IOException {
         if (isHighLevel) {
             w.write("HLOPERATOR " + name + " " + fileAssociation + " " + folderName + " " + dataMapId.getValue() + " " + id);

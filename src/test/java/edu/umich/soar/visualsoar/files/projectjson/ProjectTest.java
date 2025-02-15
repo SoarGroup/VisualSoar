@@ -32,7 +32,7 @@ class ProjectTest {
     Project roundTrippedProject =
         loadFromJson(new StringReader(roundTrippedRawJson), Project.class);
 
-    assertEquals(originalProject, roundTrippedProject);
     assertEquals(originalRawJson, roundTrippedRawJson);
+    assertEquals(originalProject, roundTrippedProject);
   }
 }

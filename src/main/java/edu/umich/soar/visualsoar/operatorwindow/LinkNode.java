@@ -84,6 +84,7 @@ public class LinkNode extends FileNode {
         }
     }
 
+    @Override
     public void write(Writer w) throws IOException {
         w.write("LINK " + name + " " + fileAssociation + " " + linkedToNode.getId() + " " + id);
     }

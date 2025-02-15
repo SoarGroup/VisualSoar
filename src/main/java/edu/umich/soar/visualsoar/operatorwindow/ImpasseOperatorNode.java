@@ -127,6 +127,7 @@ public class ImpasseOperatorNode extends SoarOperatorNode {
         }
     }
 
+    @Override
     public void write(Writer w) throws IOException {
 
         if (isHighLevel) {

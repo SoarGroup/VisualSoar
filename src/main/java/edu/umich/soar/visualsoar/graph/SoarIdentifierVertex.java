@@ -1,5 +1,7 @@
 package edu.umich.soar.visualsoar.graph;
 
+import edu.umich.soar.visualsoar.files.projectjson.Vertex;
+
 public class SoarIdentifierVertex extends SoarVertex {
     private static final long serialVersionUID = 20221225L;
 
@@ -12,7 +14,7 @@ public class SoarIdentifierVertex extends SoarVertex {
 
     ///////////////////////////////////////////////////
 // Accessors
-///////////////////////////////////////////////////	
+///////////////////////////////////////////////////
     @Override
     public SoarVertex copy(int newId) {
         return new SoarIdentifierVertex(newId);
@@ -38,7 +40,7 @@ public class SoarIdentifierVertex extends SoarVertex {
 
     ///////////////////////////////////////////////////
 // Manipulators
-///////////////////////////////////////////////////	
+///////////////////////////////////////////////////
     public void write(java.io.Writer w) throws java.io.IOException {
         w.write("SOAR_ID " + number + '\n');
     }

@@ -10,10 +10,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import edu.umich.soar.visualsoar.files.Util;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Reader;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 
@@ -114,5 +111,12 @@ public class Json {
 
   public static <T> void writeJsonToFile(Path destination, T toWrite) throws IOException {
     saveToFile(destination, new JsonWriter<T>(toWrite));
+  }
+
+  public static <T> String serializeToJson(T toWrite) throws IOException {
+    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+    JsonWriter<T> jsonWriter = new JsonWriter<>(toWrite);
+    jsonWriter.write(outputStream);
+    return outputStream.toString(StandardCharsets.UTF_8);
   }
 }

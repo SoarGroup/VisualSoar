@@ -219,6 +219,7 @@ public class FolderNode extends OperatorNode implements java.io.Serializable {
      * @param w the writer
      * @throws IOException if there is an error writing to the writer
      */
+    @Override
     public void write(Writer w) throws IOException {
 
         w.write("FOLDER " + name + " " + folderName + " " + id);
