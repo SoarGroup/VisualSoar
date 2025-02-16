@@ -121,9 +121,9 @@ public class ImpasseOperatorNode extends SoarOperatorNode {
     public void exportDesc(Writer w) throws IOException {
 
         if (isHighLevel) {
-            w.write("HLIOPERATOR " + name + " " + dataMapIdNumber);
+            w.write("HLIOPERATOR " + getName() + " " + dataMapIdNumber);
         } else {
-            w.write("IOPERATOR " + name);
+            w.write("IOPERATOR " + getName());
         }
     }
 
@@ -132,11 +132,16 @@ public class ImpasseOperatorNode extends SoarOperatorNode {
 
         if (isHighLevel) {
 
-            w.write("HLIOPERATOR " + name + " " + fileAssociation + " " + folderName + " " + dataMapId.getValue() + " " + id);
+            w.write("HLIOPERATOR " + getName() + " " + fileAssociation + " " + folderName + " " + dataMapId.getValue() + " " + id);
         } else {
 
-            w.write("IOPERATOR " + name + " " + fileAssociation + " " + id);
+            w.write("IOPERATOR " + getName() + " " + fileAssociation + " " + id);
         }
+    }
+
+    @Override
+    public NodeType getType() {
+      return NodeType.IMPASSE_OPERATOR;
     }
 
 

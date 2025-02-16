@@ -199,12 +199,12 @@ public class FolderNode extends OperatorNode implements java.io.Serializable {
         openDataMapItem.setEnabled(false);
         deleteItem.setEnabled(false);
 
-        if (name.equals("elaborations")) {
+        if (getName().equals("elaborations")) {
             addSubOperatorItem.setEnabled(false);
         }
 
         //non-special folders may be deleted
-        if ( (!name.equals("elaborations")) && (!name.equals("all")) ) {
+        if ( (!getName().equals("elaborations")) && (!getName().equals("all")) ) {
             deleteItem.setEnabled(true);
         }
 
@@ -222,12 +222,17 @@ public class FolderNode extends OperatorNode implements java.io.Serializable {
     @Override
     public void write(Writer w) throws IOException {
 
-        w.write("FOLDER " + name + " " + folderName + " " + id);
+        w.write("FOLDER " + getName() + " " + folderName + " " + id);
+    }
+
+    @Override
+    public NodeType getType() {
+      return NodeType.FOLDER;
     }
 
     public void exportDesc(Writer w) throws IOException {
 
-        w.write("FOLDER " + name);
+        w.write("FOLDER " + getName());
     }
 
     public void exportFile(Writer w, int id) {
@@ -257,7 +262,7 @@ public class FolderNode extends OperatorNode implements java.io.Serializable {
                            OperatorWindow operatorWindow,
                            SoarWorkingMemoryModel swmm) throws IOException, NumberFormatException {
 
-        if (name.equals("common") || name.equals("all")) {
+        if (getName().equals("common") || getName().equals("all")) {
             VSEImporter.read(r,
                     this,
                     operatorWindow,

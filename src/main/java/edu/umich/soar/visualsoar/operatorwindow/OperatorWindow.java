@@ -2,7 +2,7 @@ package edu.umich.soar.visualsoar.operatorwindow;
 
 
 import edu.umich.soar.visualsoar.files.projectjson.Datamap;
-import edu.umich.soar.visualsoar.files.projectjson.Layout;
+import edu.umich.soar.visualsoar.files.projectjson.LayoutNode;
 import edu.umich.soar.visualsoar.files.projectjson.Project;
 import edu.umich.soar.visualsoar.mainframe.MainFrame;
 import edu.umich.soar.visualsoar.datamap.SoarWorkingMemoryModel;
@@ -1297,14 +1297,14 @@ public class OperatorWindow extends JTree {
 
 
     /**
-     * Saves the current hierarchy to disk using Version 4 method
+     * Saves the current hierarchy to disk using Version 4 and 6 methods
      *
      * @param inProjFile    name of the file to be saved - .vsa file
      * @param inDataMapFile name of the datamap file - .dm file
      * @param inCommentFile name of the datamap comment file - comment.dm
      *
      * @see #reduceWorkingMemory()
-     * @see TreeFileWriter#write
+     * @see TreeSerializer#write
      * @see SoarWorkingMemoryModel#write
      * @see SoarWorkingMemoryModel#writeComments
      */
@@ -1312,28 +1312,29 @@ public class OperatorWindow extends JTree {
         reduceWorkingMemory();
         try {
             OperatorRootNode orn = (OperatorRootNode) (getModel().getRoot());
-//            TODO: put .json on elsewhere
-            String projectFilePath = inProjFile.getAbsolutePath() + ".json";
-//            FileWriter fw = new FileWriter(inProjFile.getAbsolutePath());
-//            fw.write("VERSION 4\n");
-//            // for Version 5:  fw.write("VERSION 5\n");
-//            String dataMapRP = orn.getDataMapFile().substring(orn.getFullPathStart().length());
-//            fw.write(dataMapRP + '\n');
-//          TODO: convert layout here
-//            TreeFileWriter.write(fw, (DefaultTreeModel) getModel());
+            FileWriter fw = new FileWriter(inProjFile.getAbsolutePath());
+            fw.write("VERSION 4\n");
+            // for Version 5:  fw.write("VERSION 5\n");
+            String dataMapRP = orn.getDataMapFile().substring(orn.getFullPathStart().length());
+            fw.write(dataMapRP + '\n');
+            TreeSerializer.write(fw, (DefaultTreeModel) getModel());
             // for Version 5:  TreeFileWriter.write5(fw,(DefaultTreeModel)getModel());
-//            fw.close();
-//            FileWriter graphWriter = new FileWriter(inDataMapFile);
-//            workingMemory.write(graphWriter);
+            fw.close();
+            FileWriter graphWriter = new FileWriter(inDataMapFile);
+            workingMemory.write(graphWriter);
+            graphWriter.close();
+
+            FileWriter commentWriter = new FileWriter(inCommentFile);
+            workingMemory.writeComments(commentWriter);
+            commentWriter.close();
+
             Datamap dmJson = workingMemory.toJson();
-            Project project = new Project("6", dmJson, new Layout("TODO", Collections.emptyList()));
-            writeJsonToFile(Paths.get(projectFilePath), project);
-//            graphWriter.close();
-//
-//            FileWriter commentWriter = new FileWriter(inCommentFile);
-//            workingMemory.writeComments(commentWriter);
-//            commentWriter.close();
+            LayoutNode layoutNodeJson = TreeSerializer.toJson((DefaultTreeModel) getModel());
+            Project project = new Project("6", dmJson, layoutNodeJson);
+            // TODO: factor out name creation logic .json on elsewhere
+            writeJsonToFile(Paths.get(inProjFile.getAbsolutePath() + ".json"), project);
         } catch (IOException ioe) {
+            // TODO: the user needs to be alerted properly
             System.err.println("An Exception was thrown in OperatorWindow.saveHierarchy");
             ioe.printStackTrace();
         }

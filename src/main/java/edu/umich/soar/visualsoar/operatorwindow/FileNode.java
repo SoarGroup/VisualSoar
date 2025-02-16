@@ -61,6 +61,13 @@ public class FileNode extends OperatorNode implements java.io.Serializable {
         return parent.getFullPathName() + File.separator + fileAssociation;
     }
 
+  /**
+   * @return file path as specified in project files; this may be an unresolved relative path
+   */
+  public String getFileAssociation() {
+      return fileAssociation;
+    }
+
     /**
      * This is the function that gets called when you want to add a file to this
      * node
@@ -119,10 +126,15 @@ public class FileNode extends OperatorNode implements java.io.Serializable {
      */
     @Override
     public void write(Writer w) throws IOException {
-        w.write("FILE " + name + " " + fileAssociation + " " + id);
+        w.write("FILE " + getName() + " " + fileAssociation + " " + id);
     }
 
-    /**
+    @Override
+    public NodeType getType() {
+      return NodeType.FILE;
+    }
+
+  /**
      * Given a Writer this writes out a description of the operator node
      * that can be read back later
      *
@@ -130,7 +142,7 @@ public class FileNode extends OperatorNode implements java.io.Serializable {
      * @throws IOException if there is an error writing to the writer
      */
     public void exportDesc(Writer w) throws IOException {
-        w.write("FILE " + name);
+        w.write("FILE " + getName());
     }
 
     public void exportType(Writer w) throws IOException {
@@ -175,7 +187,7 @@ public class FileNode extends OperatorNode implements java.io.Serializable {
         impasseSubMenu.setEnabled(false);
         checkChildrenAgainstDataMapItem.setEnabled(false);
 
-        if (name.equals("elaborations")) {
+        if (getName().equals("elaborations")) {
             deleteItem.setEnabled(getParent().getChildCount() == 1);
             renameItem.setEnabled(false);
         }
@@ -190,7 +202,7 @@ public class FileNode extends OperatorNode implements java.io.Serializable {
     public void delete(OperatorWindow operatorWindow) {
         OperatorNode parent = (OperatorNode) getParent();
 
-        if (name.equals("elaborations")) {
+        if (getName().equals("elaborations")) {
             JOptionPane.showMessageDialog(MainFrame.getMainFrame(),
                     "The elaborations file may not be deleted",
                     "Delete Error",
@@ -212,7 +224,7 @@ public class FileNode extends OperatorNode implements java.io.Serializable {
      */
 
     public Vector<SoarProduction> parseProductions() throws ParseException, java.io.IOException {
-        if (name.startsWith("_")) return null;
+        if (getName().startsWith("_")) return null;
 
         if (ruleEditor == null) {
             //This version is for files that are closed (:AMN: Sep 2022)

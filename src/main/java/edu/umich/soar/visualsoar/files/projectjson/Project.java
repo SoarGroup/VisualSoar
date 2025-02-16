@@ -12,13 +12,13 @@ public class Project {
   public final String version;
 
   public final Datamap datamap;
-  public final Layout layout;
+  public final LayoutNode layout;
 
   @JsonCreator
   public Project(
       @JsonProperty("version") String version,
       @JsonProperty("datamap") Datamap datamap,
-      @JsonProperty("layout") Layout layout) {
+      @JsonProperty("layout") LayoutNode layout) {
     Objects.requireNonNull(version, "Project 'version' cannot be null or missing.");
     Objects.requireNonNull(datamap, "Project 'datamap' cannot be null or missing.");
     Objects.requireNonNull(layout, "Project 'layout' cannot be null or missing.");

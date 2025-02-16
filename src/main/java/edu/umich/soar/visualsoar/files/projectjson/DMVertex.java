@@ -7,20 +7,21 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/** Specifies the project datamap (working memory layout). */
 @JsonTypeInfo(
     use = JsonTypeInfo.Id.NAME,
     include = JsonTypeInfo.As.EXISTING_PROPERTY,
     property = "type",
     visible = true)
 @JsonSubTypes({
-  @JsonSubTypes.Type(value = Vertex.SoarIdVertex.class, name = "SOAR_ID"),
-  @JsonSubTypes.Type(value = Vertex.EnumerationVertex.class, name = "ENUMERATION"),
-  @JsonSubTypes.Type(value = Vertex.IntegerRangeVertex.class, name = "INTEGER"),
-  @JsonSubTypes.Type(value = Vertex.FloatRangeVertex.class, name = "FLOAT"),
-  @JsonSubTypes.Type(value = Vertex.class, name = "STRING"),
-  @JsonSubTypes.Type(value = Vertex.ForeignVertex.class, name = "FOREIGN")
+  @JsonSubTypes.Type(value = DMVertex.SoarIdVertex.class, name = "SOAR_ID"),
+  @JsonSubTypes.Type(value = DMVertex.EnumerationVertex.class, name = "ENUMERATION"),
+  @JsonSubTypes.Type(value = DMVertex.IntegerRangeVertex.class, name = "INTEGER"),
+  @JsonSubTypes.Type(value = DMVertex.FloatRangeVertex.class, name = "FLOAT"),
+  @JsonSubTypes.Type(value = DMVertex.class, name = "STRING"),
+  @JsonSubTypes.Type(value = DMVertex.ForeignVertex.class, name = "FOREIGN")
 })
-public class Vertex {
+public class DMVertex {
 
   public enum VertexType {
     SOAR_ID,
@@ -34,7 +35,7 @@ public class Vertex {
   public final String id;
   public final VertexType type;
 
-  public Vertex(@JsonProperty("id") String id, @JsonProperty("type") VertexType type) {
+  public DMVertex(@JsonProperty("id") String id, @JsonProperty("type") VertexType type) {
     this.id = id;
     this.type = type;
 
@@ -42,23 +43,11 @@ public class Vertex {
     Objects.requireNonNull(type, "Vertex " + id + " is missing its 'type' field");
   }
 
-  private void assertType(VertexType expectedType) {
-    if (type != expectedType) {
-      throw new IllegalArgumentException(
-          "Vertex type for "
-              + getClass().getSimpleName()
-              + " should be "
-              + expectedType
-              + " but is "
-              + type);
-    }
-  }
-
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
-    Vertex v = (Vertex) o;
+    DMVertex v = (DMVertex) o;
     return Objects.equals(id, v.id) && type == v.type;
   }
 
@@ -105,19 +94,12 @@ public class Vertex {
     }
   }
 
-  public static class SoarIdVertex extends Vertex {
+  public static class SoarIdVertex extends DMVertex {
     public final List<OutEdge> outEdges;
 
-    public SoarIdVertex(String id, List<OutEdge> outEdges) {
-      this(id, VertexType.SOAR_ID, outEdges);
-    }
-
-    SoarIdVertex(
-        @JsonProperty("id") String id,
-        @JsonProperty("type") VertexType type,
-        @JsonProperty("outEdges") List<OutEdge> outEdges) {
-      super(id, type);
-      super.assertType(VertexType.SOAR_ID);
+    public SoarIdVertex(
+        @JsonProperty("id") String id, @JsonProperty("outEdges") List<OutEdge> outEdges) {
+      super(id, VertexType.SOAR_ID);
       if (outEdges == null) {
         outEdges = Collections.emptyList();
       }
@@ -138,19 +120,12 @@ public class Vertex {
     }
   }
 
-  public static class EnumerationVertex extends Vertex {
+  public static class EnumerationVertex extends DMVertex {
     public final List<String> choices;
 
-    public EnumerationVertex(String id, List<String> choices) {
-      this(id, VertexType.ENUMERATION, choices);
-    }
-
-    EnumerationVertex(
-        @JsonProperty("id") String id,
-        @JsonProperty("type") VertexType type,
-        @JsonProperty("choices") List<String> choices) {
-      super(id, type);
-      super.assertType(VertexType.ENUMERATION);
+    public EnumerationVertex(
+        @JsonProperty("id") String id, @JsonProperty("choices") List<String> choices) {
+      super(id, VertexType.ENUMERATION);
       if (choices == null) {
         throw new IllegalArgumentException(
             "Vertex "
@@ -173,22 +148,16 @@ public class Vertex {
     }
   }
 
-  public static class IntegerRangeVertex extends Vertex {
+  public static class IntegerRangeVertex extends DMVertex {
 
     public final int min;
     public final int max;
 
-    public IntegerRangeVertex(String id, Integer min, Integer max) {
-      this(id, VertexType.INTEGER, min, max);
-    }
-
-    IntegerRangeVertex(
+    public IntegerRangeVertex(
         @JsonProperty("id") String id,
-        @JsonProperty("type") VertexType type,
         @JsonProperty("min") Integer min,
         @JsonProperty("max") Integer max) {
-      super(id, type);
-      super.assertType(VertexType.INTEGER);
+      super(id, VertexType.INTEGER);
       if (min == null) {
         min = Integer.MIN_VALUE;
       }
@@ -224,21 +193,15 @@ public class Vertex {
     }
   }
 
-  public static class FloatRangeVertex extends Vertex {
+  public static class FloatRangeVertex extends DMVertex {
     public final double min;
     public final double max;
 
-    public FloatRangeVertex(String id, Double min, Double max) {
-      this(id, VertexType.FLOAT, min, max);
-    }
-
-    FloatRangeVertex(
+    public FloatRangeVertex(
         @JsonProperty("id") String id,
-        @JsonProperty("type") VertexType type,
         @JsonProperty("min") Double min,
         @JsonProperty("max") Double max) {
-      super(id, type);
-      super.assertType(VertexType.FLOAT);
+      super(id, VertexType.FLOAT);
       if (min == null) {
         min = Double.NEGATIVE_INFINITY;
       }
@@ -276,21 +239,15 @@ public class Vertex {
     }
   }
 
-  public static class ForeignVertex extends Vertex {
+  public static class ForeignVertex extends DMVertex {
     public final String foreignDMPath;
-    public final Vertex importedVertex;
+    public final DMVertex importedVertex;
 
-    public ForeignVertex(String id, String foreignDMPath, Vertex importedVertex) {
-      this(id, VertexType.FOREIGN, foreignDMPath, importedVertex);
-    }
-
-    ForeignVertex(
+    public ForeignVertex(
         @JsonProperty("id") String id,
-        @JsonProperty("type") VertexType type,
         @JsonProperty("foreignDMPath") String foreignDMPath,
-        @JsonProperty("importedVertex") Vertex importedVertex) {
-      super(id, type);
-      super.assertType(VertexType.FOREIGN);
+        @JsonProperty("importedVertex") DMVertex importedVertex) {
+      super(id, VertexType.FOREIGN);
       this.foreignDMPath = foreignDMPath;
       this.importedVertex = importedVertex;
       if (foreignDMPath == null) {

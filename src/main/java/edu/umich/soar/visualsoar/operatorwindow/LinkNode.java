@@ -78,15 +78,20 @@ public class LinkNode extends FileNode {
 
     public String toString() {
         if (linkedToNode == null) {
-            return name;
+            return getName();
         } else {
-            return name + " @ " + linkedToNode.getUniqueName();
+            return getName() + " @ " + linkedToNode.getUniqueName();
         }
     }
 
     @Override
     public void write(Writer w) throws IOException {
-        w.write("LINK " + name + " " + fileAssociation + " " + linkedToNode.getId() + " " + id);
+        w.write("LINK " + getName() + " " + fileAssociation + " " + linkedToNode.getId() + " " + id);
+    }
+
+    @Override
+    public NodeType getType() {
+      return NodeType.LINK;
     }
 
     @Override
@@ -103,7 +108,7 @@ public class LinkNode extends FileNode {
 
 
     public void exportDesc(Writer w) throws IOException {
-        w.write("OPERATOR " + name);
+        w.write("OPERATOR " + getName());
     }
 
 }

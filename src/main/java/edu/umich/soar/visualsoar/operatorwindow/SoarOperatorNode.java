@@ -13,7 +13,7 @@ import java.io.*;
 import java.util.Enumeration;
 import java.util.Vector;
 
-public class SoarOperatorNode extends FileNode {
+public abstract class SoarOperatorNode extends FileNode {
     private static final long serialVersionUID = 20221225L;
 
     /////////////////////////////////////////
@@ -82,9 +82,9 @@ public class SoarOperatorNode extends FileNode {
     public void exportDesc(Writer w) throws IOException {
 
         if (isHighLevel) {
-            w.write("HLOPERATOR " + name + " " + dataMapIdNumber);
+            w.write("HLOPERATOR " + getName() + " " + dataMapIdNumber);
         } else {
-            w.write("OPERATOR " + name);
+            w.write("OPERATOR " + getName());
         }
     }
 
@@ -99,7 +99,7 @@ public class SoarOperatorNode extends FileNode {
                              SoarWorkingMemoryModel swmm) throws IOException {
 
         // Create the Folder
-        File folder = new File(((OperatorNode) getParent()).getFullPathName() + File.separator + name);
+        File folder = new File(((OperatorNode) getParent()).getFullPathName() + File.separator + getName());
 
         if (creationConflict(folder, true)) {
             return false;
@@ -118,7 +118,7 @@ public class SoarOperatorNode extends FileNode {
         OperatorNode elaborationNode = operatorWindow.createFileOperatorNode("elaborations", elaborationsFile.getName());
 
         // Create the datamap id
-        dataMapId = swmm.createNewStateId(((OperatorNode) getParent()).getStateIdVertex(), name);
+        dataMapId = swmm.createNewStateId(((OperatorNode) getParent()).getStateIdVertex(), getName());
         dataMapIdNumber = dataMapId.getValue();
 
         // Make this node high-level

@@ -91,10 +91,15 @@ public class OperatorOperatorNode extends SoarOperatorNode {
     @Override
     public void write(Writer w) throws IOException {
         if (isHighLevel) {
-            w.write("HLOPERATOR " + name + " " + fileAssociation + " " + folderName + " " + dataMapId.getValue() + " " + id);
+            w.write("HLOPERATOR " + getName() + " " + fileAssociation + " " + folderName + " " + dataMapId.getValue() + " " + id);
         } else {
-            w.write("OPERATOR " + name + " " + fileAssociation + " " + id);
+            w.write("OPERATOR " + getName() + " " + fileAssociation + " " + id);
         }
+    }
+
+    @Override
+    public NodeType getType() {
+      return NodeType.OPERATOR;
     }
 
     /**
@@ -104,7 +109,7 @@ public class OperatorOperatorNode extends SoarOperatorNode {
      */
     public void rename(OperatorWindow operatorWindow,
                        String newName) throws IOException {
-        String oldName = name;
+        String oldName = getName();
 
         //This will throw an IOException if it fails
         super.rename(operatorWindow, newName);

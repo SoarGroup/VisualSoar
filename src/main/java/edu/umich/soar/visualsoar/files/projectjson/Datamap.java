@@ -11,17 +11,17 @@ import java.util.stream.Collectors;
 public class Datamap {
 //  TODO: rootVertex field instead of rootId
   public final String rootId;
-  public final List<Vertex> vertices;
+  public final List<DMVertex> vertices;
 
   @JsonCreator
   public Datamap(
       @JsonProperty("rootId") String rootId,
-      @JsonProperty("vertices") List<Vertex> vertices) {
+      @JsonProperty("vertices") List<DMVertex> vertices) {
     this.rootId = rootId;
     this.vertices =
         vertices.stream().sorted(Comparator.comparing(v -> v.id)).collect(Collectors.toList());
-    Map<String, Vertex> id2Vertex = new HashMap<>();
-    for (Vertex v : vertices) {
+    Map<String, DMVertex> id2Vertex = new HashMap<>();
+    for (DMVertex v : vertices) {
       if (id2Vertex.containsKey(v.id)) {
         throw new IllegalArgumentException(
             "The vertex ID " + v.id + " was used more than once. Vertex IDs must be unique.");
@@ -33,13 +33,13 @@ public class Datamap {
       throw new IllegalArgumentException(
           "rootId is " + rootId + " but no vertex with that ID can be found");
     }
-    Vertex root = id2Vertex.get(rootId);
+    DMVertex root = id2Vertex.get(rootId);
     //    TODO: this should probably be checked when we create the real datamap object, rather than
     // here
-    if (root.type != Vertex.VertexType.SOAR_ID) {
+    if (root.type != DMVertex.VertexType.SOAR_ID) {
       throw new IllegalArgumentException(
           "Root vertex must be of type "
-              + Vertex.VertexType.SOAR_ID
+              + DMVertex.VertexType.SOAR_ID
               + ", but found "
               + root.type);
     }

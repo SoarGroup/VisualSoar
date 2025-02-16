@@ -91,8 +91,11 @@
     ]
   },
   "layout": {
-    "nodes": [ ],
-    "rootId": ""
+    "children": [ ],
+    "folder": "thor-soar",
+    "id": "1",
+    "name": "thor-soar",
+    "type": "OPERATOR_ROOT"
   },
   "version": "6"
 }

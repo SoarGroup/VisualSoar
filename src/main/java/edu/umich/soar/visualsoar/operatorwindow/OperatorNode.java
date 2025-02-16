@@ -748,7 +748,11 @@ public abstract class OperatorNode extends VSTreeNode implements java.io.Seriali
         return null;
     }
 
-    protected abstract String getFullPathName();
+  public String getName() {
+      return this.name;
+  }
+
+  protected abstract String getFullPathName();
 
     /**
      * Exports the operator and sub operators to a .vse file

@@ -10,6 +10,10 @@ package edu.umich.soar.visualsoar.operatorwindow;
 public abstract class VSTreeNode extends javax.swing.tree.DefaultMutableTreeNode {
     private static final long serialVersionUID = 20221225L;
 
+    public enum NodeType {
+      FILE, FILE_OPERATOR, FOLDER, IMPASSE_OPERATOR, LINK, OPERATOR, OPERATOR_ROOT
+    }
+
 ///////////////////////////////////////////////////////////////////
 // Methods
 ///////////////////////////////////////////////////////////////////
@@ -23,4 +27,6 @@ public abstract class VSTreeNode extends javax.swing.tree.DefaultMutableTreeNode
      * @param w the writer
      */
     abstract public void write(java.io.Writer w) throws java.io.IOException;
+
+    abstract public NodeType getType();
 }

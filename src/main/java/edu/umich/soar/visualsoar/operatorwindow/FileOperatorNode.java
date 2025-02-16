@@ -84,7 +84,7 @@ public class FileOperatorNode extends SoarOperatorNode {
         OperatorNode parent = (OperatorNode) getParent();
 
         // Create the Folder
-        File folder = new File(parent.getFullPathName() + File.separator + name);
+        File folder = new File(parent.getFullPathName() + File.separator + getName());
         if (creationConflict(folder, true)) {
             return false;
         }
@@ -117,19 +117,24 @@ public class FileOperatorNode extends SoarOperatorNode {
      */
     public void exportDesc(Writer w) throws IOException {
 		if (isHighLevel) {
-			w.write("HLFOPERATOR " + name + " " + dataMapIdNumber);
+			w.write("HLFOPERATOR " + getName() + " " + dataMapIdNumber);
 		} else {
-			w.write("FOPERATOR " + name);
+			w.write("FOPERATOR " + getName());
 		}
     }
 
     @Override
     public void write(Writer w) throws IOException {
         if (isHighLevel) {
-            w.write("HLFOPERATOR " + name + " " + fileAssociation + " " + folderName + " " + dataMapId.getValue() + " " + id);
+            w.write("HLFOPERATOR " + getName() + " " + fileAssociation + " " + folderName + " " + dataMapId.getValue() + " " + id);
         } else {
-            w.write("FOPERATOR " + name + " " + fileAssociation + " " + id);
+            w.write("FOPERATOR " + getName() + " " + fileAssociation + " " + id);
         }
+    }
+
+    @Override
+    public NodeType getType() {
+      return NodeType.FILE_OPERATOR;
     }
 
 

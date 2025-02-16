@@ -1,7 +1,5 @@
 package edu.umich.soar.visualsoar.graph;
 
-import edu.umich.soar.visualsoar.files.projectjson.Vertex;
-
 public class SoarIdentifierVertex extends SoarVertex {
     private static final long serialVersionUID = 20221225L;
 

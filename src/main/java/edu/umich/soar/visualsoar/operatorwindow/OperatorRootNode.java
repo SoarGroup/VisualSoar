@@ -69,11 +69,16 @@ public class OperatorRootNode extends FolderNode implements java.io.Serializable
      */
     @Override
     public void write(Writer w) throws IOException {
-        w.write("ROOT " + name + " " + folderName + " " + id);
+        w.write("ROOT " + getName() + " " + folderName + " " + id);
+    }
+
+    @Override
+    public NodeType getType() {
+      return NodeType.OPERATOR_ROOT;
     }
 
     public void exportDesc(Writer w) throws IOException {
-        w.write("ROOT " + name);
+        w.write("ROOT " + getName());
     }
 
     public void setFullPath(String s) {
@@ -103,16 +108,12 @@ public class OperatorRootNode extends FolderNode implements java.io.Serializable
         return child;
     }
 
-    public String getName() {
-        return this.name;
-    }
-
-    public String getProjectFile() {
-        return fullPathStart + File.separator + name + ".vsa";
+  public String getProjectFile() {
+        return fullPathStart + File.separator + getName() + ".vsa";
     }
 
     public String getDataMapFile() {
-        return getFolderName() + File.separator + name + ".dm";
+        return getFolderName() + File.separator + getName() + ".dm";
     }
 
     /**
