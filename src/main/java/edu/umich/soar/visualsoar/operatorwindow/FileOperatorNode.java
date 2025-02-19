@@ -32,6 +32,13 @@ public class FileOperatorNode extends SoarOperatorNode {
         super(inName, inId, inFileName);
     }
 
+  /**
+   * this creates a low-level operator with the given name and file
+   */
+  public FileOperatorNode(String inName, int inId, String serializationId, String inFileName) {
+    super(inName, inId, serializationId, inFileName);
+  }
+
     /**
      * this creates a high level operator with the given name, file, folder and
      * dataMapId
@@ -54,6 +61,17 @@ public class FileOperatorNode extends SoarOperatorNode {
         dataMapIdNumber = inDataMapIdNumber;
         isHighLevel = true;
     }
+
+  /**
+   * This will construct a high-level operator node, this one supports serialization,
+   * restoreId must be called to get this object into a good state
+   */
+  public FileOperatorNode(String inName, int inId, String serializationId, String inFileName, String inFolderName, int inDataMapIdNumber) {
+    this(inName, inId, serializationId, inFileName);
+    folderName = inFolderName;
+    dataMapIdNumber = inDataMapIdNumber;
+    isHighLevel = true;
+  }
 
 
     /**

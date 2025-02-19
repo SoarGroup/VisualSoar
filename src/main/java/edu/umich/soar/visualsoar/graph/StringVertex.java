@@ -10,6 +10,10 @@ public class StringVertex extends SoarVertex {
         super(id);
     }
 
+  public StringVertex(int id, String serializationId) {
+    super(id, serializationId);
+  }
+
     //////////////////////////////////
 // Accessors
 //////////////////////////////////

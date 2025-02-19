@@ -24,7 +24,13 @@ public class ForeignVertex extends SoarVertex {
         super(id);
         this.foreignDM = foreignDM;
         this.foreignSV = foreignSv;
-    }//ctor
+    }
+
+  public ForeignVertex(int id, String serializationId, String foreignDM, SoarVertex foreignSv) {
+    super(id, serializationId);
+    this.foreignDM = foreignDM;
+    this.foreignSV = foreignSv;
+  }
 
     @Override
     public boolean allowsEmanatingEdges() {

@@ -29,6 +29,11 @@ public class EnumerationVertex extends SoarVertex {
         theStrings = strings;
     }
 
+  public EnumerationVertex(int id, String serializationId, Vector<String> strings) {
+    super(id, serializationId);
+    theStrings = strings;
+  }
+
     public EnumerationVertex(int id, String singleton) {
         super(id);
         theStrings = new Vector<>();

@@ -1824,37 +1824,37 @@ public class OperatorWindow extends JTree {
     switch (node.type) {
       case FILE:
         LayoutNode.File fileNode = (LayoutNode.File) node;
-        return new FileNode(fileNode.name, id, fileNode.file);
+        return new FileNode(fileNode.name, id, node.id, fileNode.file);
       case OPERATOR:
         LayoutNode.Operator oNode = (LayoutNode.Operator) node;
-        return new OperatorOperatorNode(oNode.name, id, oNode.file);
+        return new OperatorOperatorNode(oNode.name, id, node.id, oNode.file);
       case FILE_OPERATOR:
         LayoutNode.FileOperator foNode = (LayoutNode.FileOperator) node;
-        return new FileOperatorNode(foNode.name, id, foNode.file);
+        return new FileOperatorNode(foNode.name, id, node.id, foNode.file);
       case OPERATOR_ROOT:
         LayoutNode.OperatorRoot orNode = (LayoutNode.OperatorRoot) node;
-        new OperatorRootNode(orNode.name, id, orNode.folder);
+        new OperatorRootNode(orNode.name, id, node.id, orNode.folder);
       case LINK:
         LayoutNode.Link lNode = (LayoutNode.Link) node;
-        return new LinkNode(lNode.name, id, lNode.file, Integer.parseInt(lNode.linkedNodeId));
+        return new LinkNode(lNode.name, id, node.id, lNode.file, Integer.parseInt(lNode.linkedNodeId));
       case FOLDER:
         LayoutNode.Folder folderNode = (LayoutNode.Folder) node;
-        new FolderNode(folderNode.name, id, folderNode.folder);
+        new FolderNode(folderNode.name, id, node.id, folderNode.folder);
       case IMPASSE_OPERATOR:
         LayoutNode.ImpasseOperator ioNode = (LayoutNode.ImpasseOperator) node;
-        return new ImpasseOperatorNode(ioNode.name, id, ioNode.file);
+        return new ImpasseOperatorNode(ioNode.name, id, node.id, ioNode.file);
       case HIGH_LEVEL_OPERATOR:
         LayoutNode.HighLevelOperator hloNode = (LayoutNode.HighLevelOperator) node;
         return new OperatorOperatorNode(
-          hloNode.name, id, hloNode.file, hloNode.folder, Integer.parseInt(hloNode.dmId));
+          hloNode.name, id, node.id, hloNode.file, hloNode.folder, Integer.parseInt(hloNode.dmId));
       case HIGH_LEVEL_FILE_OPERATOR:
         LayoutNode.HighLevelFileOperator hlfoNode = (LayoutNode.HighLevelFileOperator) node;
         return new FileOperatorNode(
-          hlfoNode.name, id, hlfoNode.file, hlfoNode.folder, Integer.parseInt(hlfoNode.dmId));
+          hlfoNode.name, id, node.id, hlfoNode.file, hlfoNode.folder, Integer.parseInt(hlfoNode.dmId));
       case HIGH_LEVEL_IMPASSE_OPERATOR:
         LayoutNode.HighLevelImpasseOperator hlioNode = (LayoutNode.HighLevelImpasseOperator) node;
         return new ImpasseOperatorNode(
-          hlioNode.name, id, hlioNode.file, hlioNode.folder, Integer.parseInt(hlioNode.dmId));
+          hlioNode.name, id, node.id, hlioNode.file, hlioNode.folder, Integer.parseInt(hlioNode.dmId));
       default:
         throw new IllegalArgumentException("Unknown layout node type: " + node.type);
     }

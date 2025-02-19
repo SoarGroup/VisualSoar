@@ -49,6 +49,13 @@ public abstract class SoarOperatorNode extends FileNode {
         super(inName, inId, inFileName);
     }
 
+  /**
+   * this creates a low-level operator with the given name and file
+   */
+  public SoarOperatorNode(String inName, int inId, String serializationId, String inFileName) {
+    super(inName, inId, serializationId, inFileName);
+  }
+
     public boolean isHighLevel() {
         return isHighLevel;
     }

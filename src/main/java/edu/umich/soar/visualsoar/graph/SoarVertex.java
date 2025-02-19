@@ -33,16 +33,27 @@ public abstract class SoarVertex extends Vertex {
       add("FOREIGN");
     }};
 
+  // Used for uniquely identifying this node in a project file
+  private final String serializationId;
+
 ///////////////////////////////////////////////
 // Constructors
 ///////////////////////////////////////////////
 
     /**
-     * Constructs a SoarVertex with the given id
+     * Constructs a SoarVertex with the given id (deriving serializationId from id)
      */
     public SoarVertex(int id) {
         super(id);
+        // TODO: generate random string instead
+        serializationId = String.valueOf(id);
     }
+
+  /** Constructs a SoarVertex with the given IDs */
+  public SoarVertex(int id, String serializationId) {
+    super(id);
+    this.serializationId = serializationId;
+  }
 
 ///////////////////////////////////////////////
 // Accessors
@@ -86,6 +97,10 @@ public abstract class SoarVertex extends Vertex {
      * returns the name of this vertex type as a string (used for reporting information to the user)
      */
     public abstract String typeName();
+
+    public String getSerializationId() {
+      return serializationId;
+    }
 
 ///////////////////////////////////////////////
 // Modifiers

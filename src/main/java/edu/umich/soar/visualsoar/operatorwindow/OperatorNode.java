@@ -230,7 +230,9 @@ public abstract class OperatorNode extends VSTreeNode implements java.io.Seriali
     }
 
     protected String name;
-    protected int id;
+    protected final int id;
+    // Used for uniquely identifying this node in a project file
+    private final String serializationId;
 
 ///////////////////////////////////////////////////////////////////
 // Constructors
@@ -239,13 +241,31 @@ public abstract class OperatorNode extends VSTreeNode implements java.io.Seriali
     /**
      * Constructor
      *
+     * Derives serializationId from id.
+     *
      * @param inName the name of the operator
      * @param inId   the unique id associated with this operator
      */
     public OperatorNode(String inName, int inId) {
         name = inName;
         id = inId;
+        serializationId = String.valueOf(id);
     }
+
+  /**
+   * Constructor
+   *
+   * Derives serializationId from id.
+   *
+   * @param inName the name of the operator
+   * @param inId   the unique id associated with this operator
+   * @param serializationId string unique ID for this operator (used when writing project files)
+   */
+  public OperatorNode(String inName, int inId, String serializationId) {
+    name = inName;
+    id = inId;
+    this.serializationId = serializationId;
+  }
 
 ///////////////////////////////////////////////////////////////////
 // Methods

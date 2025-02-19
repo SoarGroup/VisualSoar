@@ -20,6 +20,16 @@ public class IntegerRangeVertex extends SoarVertex {
         rep = ": integer" + getRangeString();
     }
 
+  public IntegerRangeVertex(int id, String serializationId, int low, int high) {
+    super(id, serializationId);
+    this.low = low;
+    this.high = high;
+    if (high < low) {
+      throw new IllegalArgumentException("the low cannot be greater than the high");
+    }
+    rep = ": integer" + getRangeString();
+  }
+
     @Override
     public boolean allowsEmanatingEdges() {
         return false;

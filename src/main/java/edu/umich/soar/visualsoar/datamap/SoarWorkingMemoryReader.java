@@ -696,26 +696,26 @@ public class SoarWorkingMemoryReader {
     }
 
   private static SoarVertex vertexFromJson(DMVertex jsonVertex) {
-//      TODO: use IDs internally and get rid of parsing here
-      int id = Integer.parseInt(jsonVertex.id);
+//      TODO: generate ID from counter
+      int intId = Integer.parseInt(jsonVertex.id);
       switch(jsonVertex.type) {
         case SOAR_ID:
-          return new SoarIdentifierVertex(id);
+          return new SoarIdentifierVertex(intId, jsonVertex.id);
         case ENUMERATION:
           Vector<String> choices = new Vector<>(((DMVertex.EnumerationVertex) jsonVertex).choices);
-          return new EnumerationVertex(id, choices);
+          return new EnumerationVertex(intId, jsonVertex.id, choices);
         case FLOAT:
           DMVertex.FloatRangeVertex jsonFloatRangeVertex = (DMVertex.FloatRangeVertex)jsonVertex;
-          return new FloatRangeVertex(id, jsonFloatRangeVertex.min, jsonFloatRangeVertex.max);
+          return new FloatRangeVertex(intId, jsonVertex.id, jsonFloatRangeVertex.min, jsonFloatRangeVertex.max);
         case FOREIGN:
           DMVertex.ForeignVertex jsonForeignVertex = (DMVertex.ForeignVertex) jsonVertex;
           SoarVertex foreignVertex = vertexFromJson(jsonForeignVertex.importedVertex);
-          return new ForeignVertex(id, jsonForeignVertex.foreignDMPath, foreignVertex);
+          return new ForeignVertex(intId, jsonVertex.id, jsonForeignVertex.foreignDMPath, foreignVertex);
         case INTEGER:
           DMVertex.IntegerRangeVertex jsonIntegerRangeVertex = (DMVertex.IntegerRangeVertex) jsonVertex;
-          return new IntegerRangeVertex(id, jsonIntegerRangeVertex.min, jsonIntegerRangeVertex.max);
+          return new IntegerRangeVertex(intId, jsonVertex.id, jsonIntegerRangeVertex.min, jsonIntegerRangeVertex.max);
         case STRING:
-          return new StringVertex(id);
+          return new StringVertex(intId, jsonVertex.id);
         default:
           throw new IllegalArgumentException("Unknown node type " + jsonVertex.type);
       }

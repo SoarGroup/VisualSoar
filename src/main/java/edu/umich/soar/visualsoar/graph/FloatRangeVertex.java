@@ -24,6 +24,16 @@ public class FloatRangeVertex extends SoarVertex {
         rep = ": float" + getRangeString();
     }
 
+  public FloatRangeVertex(int id, String serializationId, double low, double high) {
+    super(id, serializationId);
+    if (low > high) {
+      throw new IllegalArgumentException("Low cannot be greater than high");
+    }
+    this.low = low;
+    this.high = high;
+    rep = ": float" + getRangeString();
+  }
+
 //////////////////////////////////////////
 // Accessors
 //////////////////////////////////////////

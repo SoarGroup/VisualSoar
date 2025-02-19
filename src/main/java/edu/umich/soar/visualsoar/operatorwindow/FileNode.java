@@ -47,6 +47,11 @@ public class FileNode extends OperatorNode implements java.io.Serializable {
         fileAssociation = inFile;
     }
 
+  public FileNode(String inName, int inId, String serializationId, String inFile) {
+    super(inName, inId, serializationId);
+    fileAssociation = inFile;
+  }
+
 ///////////////////////////////////////////////////////////////////
 // Methods
 ///////////////////////////////////////////////////////////////////

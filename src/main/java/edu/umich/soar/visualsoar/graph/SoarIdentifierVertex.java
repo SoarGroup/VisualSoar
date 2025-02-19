@@ -10,6 +10,10 @@ public class SoarIdentifierVertex extends SoarVertex {
         super(id);
     }
 
+  public SoarIdentifierVertex(int id, String serializationId) {
+    super(id, serializationId);
+  }
+
     ///////////////////////////////////////////////////
 // Accessors
 ///////////////////////////////////////////////////

@@ -30,6 +30,11 @@ public class LinkNode extends FileNode {
         linkedToNodeId = inLinkToNodeId;
     }
 
+  public LinkNode(String inName, int inId, String serializationId, String inFileName, int inLinkToNodeId) {
+    super(inName, inId, serializationId, inFileName);
+    linkedToNodeId = inLinkToNodeId;
+  }
+
     public void restore(Map<Integer, ? extends VSTreeNode> persistentIds) {
         linkedToNode = (SoarOperatorNode) persistentIds.get(linkedToNodeId);
         linkedToNode.registerLink(this);

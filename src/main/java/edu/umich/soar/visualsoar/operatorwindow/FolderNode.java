@@ -41,6 +41,17 @@ public class FolderNode extends OperatorNode implements java.io.Serializable {
         super(inName, inId);
         folderName = inFolderName;
     }
+  /**
+   * This constructs a folder node for the Operator Window
+   *
+   * @param inName       the name of the node
+   * @param inFolderName the folder for which this node is associated
+   */
+  public FolderNode(String inName, int inId, String serializationId, String inFolderName) {
+
+    super(inName, inId, serializationId);
+    folderName = inFolderName;
+  }
 
 ///////////////////////////////////////////////////////////////////
 // Accessors
