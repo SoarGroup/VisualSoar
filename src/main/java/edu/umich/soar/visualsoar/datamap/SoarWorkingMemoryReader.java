@@ -1,5 +1,7 @@
 package edu.umich.soar.visualsoar.datamap;
 
+import edu.umich.soar.visualsoar.files.projectjson.DMVertex;
+import edu.umich.soar.visualsoar.files.projectjson.Datamap;
 import edu.umich.soar.visualsoar.mainframe.MainFrame;
 import edu.umich.soar.visualsoar.graph.*;
 import edu.umich.soar.visualsoar.mainframe.feedback.FeedbackListEntry;
@@ -8,8 +10,7 @@ import edu.umich.soar.visualsoar.util.ReaderUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
-import java.util.Scanner;
-import java.util.Vector;
+import java.util.*;
 
 /**
  * This class contains utilities for reading datamap data from files
@@ -654,4 +655,69 @@ public class SoarWorkingMemoryReader {
 
     }//readDataIntoSWMMfromVSA
 
+    public static SoarWorkingMemoryModel loadFromJson(Datamap datamap) {
+      SoarWorkingMemoryModel swmm = new SoarWorkingMemoryModel(false, null);
+
+      // First pass: convert vertices
+      int counter = 0;
+      for (DMVertex jsonVertex : datamap.vertices) {
+        counter++;
+//        System.out.println(counter);
+        SoarVertex converted = vertexFromJson(jsonVertex);
+        swmm.addVertex(converted);
+        if (datamap.rootId.equals(jsonVertex.id)) {
+          if (!(converted instanceof SoarIdentifierVertex)) {
+            throw new IllegalArgumentException(
+                "Root datamap vertex (" + jsonVertex.id + ") must be of type "
+                    + DMVertex.VertexType.SOAR_ID
+                    + ", but found "
+                    + jsonVertex.type);
+          }
+          swmm.setTopstate((SoarIdentifierVertex) converted);
+        }
+      }
+
+      // Second pass: convert edges
+      for (DMVertex jsonVertex : datamap.vertices) {
+        if (jsonVertex instanceof DMVertex.SoarIdVertex) {
+          // TODO: change over the internal model to string IDs and remove parsing here
+          SoarVertex tailVertex = swmm.getVertexForId(Integer.parseInt(jsonVertex.id));
+          DMVertex.SoarIdVertex vertexWithEdges = (DMVertex.SoarIdVertex) jsonVertex;
+          for (DMVertex.OutEdge edge : vertexWithEdges.outEdges) {
+            SoarVertex headVertex = swmm.getVertexForId(Integer.parseInt(edge.toId));
+            if (headVertex == null) {
+              throw new IllegalArgumentException("toId value \"" + edge.toId + "\" in edge from vertex \"" + jsonVertex.id + "\" does not specify any known vertex.");
+            }
+            swmm.addTriple(tailVertex, edge.getName(), headVertex);
+          }
+        }
+      }
+      return swmm;
+    }
+
+  private static SoarVertex vertexFromJson(DMVertex jsonVertex) {
+//      TODO: use IDs internally and get rid of parsing here
+      int id = Integer.parseInt(jsonVertex.id);
+      switch(jsonVertex.type) {
+        case SOAR_ID:
+          return new SoarIdentifierVertex(id);
+        case ENUMERATION:
+          Vector<String> choices = new Vector<>(((DMVertex.EnumerationVertex) jsonVertex).choices);
+          return new EnumerationVertex(id, choices);
+        case FLOAT:
+          DMVertex.FloatRangeVertex jsonFloatRangeVertex = (DMVertex.FloatRangeVertex)jsonVertex;
+          return new FloatRangeVertex(id, jsonFloatRangeVertex.min, jsonFloatRangeVertex.max);
+        case FOREIGN:
+          DMVertex.ForeignVertex jsonForeignVertex = (DMVertex.ForeignVertex) jsonVertex;
+          SoarVertex foreignVertex = vertexFromJson(jsonForeignVertex.importedVertex);
+          return new ForeignVertex(id, jsonForeignVertex.foreignDMPath, foreignVertex);
+        case INTEGER:
+          DMVertex.IntegerRangeVertex jsonIntegerRangeVertex = (DMVertex.IntegerRangeVertex) jsonVertex;
+          return new IntegerRangeVertex(id, jsonIntegerRangeVertex.min, jsonIntegerRangeVertex.max);
+        case STRING:
+          return new StringVertex(id);
+        default:
+          throw new IllegalArgumentException("Unknown node type " + jsonVertex.type);
+      }
+  }
 }//class SoarWOrkingMemoryReader

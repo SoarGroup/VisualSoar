@@ -39,7 +39,7 @@ public class SoarWorkingMemoryModel {
    * Creates a default model of working memory
    *
    * @param isNew only create if model is new
-   * @param name name used for the top-state
+   * @param name name used for the top-state, or {@code null} if isNew is false
    * @see #addTriple(SoarVertex, String, SoarVertex)
    * @see #addProperty(String, SoarVertex)
    */

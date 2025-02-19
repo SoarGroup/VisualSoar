@@ -2,6 +2,7 @@ package edu.umich.soar.visualsoar.operatorwindow;
 
 
 import edu.umich.soar.visualsoar.files.projectjson.Datamap;
+import edu.umich.soar.visualsoar.files.projectjson.Json;
 import edu.umich.soar.visualsoar.files.projectjson.LayoutNode;
 import edu.umich.soar.visualsoar.files.projectjson.Project;
 import edu.umich.soar.visualsoar.mainframe.MainFrame;
@@ -31,10 +32,12 @@ import java.awt.dnd.*;
 import java.awt.event.*;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
-import static edu.umich.soar.visualsoar.files.projectjson.Json.writeJsonToFile;
+import static edu.umich.soar.visualsoar.datamap.SoarWorkingMemoryReader.loadFromJson;
 
 /**
  * A class to implement the behavior of the operator window
@@ -172,8 +175,7 @@ public class OperatorWindow extends JTree {
         return s_OperatorWindow;
     }
 
-
-    /**
+  /**
      * Checks to see if x,y is a valid location on the screen, if it is then it
      * displays the context menu there
      *
@@ -231,7 +233,7 @@ public class OperatorWindow extends JTree {
      * @param inDataMapIdNumber integer corresponding to node's datamap
      * @see ImpasseOperatorNode
      */
-    public ImpasseOperatorNode createImpasseOperatorNode(String inName, String inFileName, String inFolderName, int inDataMapIdNumber) {
+    public ImpasseOperatorNode createHighLevelImpasseOperatorNode(String inName, String inFileName, String inFolderName, int inDataMapIdNumber) {
         return new ImpasseOperatorNode(inName, getNextId(), inFileName, inFolderName, inDataMapIdNumber);
     }
 
@@ -256,7 +258,7 @@ public class OperatorWindow extends JTree {
      * @see FileOperatorNode
      * @see SoarIdentifierVertex
      */
-    public FileOperatorNode createFileOperatorNode(String inName, String inFileName, String inFolderName, SoarIdentifierVertex inDataMapId) {
+    public FileOperatorNode createHighLevelFileOperatorNode(String inName, String inFileName, String inFolderName, SoarIdentifierVertex inDataMapId) {
         return new FileOperatorNode(inName, getNextId(), inFileName, inFolderName, inDataMapId);
     }
 
@@ -269,7 +271,7 @@ public class OperatorWindow extends JTree {
      * @param inDataMapIdNumber integer corresponding to node's datamap
      * @see FileOperatorNode
      */
-    public FileOperatorNode createFileOperatorNode(String inName, String inFileName, String inFolderName, int inDataMapIdNumber) {
+    public FileOperatorNode createHighLevelFileOperatorNode(String inName, String inFileName, String inFolderName, int inDataMapIdNumber) {
         return new FileOperatorNode(inName, getNextId(), inFileName, inFolderName, inDataMapIdNumber);
     }
 
@@ -1025,30 +1027,31 @@ public class OperatorWindow extends JTree {
      * @see #openVersionFour(FileReader, String)
      */
     public void openHierarchy(File in_file) throws IOException, NumberFormatException {
+      if (in_file.getName().endsWith(".json")) {
+        openProjectJson(in_file.toPath());
+      } else {
         FileReader fr = new FileReader(in_file);
         String buffer = ReaderUtils.getWord(fr);
         if (buffer.compareToIgnoreCase("VERSION") == 0) {
-            int versionId = ReaderUtils.getInteger(fr);
-
-
-            if (versionId == 5) {
-                openVersionFive(fr, in_file.getParent());
-            } else if (versionId == 4) {
-                openVersionFour(fr, in_file.getParent());
-            } else if (versionId == 3) {
-                openVersionThree(fr, in_file.getParent());
-            } else if (versionId == 2) {
-                openVersionTwo(fr, in_file.getParent());
-            } else if (versionId == 1) {
-                openVersionOne(fr, in_file.getParent());
-            } else {
-                throw new IOException("Invalid Version Number" + versionId);
-            }
-
+          int versionId = ReaderUtils.getInteger(fr);
+          if (versionId == 5) {
+            openVersionFive(fr, in_file.getParent());
+          } else if (versionId == 4) {
+            openVersionFour(fr, in_file.getParent());
+          } else if (versionId == 3) {
+            openVersionThree(fr, in_file.getParent());
+          } else if (versionId == 2) {
+            openVersionTwo(fr, in_file.getParent());
+          } else if (versionId == 1) {
+            openVersionOne(fr, in_file.getParent());
+          } else {
+            throw new IOException("Invalid Version Number" + versionId);
+          }
         }
-    }
+      }
+  }
 
-    /**
+  /**
      * Opens a Version One Operator Hierarchy file
      *
      * @see #readVersionOne
@@ -1252,8 +1255,27 @@ public class OperatorWindow extends JTree {
 
     }
 
+    private void openProjectJson(Path jsonPath) throws IOException {
+      try(Reader fileReader = Files.newBufferedReader(jsonPath)) {
+        Project projectJson = Json.loadFromJson(fileReader, Project.class);
+        this.workingMemory = loadFromJson(projectJson.datamap);
 
-    /**
+        Map<Integer, OperatorNode> idToNode = new HashMap<>();
+        List<OperatorNode> linkNodes = new ArrayList<>();
+        VSTreeNode root = loadOperatorHierarchy(projectJson.layout, null, idToNode, linkNodes);
+        for (OperatorNode node : linkNodes) {
+          LinkNode linkNodeToRestore = (LinkNode) node;
+          linkNodeToRestore.restore(idToNode);
+        }
+
+        setModel(new DefaultTreeModel(root));
+
+        OperatorRootNode orNode = (OperatorRootNode) root;
+        orNode.setFullPath(jsonPath.getParent().toString());
+      }
+    }
+
+  /**
      * The VSA file contains operators and their DM ID numbers. This helper connects the Soar IDs loaded from the datamap
      * to the high-level operator nodes loaded from the VSA file.
      */
@@ -1332,7 +1354,7 @@ public class OperatorWindow extends JTree {
             LayoutNode layoutNodeJson = TreeSerializer.toJson((DefaultTreeModel) getModel());
             Project project = new Project("6", dmJson, layoutNodeJson);
             // TODO: factor out name creation logic .json on elsewhere
-            writeJsonToFile(Paths.get(inProjFile.getAbsolutePath() + ".json"), project);
+            Json.writeJsonToFile(Paths.get(inProjFile.getAbsolutePath() + ".json"), project);
         } catch (IOException ioe) {
             // TODO: the user needs to be alerted properly
             System.err.println("An Exception was thrown in OperatorWindow.saveHierarchy");
@@ -1731,7 +1753,7 @@ public class OperatorWindow extends JTree {
      * Soar project from the file.
      *
      * @param r the Reader of the .vsa project file
-     * @see #makeNodeVersionFour(HashMap, java.util.List, Reader)
+     * @see #makeNodeVersionFour(Map, java.util.List, Reader)
      */
     private void readVersionFour(Reader r) throws IOException, NumberFormatException {
         // This hash table has keys of ids and a pointer as a value
@@ -1777,6 +1799,66 @@ public class OperatorWindow extends JTree {
             }
         }
     }
+
+  private VSTreeNode loadOperatorHierarchy(LayoutNode jsonNode, OperatorNode parent, Map<Integer, OperatorNode> idToNode, List<OperatorNode> linkNodes) {
+    OperatorNode node = createNodeFromJson(jsonNode);
+    idToNode.put(node.id, node);
+    if (node instanceof LinkNode) {
+      linkNodes.add(node);
+    }
+
+    if (parent != null) {
+      addChild(parent, node);
+    }
+    if (!jsonNode.children.isEmpty()) {
+      for (LayoutNode child : jsonNode.children) {
+        loadOperatorHierarchy(child, node, idToNode, linkNodes);
+      }
+    }
+    return node;
+  }
+
+  private static OperatorNode createNodeFromJson(LayoutNode node) {
+    //      TODO: migrate to using strings internally and remove this parse step
+    int id = Integer.parseInt(node.id);
+    switch (node.type) {
+      case FILE:
+        LayoutNode.File fileNode = (LayoutNode.File) node;
+        return new FileNode(fileNode.name, id, fileNode.file);
+      case OPERATOR:
+        LayoutNode.Operator oNode = (LayoutNode.Operator) node;
+        return new OperatorOperatorNode(oNode.name, id, oNode.file);
+      case FILE_OPERATOR:
+        LayoutNode.FileOperator foNode = (LayoutNode.FileOperator) node;
+        return new FileOperatorNode(foNode.name, id, foNode.file);
+      case OPERATOR_ROOT:
+        LayoutNode.OperatorRoot orNode = (LayoutNode.OperatorRoot) node;
+        new OperatorRootNode(orNode.name, id, orNode.folder);
+      case LINK:
+        LayoutNode.Link lNode = (LayoutNode.Link) node;
+        return new LinkNode(lNode.name, id, lNode.file, Integer.parseInt(lNode.linkedNodeId));
+      case FOLDER:
+        LayoutNode.Folder folderNode = (LayoutNode.Folder) node;
+        new FolderNode(folderNode.name, id, folderNode.folder);
+      case IMPASSE_OPERATOR:
+        LayoutNode.ImpasseOperator ioNode = (LayoutNode.ImpasseOperator) node;
+        return new ImpasseOperatorNode(ioNode.name, id, ioNode.file);
+      case HIGH_LEVEL_OPERATOR:
+        LayoutNode.HighLevelOperator hloNode = (LayoutNode.HighLevelOperator) node;
+        return new OperatorOperatorNode(
+          hloNode.name, id, hloNode.file, hloNode.folder, Integer.parseInt(hloNode.dmId));
+      case HIGH_LEVEL_FILE_OPERATOR:
+        LayoutNode.HighLevelFileOperator hlfoNode = (LayoutNode.HighLevelFileOperator) node;
+        return new FileOperatorNode(
+          hlfoNode.name, id, hlfoNode.file, hlfoNode.folder, Integer.parseInt(hlfoNode.dmId));
+      case HIGH_LEVEL_IMPASSE_OPERATOR:
+        LayoutNode.HighLevelImpasseOperator hlioNode = (LayoutNode.HighLevelImpasseOperator) node;
+        return new ImpasseOperatorNode(
+          hlioNode.name, id, hlioNode.file, hlioNode.folder, Integer.parseInt(hlioNode.dmId));
+      default:
+        throw new IllegalArgumentException("Unknown layout node type: " + node.type);
+    }
+  }
 
     /**
      * helper method for integrityCheck() methods to extract the highest
@@ -1986,7 +2068,7 @@ public class OperatorWindow extends JTree {
      * input files
      *
      * @param r the Reader of the .vsa project file
-     * @see #makeNodeVersionFour(HashMap, java.util.List, Reader)
+     * @see #makeNodeVersionFour(Map, java.util.List, Reader)
      */
     private void readVersionFourSafe(Reader r) {
         // This hash table has keys of ids and a pointer as a value
@@ -2188,12 +2270,12 @@ public class OperatorWindow extends JTree {
             retVal = createSoarOperatorNode(ReaderUtils.getWord(r), ReaderUtils.getWord(r));
         } else if (type.equals("HLFOPERATOR")) {
             // High level file operators use the parent operators dataMap
-            retVal = createFileOperatorNode(ReaderUtils.getWord(r), ReaderUtils.getWord(r), ReaderUtils.getWord(r), parentDataMap);
+            retVal = createHighLevelFileOperatorNode(ReaderUtils.getWord(r), ReaderUtils.getWord(r), ReaderUtils.getWord(r), parentDataMap);
             ReaderUtils.getInteger(r);
         } else if (type.equals("FOPERATOR")) {
             retVal = createFileOperatorNode(ReaderUtils.getWord(r), ReaderUtils.getWord(r));
         } else if (type.equals("HLIOPERATOR")) {
-            retVal = createImpasseOperatorNode(ReaderUtils.getWord(r), ReaderUtils.getWord(r), ReaderUtils.getWord(r), ReaderUtils.getInteger(r));
+            retVal = createHighLevelImpasseOperatorNode(ReaderUtils.getWord(r), ReaderUtils.getWord(r), ReaderUtils.getWord(r), ReaderUtils.getInteger(r));
         } else if (type.equals("IOPERATOR")) {
             retVal = createImpasseOperatorNode(ReaderUtils.getWord(r), ReaderUtils.getWord(r));
         } else if (type.equals("FOLDER")) {
@@ -2225,7 +2307,7 @@ public class OperatorWindow extends JTree {
      * @see OperatorNode
      * @see #readVersionFour(Reader)
      */
-    private OperatorNode makeNodeVersionFour(HashMap<Integer, VSTreeNode> linkedToMap, List<VSTreeNode> linkNodesToRestore, Reader r) throws IOException, NumberFormatException {
+    private OperatorNode makeNodeVersionFour(Map<Integer, VSTreeNode> linkedToMap, List<VSTreeNode> linkNodesToRestore, Reader r) throws IOException, NumberFormatException {
         OperatorNode retVal;
         String type = ReaderUtils.getWord(r);
 
@@ -2234,11 +2316,11 @@ public class OperatorWindow extends JTree {
         } else if (type.equals("OPERATOR")) {
             retVal = createSoarOperatorNode(ReaderUtils.getWord(r), ReaderUtils.getWord(r));
         } else if (type.equals("HLFOPERATOR")) {
-            retVal = createFileOperatorNode(ReaderUtils.getWord(r), ReaderUtils.getWord(r), ReaderUtils.getWord(r), ReaderUtils.getInteger(r));
+            retVal = createHighLevelFileOperatorNode(ReaderUtils.getWord(r), ReaderUtils.getWord(r), ReaderUtils.getWord(r), ReaderUtils.getInteger(r));
         } else if (type.equals("FOPERATOR")) {
             retVal = createFileOperatorNode(ReaderUtils.getWord(r), ReaderUtils.getWord(r));
         } else if (type.equals("HLIOPERATOR")) {
-            retVal = createImpasseOperatorNode(ReaderUtils.getWord(r), ReaderUtils.getWord(r), ReaderUtils.getWord(r), ReaderUtils.getInteger(r));
+            retVal = createHighLevelImpasseOperatorNode(ReaderUtils.getWord(r), ReaderUtils.getWord(r), ReaderUtils.getWord(r), ReaderUtils.getInteger(r));
         } else if (type.equals("IOPERATOR")) {
             retVal = createImpasseOperatorNode(ReaderUtils.getWord(r), ReaderUtils.getWord(r));
         } else if (type.equals("FOLDER")) {
@@ -2437,11 +2519,11 @@ public class OperatorWindow extends JTree {
         } else if (type.equals("OPERATOR")) {
             retVal = createSoarOperatorNode(words[3], words[4]);
         } else if (type.equals("HLFOPERATOR")) {
-            retVal = createFileOperatorNode(words[3], words[4], words[5], Integer.parseInt(words[6]));
+            retVal = createHighLevelFileOperatorNode(words[3], words[4], words[5], Integer.parseInt(words[6]));
         } else if (type.equals("FOPERATOR")) {
             retVal = createFileOperatorNode(words[3], words[4]);
         } else if (type.equals("HLIOPERATOR")) {
-            retVal = createImpasseOperatorNode(words[3], words[4], words[5], Integer.parseInt(words[6]));
+            retVal = createHighLevelImpasseOperatorNode(words[3], words[4], words[5], Integer.parseInt(words[6]));
         } else if (type.equals("IOPERATOR")) {
             retVal = createImpasseOperatorNode(words[3], words[4]);
         } else if (type.equals("FOLDER")) {

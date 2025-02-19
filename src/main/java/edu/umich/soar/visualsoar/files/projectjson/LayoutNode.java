@@ -32,7 +32,7 @@ import java.util.Objects;
   @JsonSubTypes.Type(value = LayoutNode.OperatorRoot.class, name = "OPERATOR_ROOT"),
 })
 public class LayoutNode {
-  enum NodeType {
+  public enum NodeType {
     FILE,
     FILE_OPERATOR,
     FOLDER,

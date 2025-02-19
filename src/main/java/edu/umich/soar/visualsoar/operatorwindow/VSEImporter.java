@@ -74,14 +74,14 @@ class VSEImporter {
                 hlOperators.add(node);
             } else if (type.equals("HLFOPERATOR")) {
                 String name = ReaderUtils.getWord(r);
-                node = operatorWindow.createFileOperatorNode(name, name + ".soar", name, ReaderUtils.getInteger(r) + swmm.numberOfVertices());
+                node = operatorWindow.createHighLevelFileOperatorNode(name, name + ".soar", name, ReaderUtils.getInteger(r) + swmm.numberOfVertices());
                 operatorWindow.addChild(parent, node);
                 File file = new File(node.getFolderName());
                 file.mkdir();
                 hlOperators.add(node);
             } else if (type.equals("HLIOPERATOR")) {
                 String name = ReaderUtils.getWord(r);
-                node = operatorWindow.createImpasseOperatorNode(name, name + ".soar", name, ReaderUtils.getInteger(r) + swmm.numberOfVertices());
+                node = operatorWindow.createHighLevelImpasseOperatorNode(name, name + ".soar", name, ReaderUtils.getInteger(r) + swmm.numberOfVertices());
                 operatorWindow.addChild(parent, node);
                 File file = new File(node.getFolderName());
                 file.mkdir();
