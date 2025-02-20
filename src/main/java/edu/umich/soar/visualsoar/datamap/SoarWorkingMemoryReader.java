@@ -11,6 +11,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * This class contains utilities for reading datamap data from files
@@ -658,24 +659,34 @@ public class SoarWorkingMemoryReader {
     public static SoarWorkingMemoryModel loadFromJson(Datamap datamap) {
       SoarWorkingMemoryModel swmm = new SoarWorkingMemoryModel(false, null);
 
+    // TODO: this is only temporary while testing. The final solution will be to just generate
+    // sequential int IDs, starting at 0 for the root. That will be necessary because the IDs
+    // in the file won't necessarily by ints!
+    // We have to keep same exact sorting of nodes as would be there in the equivalent VSA file
+    // so that we can do exact comparisons using round-trip conversions
+    List<SoarVertex> convertedVertices =
+        datamap.vertices.stream()
+            .map(SoarWorkingMemoryReader::vertexFromJson)
+          .sorted(Comparator.comparingInt(Vertex::getValue))
+            .collect(Collectors.toList());
+    swmm.setTopstate((SoarIdentifierVertex) convertedVertices.get(0));
+    convertedVertices.forEach(swmm::addVertex);
+
       // First pass: convert vertices
-      int counter = 0;
-      for (DMVertex jsonVertex : datamap.vertices) {
-        counter++;
-//        System.out.println(counter);
-        SoarVertex converted = vertexFromJson(jsonVertex);
-        swmm.addVertex(converted);
-        if (datamap.rootId.equals(jsonVertex.id)) {
-          if (!(converted instanceof SoarIdentifierVertex)) {
-            throw new IllegalArgumentException(
-                "Root datamap vertex (" + jsonVertex.id + ") must be of type "
-                    + DMVertex.VertexType.SOAR_ID
-                    + ", but found "
-                    + jsonVertex.type);
-          }
-          swmm.setTopstate((SoarIdentifierVertex) converted);
-        }
-      }
+//      for (DMVertex jsonVertex : datamap.vertices) {
+//        SoarVertex converted = vertexFromJson(jsonVertex);
+//        swmm.addVertex(converted);
+//        if (datamap.rootId.equals(jsonVertex.id)) {
+//          if (!(converted instanceof SoarIdentifierVertex)) {
+//            throw new IllegalArgumentException(
+//                "Root datamap vertex (" + jsonVertex.id + ") must be of type "
+//                    + DMVertex.VertexType.SOAR_ID
+//                    + ", but found "
+//                    + jsonVertex.type);
+//          }
+//          swmm.setTopstate((SoarIdentifierVertex) converted);
+//        }
+//      }
 
       // Second pass: convert edges
       for (DMVertex jsonVertex : datamap.vertices) {
