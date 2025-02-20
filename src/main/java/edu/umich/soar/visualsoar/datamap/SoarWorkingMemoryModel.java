@@ -504,7 +504,8 @@ public class SoarWorkingMemoryModel {
           new DMVertex.OutEdge(
               namedEdge.getName(),
               String.valueOf(namedEdge.V1().getValue()),
-              namedEdge.getComment()));
+              namedEdge.getComment(),
+              namedEdge.isGenerated()));
     }
     return edgeIndex;
   }

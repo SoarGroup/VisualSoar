@@ -708,14 +708,14 @@ public class SoarWorkingMemoryReader {
       if (jsonVertex instanceof DMVertex.SoarIdVertex) {
         // TODO: change over the internal model to string IDs and remove parsing here
         SoarVertex tailVertex = swmm.getVertexForId(Integer.parseInt(jsonVertex.id));
-        convertEdgesToJson(swmm, tailVertex, (DMVertex.SoarIdVertex) jsonVertex);
+        readEdgesFromJson(swmm, tailVertex, (DMVertex.SoarIdVertex) jsonVertex);
       } else if(jsonVertex instanceof DMVertex.ForeignVertex){
         DMVertex.ForeignVertex foreignJsonVertex = (DMVertex.ForeignVertex) jsonVertex;
         if (foreignJsonVertex.importedVertex instanceof DMVertex.SoarIdVertex) {
           // parent of imported vertex is the tail
           // TODO: change over the internal model to string IDs and remove parsing here
           SoarVertex tailVertex = swmm.getVertexForId(Integer.parseInt(jsonVertex.id));
-          convertEdgesToJson(swmm, tailVertex, (DMVertex.SoarIdVertex) foreignJsonVertex.importedVertex);
+          readEdgesFromJson(swmm, tailVertex, (DMVertex.SoarIdVertex) foreignJsonVertex.importedVertex);
         }
 
       }
@@ -723,7 +723,7 @@ public class SoarWorkingMemoryReader {
     return swmm;
   }
 
-  private static void convertEdgesToJson(SoarWorkingMemoryModel swmm, SoarVertex tailVertex, DMVertex.SoarIdVertex jsonVertex) {
+  private static void readEdgesFromJson(SoarWorkingMemoryModel swmm, SoarVertex tailVertex, DMVertex.SoarIdVertex jsonVertex) {
     for (DMVertex.OutEdge edge : jsonVertex.outEdges) {
       SoarVertex headVertex = swmm.getVertexForId(Integer.parseInt(edge.toId));
       if (headVertex == null) {
@@ -734,11 +734,7 @@ public class SoarWorkingMemoryReader {
                 + jsonVertex.id
                 + "\" does not specify any known vertex.");
       }
-      //            TODO: (de)serialize generated flag
-      NamedEdge ne = swmm.addTriple(tailVertex, edge.getName(), headVertex);
-      if (edge.comment != null) {
-        ne.setComment(edge.comment);
-      }
+      swmm.addTriple(tailVertex, edge.getName(), headVertex, edge.getGenerated() ? 1 : 0, edge.comment != null ? edge.comment : "" );
     }
   }
 

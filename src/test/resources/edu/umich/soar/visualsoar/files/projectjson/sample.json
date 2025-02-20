@@ -37,6 +37,7 @@
               "toId": "b"
             },
             {
+              "generated": true,
               "name": "see",
               "toId": "c"
             }
@@ -53,6 +54,7 @@
             "toId": "1"
           },
           {
+            "generated": true,
             "name": "second",
             "toId": "2"
           },

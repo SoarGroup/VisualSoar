@@ -1,5 +1,6 @@
 package edu.umich.soar.visualsoar.files.projectjson;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -56,11 +57,13 @@ public class DMVertex {
     private final String name;
     public final String toId;
     public final String comment;
+    public final boolean generated;
 
     public OutEdge(
         @JsonProperty("name") String name,
         @JsonProperty("toId") String toId,
-        @JsonProperty("comment") String comment) {
+        @JsonProperty("comment") String comment,
+        @JsonProperty("generated") Boolean generated) {
       this.name = name;
       Objects.requireNonNull(name);
       this.toId = toId;
@@ -70,6 +73,7 @@ public class DMVertex {
         comment = null;
       }
       this.comment = comment;
+      this.generated = generated != null ? generated : false;
     }
 
     public String getName() {
@@ -78,6 +82,12 @@ public class DMVertex {
 
     public String getToId() {
       return toId;
+    }
+
+    @JsonProperty("generated")
+    @JsonInclude(value = JsonInclude.Include.NON_DEFAULT)
+    public boolean getGenerated() {
+      return generated;
     }
 
     @Override
@@ -250,19 +260,19 @@ public class DMVertex {
       super(id, VertexType.FOREIGN);
       if (foreignDMPath == null) {
         throw new IllegalArgumentException(
-          "Vertex "
-            + id
-            + " is of type "
-            + type
-            + " and therefore must have a foreignDMPath defined");
+            "Vertex "
+                + id
+                + " is of type "
+                + type
+                + " and therefore must have a foreignDMPath defined");
       }
       if (importedVertex == null) {
         throw new IllegalArgumentException(
-          "Vertex "
-            + id
-            + " is of type "
-            + type
-            + " and therefore must have a importedVertex defined");
+            "Vertex "
+                + id
+                + " is of type "
+                + type
+                + " and therefore must have a importedVertex defined");
       }
       this.foreignDMPath = foreignDMPath.replace('\\', '/');
       this.importedVertex = importedVertex;
