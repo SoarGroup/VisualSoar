@@ -15,7 +15,9 @@ public class Vsa {
     if ((dir.exists()) && (dir.canRead())) {
       fileChooser.setDirectory(dir.getAbsolutePath());
     }
-    fileChooser.setFilenameFilter((dir1, name) -> name.toLowerCase().endsWith("vsa"));
+    fileChooser.setFilenameFilter(
+        (dir1, name) ->
+            name.toLowerCase().endsWith(".vsa") || name.toLowerCase().endsWith(".vsa.json"));
     fileChooser.setVisible(true);
     if (fileChooser.getFile() == null) {
       return null;

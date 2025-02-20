@@ -15,6 +15,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.nio.file.Path;
 import java.util.*;
 
 /**
@@ -30,6 +31,7 @@ public class SoarWorkingMemoryModel {
   private final DirectedGraph rep = new DirectedGraphAsAdjacencyLists();
   private final Vector<WorkingMemoryListener> listeners = new Vector<>();
   private final TreeMap<String, SoarVertex> properties = new TreeMap<>();
+  private final Path dmPath;
 
   /////////////////////////////////////////////////////////
   // Constructors
@@ -40,10 +42,11 @@ public class SoarWorkingMemoryModel {
    *
    * @param isNew only create if model is new
    * @param name name used for the top-state, or {@code null} if isNew is false
+   * @param dmPath path to the project dm/json file
    * @see #addTriple(SoarVertex, String, SoarVertex)
    * @see #addProperty(String, SoarVertex)
    */
-  public SoarWorkingMemoryModel(boolean isNew, String name) {
+  public SoarWorkingMemoryModel(boolean isNew, String name, Path dmPath) {
     if (isNew) {
       addProperty("TOPSTATE", createNewSoarId());
       addProperty("IO", createNewSoarId());
@@ -64,6 +67,7 @@ public class SoarWorkingMemoryModel {
       // reward, epmem and smem (added Dec 2022)
       addNewStandardWMEs(getProperty("TOPSTATE"));
     }
+    this.dmPath = dmPath;
   }
 
   /////////////////////////////////////////////////////////
@@ -110,7 +114,7 @@ public class SoarWorkingMemoryModel {
   }
 
   /**
-   * Adds a triple to working memory Also sets a comment to the edge that the triple creates. This
+   * Adds a triple to working memory. Also sets a comment to the edge that the triple creates. This
    * comment is read in by the SoarWorkingMemoryReader when the .dm file is loaded
    */
   public void addTriple(
@@ -681,5 +685,9 @@ public class SoarWorkingMemoryModel {
   /** Returns the number of vertices in Working Memory */
   public int getNumberOfVertices() {
     return rep.numberOfVertices();
+  }
+
+  public Path getDmPath() {
+    return dmPath;
   }
 }

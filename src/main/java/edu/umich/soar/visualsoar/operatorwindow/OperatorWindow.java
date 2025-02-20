@@ -139,17 +139,17 @@ public class OperatorWindow extends JTree {
      * Creates a default project tree model and a new WorkingMemory for new projects.
      *
      * @param projectName     The name of the project
-     * @param projectFileName The full file path of the projects location
+     * @param projectPath     The full file path of the project's location
      * @param is_new          True if it is a new project
      * @see SoarWorkingMemoryModel
      * @see OperatorWindow#defaultProject(String, File)
      */
-    public OperatorWindow(String projectName, String projectFileName, boolean is_new) {
+    public OperatorWindow(String projectName, Path projectPath, boolean is_new) {
         this();
         s_OperatorWindow = this;
         if (is_new) {
-            setModel(defaultProject(projectName, new File(projectFileName)));
-            workingMemory = new SoarWorkingMemoryModel(true, projectName);
+            setModel(defaultProject(projectName, projectPath.toFile()));
+            workingMemory = new SoarWorkingMemoryModel(true, projectName, projectPath);
         }
     }
 
@@ -165,7 +165,7 @@ public class OperatorWindow extends JTree {
         this();
         MainFrame.getMainFrame().getFeedbackManager().clearFeedback();
         s_OperatorWindow = this;
-        workingMemory = new SoarWorkingMemoryModel(false, null);
+        workingMemory = new SoarWorkingMemoryModel(false, null, null);
         openHierarchy(in_file);
         Prefs.addRecentProject(in_file, readOnly);
         MainFrame.getMainFrame().getFeedbackManager().setStatusBarMsg("Opened " + in_file.getName());
@@ -1255,25 +1255,23 @@ public class OperatorWindow extends JTree {
 
     }
 
-    private void openProjectJson(Path jsonPath) throws IOException {
-      try(Reader fileReader = Files.newBufferedReader(jsonPath)) {
-        Project projectJson = Json.loadFromJson(fileReader, Project.class);
-        this.workingMemory = loadFromJson(projectJson.datamap);
+  private void openProjectJson(Path jsonPath) throws IOException {
+    Project projectJson = Project.loadJsonFile(jsonPath);
+    this.workingMemory = loadFromJson(projectJson.datamap, jsonPath);
 
-        Map<Integer, OperatorNode> idToNode = new HashMap<>();
-        List<OperatorNode> linkNodes = new ArrayList<>();
-        VSTreeNode root = loadOperatorHierarchy(projectJson.layout, null, idToNode, linkNodes);
-        for (OperatorNode node : linkNodes) {
-          LinkNode linkNodeToRestore = (LinkNode) node;
-          linkNodeToRestore.restore(idToNode);
-        }
-
-        setModel(new DefaultTreeModel(root));
-
-        OperatorRootNode orNode = (OperatorRootNode) root;
-        orNode.setFullPath(jsonPath.getParent().toString());
-      }
+    Map<Integer, OperatorNode> idToNode = new HashMap<>();
+    List<OperatorNode> linkNodes = new ArrayList<>();
+    VSTreeNode root = loadOperatorHierarchy(projectJson.layout, null, idToNode, linkNodes);
+    for (OperatorNode node : linkNodes) {
+      LinkNode linkNodeToRestore = (LinkNode) node;
+      linkNodeToRestore.restore(idToNode);
     }
+
+    setModel(new DefaultTreeModel(root));
+
+    OperatorRootNode orNode = (OperatorRootNode) root;
+    orNode.setFullPath(jsonPath.getParent().toString());
+  }
 
   /**
      * The VSA file contains operators and their DM ID numbers. This helper connects the Soar IDs loaded from the datamap

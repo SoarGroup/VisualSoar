@@ -1246,9 +1246,8 @@ public class DataMapTree extends JTree implements ClipboardOwner, PopupMenuListe
         }
 
         //The .dm file exists, can it be read?
-        fSWMM = new SoarWorkingMemoryModel(false, foreignDMFile.getName());
-        String dmName = SoarWorkingMemoryReader.readDataIntoSWMM(foreignDMFile, fSWMM);
-        if (dmName == null) {
+        fSWMM = SoarWorkingMemoryReader.loadSWMM(foreignDMFile);
+        if (fSWMM == null) {
             String msg = foreignDMFullPath + " can not be read.";
             vecIssues.add(new FeedbackEntryForeignDatamap(theEdge, FeedbackEntryForeignDatamap.ERR_DM_FILE_UNREADABLE, msg));
             return null;

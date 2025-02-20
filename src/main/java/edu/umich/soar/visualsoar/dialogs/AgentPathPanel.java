@@ -68,10 +68,13 @@ class AgentPathPanel extends JPanel {
         });
     }
 
-    /**
-     * @return the inputted path for the new agent
-     */
-    public String getPath() {
-        return pathField.getText();
+  /**
+   * @return the inputted path for the new agent
+   */
+  public String getPath() {
+    if (pathField.getText().isEmpty()) {
+      return workingDirName;
     }
+    return pathField.getText();
+  }
 }

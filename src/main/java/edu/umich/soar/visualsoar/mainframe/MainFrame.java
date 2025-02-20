@@ -1,13 +1,10 @@
 package edu.umich.soar.visualsoar.mainframe;
 
-import edu.umich.soar.visualsoar.datamap.CheckBoxDataMap;
 import edu.umich.soar.visualsoar.datamap.DataMap;
 import edu.umich.soar.visualsoar.datamap.SoarWorkingMemoryModel;
-import edu.umich.soar.visualsoar.datamap.SoarWorkingMemoryReader;
 import edu.umich.soar.visualsoar.dialogs.*;
 import edu.umich.soar.visualsoar.files.Backup;
 import edu.umich.soar.visualsoar.files.Cfg;
-import edu.umich.soar.visualsoar.files.Vsa;
 import edu.umich.soar.visualsoar.mainframe.actions.*;
 import edu.umich.soar.visualsoar.mainframe.feedback.FeedbackEntryOpNode;
 import edu.umich.soar.visualsoar.mainframe.feedback.FeedbackList;
@@ -36,6 +33,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyVetoException;
 import java.io.*;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.*;
 
@@ -122,7 +120,7 @@ public class MainFrame extends JFrame
 	PerformableAction verifyProjectAction = new VerifyProjectAction(this);
 	Action checkSyntaxErrorsAction = new CheckSyntaxErrorsAction(this);
 	Action loadTopStateDatamapAction = new LoadTopStateDatamapAction(this);
-	Action linkDataMapAction = new LinkDataMapAction();
+	Action linkDataMapAction = new LinkDataMapAction(this);
 	PerformableAction checkAllProductionsAction = new CheckAllProductionsAction(this);
     Action searchDataMapCreateAction = new SearchDataMapCreateAction(this);
     Action searchDataMapTestAction = new SearchDataMapTestAction(this);
@@ -1502,7 +1500,7 @@ public class MainFrame extends JFrame
         return;
       }
 
-      operatorWindow = new OperatorWindow(agentName,agentFileName,true);
+      operatorWindow = new OperatorWindow(agentName, Paths.get(agentFileName), true);
 
       Prefs.openFolder.set(path);
       operatorDesktopSplit.setLeftComponent(new JScrollPane(operatorWindow));
@@ -1805,60 +1803,7 @@ public class MainFrame extends JFrame
 	}
 
 
-  /**
-	 * class LinkDataMapAction
-	 *
-	 * This action loads a datamap from another project and allows the user to import
-	 * items from it.  These items are "linked" can not be edited via this project
-	 * but must be edited via the project they are imported from.
-	 *
-	 * @author Andrew Nuxoll
-	 * @version 21 Jan 2024
-	 */
-	class LinkDataMapAction extends AbstractAction
-	{
-		private static final long serialVersionUID = 20240121L;
-		SoarWorkingMemoryModel swmm = null;
-
-		public LinkDataMapAction()
-		{
-			super("Link Items from Another Datamap");
-			setEnabled(false);
-		}
-
-
-		public void actionPerformed(ActionEvent ae) {
-			//Only one datamap window can be open at a time
-			if (desktopPane.numDataMaps() > 0) {
-        getFeedbackManager().setStatusBarError("Cannot import from foreign datamap while local datamap is being edited.");
-				return;
-			}
-
-			//The user selects a datamap file to import from
-			File vsaFile = Vsa.selectVsaFile(MainFrame.this);
-			if (vsaFile == null) return;
-
-			//read the data from the foreign datamap into a local SWMM object
-			this.swmm = new SoarWorkingMemoryModel(false, vsaFile.getName());
-			String dmFilename = SoarWorkingMemoryReader.readDataIntoSWMMfromVSA(vsaFile, this.swmm);
-			if (dmFilename == null) return;
-
-			//Create a datamap with checkboxes
-			CheckBoxDataMap dataMap = new CheckBoxDataMap(swmm, dmFilename);
-			dataMap.setVisible(true);
-			addDataMap(dataMap);
-
-		}//actionPerformed
-
-
-
-	}//class LinkDataMapAction
-
-
-
-
-
-	class FindInProjectAction extends AbstractAction
+  class FindInProjectAction extends AbstractAction
     {
 		private static final long serialVersionUID = 20221225L;
 

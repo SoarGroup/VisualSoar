@@ -73,23 +73,21 @@ public class NewAgentDialog extends JDialog {
             }
         });
 
-        buttonPanel.newButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                String nameText = namePanel.getName();
-                if (nameText.length() == 0) {
-                    JOptionPane.showMessageDialog(NewAgentDialog.this,
-                            "Project names cannot have length zero",
-                            "Invalid Name", JOptionPane.ERROR_MESSAGE);
-                } else if (!OperatorWindow.isProjectNameValid(nameText)) {
-                    JOptionPane.showMessageDialog(NewAgentDialog.this,
-                            "Project names may only contain letter, numbers, hyphens and underscores",
-                            "Invalid Name", JOptionPane.ERROR_MESSAGE);
-                } else {
-                    newAgentName = namePanel.getName();
-                    newAgentPath = pathPanel.getPath();
-                    approved = true;
-                    dispose();
-                }
+        buttonPanel.newButton.addActionListener(e -> {
+            String nameText = namePanel.getName();
+            if (nameText.length() == 0) {
+                JOptionPane.showMessageDialog(NewAgentDialog.this,
+                        "Project names cannot have length zero",
+                        "Invalid Name", JOptionPane.ERROR_MESSAGE);
+            } else if (!OperatorWindow.isProjectNameValid(nameText)) {
+                JOptionPane.showMessageDialog(NewAgentDialog.this,
+                        "Project names may only contain letter, numbers, hyphens and underscores",
+                        "Invalid Name", JOptionPane.ERROR_MESSAGE);
+            } else {
+                newAgentName = namePanel.getName();
+                newAgentPath = pathPanel.getPath();
+                approved = true;
+                dispose();
             }
         });
     }

@@ -4,6 +4,9 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.io.IOException;
+import java.io.Reader;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Objects;
 
 public class Project {
@@ -53,6 +56,12 @@ public class Project {
       return Json.serializeToJson(this);
     } catch (IOException e) {
       return "Failed to stringify Project: " + e;
+    }
+  }
+
+  public static Project loadJsonFile(Path jsonPath) throws IOException {
+    try (Reader fileReader = Files.newBufferedReader(jsonPath)) {
+      return Json.loadFromJson(fileReader, Project.class);
     }
   }
 }

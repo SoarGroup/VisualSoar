@@ -37,11 +37,11 @@ public class CheckBoxDataMap extends DataMap {
      * CheckBoxDataMap ctor
      *
      * @param swmm  the SWMM for the foreign datamap
-     * @param foreignDMFilename the filename where the foreign datamap was loaded from
+     * @param foreignDMPath the path where the foreign datamap was loaded from
      */
-    public CheckBoxDataMap(SoarWorkingMemoryModel swmm, String foreignDMFilename) {
-        super(swmm.getTopstate(), "External Datamap: " + foreignDMFilename);
-        this.foreignDMFilename = calcRelativePath(foreignDMFilename);
+    public CheckBoxDataMap(SoarWorkingMemoryModel swmm, Path foreignDMPath) {
+        super(swmm.getTopstate(), "External Datamap: " + foreignDMPath);
+        this.foreignDMFilename = calcRelativePath(foreignDMPath);
 
         TreeModel soarTreeModel = new SoarWMTreeModelWrapper(swmm, swmm.getTopstate(), title);
         this.dataMapTree = new CheckBoxDataMapTree(this, soarTreeModel, swmm);
@@ -55,7 +55,7 @@ public class CheckBoxDataMap extends DataMap {
     }//ctor
 
     /** calculate the relative path from this project's root to a given filename */
-    private String calcRelativePath(String foreignDMFilename) {
+    private String calcRelativePath(Path foreignDMPath) {
         OperatorWindow operatorWindow = MainFrame.getMainFrame().getOperatorWindow();
         OperatorRootNode root = (OperatorRootNode)(operatorWindow.getModel().getRoot());
         if (root == null) {
@@ -71,9 +71,8 @@ public class CheckBoxDataMap extends DataMap {
         basePathName = basePathName.substring(0, basePathName.length() - fnLen);
 
         //Now calculate the relative path to the foreign DM
-        Path dmPath = Paths.get(foreignDMFilename);
         Path basePath = Paths.get(basePathName);
-        Path relPath = basePath.relativize(dmPath);
+        Path relPath = basePath.relativize(foreignDMPath);
 
         return relPath.toString();
     }//calcRelativePath

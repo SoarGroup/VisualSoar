@@ -2,6 +2,7 @@ package edu.umich.soar.visualsoar.datamap;
 
 import edu.umich.soar.visualsoar.files.projectjson.DMVertex;
 import edu.umich.soar.visualsoar.files.projectjson.Datamap;
+import edu.umich.soar.visualsoar.files.projectjson.Project;
 import edu.umich.soar.visualsoar.mainframe.MainFrame;
 import edu.umich.soar.visualsoar.graph.*;
 import edu.umich.soar.visualsoar.mainframe.feedback.FeedbackListEntry;
@@ -10,6 +11,7 @@ import edu.umich.soar.visualsoar.util.ReaderUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -563,12 +565,21 @@ public class SoarWorkingMemoryReader {
   } // readSafe
 
     /**
-     * reads the data in a given datamap (.dm) file into a given SWMM object
-     * (which is expected to be empty)
+     * loads the data in a given datamap (.dm, .vsa.json) file
      *
      * @return the foreign datamap file name (or null on failure)
      */
-    public static String readDataIntoSWMM(File dataMapFile, SoarWorkingMemoryModel swmm) {
+    public static SoarWorkingMemoryModel loadSWMM(File dataMapFile) {
+        if(dataMapFile.getName().endsWith(".json")) {
+          try {
+            Project projectJson = Project.loadJsonFile(dataMapFile.toPath());
+            return loadFromJson(projectJson.datamap, dataMapFile.toPath());
+          }catch(IOException e) {
+            MainFrame.getMainFrame().getFeedbackManager().setStatusBarError("Error opening " + dataMapFile.getName() + ": " + e.getMessage());
+          }
+        }
+
+        SoarWorkingMemoryModel swmm = new SoarWorkingMemoryModel(false, null, dataMapFile.toPath());
         //Calculate the name of the comment file
         File commentFile = new File(dataMapFile.getParent() + File.separator + "comment.dm");
 
@@ -609,7 +620,7 @@ public class SoarWorkingMemoryReader {
             //nothing to do?
         }
 
-        return dataMapFile.getAbsolutePath();
+        return swmm;
     }//readDataIntoSWMM
 
     /**
@@ -618,6 +629,11 @@ public class SoarWorkingMemoryReader {
      * Given a project's .vsa file, this method returns its .dm file or null if it doesn't exist
      */
     public static File getDMFile(File vsaFile) {
+      // JSON project files contain the DM within the same file
+      if (vsaFile.getName().endsWith(".json")) {
+        return vsaFile;
+      }
+
         //What is the file name (no path, no ext) of this project
         String projName = vsaFile.getName();
         projName = projName.substring(0, projName.length() - 4);  //chop off .vsa
@@ -637,27 +653,26 @@ public class SoarWorkingMemoryReader {
         return dmFile;
     }//getDMFile
 
+  /**
+   * reads the DM data in a given project (.vsa, .vsa.json) file
+   *
+   * @return the foreign datamap file name (or null on failure)
+   */
+  public static SoarWorkingMemoryModel readDataIntoSWMMfromVSA(File vsaFile) {
+    Objects.requireNonNull(vsaFile, "Error: readDataIntoSWMMfromVSA: vsaFile must not be null");
+    // Calculate the name of the .dm file for this project
+    File dataMapFile = getDMFile(vsaFile);
+    if (dataMapFile == null) {
+      System.err.println(
+          "Error: readDataIntoSWMMfromVSA could not figure out DM file from vsaFile " + vsaFile);
+      return null;
+    }
 
+    return loadSWMM(dataMapFile);
+  }
 
-    /**
-     * reads the data in a given project (.vsa) file into this.swmm
-     *
-     * @return the foreign datamap file name (or null on failure)
-     */
-    public static String readDataIntoSWMMfromVSA(File vsaFile, SoarWorkingMemoryModel swmm) {
-        //Calculate the name of the .dm file for this project
-        File dataMapFile = getDMFile(vsaFile);
-        if (dataMapFile == null) {
-            System.err.println("Error: null vsa file given to readDataIntoSWMM on foreign datamap import.");
-            return null;
-        }
-
-        return readDataIntoSWMM(dataMapFile, swmm);
-
-    }//readDataIntoSWMMfromVSA
-
-    public static SoarWorkingMemoryModel loadFromJson(Datamap datamap) {
-      SoarWorkingMemoryModel swmm = new SoarWorkingMemoryModel(false, null);
+    public static SoarWorkingMemoryModel loadFromJson(Datamap datamap, Path dmPath) {
+      SoarWorkingMemoryModel swmm = new SoarWorkingMemoryModel(false, null, dmPath);
 
     // TODO: this is only temporary while testing. The final solution will be to just generate
     // sequential int IDs, starting at 0 for the root. That will be necessary because the IDs
