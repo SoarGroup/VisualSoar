@@ -120,6 +120,10 @@ public class OperatorOperatorNode extends SoarOperatorNode {
       return NodeType.OPERATOR;
     }
 
+    public String getRelativeFolderName() {
+    return folderName;
+  }
+
     /**
      * The user wants to rename this node
      *

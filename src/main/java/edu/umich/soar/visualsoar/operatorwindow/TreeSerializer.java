@@ -100,7 +100,7 @@ public class TreeSerializer {
               fon.getName(),
               String.valueOf(fon.getId()),
               fon.getFileAssociation(),
-              fon.getFolderName(),
+              fon.getRelativeFolderName(),
               String.valueOf(fon.getDataMapIdNumber()));
         } else {
           return new LayoutNode.FileOperator(
@@ -129,7 +129,7 @@ public class TreeSerializer {
               operatorNode.getName(),
               String.valueOf(operatorNode.getId()),
               operatorNode.getFileAssociation(),
-              operatorNode.getFolderName(),
+              operatorNode.getRelativeFolderName(),
               String.valueOf(operatorNode.getDataMapIdNumber()));
         } else {
           return new LayoutNode.Operator(
@@ -153,7 +153,7 @@ public class TreeSerializer {
               impasseNode.getName(),
               String.valueOf(impasseNode.getId()),
               impasseNode.getFileAssociation(),
-              impasseNode.getFolderName(),
+              impasseNode.getRelativeFolderName(),
               String.valueOf(impasseNode.getDataMapIdNumber()));
         } else {
           return new LayoutNode.ImpasseOperator(

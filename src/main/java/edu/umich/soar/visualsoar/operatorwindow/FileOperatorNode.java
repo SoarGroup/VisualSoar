@@ -155,5 +155,7 @@ public class FileOperatorNode extends SoarOperatorNode {
       return NodeType.FILE_OPERATOR;
     }
 
-
+  public String getRelativeFolderName() {
+      return folderName;
+  }
 } // end of FileOperatorNode

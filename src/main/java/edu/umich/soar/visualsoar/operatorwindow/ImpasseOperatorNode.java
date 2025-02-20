@@ -164,5 +164,9 @@ public class ImpasseOperatorNode extends SoarOperatorNode {
       return NodeType.IMPASSE_OPERATOR;
     }
 
+    public String getRelativeFolderName() {
+      return folderName;
+    }
+
 
 } // end of ImpasseOperatorNode

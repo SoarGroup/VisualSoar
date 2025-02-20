@@ -1833,13 +1833,13 @@ public class OperatorWindow extends JTree {
         return new FileOperatorNode(foNode.name, id, node.id, foNode.file);
       case OPERATOR_ROOT:
         LayoutNode.OperatorRoot orNode = (LayoutNode.OperatorRoot) node;
-        new OperatorRootNode(orNode.name, id, node.id, orNode.folder);
+        return new OperatorRootNode(orNode.name, id, node.id, orNode.folder);
       case LINK:
         LayoutNode.Link lNode = (LayoutNode.Link) node;
         return new LinkNode(lNode.name, id, node.id, lNode.file, Integer.parseInt(lNode.linkedNodeId));
       case FOLDER:
         LayoutNode.Folder folderNode = (LayoutNode.Folder) node;
-        new FolderNode(folderNode.name, id, node.id, folderNode.folder);
+        return new FolderNode(folderNode.name, id, node.id, folderNode.folder);
       case IMPASSE_OPERATOR:
         LayoutNode.ImpasseOperator ioNode = (LayoutNode.ImpasseOperator) node;
         return new ImpasseOperatorNode(ioNode.name, id, node.id, ioNode.file);
