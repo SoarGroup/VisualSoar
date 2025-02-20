@@ -91,11 +91,99 @@
     ]
   },
   "layout": {
-    "children": [ ],
-    "folder": "thor-soar",
+    "folder": "example-project",
     "id": "1",
-    "name": "thor-soar",
-    "type": "OPERATOR_ROOT"
+    "name": "example-project",
+    "type": "OPERATOR_ROOT",
+    "children": [
+      {
+        "file": "_firstload.soar",
+        "id": "2",
+        "name": "_firstload",
+        "type": "FILE_OPERATOR"
+      },
+      {
+        "folder": "all",
+        "id": "3",
+        "name": "all",
+        "type": "FOLDER",
+        "children": [
+          {
+            "file": "failure.soar",
+            "id": "4",
+            "name": "failure",
+            "type": "OPERATOR"
+          },
+          {
+            "file": "wait.soar",
+            "id": "5",
+            "name": "wait",
+            "type": "OPERATOR"
+          }
+        ]
+      },
+      {
+        "dmId": "0",
+        "file": "_flags.soar",
+        "folder": "_flags",
+        "id": "46",
+        "name": "_flags",
+        "type": "HIGH_LEVEL_FILE_OPERATOR",
+        "children": [
+          {
+            "file": "_chunking-flags.soar",
+            "id": "47",
+            "name": "_chunking-flags",
+            "type": "FILE_OPERATOR"
+          }
+        ]
+      },
+      {
+        "dmId": "108",
+        "file": "Impasse__Operator_Tie.soar",
+        "folder": "Impasse__Operator_Tie",
+        "id": "59",
+        "name": "Impasse__Operator_Tie",
+        "type": "HIGH_LEVEL_IMPASSE_OPERATOR",
+        "children": [
+          {
+            "dmId": "124",
+            "file": "evaluate-operator.soar",
+            "folder": "evaluate-operator",
+            "id": "61",
+            "name": "evaluate-operator",
+            "type": "HIGH_LEVEL_OPERATOR",
+            "children": [
+              {
+                "file": "finish-cooking.soar",
+                "id": "65",
+                "name": "finish-cooking",
+                "type": "OPERATOR"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "file": "example-file.txt",
+        "id": "2",
+        "name": "example",
+        "type": "FILE"
+      },
+      {
+        "file": "Impasse__Operator_Conflict.soar",
+        "id": "69",
+        "name": "Impasse__Operator_Conflict",
+        "type": "IMPASSE_OPERATOR"
+      },
+      {
+        "file": "more-cooking.soar",
+        "id": "70",
+        "linkedNodeId": "65",
+        "name": "more-cooking",
+        "type": "LINK"
+      }
+    ]
   },
   "version": "6"
 }

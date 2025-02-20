@@ -81,7 +81,7 @@ public class LayoutNode {
 
   // We specify property ordering through because children can be quite large and
   // hinders reading if it comes at the beginning (as it would with the alphabetical default)
-  @JsonPropertyOrder({"id", "file", "name", "type", "children"})
+  @JsonPropertyOrder({"file", "id", "name", "type", "children"})
   public static class File extends LayoutNode {
     public final String name;
     public final String file;
@@ -97,7 +97,7 @@ public class LayoutNode {
     }
   }
 
-  @JsonPropertyOrder({"id", "file", "name", "type", "children"})
+  @JsonPropertyOrder({"file", "id", "name", "type", "children"})
   public static class FileOperator extends LayoutNode {
     public final String name;
     public final String file;
@@ -113,7 +113,7 @@ public class LayoutNode {
     }
   }
 
-  @JsonPropertyOrder({"dmId", "id", "file", "folder", "name", "type", "children"})
+  @JsonPropertyOrder({"dmId", "file", "folder", "id", "name", "type", "children"})
   public static class HighLevelFileOperator extends LayoutNode {
     public final String name;
     public final String file;
@@ -135,7 +135,7 @@ public class LayoutNode {
     }
   }
 
-  @JsonPropertyOrder({"id", "folder", "name", "type", "children"})
+  @JsonPropertyOrder({"folder", "id", "name", "type", "children"})
   public static class Folder extends LayoutNode {
     public final String name;
     public final String folder;
@@ -151,7 +151,7 @@ public class LayoutNode {
     }
   }
 
-  @JsonPropertyOrder({"id", "file", "linkedNodeId", "name", "type", "children"})
+  @JsonPropertyOrder({"file", "id", "linkedNodeId", "name", "type", "children"})
   public static class Link extends LayoutNode {
     public final String name;
     public final String file;
@@ -170,7 +170,7 @@ public class LayoutNode {
     }
   }
 
-  @JsonPropertyOrder({"id", "file", "name", "type", "children"})
+  @JsonPropertyOrder({"file", "id", "name", "type", "children"})
   public static class Operator extends LayoutNode {
     public final String name;
     public final String file;
@@ -186,7 +186,7 @@ public class LayoutNode {
     }
   }
 
-  @JsonPropertyOrder({"dmId", "id", "file", "folder", "name", "type", "children"})
+  @JsonPropertyOrder({"dmId", "file", "folder", "id", "name", "type", "children"})
   public static class HighLevelOperator extends LayoutNode {
     public final String name;
     public final String file;
@@ -208,7 +208,7 @@ public class LayoutNode {
     }
   }
 
-  @JsonPropertyOrder({"id", "folder", "name", "type", "children"})
+  @JsonPropertyOrder({"folder", "id", "name", "type", "children"})
   public static class OperatorRoot extends LayoutNode {
     public final String name;
     public final String folder;
@@ -224,7 +224,7 @@ public class LayoutNode {
     }
   }
 
-  @JsonPropertyOrder({"id", "file", "name", "type", "children"})
+  @JsonPropertyOrder({"file", "id", "name", "type", "children"})
   public static class ImpasseOperator extends LayoutNode {
     public final String name;
     public final String file;
@@ -240,7 +240,7 @@ public class LayoutNode {
     }
   }
 
-  @JsonPropertyOrder({"dmId", "id", "file", "folder", "name", "type", "children"})
+  @JsonPropertyOrder({"dmId", "file", "folder", "id", "name", "type", "children"})
   public static class HighLevelImpasseOperator extends LayoutNode {
     public final String name;
     public final String file;
