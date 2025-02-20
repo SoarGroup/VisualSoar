@@ -22,7 +22,8 @@ public class ForeignVertex extends SoarVertex {
 
     public ForeignVertex(int id, String foreignDM, SoarVertex foreignSv) {
         super(id);
-        this.foreignDM = foreignDM;
+        // normalize to forward slashes, which are portable between Windows/Posix
+        this.foreignDM = foreignDM.replace('\\', '/');
         this.foreignSV = foreignSv;
     }
 

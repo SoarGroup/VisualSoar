@@ -248,24 +248,24 @@ public class DMVertex {
         @JsonProperty("foreignDMPath") String foreignDMPath,
         @JsonProperty("importedVertex") DMVertex importedVertex) {
       super(id, VertexType.FOREIGN);
-      this.foreignDMPath = foreignDMPath;
-      this.importedVertex = importedVertex;
       if (foreignDMPath == null) {
         throw new IllegalArgumentException(
-            "Vertex "
-                + id
-                + " is of type "
-                + type
-                + " and therefore must have a foreignDMPath defined");
+          "Vertex "
+            + id
+            + " is of type "
+            + type
+            + " and therefore must have a foreignDMPath defined");
       }
       if (importedVertex == null) {
         throw new IllegalArgumentException(
-            "Vertex "
-                + id
-                + " is of type "
-                + type
-                + " and therefore must have a importedVertex defined");
+          "Vertex "
+            + id
+            + " is of type "
+            + type
+            + " and therefore must have a importedVertex defined");
       }
+      this.foreignDMPath = foreignDMPath.replace('\\', '/');
+      this.importedVertex = importedVertex;
     }
 
     public VertexType getType() {
