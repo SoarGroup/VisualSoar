@@ -1,52 +1,9 @@
 {
   "datamap": {
-    "rootId": "idTest",
+    "rootId": "0",
     "vertices": [
       {
-        "choices": [
-          "a",
-          "b",
-          "c"
-        ],
-        "id": "enumTest",
-        "type": "ENUMERATION"
-      },
-      {
-        "id": "floatRangeTest",
-        "max": 10.1,
-        "min": 5.2,
-        "type": "FLOAT"
-      },
-      {
-        "id": "floatTest",
-        "type": "FLOAT"
-      },
-      {
-        "foreignDMPath": "../foo/foo.dm",
-        "id": "foreignTest",
-        "importedVertex": {
-          "id": "idTest",
-          "outEdges": [
-            {
-              "comment": "The first letter of the alphabet",
-              "name": "ay",
-              "toId": "a"
-            },
-            {
-              "name": "bee",
-              "toId": "b"
-            },
-            {
-              "name": "see",
-              "toId": "c"
-            }
-          ],
-          "type": "SOAR_ID"
-        },
-        "type": "FOREIGN"
-      },
-      {
-        "id": "idTest",
+        "id": "0",
         "outEdges": [
           {
             "name": "first",
@@ -64,26 +21,69 @@
         "type": "SOAR_ID"
       },
       {
-        "id": "intRangeTest",
+        "choices": [
+          "a",
+          "b",
+          "c"
+        ],
+        "id": "1",
+        "type": "ENUMERATION"
+      },
+      {
+        "id": "2",
+        "max": 10.1,
+        "min": 5.2,
+        "type": "FLOAT"
+      },
+      {
+        "id": "3",
+        "type": "FLOAT"
+      },
+      {
+        "foreignDMPath": "../foo/foo.dm",
+        "id": "4",
+        "importedVertex": {
+          "id": "0",
+          "outEdges": [
+            {
+              "comment": "The first letter of the alphabet",
+              "name": "ay",
+              "toId": "1"
+            },
+            {
+              "name": "bee",
+              "toId": "2"
+            },
+            {
+              "name": "see",
+              "toId": "3"
+            }
+          ],
+          "type": "SOAR_ID"
+        },
+        "type": "FOREIGN"
+      },
+      {
+        "id": "5",
         "max": 10,
         "min": 5,
         "type": "INTEGER"
       },
       {
-        "id": "intTest",
+        "id": "6",
         "type": "INTEGER"
       },
       {
-        "id": "stringTest",
+        "id": "7",
         "type": "STRING"
       },
       {
-        "id": "こんにちは🤓\n",
+        "id": "8",
         "outEdges": [
           {
             "comment": "testing that non-ASCII chars are not escaped\n\t",
             "name": "int",
-            "toId": "intTest"
+            "toId": "7"
           }
         ],
         "type": "SOAR_ID"
@@ -139,6 +139,18 @@
         ]
       },
       {
+        "file": "example-file.txt",
+        "id": "6",
+        "name": "example",
+        "type": "FILE"
+      },
+      {
+        "file": "Impasse__Operator_Conflict.soar",
+        "id": "69",
+        "name": "Impasse__Operator_Conflict",
+        "type": "IMPASSE_OPERATOR"
+      },
+      {
         "dmId": "108",
         "file": "Impasse__Operator_Tie.soar",
         "folder": "Impasse__Operator_Tie",
@@ -163,18 +175,6 @@
             ]
           }
         ]
-      },
-      {
-        "file": "example-file.txt",
-        "id": "2",
-        "name": "example",
-        "type": "FILE"
-      },
-      {
-        "file": "Impasse__Operator_Conflict.soar",
-        "id": "69",
-        "name": "Impasse__Operator_Conflict",
-        "type": "IMPASSE_OPERATOR"
       },
       {
         "file": "more-cooking.soar",

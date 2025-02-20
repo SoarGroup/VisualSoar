@@ -474,7 +474,7 @@ public class SoarWorkingMemoryModel {
 
   public Datamap toJson() {
     // first convert edges, which are stored with their tail in the JSON model
-    Map<Integer, List<DMVertex.OutEdge>> edgeIndex = buildJsonEdgeIndex();
+    Map<String, List<DMVertex.OutEdge>> edgeIndex = buildJsonEdgeIndex();
 
     List<DMVertex> jsonVertices = new ArrayList<>();
     rep.vertices()
@@ -493,14 +493,13 @@ public class SoarWorkingMemoryModel {
   }
 
   @NotNull
-  private Map<Integer, List<DMVertex.OutEdge>> buildJsonEdgeIndex() {
-    Map<Integer, List<DMVertex.OutEdge>> edgeIndex = new HashMap<>();
+  private Map<String, List<DMVertex.OutEdge>> buildJsonEdgeIndex() {
+    Map<String, List<DMVertex.OutEdge>> edgeIndex = new HashMap<>();
     Enumeration<NamedEdge> e = rep.edges();
     while (e.hasMoreElements()) {
       NamedEdge namedEdge = e.nextElement();
       List<DMVertex.OutEdge> edgeList =
-          edgeIndex.computeIfAbsent(namedEdge.V0().getValue(), ArrayList::new);
-      String comment = namedEdge.getComment();
+          edgeIndex.computeIfAbsent(namedEdge.V0().getSerializationId(), (k) -> new ArrayList<>());
       edgeList.add(
           new DMVertex.OutEdge(
               namedEdge.getName(),
@@ -510,31 +509,42 @@ public class SoarWorkingMemoryModel {
     return edgeIndex;
   }
 
-  private DMVertex toJsonVertex(SoarVertex vertex, Map<Integer, List<DMVertex.OutEdge>> edgeIndex) {
+
+  private DMVertex toJsonVertex(SoarVertex vertex, Map<String, List<DMVertex.OutEdge>> edgeIndex) {
+    return toJsonVertex(vertex, vertex.getSerializationId(), edgeIndex);
+  }
+
+  /**
+   * @param vertex to translate to JSON class instance
+   * @param edgeTailId in the case of foreign vertices, we use the parent ID to determine edges
+   * @param edgeIndex map from IDs to edges, used to retrieve edges for applicable vertices
+   */
+  private DMVertex toJsonVertex(SoarVertex vertex, String edgeTailId, Map<String, List<DMVertex.OutEdge>> edgeIndex) {
+    String id = vertex.getSerializationId();
     if (vertex instanceof EnumerationVertex) {
       List<String> enumChoices = new ArrayList<>();
       ((EnumerationVertex) vertex).getEnumeration().forEachRemaining(enumChoices::add);
-      return new DMVertex.EnumerationVertex(String.valueOf(vertex.getValue()), enumChoices);
+      return new DMVertex.EnumerationVertex(id, enumChoices);
     } else if (vertex instanceof FloatRangeVertex) {
       double min = ((FloatRangeVertex) vertex).getLow();
       double max = ((FloatRangeVertex) vertex).getHigh();
-      return new DMVertex.FloatRangeVertex(String.valueOf(vertex.getValue()), min, max);
+      return new DMVertex.FloatRangeVertex(id, min, max);
     } else if (vertex instanceof ForeignVertex) {
       DMVertex importedVertex =
-          toJsonVertex(((ForeignVertex) vertex).getCopyOfForeignSoarVertex(), edgeIndex);
+          toJsonVertex(((ForeignVertex) vertex).getCopyOfForeignSoarVertex(), id, edgeIndex);
       String foreignDmName = ((ForeignVertex) vertex).getForeignDMName();
       return new DMVertex.ForeignVertex(
-          String.valueOf(vertex.getValue()), foreignDmName, importedVertex);
+          id, foreignDmName, importedVertex);
     } else if (vertex instanceof IntegerRangeVertex) {
       int min = ((IntegerRangeVertex) vertex).getLow();
       int max = ((IntegerRangeVertex) vertex).getHigh();
-      return new DMVertex.IntegerRangeVertex(String.valueOf(vertex.getValue()), min, max);
+      return new DMVertex.IntegerRangeVertex(id, min, max);
     } else if (vertex instanceof SoarIdentifierVertex) {
       List<DMVertex.OutEdge> edgeList =
-          edgeIndex.getOrDefault(vertex.getValue(), Collections.emptyList());
-      return new DMVertex.SoarIdVertex(String.valueOf(vertex.getValue()), edgeList);
+          edgeIndex.getOrDefault(edgeTailId, Collections.emptyList());
+      return new DMVertex.SoarIdVertex(id, edgeList);
     } else if (vertex instanceof StringVertex) {
-      return new DMVertex(String.valueOf(vertex.getValue()), DMVertex.VertexType.STRING);
+      return new DMVertex(id, DMVertex.VertexType.STRING);
     } else {
       throw new IllegalArgumentException(
           "Found unknown vertex type "

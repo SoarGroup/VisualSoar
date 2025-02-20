@@ -17,6 +17,10 @@ public class Project {
   public final Datamap datamap;
   public final LayoutNode layout;
 
+  public Project(Datamap datamap, LayoutNode layout) {
+    this(SUPPORTED_VERSION, datamap, layout);
+  }
+
   @JsonCreator
   public Project(
       @JsonProperty("version") String version,
