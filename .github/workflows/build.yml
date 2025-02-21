@@ -27,11 +27,17 @@ jobs:
           distribution: "temurin"
           java-version: "11"
 
-      - name: Build with Gradle
+      - name: Build with Gradle (non-Ubuntu)
+        if: matrix.os != 'ubuntu-latest'
         run: ./gradlew build --no-daemon
 
-      - name: Run tests
-        run: ./gradlew test --no-daemon
+      # On Ubuntu, we have to set up a dummy X11 display for some tests that use the GUI
+      - name: Build with Gradle (on Ubuntu with dummy X11 display)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          export DISPLAY=:99
+          sudo Xvfb -ac :99 -screen 0 1280x1024x24 > /dev/null 2>&1 &
+          ./gradlew build --no-daemon
 
       # reports JUnit test results as GitHub PR check.
       - name: publish test report
