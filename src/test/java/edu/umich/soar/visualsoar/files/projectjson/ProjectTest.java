@@ -26,10 +26,11 @@ class ProjectTest {
   @BeforeAll
   public static void setup() throws URISyntaxException, IOException {
     sampleJsonPath = Paths.get(ProjectTest.class.getResource("sample.json").toURI());
-    sampleJsonRaw = Files.readString(sampleJsonPath);
+    // line-ending fix required in Windows for some reason
+    sampleJsonRaw = Files.readString(sampleJsonPath).replaceAll("\r\n", "\n");
     sampleNumberedJsonPath =
         Paths.get(ProjectTest.class.getResource("sample_numbered_ids.json").toURI());
-    sampleNumberedJsonRaw = Files.readString(sampleNumberedJsonPath);
+    sampleNumberedJsonRaw = Files.readString(sampleNumberedJsonPath).replaceAll("\r\n", "\n");
   }
 
   // TODO: separate round-trip stringification and structure tests
