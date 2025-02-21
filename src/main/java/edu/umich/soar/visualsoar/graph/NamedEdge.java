@@ -6,6 +6,7 @@ import edu.umich.soar.visualsoar.parser.Triple;
 import edu.umich.soar.visualsoar.parser.TripleUtils;
 import edu.umich.soar.visualsoar.util.QueueAsLinkedList;
 import edu.umich.soar.visualsoar.util.VSQueue;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Comparator;
 import java.util.Enumeration;
@@ -19,6 +20,9 @@ import java.util.Enumeration;
 
 public class NamedEdge extends Edge implements Comparable<NamedEdge> {
     private static final long serialVersionUID = 20221225L;
+
+  private static final Comparator<NamedEdge> COMPARATOR =
+      Comparator.comparing(NamedEdge::getName).thenComparingInt(ne -> ne.v1.getValue());
 
 ///////////////////////////////////////////////////////////////////
 // Data Members
@@ -354,7 +358,7 @@ public class NamedEdge extends Edge implements Comparable<NamedEdge> {
 
     /** satisfy the Comparable interface by comparing edge names */
     @Override
-    public int compareTo(NamedEdge o) {
-        return this.name.compareTo(o.name);
+    public int compareTo(@NotNull NamedEdge o) {
+      return COMPARATOR.compare(this, o);
     }
 }

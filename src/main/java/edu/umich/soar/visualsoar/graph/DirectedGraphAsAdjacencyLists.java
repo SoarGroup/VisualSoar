@@ -20,7 +20,7 @@ public class DirectedGraphAsAdjacencyLists extends DirectedGraph {
 
     /////////////////////////////////////////////////////////
 // Methods
-/////////////////////////////////////////////////////////	
+/////////////////////////////////////////////////////////
     public void addVertex(SoarVertex v) {
         if (v.getValue() == numberOfVertices) {
             vertices.add(v);
@@ -57,19 +57,19 @@ public class DirectedGraphAsAdjacencyLists extends DirectedGraph {
         boolean found = false;
         int foundAt = 0;
         boolean isSorted = true;  //innocent until proven guilty
-        String prevName = "";
+        NamedEdge prev = null;
         for (int i = 0; i < vec.size(); ++i) {
             NamedEdge current = vec.get(i);
-            if ((!found) && (current.getName().compareTo(ne.getName()) >= 0)) {
+            if ((!found) && (current.compareTo(ne) >= 0)) {
                 found = true;
                 foundAt = i;
             }
 
             //check for unsorted list (just in case)
-            if ((i > 0) && (prevName.compareTo(ne.getName()) > 0)) {
+            if ((prev != null) && (prev.compareTo(ne) > 0)) {
                 isSorted = false;  //this will trigger a full sort below
             }
-            prevName = current.getName();
+            prev = current;
         }//for
 
         if (found) {
