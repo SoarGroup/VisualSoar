@@ -62,7 +62,6 @@ public class OperatorWindow extends JTree {
      * @serial a reference to the project file
      */
     private SoarWorkingMemoryModel workingMemory;
-    private final boolean closed = false;
     private static OperatorWindow s_OperatorWindow;
 
 
@@ -2732,35 +2731,38 @@ public class OperatorWindow extends JTree {
         w.close();
     }
 
-    /**
-     * Responsible for keeping track of the backup project files
-     */
-    class BackupThread extends Thread {
-        Runnable writeOutControl;
+  /** Responsible for keeping track of the backup project files */
+  class BackupThread extends Thread {
+    Runnable writeOutControl;
 
-        public BackupThread() {
-            writeOutControl = new Runnable() {
-                public void run() {
-                    if (!closed) {
-                        OperatorRootNode orn = (OperatorRootNode) (getModel().getRoot());
-                        File projectFile = new File(orn.getProjectFile() + "~");
-                        File dataMapFile = new File(orn.getDataMapFile() + "~");
-                        File commentFile = new File(dataMapFile.getParent() + File.separator + "comment.dm~");
-                        writeOutHierarchy(projectFile, dataMapFile, commentFile, false);
-                    }
-                }
-            };
+    public BackupThread() {
+      writeOutControl =
+          () -> {
+            OperatorRootNode orn = (OperatorRootNode) (getModel().getRoot());
+            File projectFile = new File(orn.getProjectFile() + "~");
+            File dataMapFile = new File(orn.getDataMapFile() + "~");
+            File commentFile = new File(dataMapFile.getParent() + File.separator + "comment.dm~");
+            writeOutHierarchy(projectFile, dataMapFile, commentFile, false);
+          };
+    }
 
+    @Override
+    public void run() {
+      while (true) {
+        try {
+          sleep(60000 * 3); // 3 minutes
+        } catch (InterruptedException e) {
+          return;
         }
-
-        public void run() {
-            while (!closed) {
-                try {
-                    SwingUtilities.invokeAndWait(writeOutControl);
-                    sleep(60000 * 3);  // 3 minutes
-                } catch (InterruptedException | InvocationTargetException ie) { /* don't care */ }
-            }
-        }//run
-    }//end of BackupThread class
-
+        try {
+          SwingUtilities.invokeAndWait(writeOutControl);
+        } catch (InterruptedException | InvocationTargetException ie) {
+          // TODO: messing with the feedback manager here could cause other important feedback to disappear, so for now we won't write to it. If we upgrade the feedback UI some day, we should come back and log the errors here.
+          // FeedbackManager fbManager = MainFrame.getMainFrame().getFeedbackManager();
+          // fbManager.setStatusBarError("Error occurred while backing up project");
+          ie.printStackTrace();
+        }
+      }
+    } // run
+  } // end of BackupThread class
 }   // end of OperatorWindow class
