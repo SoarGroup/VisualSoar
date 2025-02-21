@@ -1414,7 +1414,7 @@ public class DataMapTree extends JTree implements ClipboardOwner, PopupMenuListe
             SoarVertex sv = neLocal.V1();
             if (! (sv instanceof ForeignVertex)) continue;
             ForeignVertex localChildSV = (ForeignVertex)sv;
-            SoarVertex efcSV = localChildSV.getCopyOfForeignSoarVertex();  //expected foreign child SoarVertex
+            SoarVertex efcSV = localChildSV.getForeignSoarVertex();  //expected foreign child SoarVertex
 
             //Find the corresponding foreign NamedEdge
             NamedEdge neForeign = null;
@@ -1470,7 +1470,7 @@ public class DataMapTree extends JTree implements ClipboardOwner, PopupMenuListe
      * @return null on failure
      */
     protected SoarVertex getForeignSoarVertex(SoarWorkingMemoryModel fSWMM, ForeignVertex fv) {
-        SoarVertex foreignSV = fSWMM.getVertexForId(fv.getCopyOfForeignSoarVertex().getValue());
+        SoarVertex foreignSV = fSWMM.getVertexForId(fv.getForeignSoarVertex().getValue());
         boolean found = false;
         if (foreignSV != null) {
             //Verify that this foreign vertex still has the right name and is at level 1

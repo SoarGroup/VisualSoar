@@ -65,8 +65,8 @@ class SoarWorkingMemoryReaderTest {
     assertEquals(99, foreignVertex.getValue());
     assertEquals("my-foreign-dm", foreignVertex.getForeignDMName());
 
-    assertInstanceOf(EnumerationVertex.class, foreignVertex.getCopyOfForeignSoarVertex());
-    EnumerationVertex enumVertex = (EnumerationVertex) foreignVertex.getCopyOfForeignSoarVertex();
+    assertInstanceOf(EnumerationVertex.class, foreignVertex.getForeignSoarVertex());
+    EnumerationVertex enumVertex = (EnumerationVertex) foreignVertex.getForeignSoarVertex();
     assertEquals(87, enumVertex.getValue());
     assertIterableEquals(
         Arrays.asList("tie", "conflict", "constraint-failure", "no-change", "|bye-bye \t birdie|"),

@@ -17,6 +17,18 @@
           {
             "name": "third",
             "toId": "3"
+          },
+          {
+            "name": "yyy",
+            "toId": "5"
+          },
+          {
+            "name": "yyy",
+            "toId": "6"
+          },
+          {
+            "name": "zzz",
+            "toId": "7"
           }
         ],
         "type": "SOAR_ID"
@@ -85,7 +97,7 @@
           {
             "comment": "testing that non-ASCII chars are not escaped\n\t",
             "name": "int",
-            "toId": "7"
+            "toId": "4"
           }
         ],
         "type": "SOAR_ID"
@@ -153,7 +165,7 @@
         "type": "IMPASSE_OPERATOR"
       },
       {
-        "dmId": "108",
+        "dmId": "8",
         "file": "Impasse__Operator_Tie.soar",
         "folder": "Impasse__Operator_Tie",
         "id": "59",
@@ -161,7 +173,7 @@
         "type": "HIGH_LEVEL_IMPASSE_OPERATOR",
         "children": [
           {
-            "dmId": "124",
+            "dmId": "0",
             "file": "evaluate-operator.soar",
             "folder": "evaluate-operator",
             "id": "61",

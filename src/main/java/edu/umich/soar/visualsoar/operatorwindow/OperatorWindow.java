@@ -1269,6 +1269,8 @@ public class OperatorWindow extends JTree {
 
     OperatorRootNode orNode = (OperatorRootNode) root;
     orNode.setFullPath(jsonPath.getParent().toString());
+
+    restoreStateIds();
   }
 
   /**

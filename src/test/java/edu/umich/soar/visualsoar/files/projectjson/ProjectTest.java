@@ -11,13 +11,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import edu.umich.soar.visualsoar.mainframe.MainFrame;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorWindow;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 class ProjectTest {
   private static Path sampleJsonPath;
-//  TODO: get rid of this after we stop requiring number IDs
+  //  TODO: get rid of this after we stop requiring number IDs
   private static Path sampleNumberedJsonPath;
   private static String sampleJsonRaw;
   private static String sampleNumberedJsonRaw;
@@ -51,12 +52,13 @@ class ProjectTest {
 
     String roundTrippedRawJson = Files.readString(destination);
     Project roundTrippedProject =
-      loadFromJson(new StringReader(roundTrippedRawJson), Project.class);
+        loadFromJson(new StringReader(roundTrippedRawJson), Project.class);
 
     assertEquals(sampleJsonRaw, roundTrippedRawJson);
     assertEquals(originalProject, roundTrippedProject);
   }
-//  TODO: remove
+
+  //  TODO: remove when we remove numeric ID requirement
   @Test
   public void roundTripNumberedSerialization() throws IOException {
     Project originalProject = loadFromJson(new StringReader(sampleNumberedJsonRaw), Project.class);
@@ -66,30 +68,29 @@ class ProjectTest {
 
     String roundTrippedRawJson = Files.readString(destination);
     Project roundTrippedProject =
-      loadFromJson(new StringReader(roundTrippedRawJson), Project.class);
+        loadFromJson(new StringReader(roundTrippedRawJson), Project.class);
 
     assertEquals(sampleNumberedJsonRaw, roundTrippedRawJson);
     assertEquals(originalProject, roundTrippedProject);
   }
-//
-//  @Test
-//  public void roundTripSoarWorkingMemoryModel() throws IOException {
-//    SoarWorkingMemoryModel swmm = SoarWorkingMemoryReader.loadSWMM(sampleJsonPath.toFile());
-//    //    write to temp file, then read and compare just the datamap somehow.
-//  }
 
+//  TODO: move to OperatorWindowTest?
   /**
    * Test that a round-trip serialization between JSON and V-S internal project representation is
    * lossless.
    */
   @Test
   public void roundTripOperatorWindow() throws IOException {
-    OperatorWindow operatorWindow = new OperatorWindow("sample", sampleNumberedJsonPath, false);
-    operatorWindow.openHierarchy(sampleNumberedJsonPath.toFile());
+    MainFrame.setMainFrame(new MainFrame("Test"));
+    MainFrame.getMainFrame().openProject(sampleNumberedJsonPath.toFile(), false);
     Path tempDir = Files.createTempDirectory("roundTripOperatorWindow");
-    operatorWindow.writeOutHierarchy(tempDir.resolve("sample.vsa").toFile(), null, null, true);
+    OperatorWindow.getOperatorWindow()
+        .writeOutHierarchy(
+            tempDir.resolve("sample.vsa").toFile(),
+            tempDir.resolve("sample.dm").toFile(),
+            tempDir.resolve("comment.dm").toFile(),
+            false);
     String roundTrippedJson = Files.readString(tempDir.resolve("sample.vsa.json"));
     assertEquals(sampleNumberedJsonRaw, roundTrippedJson);
-    //    SoarWorkingMemoryModel swmm = SoarWorkingMemoryReader.loadSWMM(sampleJsonPath.toFile());
   }
 }

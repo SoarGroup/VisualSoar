@@ -70,10 +70,10 @@ public class ForeignVertex extends SoarVertex {
         return this.foreignDM;
     }
 
-    /** a copy of the SoarVertex object in the foreign datamap
+    /** the SoarVertex object in the foreign datamap
      * that this ForeignVertex refers to */
-    public SoarVertex getCopyOfForeignSoarVertex() {
-        // TODO: this is not a copy!
+    public SoarVertex getForeignSoarVertex() {
+        // TODO: maybe for some use-cases we should be taking a copy?
         return this.foreignSV;
     }
 

@@ -503,7 +503,7 @@ public class SoarWorkingMemoryModel {
       edgeList.add(
           new DMVertex.OutEdge(
               namedEdge.getName(),
-              String.valueOf(namedEdge.V1().getValue()),
+              String.valueOf(namedEdge.V1().getSerializationId()),
               namedEdge.getComment(),
               namedEdge.isGenerated()));
     }
@@ -532,7 +532,7 @@ public class SoarWorkingMemoryModel {
       return new DMVertex.FloatRangeVertex(id, min, max);
     } else if (vertex instanceof ForeignVertex) {
       DMVertex importedVertex =
-          toJsonVertex(((ForeignVertex) vertex).getCopyOfForeignSoarVertex(), id, edgeIndex);
+          toJsonVertex(((ForeignVertex) vertex).getForeignSoarVertex(), id, edgeIndex);
       String foreignDmName = ((ForeignVertex) vertex).getForeignDMName();
       return new DMVertex.ForeignVertex(
           id, foreignDmName, importedVertex);

@@ -120,7 +120,7 @@ public class SearchDataMapDialog extends JDialog {
                     if (ftn.getEdge() != null) {
                         SoarVertex enumVert = ftn.getEnumeratingVertex();
                         if (enumVert instanceof ForeignVertex) {
-                            enumVert = ((ForeignVertex) enumVert).getCopyOfForeignSoarVertex();
+                            enumVert = ((ForeignVertex) enumVert).getForeignSoarVertex();
                         }
                         if ((ftn.getEdge()).getName().equals(toFind) &&
                                 ((theOptions[0] && enumVert instanceof SoarIdentifierVertex)
@@ -147,7 +147,7 @@ public class SearchDataMapDialog extends JDialog {
                                 if (childftn.getEdge() != null) {
                                     SoarVertex childEnumVert = ftn.getEnumeratingVertex();
                                     if (childEnumVert instanceof ForeignVertex) {
-                                        childEnumVert = ((ForeignVertex) childEnumVert).getCopyOfForeignSoarVertex();
+                                        childEnumVert = ((ForeignVertex) childEnumVert).getForeignSoarVertex();
                                     }
                                     if ((childftn.getEdge()).getName().equals(toFind) &&
                                             ((theOptions[0] && childEnumVert instanceof SoarIdentifierVertex)

@@ -1,5 +1,6 @@
 package edu.umich.soar.visualsoar.operatorwindow;
 
+import edu.umich.soar.visualsoar.graph.ForeignVertex;
 import edu.umich.soar.visualsoar.mainframe.MainFrame;
 import edu.umich.soar.visualsoar.datamap.DataMap;
 import edu.umich.soar.visualsoar.datamap.SoarWorkingMemoryModel;
@@ -11,6 +12,7 @@ import javax.swing.*;
 import javax.swing.tree.DefaultTreeModel;
 import java.io.*;
 import java.util.Enumeration;
+import java.util.Objects;
 import java.util.Vector;
 
 public abstract class SoarOperatorNode extends FileNode {
@@ -203,10 +205,19 @@ public abstract class SoarOperatorNode extends FileNode {
         return !isHighLevel;
     }
 
-    public void restoreId(SoarWorkingMemoryModel swmm) {
-
-        dataMapId = (SoarIdentifierVertex) swmm.getVertexForId(dataMapIdNumber);
+  public void restoreId(SoarWorkingMemoryModel swmm) {
+    SoarVertex sv = swmm.getVertexForId(dataMapIdNumber);
+    Objects.requireNonNull(sv, "Operator node's datamap ID does not point to any exist DM vertex");
+    if (sv instanceof ForeignVertex) {
+      sv = ((ForeignVertex) sv).getForeignSoarVertex();
     }
+    if (!(sv instanceof SoarIdentifierVertex)) {
+      throw new IllegalStateException(
+          "Operator node's datamap ID should point to a Soar ID vertex, but found a "
+              + sv.getClass().getName());
+    }
+    dataMapId = (SoarIdentifierVertex) sv;
+  }
 
     /** helper method for {@link #rename} that renames a source file
      * @return a File object for the renamed file */

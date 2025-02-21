@@ -85,7 +85,7 @@ public class FeedbackEntryForeignDatamap extends FeedbackEntryDatamap {
         //Check:  type mismatch
         String fcTypeName = foreignSV.typeName();
         ForeignVertex localSV = (ForeignVertex)localNE.V1();
-        SoarVertex efcSV = localSV.getCopyOfForeignSoarVertex();
+        SoarVertex efcSV = localSV.getForeignSoarVertex();
         String efcSVTypeName = efcSV.typeName();
         if (! fcTypeName.equals(efcSVTypeName)) {
             String msg =  "    " + rep + " is a " + efcSVTypeName + " but it is a " + fcTypeName + " in " + localSV.getForeignDMName();
