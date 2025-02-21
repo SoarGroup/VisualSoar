@@ -72,6 +72,10 @@ tasks.test {
     junitXml.required.set(true)
     junitXml.outputLocation.set(file("${layout.buildDirectory.get()}/reports/test-results"))
   }
+
+  testLogging {
+    exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+  }
 }
 
 application {

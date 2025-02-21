@@ -54,7 +54,10 @@ class ProjectTest {
     Project roundTrippedProject =
         loadFromJson(new StringReader(roundTrippedRawJson), Project.class);
 
-    assertEquals(sampleJsonRaw, roundTrippedRawJson);
+    assertEquals(
+        sampleJsonRaw,
+        roundTrippedRawJson,
+        "Expected:\n" + sampleJsonRaw + "\nActual: " + roundTrippedRawJson);
     assertEquals(originalProject, roundTrippedProject);
   }
 
@@ -70,11 +73,14 @@ class ProjectTest {
     Project roundTrippedProject =
         loadFromJson(new StringReader(roundTrippedRawJson), Project.class);
 
-    assertEquals(sampleNumberedJsonRaw, roundTrippedRawJson);
+    assertEquals(
+        sampleNumberedJsonRaw,
+        roundTrippedRawJson,
+        "Expected:\n" + sampleNumberedJsonRaw + "\nActual: " + roundTrippedRawJson);
     assertEquals(originalProject, roundTrippedProject);
   }
 
-//  TODO: move to OperatorWindowTest?
+  //  TODO: move to OperatorWindowTest?
   /**
    * Test that a round-trip serialization between JSON and V-S internal project representation is
    * lossless.
@@ -91,6 +97,9 @@ class ProjectTest {
             tempDir.resolve("comment.dm").toFile(),
             false);
     String roundTrippedJson = Files.readString(tempDir.resolve("sample.vsa.json"));
-    assertEquals(sampleNumberedJsonRaw, roundTrippedJson);
+    assertEquals(
+        sampleNumberedJsonRaw,
+        roundTrippedJson,
+        "Expected:\n" + sampleNumberedJsonRaw + "\nActual: " + roundTrippedJson);
   }
 }
