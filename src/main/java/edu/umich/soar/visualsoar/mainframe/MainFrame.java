@@ -1416,8 +1416,8 @@ public class MainFrame extends JFrame
       //Reset tracking whether any change has been made to this project
       CustomInternalFrame.resetEverchanged();
 
-      //Set the title bar to include the project name
-      setTitle(vsaFile.getName().replaceAll(".vsa", ""));
+      // Set the title bar to include the project name
+      setTitle(vsaFile.getName().replaceAll(".vsa.json", "").replaceAll(".vsa", ""));
 
       //Reopen windows that were open last time
       Cfg.readCfgFile(this);
