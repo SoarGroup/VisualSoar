@@ -50,7 +50,6 @@ class ProjectTest {
     assertEquals(originalProject, roundTrippedProject);
   }
 
-  //  TODO: move to OperatorWindowTest?
   /**
    * Test that a round-trip serialization between JSON and V-S internal project representation is
    * lossless.

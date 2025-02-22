@@ -598,20 +598,21 @@ public class OperatorWindow extends JTree {
                         "I/O Error", JOptionPane.ERROR_MESSAGE);
             }
 
-            //Save the change to the .vsa file.
+
+          //Save the change to the _source files
+          DefaultTreeModel tree = (DefaultTreeModel) getModel();
+          OperatorRootNode root = (OperatorRootNode) tree.getRoot();
+          try {
+            // Save the change to the .vsa file.
             saveHierarchy();
-
-            //Save the change to the _source files
-            DefaultTreeModel tree = (DefaultTreeModel) getModel();
-            OperatorRootNode root = (OperatorRootNode) tree.getRoot();
-            try {
-
-                root.startSourcing();
-            } catch (IOException ioe) {
-                JOptionPane.showMessageDialog(MainFrame.getMainFrame(),
-                        "Operator file renamed successfully but '_source' file \ncould not be updated.  I recommend you try to save \nyour project manually.",
-                        "I/O Error", JOptionPane.ERROR_MESSAGE);
-            }
+            root.startSourcing();
+          } catch (IOException ioe) {
+            JOptionPane.showMessageDialog(
+                MainFrame.getMainFrame(),
+                "Operator file renamed successfully but '_source' file \ncould not be updated.  I recommend you try to save \nyour project manually.",
+                "I/O Error",
+                JOptionPane.ERROR_MESSAGE);
+          }
         }
     }
 
@@ -1315,7 +1316,7 @@ public class OperatorWindow extends JTree {
      * @see #saveHierarchy()
      * @see OperatorRootNode#renameAndBackup(OperatorWindow, String, String)
      */
-    public void saveProjectAs(String newName, String newPath) {
+    public void saveProjectAs(String newName, String newPath) throws IOException {
         //Save the original to file first
         saveHierarchy();
 
@@ -1324,67 +1325,54 @@ public class OperatorWindow extends JTree {
         orn.renameAndBackup(this, newName, newPath);
     }
 
+  /**
+   * Saves the current hierarchy to disk using Version 4 and 6 methods
+   *
+   * @param inProjFile name of the file to be saved - .vsa file
+   * @param inDataMapFile name of the datamap file - .dm file
+   * @param inCommentFile name of the datamap comment file - comment.dm
+   * @param jsonOnly only write out the JSON version of the project (for testing purposes). TODO:
+   *     remove after accepting the new format
+   * @see #reduceWorkingMemory()
+   * @see TreeSerializer#write
+   * @see SoarWorkingMemoryModel#write
+   * @see SoarWorkingMemoryModel#writeComments
+   */
+  public void writeOutHierarchy(
+      File inProjFile, File inDataMapFile, File inCommentFile, boolean jsonOnly) throws IOException {
+    if (!jsonOnly) {
+      reduceWorkingMemory();
+      OperatorRootNode orn = (OperatorRootNode) (getModel().getRoot());
+      FileWriter fw = new FileWriter(inProjFile.getAbsolutePath());
+      fw.write("VERSION 4\n");
+      // for Version 5:  fw.write("VERSION 5\n");
+      String dataMapRP = orn.getDataMapFile().substring(orn.getFullPathStart().length());
+      fw.write(dataMapRP + '\n');
+      TreeSerializer.write(fw, (DefaultTreeModel) getModel());
+      // for Version 5:  TreeFileWriter.write5(fw,(DefaultTreeModel)getModel());
+      fw.close();
+      FileWriter graphWriter = new FileWriter(inDataMapFile);
+      workingMemory.write(graphWriter);
+      graphWriter.close();
 
-    /**
-     * Saves the current hierarchy to disk using Version 4 and 6 methods
-     *
-     * @param inProjFile    name of the file to be saved - .vsa file
-     * @param inDataMapFile name of the datamap file - .dm file
-     * @param inCommentFile name of the datamap comment file - comment.dm
-     * @param jsonOnly      only write out the JSON version of the project (for testing purposes). TODO: remove after accepting the new format
-     * @see #reduceWorkingMemory()
-     * @see TreeSerializer#write
-     * @see SoarWorkingMemoryModel#write
-     * @see SoarWorkingMemoryModel#writeComments
-     */
-    public void writeOutHierarchy(File inProjFile, File inDataMapFile, File inCommentFile, boolean jsonOnly) {
-      if (!jsonOnly) {
-        reduceWorkingMemory();
-        try {
-          OperatorRootNode orn = (OperatorRootNode) (getModel().getRoot());
-          FileWriter fw = new FileWriter(inProjFile.getAbsolutePath());
-          fw.write("VERSION 4\n");
-          // for Version 5:  fw.write("VERSION 5\n");
-          String dataMapRP = orn.getDataMapFile().substring(orn.getFullPathStart().length());
-          fw.write(dataMapRP + '\n');
-          TreeSerializer.write(fw, (DefaultTreeModel) getModel());
-          // for Version 5:  TreeFileWriter.write5(fw,(DefaultTreeModel)getModel());
-          fw.close();
-          FileWriter graphWriter = new FileWriter(inDataMapFile);
-          workingMemory.write(graphWriter);
-          graphWriter.close();
+      FileWriter commentWriter = new FileWriter(inCommentFile);
+      workingMemory.writeComments(commentWriter);
+      commentWriter.close();
+    }
 
-          FileWriter commentWriter = new FileWriter(inCommentFile);
-          workingMemory.writeComments(commentWriter);
-          commentWriter.close();
-        } catch (IOException ioe) {
-          // TODO: the user needs to be alerted properly
-          System.err.println("An Exception was thrown in OperatorWindow.saveHierarchy");
-          ioe.printStackTrace();
-        }
-      }
-
-      try {
-        Datamap dmJson = workingMemory.toJson();
-        LayoutNode layoutNodeJson = TreeSerializer.toJson((DefaultTreeModel) getModel());
-        Project project = new Project(dmJson, layoutNodeJson);
-        // TODO: factor out name creation logic .json on elsewhere
-        Json.writeJsonToFile(Paths.get(inProjFile.getAbsolutePath() + ".json"), project);
-      } catch (IOException e) {
-        // TODO: the user needs to be alerted properly
-        System.err.println("An Exception was thrown in OperatorWindow.saveHierarchy");
-        e.printStackTrace();
-      }
-
-    }  // end of writeOutHierarchy()
-
+    Datamap dmJson = workingMemory.toJson();
+    LayoutNode layoutNodeJson = TreeSerializer.toJson((DefaultTreeModel) getModel());
+    Project project = new Project(dmJson, layoutNodeJson);
+    // TODO: factor out name creation logic .json on elsewhere
+    Json.writeJsonToFile(Paths.get(inProjFile.getAbsolutePath() + ".json"), project);
+  } // end of writeOutHierarchy()
 
     /**
      * Save entire Operator Hierarchy (including datamap)
      *
      * @see #writeOutHierarchy
      */
-    public void saveHierarchy() {
+    public void saveHierarchy() throws IOException {
         OperatorRootNode orn = (OperatorRootNode) (getModel().getRoot());
         File projectFileName = new File(orn.getProjectFile());
         File dataMapFile = new File(orn.getDataMapFile());
@@ -2800,7 +2788,12 @@ public class OperatorWindow extends JTree {
             File projectFile = new File(orn.getProjectFile() + "~");
             File dataMapFile = new File(orn.getDataMapFile() + "~");
             File commentFile = new File(dataMapFile.getParent() + File.separator + "comment.dm~");
-            writeOutHierarchy(projectFile, dataMapFile, commentFile, false);
+            try {
+              writeOutHierarchy(projectFile, dataMapFile, commentFile, false);
+            } catch (IOException e) {
+              // caught in the run() method below
+              throw new RuntimeException(e);
+            }
           };
     }
 

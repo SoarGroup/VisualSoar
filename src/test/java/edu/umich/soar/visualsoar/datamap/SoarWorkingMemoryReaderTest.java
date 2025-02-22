@@ -114,8 +114,6 @@ class SoarWorkingMemoryReaderTest {
         getIterableFromIterator(enumVertex.getEnumeration()));
   }
 
-  // TODO: parseEnumVertexWithSpacesAndVerticalBars (tests escaping of vertical bars)
-
   @ParameterizedTest(name = "{1}")
   @MethodSource("provideVertexParsers")
   public void parseIntegerRangeVertex(Function<String, SoarVertex> parser, String parserName) {

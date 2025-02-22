@@ -4,7 +4,9 @@ import edu.umich.soar.visualsoar.mainframe.MainFrame;
 import edu.umich.soar.visualsoar.misc.PerformableAction;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorWindow;
 
+import javax.swing.*;
 import java.awt.event.ActionEvent;
+import java.io.IOException;
 
 /**
  * Attempts to save the datamap
@@ -22,7 +24,17 @@ public class SaveDataMapAndProjectAction extends PerformableAction {
 
   public void perform() {
     if (mainFrame.getOperatorWindow() != null) {
-      mainFrame.getOperatorWindow().saveHierarchy();
+      try {
+        mainFrame.getOperatorWindow().saveHierarchy();
+      } catch (IOException e) {
+        JOptionPane.showMessageDialog(
+          mainFrame,
+          e.getMessage(),
+          "DataMap/Project Save Error",
+          JOptionPane.ERROR_MESSAGE);
+        e.printStackTrace();
+        mainFrame.getFeedbackManager().setStatusBarError("Failed to save DataMap and project");
+      }
     }
   }
 

@@ -2043,7 +2043,16 @@ public class MainFrame extends JFrame
           String newRootPath = spad.getNewAgentPath();
           String newProjPath = newRootPath + File.separator + newName;
           if (OperatorWindow.isProjectNameValid(newName)) {
+            try {
             operatorWindow.saveProjectAs(newName, newRootPath);
+            } catch (IOException exception) {
+              JOptionPane.showMessageDialog(
+                MainFrame.this,
+                exception.getMessage(),
+                "Project Save Error",
+                JOptionPane.ERROR_MESSAGE);
+              return;
+            }
 
             // Regenerate the *_source.soar files in the old project
             try {
