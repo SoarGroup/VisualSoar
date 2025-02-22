@@ -1448,7 +1448,7 @@ public class MainFrame extends JFrame
       getFeedbackManager().setStatusBarError("Failed to open " + vsaFile);
       JOptionPane.showMessageDialog(
         this,
-        "Error: Failed to read project due to unknown error",
+        "Error: Failed to read project due to error: " + e.getMessage(),
         "Bad File",
         JOptionPane.ERROR_MESSAGE);
     }

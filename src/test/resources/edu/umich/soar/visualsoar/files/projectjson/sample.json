@@ -61,17 +61,6 @@
         "type": "STRING"
       },
       {
-        "id": "i",
-        "outEdges": [
-          {
-            "comment": "testing that non-ASCII chars are not escaped\n\t",
-            "name": "int",
-            "toId": "e"
-          }
-        ],
-        "type": "SOAR_ID"
-      },
-      {
         "id": "my root ID",
         "outEdges": [
           {
@@ -98,6 +87,17 @@
           {
             "name": "zzz",
             "toId": "h"
+          }
+        ],
+        "type": "SOAR_ID"
+      },
+      {
+        "id": "こんにちは🤓\n",
+        "outEdges": [
+          {
+            "comment": "testing that non-ASCII chars are not escaped 🏃💥\n\t",
+            "name": "int",
+            "toId": "e"
           }
         ],
         "type": "SOAR_ID"
@@ -165,7 +165,7 @@
         "type": "IMPASSE_OPERATOR"
       },
       {
-        "dmId": "i",
+        "dmId": "こんにちは🤓\n",
         "file": "Impasse__Operator_Tie.soar",
         "folder": "Impasse__Operator_Tie",
         "id": "v",

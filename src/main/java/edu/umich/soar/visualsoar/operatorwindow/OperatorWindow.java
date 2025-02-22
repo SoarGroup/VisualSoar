@@ -1845,45 +1845,82 @@ public class OperatorWindow extends JTree {
     int id = idProvider.getId(node.id);
     switch (node.type) {
       case FILE:
-        LayoutNode.File fileNode = (LayoutNode.File) node;
-        return new FileNode(fileNode.name, id, node.id, fileNode.file);
+        {
+          LayoutNode.File fileNode = (LayoutNode.File) node;
+          return new FileNode(fileNode.name, id, node.id, fileNode.file);
+        }
       case OPERATOR:
-        LayoutNode.Operator oNode = (LayoutNode.Operator) node;
-        return new OperatorOperatorNode(oNode.name, id, node.id, oNode.file);
+        {
+          LayoutNode.Operator oNode = (LayoutNode.Operator) node;
+          return new OperatorOperatorNode(oNode.name, id, node.id, oNode.file);
+        }
       case FILE_OPERATOR:
-        LayoutNode.FileOperator foNode = (LayoutNode.FileOperator) node;
-        return new FileOperatorNode(foNode.name, id, node.id, foNode.file);
+        {
+          LayoutNode.FileOperator foNode = (LayoutNode.FileOperator) node;
+          return new FileOperatorNode(foNode.name, id, node.id, foNode.file);
+        }
       case OPERATOR_ROOT:
-        LayoutNode.OperatorRoot orNode = (LayoutNode.OperatorRoot) node;
-        return new OperatorRootNode(orNode.name, node.id, id, orNode.folder);
+        {
+          LayoutNode.OperatorRoot orNode = (LayoutNode.OperatorRoot) node;
+          return new OperatorRootNode(orNode.name, node.id, id, orNode.folder);
+        }
       case LINK:
-        LayoutNode.Link lNode = (LayoutNode.Link) node;
-        return new LinkNode(
-            lNode.name, id, node.id, lNode.file, idProvider.getId(lNode.linkedNodeId));
+        {
+          LayoutNode.Link lNode = (LayoutNode.Link) node;
+          return new LinkNode(
+              lNode.name, id, node.id, lNode.file, idProvider.getId(lNode.linkedNodeId));
+        }
       case FOLDER:
-        LayoutNode.Folder folderNode = (LayoutNode.Folder) node;
-        return new FolderNode(folderNode.name, id, node.id, folderNode.folder);
+        {
+          LayoutNode.Folder folderNode = (LayoutNode.Folder) node;
+          return new FolderNode(folderNode.name, id, node.id, folderNode.folder);
+        }
       case IMPASSE_OPERATOR:
-        LayoutNode.ImpasseOperator ioNode = (LayoutNode.ImpasseOperator) node;
-        return new ImpasseOperatorNode(ioNode.name, id, node.id, ioNode.file);
+        {
+          LayoutNode.ImpasseOperator ioNode = (LayoutNode.ImpasseOperator) node;
+          return new ImpasseOperatorNode(ioNode.name, id, node.id, ioNode.file);
+        }
       case HIGH_LEVEL_OPERATOR:
-        LayoutNode.HighLevelOperator hloNode = (LayoutNode.HighLevelOperator) node;
-        int dmId = swwm.getVertexForSerializationId(hloNode.dmId).getValue();
-        return new OperatorOperatorNode(
-            hloNode.name, id, node.id, hloNode.file, hloNode.folder, dmId);
+        {
+          LayoutNode.HighLevelOperator hloNode = (LayoutNode.HighLevelOperator) node;
+          SoarVertex dmVertex = getVertexForDmId(swwm, node.id, hloNode.dmId);
+          int dmId = dmVertex.getValue();
+          return new OperatorOperatorNode(
+              hloNode.name, id, node.id, hloNode.file, hloNode.folder, dmId);
+        }
       case HIGH_LEVEL_FILE_OPERATOR:
-        LayoutNode.HighLevelFileOperator hlfoNode = (LayoutNode.HighLevelFileOperator) node;
-        dmId = swwm.getVertexForSerializationId(hlfoNode.dmId).getValue();
-        return new FileOperatorNode(
-            hlfoNode.name, id, node.id, hlfoNode.file, hlfoNode.folder, dmId);
+        {
+          LayoutNode.HighLevelFileOperator hlfoNode = (LayoutNode.HighLevelFileOperator) node;
+          SoarVertex dmVertex =getVertexForDmId(swwm, node.id, hlfoNode.dmId);
+          int dmId = dmVertex.getValue();
+          return new FileOperatorNode(
+              hlfoNode.name, id, node.id, hlfoNode.file, hlfoNode.folder, dmId);
+        }
       case HIGH_LEVEL_IMPASSE_OPERATOR:
-        LayoutNode.HighLevelImpasseOperator hlioNode = (LayoutNode.HighLevelImpasseOperator) node;
-        dmId = swwm.getVertexForSerializationId(hlioNode.dmId).getValue();
-        return new ImpasseOperatorNode(
-            hlioNode.name, id, node.id, hlioNode.file, hlioNode.folder, dmId);
+        {
+          LayoutNode.HighLevelImpasseOperator hlioNode = (LayoutNode.HighLevelImpasseOperator) node;
+          SoarVertex dmVertex =getVertexForDmId(swwm, node.id, hlioNode.dmId);
+          int dmId = dmVertex.getValue();
+          return new ImpasseOperatorNode(
+              hlioNode.name, id, node.id, hlioNode.file, hlioNode.folder, dmId);
+        }
       default:
         throw new IllegalArgumentException("Unknown layout node type: " + node.type);
     }
+  }
+
+  private static SoarVertex getVertexForDmId(
+      SoarWorkingMemoryModel swwm, String layoutNodeId, String dmId) {
+    SoarVertex sv = swwm.getVertexForSerializationId(dmId);
+    if (sv == null) {
+      throw new IllegalArgumentException(
+          "Operator node '"
+              + layoutNodeId
+              + "' has dmId='"
+              + dmId
+              + "', but no such datamap vertex exists");
+    }
+    return sv;
   }
 
     /**
