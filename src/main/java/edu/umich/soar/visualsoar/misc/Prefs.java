@@ -278,7 +278,7 @@ public enum Prefs {
     /* helper method for addRecentProject() below.  It verifies a given filename
        is the valid name of an existing .vsa file and adds it to a list. */
     private static void addIfValid(String filename, boolean readOnly, Vector<RecentProjInfo> recentProjs) {
-        if ( (filename != null) && (filename.endsWith(".vsa")) ) {
+        if ( (filename != null) && (filename.endsWith(".vsa") || filename.endsWith(".vsa.json")) ) {
 
             File newbieFile = new File(filename);
 
@@ -312,7 +312,7 @@ public enum Prefs {
 
     /**
      * adds a new filename to the list of recent projects.
-     * The given file is presumed to be the .vsa file for the currently open project.
+     * The given file is presumed to be the .vsa or .vsa.json file for the currently open project.
      */
     public static void addRecentProject(File newbie, boolean readOnly) {
         //Make sure this file is valid and unique.

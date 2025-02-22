@@ -10,7 +10,7 @@ import java.awt.event.ActionEvent;
 import java.io.IOException;
 
 /**
- * Export Agent Writes all the <operator>_source.soar files necesary for sourcing agent files
+ * Export Agent Writes all the <operator>_source.soar files necessary for sourcing agent files
  * written in into the TSI
  */
 public class ExportAgentAction extends PerformableAction {

@@ -116,6 +116,7 @@ public class OperatorRootNode extends FolderNode implements java.io.Serializable
         return fullPathStart + File.separator + getName() + ".vsa";
     }
 
+    // Not used anymore, but will leave until all backup files are likely to be gone
     public String getDataMapFile() {
         return getFolderName() + File.separator + getName() + ".dm";
     }
@@ -170,6 +171,7 @@ public class OperatorRootNode extends FolderNode implements java.io.Serializable
         this.folderName = newFolder.getName();
         this.name = newName;
         this.fullPathStart = newPath;
+        //TODO: set to JSON here
 
         model.nodeChanged(this);
     }//rename
@@ -179,10 +181,14 @@ public class OperatorRootNode extends FolderNode implements java.io.Serializable
     }
 
     public void renameAndBackup(OperatorWindow operatorWindow, String newName, String newPath) {
-
-        if (new File(newPath + File.separator + newName + ".vsa").exists()) {
-            JOptionPane.showMessageDialog(MainFrame.getMainFrame(), "An agent with this name already exists at this location.", "Naming Error", JOptionPane.ERROR_MESSAGE);
-            return;
+        if (new File(newPath + File.separator + newName + ".vsa").exists()
+            || new File(newPath + File.separator + newName + ".vsa.json").exists()) {
+          JOptionPane.showMessageDialog(
+              MainFrame.getMainFrame(),
+              "An agent with this name already exists at this location.",
+              "Naming Error",
+              JOptionPane.ERROR_MESSAGE);
+          return;
         }
 
         //Create the parent folder if it doesn't exist
@@ -201,18 +207,14 @@ public class OperatorRootNode extends FolderNode implements java.io.Serializable
             //Update the instance variables identifying this project
             rename(operatorWindow, newName, newPath);
 
-            //Create a sub-folder for the .dm file
+            //Create a sub-folder to copy project files to
             String newDataFolderName = newPath + File.separator + newName;
             File newDataFolder = new File(newDataFolderName);
             if (!newDataFolder.exists()) {
                 newDataFolder.mkdir();
             }
 
-            //Create the new datamap file
-            String newGraphFileName = newDataFolderName + File.separator + newName + ".dm";
-            FileWriter graphWriter = new FileWriter(newGraphFileName);
-            operatorWindow.getDatamap().write(graphWriter);
-            graphWriter.close();
+            OperatorWindow.getOperatorWindow().writeOutHierarchy(new File(getProjectFile()));
 
             for (int i = 0; i < getChildCount(); ++i) {
                 OperatorNode child = (OperatorNode) getChildAt(i);

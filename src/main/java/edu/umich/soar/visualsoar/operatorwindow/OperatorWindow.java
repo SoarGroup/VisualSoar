@@ -1323,49 +1323,26 @@ public class OperatorWindow extends JTree {
         //Make a copy here:
         OperatorRootNode orn = (OperatorRootNode) (getModel().getRoot());
         orn.renameAndBackup(this, newName, newPath);
+//        TODO: don't add .json here; it should be part of getProjectFile already
+        Prefs.addRecentProject(new File(orn.getProjectFile() + ".json"), false);
     }
 
   /**
    * Saves the current hierarchy to disk using Version 4 and 6 methods
    *
    * @param inProjFile name of the file to be saved - .vsa file
-   * @param inDataMapFile name of the datamap file - .dm file
-   * @param inCommentFile name of the datamap comment file - comment.dm
-   * @param jsonOnly only write out the JSON version of the project (for testing purposes). TODO:
-   *     remove after accepting the new format
    * @see #reduceWorkingMemory()
-   * @see TreeSerializer#write
-   * @see SoarWorkingMemoryModel#write
-   * @see SoarWorkingMemoryModel#writeComments
+   * @see TreeSerializer#toJson(DefaultTreeModel)
+   * @see SoarWorkingMemoryModel#toJson()
    */
-  public void writeOutHierarchy(
-      File inProjFile, File inDataMapFile, File inCommentFile, boolean jsonOnly) throws IOException {
-    if (!jsonOnly) {
-      reduceWorkingMemory();
-      OperatorRootNode orn = (OperatorRootNode) (getModel().getRoot());
-      FileWriter fw = new FileWriter(inProjFile.getAbsolutePath());
-      fw.write("VERSION 4\n");
-      // for Version 5:  fw.write("VERSION 5\n");
-      String dataMapRP = orn.getDataMapFile().substring(orn.getFullPathStart().length());
-      fw.write(dataMapRP + '\n');
-      TreeSerializer.write(fw, (DefaultTreeModel) getModel());
-      // for Version 5:  TreeFileWriter.write5(fw,(DefaultTreeModel)getModel());
-      fw.close();
-      FileWriter graphWriter = new FileWriter(inDataMapFile);
-      workingMemory.write(graphWriter);
-      graphWriter.close();
-
-      FileWriter commentWriter = new FileWriter(inCommentFile);
-      workingMemory.writeComments(commentWriter);
-      commentWriter.close();
-    }
-
+  public void writeOutHierarchy(File inProjFile)
+      throws IOException {
     Datamap dmJson = workingMemory.toJson();
     LayoutNode layoutNodeJson = TreeSerializer.toJson((DefaultTreeModel) getModel());
     Project project = new Project(dmJson, layoutNodeJson);
     // TODO: factor out name creation logic .json on elsewhere
     Json.writeJsonToFile(Paths.get(inProjFile.getAbsolutePath() + ".json"), project);
-  } // end of writeOutHierarchy()
+  }
 
     /**
      * Save entire Operator Hierarchy (including datamap)
@@ -1375,10 +1352,7 @@ public class OperatorWindow extends JTree {
     public void saveHierarchy() throws IOException {
         OperatorRootNode orn = (OperatorRootNode) (getModel().getRoot());
         File projectFileName = new File(orn.getProjectFile());
-        File dataMapFile = new File(orn.getDataMapFile());
-        String commentFN = dataMapFile.getParent() + File.separator + "comment.dm";
-        File commentFile = new File(commentFN);
-        writeOutHierarchy(projectFileName, dataMapFile, commentFile, false);
+        writeOutHierarchy(projectFileName);
     }
 
     /**
@@ -1473,20 +1447,12 @@ public class OperatorWindow extends JTree {
      */
     private DefaultTreeModel defaultProject(String projectName, File projectFile) {
         File parent = new File(projectFile.getParent() + File.separator + projectName);
-        File dataMapFile = new File(parent.getPath() + File.separator + projectName + ".dm");
         File elabFolder = new File(parent.getPath() + File.separator + "elaborations");
         File allFolder = new File(parent.getPath() + File.separator + "all");
         File initFile = new File(parent.getPath() + File.separator
                 + "initialize-" + projectName + ".soar");
         File tclFile = new File(parent.getPath() + File.separator + "_firstload.soar");
         parent.mkdir();
-
-        try {
-            dataMapFile.createNewFile();
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
-        }
-
 
         elabFolder.mkdir();
         allFolder.mkdir();
@@ -2785,11 +2751,10 @@ public class OperatorWindow extends JTree {
       writeOutControl =
           () -> {
             OperatorRootNode orn = (OperatorRootNode) (getModel().getRoot());
-            File projectFile = new File(orn.getProjectFile() + "~");
-            File dataMapFile = new File(orn.getDataMapFile() + "~");
-            File commentFile = new File(dataMapFile.getParent() + File.separator + "comment.dm~");
+            // TODO: add .json elsewhere
+            File projectFile = new File(orn.getProjectFile() + ".json" + "~");
             try {
-              writeOutHierarchy(projectFile, dataMapFile, commentFile, false);
+              writeOutHierarchy(projectFile);
             } catch (IOException e) {
               // caught in the run() method below
               throw new RuntimeException(e);

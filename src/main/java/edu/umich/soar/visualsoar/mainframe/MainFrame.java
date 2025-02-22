@@ -1487,7 +1487,7 @@ public class MainFrame extends JFrame
 
       //Verify that the project doesn't already exist
       String agentName = newAgentDialog.getNewAgentName();
-      String agentFileName = path + File.separator + agentName + ".vsa";
+      String agentFileName = path + File.separator + agentName + ".vsa.json";
       File agentNameFile = new File(agentFileName);
       if (agentNameFile.exists())
       {
@@ -1759,8 +1759,8 @@ public class MainFrame extends JFrame
 
             String projectFilename = root.getProjectFile() ;	// Includes .vsa
 
-            // Swap the extension from .vsa to .soar
-            projectFilename = projectFilename.replaceFirst(".vsa", ".soar") ;
+            // Swap the extension from .vsa(.json) to .soar
+            projectFilename = projectFilename.replaceFirst("\\.vsa(\\.json)?", ".soar") ;
 
             SoarUtils.sourceFile(projectFilename, MainFrame.this);
         }
@@ -2056,6 +2056,7 @@ public class MainFrame extends JFrame
 
             // Regenerate the *_source.soar files in the old project
             try {
+//              TODO: fails if current project is JSON
               OperatorWindow oldOpWin = new OperatorWindow(oldProjectFile, false);
               OperatorRootNode oldOrn = (OperatorRootNode) oldOpWin.getModel().getRoot();
               oldOrn.startSourcing();
