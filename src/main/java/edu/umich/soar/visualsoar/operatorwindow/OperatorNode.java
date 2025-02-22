@@ -249,6 +249,7 @@ public abstract class OperatorNode extends VSTreeNode implements java.io.Seriali
     public OperatorNode(String inName, int inId) {
         name = inName;
         id = inId;
+        // TODO: generate random string
         serializationId = String.valueOf(id);
     }
 
@@ -289,6 +290,10 @@ public abstract class OperatorNode extends VSTreeNode implements java.io.Seriali
     public final int getId() {
         return id;
     }
+
+  public String getSerializationId() {
+    return serializationId;
+  }
 
     /**
      * @return whether an openDataMap() call on this node will work

@@ -91,51 +91,51 @@ public class TreeSerializer {
       case FILE:
         FileNode fn = (FileNode) treeNode;
         return new LayoutNode.File(
-            jsonChildren, fn.getName(), String.valueOf(fn.getId()), fn.getFileAssociation());
+            jsonChildren, fn.getName(), fn.getSerializationId(), fn.getFileAssociation());
       case FILE_OPERATOR:
         FileOperatorNode fon = (FileOperatorNode) treeNode;
         if (fon.isHighLevel()) {
           return new LayoutNode.HighLevelFileOperator(
               jsonChildren,
               fon.getName(),
-              String.valueOf(fon.getId()),
+              fon.getSerializationId(),
               fon.getFileAssociation(),
               fon.getRelativeFolderName(),
-              String.valueOf(fon.getDataMapIdNumber()));
+              fon.getState().getSerializationId());
         } else {
           return new LayoutNode.FileOperator(
-              jsonChildren, fon.getName(), String.valueOf(fon.getId()), fon.getFileAssociation());
+              jsonChildren, fon.getName(), fon.getSerializationId(), fon.getFileAssociation());
         }
       case FOLDER:
         FolderNode folderNode = (FolderNode) treeNode;
         return new LayoutNode.Folder(
             jsonChildren,
             folderNode.getName(),
-            String.valueOf(folderNode.getId()),
+            folderNode.getSerializationId(),
             folderNode.folderName);
       case LINK:
         LinkNode linkNode = (LinkNode) treeNode;
         return new LayoutNode.Link(
             jsonChildren,
             linkNode.getName(),
-            String.valueOf(linkNode.getId()),
+            linkNode.getSerializationId(),
             linkNode.fileAssociation,
-            String.valueOf(linkNode.linkedToNodeId));
+            linkNode.getLinkedToNode().getSerializationId());
       case OPERATOR:
         OperatorOperatorNode operatorNode = (OperatorOperatorNode) treeNode;
         if (operatorNode.isHighLevel()) {
           return new LayoutNode.HighLevelOperator(
               jsonChildren,
               operatorNode.getName(),
-              String.valueOf(operatorNode.getId()),
+              operatorNode.getSerializationId(),
               operatorNode.getFileAssociation(),
               operatorNode.getRelativeFolderName(),
-              String.valueOf(operatorNode.getDataMapIdNumber()));
+              operatorNode.getState().getSerializationId());
         } else {
           return new LayoutNode.Operator(
               jsonChildren,
               operatorNode.getName(),
-              String.valueOf(operatorNode.getId()),
+              operatorNode.getSerializationId(),
               operatorNode.getFileAssociation());
         }
       case OPERATOR_ROOT:
@@ -143,7 +143,7 @@ public class TreeSerializer {
         return new LayoutNode.OperatorRoot(
             jsonChildren,
             opRootNode.getName(),
-            String.valueOf(opRootNode.getId()),
+            opRootNode.getSerializationId(),
             opRootNode.folderName);
       case IMPASSE_OPERATOR:
         ImpasseOperatorNode impasseNode = (ImpasseOperatorNode) treeNode;
@@ -151,15 +151,15 @@ public class TreeSerializer {
           return new LayoutNode.HighLevelImpasseOperator(
               jsonChildren,
               impasseNode.getName(),
-              String.valueOf(impasseNode.getId()),
+              impasseNode.getSerializationId(),
               impasseNode.getFileAssociation(),
               impasseNode.getRelativeFolderName(),
-              String.valueOf(impasseNode.getDataMapIdNumber()));
+              impasseNode.getState().getSerializationId());
         } else {
           return new LayoutNode.ImpasseOperator(
               jsonChildren,
               impasseNode.getName(),
-              String.valueOf(impasseNode.getId()),
+              impasseNode.getSerializationId(),
               impasseNode.getFileAssociation());
         }
       default:

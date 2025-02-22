@@ -205,12 +205,9 @@ public abstract class SoarOperatorNode extends FileNode {
         return !isHighLevel;
     }
 
-  public void restoreId(SoarWorkingMemoryModel swmm) {
+    public void restoreId(SoarWorkingMemoryModel swmm) {
     SoarVertex sv = swmm.getVertexForId(dataMapIdNumber);
-    Objects.requireNonNull(sv, "Operator node's datamap ID does not point to any exist DM vertex");
-    if (sv instanceof ForeignVertex) {
-      sv = ((ForeignVertex) sv).getForeignSoarVertex();
-    }
+    Objects.requireNonNull(sv, "Operator node's datamap ID, " + dataMapIdNumber + ", does not point to any existing DM vertex.");
     if (!(sv instanceof SoarIdentifierVertex)) {
       throw new IllegalStateException(
           "Operator node's datamap ID should point to a Soar ID vertex, but found a "

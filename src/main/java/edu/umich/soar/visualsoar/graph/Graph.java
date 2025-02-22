@@ -30,9 +30,9 @@ public abstract class Graph {
         while (e.hasMoreElements()) {
             NamedEdge edge = e.nextElement();
             SoarVertex to = edge.mate(vertex);
-			if (!visited[to.getValue()]) {
-				depthFirstTraversal(visitor, to, visited);
-			}
+            if (!visited[to.getValue()]) {
+              depthFirstTraversal(visitor, to, visited);
+            }
         }
         visitor.postVisit(vertex);
     }

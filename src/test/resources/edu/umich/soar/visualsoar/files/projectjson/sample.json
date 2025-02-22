@@ -1,45 +1,76 @@
 {
   "datamap": {
-    "rootId": "idTest",
+    "rootId": "a",
     "vertices": [
+      {
+        "id": "a",
+        "outEdges": [
+          {
+            "name": "first",
+            "toId": "b"
+          },
+          {
+            "generated": true,
+            "name": "second",
+            "toId": "c"
+          },
+          {
+            "name": "third",
+            "toId": "d"
+          },
+          {
+            "name": "yyy",
+            "toId": "f"
+          },
+          {
+            "name": "yyy",
+            "toId": "g"
+          },
+          {
+            "name": "zzz",
+            "toId": "h"
+          }
+        ],
+        "type": "SOAR_ID"
+      },
       {
         "choices": [
           "a",
           "b",
           "c"
         ],
-        "id": "enumTest",
+        "id": "b",
         "type": "ENUMERATION"
       },
       {
-        "id": "floatRangeTest",
+        "id": "c",
         "max": 10.1,
         "min": 5.2,
         "type": "FLOAT"
       },
       {
-        "id": "floatTest",
+        "id": "d",
         "type": "FLOAT"
       },
       {
         "foreignDMPath": "../foo/foo.dm",
-        "id": "foreignTest",
+        "id": "e",
         "importedVertex": {
-          "id": "idTest",
+          "id": "a",
           "outEdges": [
             {
               "comment": "The first letter of the alphabet",
               "name": "ay",
-              "toId": "a"
+              "toId": "b"
             },
             {
               "name": "bee",
-              "toId": "b"
+              "toId": "c"
             },
             {
               "generated": true,
               "name": "see",
-              "toId": "c"
+              "toId": "d"
             }
           ],
           "type": "SOAR_ID"
@@ -47,45 +78,26 @@
         "type": "FOREIGN"
       },
       {
-        "id": "idTest",
-        "outEdges": [
-          {
-            "name": "first",
-            "toId": "1"
-          },
-          {
-            "generated": true,
-            "name": "second",
-            "toId": "2"
-          },
-          {
-            "name": "third",
-            "toId": "3"
-          }
-        ],
-        "type": "SOAR_ID"
-      },
-      {
-        "id": "intRangeTest",
+        "id": "f",
         "max": 10,
         "min": 5,
         "type": "INTEGER"
       },
       {
-        "id": "intTest",
+        "id": "g",
         "type": "INTEGER"
       },
       {
-        "id": "stringTest",
+        "id": "h",
         "type": "STRING"
       },
       {
-        "id": "こんにちは🤓\n",
+        "id": "i",
         "outEdges": [
           {
             "comment": "testing that non-ASCII chars are not escaped\n\t",
             "name": "int",
-            "toId": "intTest"
+            "toId": "e"
           }
         ],
         "type": "SOAR_ID"
@@ -94,62 +106,74 @@
   },
   "layout": {
     "folder": "example-project",
-    "id": "1",
+    "id": "m",
     "name": "example-project",
     "type": "OPERATOR_ROOT",
     "children": [
       {
         "file": "_firstload.soar",
-        "id": "2",
+        "id": "n",
         "name": "_firstload",
         "type": "FILE_OPERATOR"
       },
       {
         "folder": "all",
-        "id": "3",
+        "id": "o",
         "name": "all",
         "type": "FOLDER",
         "children": [
           {
             "file": "failure.soar",
-            "id": "4",
+            "id": "p",
             "name": "failure",
             "type": "OPERATOR"
           },
           {
             "file": "wait.soar",
-            "id": "5",
+            "id": "q",
             "name": "wait",
             "type": "OPERATOR"
           }
         ]
       },
       {
-        "dmId": "0",
+        "dmId": "a",
         "file": "_flags.soar",
         "folder": "_flags",
-        "id": "46",
+        "id": "r",
         "name": "_flags",
         "type": "HIGH_LEVEL_FILE_OPERATOR",
         "children": [
           {
             "file": "_chunking-flags.soar",
-            "id": "47",
+            "id": "s",
             "name": "_chunking-flags",
             "type": "FILE_OPERATOR"
           }
         ]
       },
       {
-        "dmId": "108",
+        "file": "example-file.txt",
+        "id": "t",
+        "name": "example",
+        "type": "FILE"
+      },
+      {
+        "file": "Impasse__Operator_Conflict.soar",
+        "id": "u",
+        "name": "Impasse__Operator_Conflict",
+        "type": "IMPASSE_OPERATOR"
+      },
+      {
+        "dmId": "i",
         "file": "Impasse__Operator_Tie.soar",
         "folder": "Impasse__Operator_Tie",
-        "id": "59",
+        "id": "v",
         "name": "Impasse__Operator_Tie",
         "type": "HIGH_LEVEL_IMPASSE_OPERATOR",
         "children": [
           {
-            "dmId": "124",
+            "dmId": "a",
             "file": "evaluate-operator.soar",
             "folder": "evaluate-operator",
             "id": "61",
@@ -158,7 +182,7 @@
             "children": [
               {
                 "file": "finish-cooking.soar",
-                "id": "65",
+                "id": "w",
                 "name": "finish-cooking",
                 "type": "OPERATOR"
               }
@@ -167,21 +191,9 @@
         ]
       },
       {
-        "file": "example-file.txt",
-        "id": "2",
-        "name": "example",
-        "type": "FILE"
-      },
-      {
-        "file": "Impasse__Operator_Conflict.soar",
-        "id": "69",
-        "name": "Impasse__Operator_Conflict",
-        "type": "IMPASSE_OPERATOR"
-      },
-      {
         "file": "more-cooking.soar",
-        "id": "70",
-        "linkedNodeId": "65",
+        "id": "x",
+        "linkedNodeId": "w",
         "name": "more-cooking",
         "type": "LINK"
       }

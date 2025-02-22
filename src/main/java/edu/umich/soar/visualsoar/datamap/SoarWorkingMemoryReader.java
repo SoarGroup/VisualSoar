@@ -13,7 +13,6 @@ import org.jetbrains.annotations.NotNull;
 import java.io.*;
 import java.nio.file.Path;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * This class contains utilities for reading datamap data from files
@@ -674,48 +673,51 @@ public class SoarWorkingMemoryReader {
   public static SoarWorkingMemoryModel loadFromJson(Datamap datamap, Path dmPath) {
     SoarWorkingMemoryModel swmm = new SoarWorkingMemoryModel(false, null, dmPath);
 
-    // TODO: this is only temporary while testing. The final solution will be to just generate
-    // sequential int IDs, starting at 0 for the root. That will be necessary because the IDs
-    // in the file won't necessarily by ints!
-    // We have to keep same exact sorting of nodes as would be there in the equivalent VSA file
-    // so that we can do exact comparisons using round-trip conversions
-    List<SoarVertex> convertedVertices =
-        datamap.vertices.stream()
-            .map(SoarWorkingMemoryReader::vertexFromJson)
-            .sorted(Comparator.comparingInt(Vertex::getValue))
-            .collect(Collectors.toList());
-    swmm.setTopstate((SoarIdentifierVertex) convertedVertices.get(0));
-    convertedVertices.forEach(swmm::addVertex);
+    // First pass: translate JSON string IDs to internal integer IDs
+    Map<String, Integer> jsonIdsToInternalIds = new HashMap<>();
+    int idCounter = 1;
+    for (DMVertex v : datamap.vertices) {
+      if (jsonIdsToInternalIds.containsKey(v.id)) {
+        throw new IllegalArgumentException("Multiple datamap vertices use the ID '" + v.id + "'");
+      }
+      // root is required to be 0 for internals to work!
+      if (datamap.rootId.equals(v.id)) {
+        jsonIdsToInternalIds.put(v.id, 0);
+      } else {
+        jsonIdsToInternalIds.put(v.id, idCounter);
+        idCounter++;
+      }
+    }
 
-    // First pass: convert vertices
-    //      for (DMVertex jsonVertex : datamap.vertices) {
-    //        SoarVertex converted = vertexFromJson(jsonVertex);
-    //        swmm.addVertex(converted);
-    //        if (datamap.rootId.equals(jsonVertex.id)) {
-    //          if (!(converted instanceof SoarIdentifierVertex)) {
-    //            throw new IllegalArgumentException(
-    //                "Root datamap vertex (" + jsonVertex.id + ") must be of type "
-    //                    + DMVertex.VertexType.SOAR_ID
-    //                    + ", but found "
-    //                    + jsonVertex.type);
-    //          }
-    //          swmm.setTopstate((SoarIdentifierVertex) converted);
-    //        }
-    //      }
+    // Second pass: convert vertices
+    for (DMVertex jsonVertex : datamap.vertices) {
+      SoarVertex converted = vertexFromJson(jsonVertex, jsonIdsToInternalIds);
+      swmm.addVertex(converted);
+      if (datamap.rootId.equals(jsonVertex.id)) {
+        if (!(converted instanceof SoarIdentifierVertex)) {
+          throw new IllegalArgumentException(
+              "Root datamap vertex (" + jsonVertex.id + ") must be of type "
+                  + DMVertex.VertexType.SOAR_ID
+                  + ", but found "
+                  + jsonVertex.type);
+        }
+        swmm.setTopstate((SoarIdentifierVertex) converted);
+      }
+    }
 
-    // Second pass: convert edges
+    // Third pass: convert edges
     for (DMVertex jsonVertex : datamap.vertices) {
       if (jsonVertex instanceof DMVertex.SoarIdVertex) {
-        // TODO: change over the internal model to string IDs and remove parsing here
-        SoarVertex tailVertex = swmm.getVertexForId(Integer.parseInt(jsonVertex.id));
-        readEdgesFromJson(swmm, tailVertex, (DMVertex.SoarIdVertex) jsonVertex);
+        int tailId = jsonIdsToInternalIds.get(jsonVertex.id);
+        SoarVertex tailVertex = swmm.getVertexForId(tailId);
+        readEdgesFromJson(swmm, tailVertex, (DMVertex.SoarIdVertex) jsonVertex, jsonIdsToInternalIds);
       } else if(jsonVertex instanceof DMVertex.ForeignVertex){
         DMVertex.ForeignVertex foreignJsonVertex = (DMVertex.ForeignVertex) jsonVertex;
         if (foreignJsonVertex.importedVertex instanceof DMVertex.SoarIdVertex) {
           // parent of imported vertex is the tail
-          // TODO: change over the internal model to string IDs and remove parsing here
-          SoarVertex tailVertex = swmm.getVertexForId(Integer.parseInt(jsonVertex.id));
-          readEdgesFromJson(swmm, tailVertex, (DMVertex.SoarIdVertex) foreignJsonVertex.importedVertex);
+          int tailId = jsonIdsToInternalIds.get(jsonVertex.id);
+          SoarVertex tailVertex = swmm.getVertexForId(tailId);
+          readEdgesFromJson(swmm, tailVertex, (DMVertex.SoarIdVertex) foreignJsonVertex.importedVertex, jsonIdsToInternalIds);
         }
 
       }
@@ -723,9 +725,14 @@ public class SoarWorkingMemoryReader {
     return swmm;
   }
 
-  private static void readEdgesFromJson(SoarWorkingMemoryModel swmm, SoarVertex tailVertex, DMVertex.SoarIdVertex jsonVertex) {
+  private static void readEdgesFromJson(
+      SoarWorkingMemoryModel swmm,
+      SoarVertex tailVertex,
+      DMVertex.SoarIdVertex jsonVertex,
+      Map<String, Integer> jsonIdsToInternalIds) {
     for (DMVertex.OutEdge edge : jsonVertex.outEdges) {
-      SoarVertex headVertex = swmm.getVertexForId(Integer.parseInt(edge.toId));
+      int headId = jsonIdsToInternalIds.get(edge.toId);
+      SoarVertex headVertex = swmm.getVertexForId(headId);
       if (headVertex == null) {
         throw new IllegalArgumentException(
             "toId value \""
@@ -734,13 +741,17 @@ public class SoarWorkingMemoryReader {
                 + jsonVertex.id
                 + "\" does not specify any known vertex.");
       }
-      swmm.addTriple(tailVertex, edge.getName(), headVertex, edge.getGenerated() ? 1 : 0, edge.comment != null ? edge.comment : "" );
+      swmm.addTriple(
+          tailVertex,
+          edge.getName(),
+          headVertex,
+          edge.getGenerated() ? 1 : 0,
+          edge.comment != null ? edge.comment : "");
     }
   }
 
-  private static SoarVertex vertexFromJson(DMVertex jsonVertex) {
-//      TODO: generate ID from counter
-      int intId = Integer.parseInt(jsonVertex.id);
+  private static SoarVertex vertexFromJson(DMVertex jsonVertex, Map<String, Integer> jsonIdsToInternalIds) {
+      int intId = jsonIdsToInternalIds.get(jsonVertex.id);
       switch(jsonVertex.type) {
         case SOAR_ID:
           return new SoarIdentifierVertex(intId, jsonVertex.id);
@@ -752,7 +763,7 @@ public class SoarWorkingMemoryReader {
           return new FloatRangeVertex(intId, jsonVertex.id, jsonFloatRangeVertex.min, jsonFloatRangeVertex.max);
         case FOREIGN:
           DMVertex.ForeignVertex jsonForeignVertex = (DMVertex.ForeignVertex) jsonVertex;
-          SoarVertex foreignVertex = vertexFromJson(jsonForeignVertex.importedVertex);
+          SoarVertex foreignVertex = vertexFromJson(jsonForeignVertex.importedVertex, jsonIdsToInternalIds);
           return new ForeignVertex(intId, jsonVertex.id, jsonForeignVertex.foreignDMPath, foreignVertex);
         case INTEGER:
           DMVertex.IntegerRangeVertex jsonIntegerRangeVertex = (DMVertex.IntegerRangeVertex) jsonVertex;

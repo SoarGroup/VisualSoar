@@ -35,7 +35,7 @@ public class LinkNode extends FileNode {
     linkedToNodeId = inLinkToNodeId;
   }
 
-    public void restore(Map<Integer, ? extends VSTreeNode> persistentIds) {
+  public void restore(Map<Integer, ? extends VSTreeNode> persistentIds) {
         linkedToNode = (SoarOperatorNode) persistentIds.get(linkedToNodeId);
         linkedToNode.registerLink(this);
     }
@@ -63,6 +63,10 @@ public class LinkNode extends FileNode {
     public Enumeration<TreeNode> children() {
         return EMPTY_ENUMERATION;
     }
+
+  public SoarOperatorNode getLinkedToNode() {
+    return linkedToNode;
+  }
 
 
     public OperatorNode addSubOperator(OperatorWindow operatorWindow, SoarWorkingMemoryModel swmm, String newOperatorName) throws IOException {

@@ -45,19 +45,13 @@ public class OperatorRootNode extends FolderNode implements java.io.Serializable
         fullPathStart = inFullPathStart;
     }
 
-  /**
-   * This constructs the normal OperatorRootNode object
-   *
-   * @param inName the name of the node
-   */
-  public OperatorRootNode(String inName, int inId, String serializationId, String inFullPathStart, String inFolder) {
-    super(inName, inId, serializationId, inFolder);
-    fullPathStart = inFullPathStart;
-  }
-
     public OperatorRootNode(String inName, int inId, String inFolder) {
         super(inName, inId, inFolder);
     }
+
+  public OperatorRootNode(String inName, String serializationId, int inId, String inFolder) {
+    super(inName, inId, serializationId, inFolder);
+  }
 
 ///////////////////////////////////////////////////////////////////
 // Methods

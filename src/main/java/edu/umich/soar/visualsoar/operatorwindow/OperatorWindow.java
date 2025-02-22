@@ -1253,13 +1253,22 @@ public class OperatorWindow extends JTree {
 
     }
 
+    // JSON uses string IDs, VSTreeNode uses integers so we generate integer IDs and store their association here
+    private static class IdProvider {
+      private int count = 0;
+      private Map<String, Integer> serializationIdToId = new HashMap<>();
+      int getId(String serializationId) {
+        return serializationIdToId.computeIfAbsent(serializationId, sid -> count++);
+      }
+    }
+
   private void openProjectJson(Path jsonPath) throws IOException {
     Project projectJson = Project.loadJsonFile(jsonPath);
     this.workingMemory = loadFromJson(projectJson.datamap, jsonPath);
 
     Map<Integer, OperatorNode> idToNode = new HashMap<>();
     List<OperatorNode> linkNodes = new ArrayList<>();
-    VSTreeNode root = loadOperatorHierarchy(projectJson.layout, null, idToNode, linkNodes);
+    VSTreeNode root = loadOperatorHierarchy(projectJson.layout, null, idToNode, linkNodes, new IdProvider(), this.workingMemory);
     for (OperatorNode node : linkNodes) {
       LinkNode linkNodeToRestore = (LinkNode) node;
       linkNodeToRestore.restore(idToNode);
@@ -1807,8 +1816,14 @@ public class OperatorWindow extends JTree {
         }
     }
 
-  private VSTreeNode loadOperatorHierarchy(LayoutNode jsonNode, OperatorNode parent, Map<Integer, OperatorNode> idToNode, List<OperatorNode> linkNodes) {
-    OperatorNode node = createNodeFromJson(jsonNode);
+  private VSTreeNode loadOperatorHierarchy(
+      LayoutNode jsonNode,
+      OperatorNode parent,
+      Map<Integer, OperatorNode> idToNode,
+      List<OperatorNode> linkNodes,
+      IdProvider idProvider,
+      SoarWorkingMemoryModel swwm) {
+    OperatorNode node = createNodeFromJson(jsonNode, idProvider, swwm);
     idToNode.put(node.id, node);
     if (node instanceof LinkNode) {
       linkNodes.add(node);
@@ -1819,15 +1834,15 @@ public class OperatorWindow extends JTree {
     }
     if (!jsonNode.children.isEmpty()) {
       for (LayoutNode child : jsonNode.children) {
-        loadOperatorHierarchy(child, node, idToNode, linkNodes);
+        loadOperatorHierarchy(child, node, idToNode, linkNodes, idProvider, swwm);
       }
     }
     return node;
   }
 
-  private static OperatorNode createNodeFromJson(LayoutNode node) {
-    //      TODO: migrate to using strings internally and remove this parse step
-    int id = Integer.parseInt(node.id);
+  private OperatorNode createNodeFromJson(
+      LayoutNode node, IdProvider idProvider, SoarWorkingMemoryModel swwm) {
+    int id = idProvider.getId(node.id);
     switch (node.type) {
       case FILE:
         LayoutNode.File fileNode = (LayoutNode.File) node;
@@ -1840,10 +1855,11 @@ public class OperatorWindow extends JTree {
         return new FileOperatorNode(foNode.name, id, node.id, foNode.file);
       case OPERATOR_ROOT:
         LayoutNode.OperatorRoot orNode = (LayoutNode.OperatorRoot) node;
-        return new OperatorRootNode(orNode.name, id, node.id, orNode.folder);
+        return new OperatorRootNode(orNode.name, node.id, id, orNode.folder);
       case LINK:
         LayoutNode.Link lNode = (LayoutNode.Link) node;
-        return new LinkNode(lNode.name, id, node.id, lNode.file, Integer.parseInt(lNode.linkedNodeId));
+        return new LinkNode(
+            lNode.name, id, node.id, lNode.file, idProvider.getId(lNode.linkedNodeId));
       case FOLDER:
         LayoutNode.Folder folderNode = (LayoutNode.Folder) node;
         return new FolderNode(folderNode.name, id, node.id, folderNode.folder);
@@ -1852,16 +1868,19 @@ public class OperatorWindow extends JTree {
         return new ImpasseOperatorNode(ioNode.name, id, node.id, ioNode.file);
       case HIGH_LEVEL_OPERATOR:
         LayoutNode.HighLevelOperator hloNode = (LayoutNode.HighLevelOperator) node;
+        int dmId = swwm.getVertexForSerializationId(hloNode.dmId).getValue();
         return new OperatorOperatorNode(
-          hloNode.name, id, node.id, hloNode.file, hloNode.folder, Integer.parseInt(hloNode.dmId));
+            hloNode.name, id, node.id, hloNode.file, hloNode.folder, dmId);
       case HIGH_LEVEL_FILE_OPERATOR:
         LayoutNode.HighLevelFileOperator hlfoNode = (LayoutNode.HighLevelFileOperator) node;
+        dmId = swwm.getVertexForSerializationId(hlfoNode.dmId).getValue();
         return new FileOperatorNode(
-          hlfoNode.name, id, node.id, hlfoNode.file, hlfoNode.folder, Integer.parseInt(hlfoNode.dmId));
+            hlfoNode.name, id, node.id, hlfoNode.file, hlfoNode.folder, dmId);
       case HIGH_LEVEL_IMPASSE_OPERATOR:
         LayoutNode.HighLevelImpasseOperator hlioNode = (LayoutNode.HighLevelImpasseOperator) node;
+        dmId = swwm.getVertexForSerializationId(hlioNode.dmId).getValue();
         return new ImpasseOperatorNode(
-          hlioNode.name, id, node.id, hlioNode.file, hlioNode.folder, Integer.parseInt(hlioNode.dmId));
+            hlioNode.name, id, node.id, hlioNode.file, hlioNode.folder, dmId);
       default:
         throw new IllegalArgumentException("Unknown layout node type: " + node.type);
     }

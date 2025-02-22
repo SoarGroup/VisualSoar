@@ -29,6 +29,9 @@ public class SoarWorkingMemoryModel {
   //////////////////////////////////////////////////////////
   // A Directed Graph that is supposed to represent WM
   private final DirectedGraph rep = new DirectedGraphAsAdjacencyLists();
+
+  private Map<String, SoarVertex> serializationId2Vertex = new HashMap<>();
+
   private final Vector<WorkingMemoryListener> listeners = new Vector<>();
   private final TreeMap<String, SoarVertex> properties = new TreeMap<>();
   private final Path dmPath;
@@ -83,13 +86,18 @@ public class SoarWorkingMemoryModel {
 
   /** This sets the topstate, this should only be called by trusted members */
   public void setTopstate(SoarIdentifierVertex siv) {
-    rep.addVertex(siv);
+    addVertex(siv);
     addProperty("TOPSTATE", siv);
   }
 
   /** For a particular id, returns the corresponding soar vertex */
   public SoarVertex getVertexForId(int i) {
     return rep.selectVertex(i);
+  }
+
+  /** For a particular serialization ID, returns the corresponding soar vertex */
+  public SoarVertex getVertexForSerializationId(String serializationId) {
+    return serializationId2Vertex.get(serializationId);
   }
 
   /** Adds a listener to working memory, to receive working memory events */
@@ -190,10 +198,16 @@ public class SoarWorkingMemoryModel {
    */
   public void addVertex(SoarVertex v) {
     rep.addVertex(v);
+    serializationId2Vertex.put(v.getSerializationId(), v);
   }
 
   public void reduce(List<SoarVertex> startVertices) {
     rep.reduce(startVertices);
+    // re-do this mapping, since we may have lost some vertices
+    serializationId2Vertex = new HashMap<>(getNumberOfVertices());
+    rep.vertices()
+        .asIterator()
+        .forEachRemaining(sv -> serializationId2Vertex.put(sv.getSerializationId(), sv));
   }
 
   /** Removes the requested triple from Working Memory */
@@ -207,7 +221,7 @@ public class SoarWorkingMemoryModel {
   public SoarVertex createVertexCopy(SoarVertex orig) {
     SoarVertex cpy = orig.copy(getNextVertexId());
 
-    rep.addVertex(cpy);
+    addVertex(cpy);
     return cpy;
   }
 
@@ -221,7 +235,7 @@ public class SoarWorkingMemoryModel {
   public EnumerationVertex createNewEnumeration(Vector<String> vec) {
     int id = getNextVertexId();
     EnumerationVertex e = new EnumerationVertex(id, vec);
-    rep.addVertex(e);
+    addVertex(e);
     return e;
   }
 
@@ -235,7 +249,7 @@ public class SoarWorkingMemoryModel {
   public EnumerationVertex createNewEnumeration(String s) {
     int id = getNextVertexId();
     EnumerationVertex e = new EnumerationVertex(id, s);
-    rep.addVertex(e);
+    addVertex(e);
     return e;
   }
 
@@ -247,7 +261,7 @@ public class SoarWorkingMemoryModel {
   public IntegerRangeVertex createNewInteger() {
     int id = getNextVertexId();
     IntegerRangeVertex i = new IntegerRangeVertex(id, Integer.MIN_VALUE, Integer.MAX_VALUE);
-    rep.addVertex(i);
+    addVertex(i);
     return i;
   }
 
@@ -261,7 +275,7 @@ public class SoarWorkingMemoryModel {
   public IntegerRangeVertex createNewIntegerRange(int low, int high) {
     int id = getNextVertexId();
     IntegerRangeVertex i = new IntegerRangeVertex(id, low, high);
-    rep.addVertex(i);
+    addVertex(i);
     return i;
   }
 
@@ -273,7 +287,7 @@ public class SoarWorkingMemoryModel {
   public StringVertex createNewString() {
     int id = getNextVertexId();
     StringVertex s = new StringVertex(id);
-    rep.addVertex(s);
+    addVertex(s);
     return s;
   }
 
@@ -285,7 +299,7 @@ public class SoarWorkingMemoryModel {
   public FloatRangeVertex createNewFloat() {
     int id = getNextVertexId();
     FloatRangeVertex f = new FloatRangeVertex(id, Float.NEGATIVE_INFINITY, Float.POSITIVE_INFINITY);
-    rep.addVertex(f);
+    addVertex(f);
     return f;
   }
 
@@ -299,7 +313,7 @@ public class SoarWorkingMemoryModel {
   public FloatRangeVertex createNewFloatRange(float low, float high) {
     int id = getNextVertexId();
     FloatRangeVertex f = new FloatRangeVertex(id, low, high);
-    rep.addVertex(f);
+    addVertex(f);
     return f;
   }
 
@@ -311,7 +325,7 @@ public class SoarWorkingMemoryModel {
   public SoarIdentifierVertex createNewSoarId() {
     int id = getNextVertexId();
     SoarIdentifierVertex s = new SoarIdentifierVertex(id);
-    rep.addVertex(s);
+    addVertex(s);
     return s;
   }
 
@@ -489,7 +503,7 @@ public class SoarWorkingMemoryModel {
               jsonVertices.add(toJsonVertex(vertex, edgeIndex));
             });
 
-    return new Datamap(String.valueOf(getTopstate().getValue()), jsonVertices);
+    return new Datamap(getTopstate().getSerializationId(), jsonVertices);
   }
 
   @NotNull
@@ -503,7 +517,7 @@ public class SoarWorkingMemoryModel {
       edgeList.add(
           new DMVertex.OutEdge(
               namedEdge.getName(),
-              String.valueOf(namedEdge.V1().getSerializationId()),
+              namedEdge.V1().getSerializationId(),
               namedEdge.getComment(),
               namedEdge.isGenerated()));
     }
