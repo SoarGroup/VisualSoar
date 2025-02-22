@@ -1,38 +1,7 @@
 {
   "datamap": {
-    "rootId": "a",
+    "rootId": "my root ID",
     "vertices": [
-      {
-        "id": "a",
-        "outEdges": [
-          {
-            "name": "first",
-            "toId": "b"
-          },
-          {
-            "generated": true,
-            "name": "second",
-            "toId": "c"
-          },
-          {
-            "name": "third",
-            "toId": "d"
-          },
-          {
-            "name": "yyy",
-            "toId": "f"
-          },
-          {
-            "name": "yyy",
-            "toId": "g"
-          },
-          {
-            "name": "zzz",
-            "toId": "h"
-          }
-        ],
-        "type": "SOAR_ID"
-      },
       {
         "choices": [
           "a",
@@ -56,7 +25,7 @@
         "foreignDMPath": "../foo/foo.dm",
         "id": "e",
         "importedVertex": {
-          "id": "a",
+          "id": "my root ID",
           "outEdges": [
             {
               "comment": "The first letter of the alphabet",
@@ -101,6 +70,37 @@
           }
         ],
         "type": "SOAR_ID"
+      },
+      {
+        "id": "my root ID",
+        "outEdges": [
+          {
+            "name": "first",
+            "toId": "b"
+          },
+          {
+            "generated": true,
+            "name": "second",
+            "toId": "c"
+          },
+          {
+            "name": "third",
+            "toId": "d"
+          },
+          {
+            "name": "yyy",
+            "toId": "f"
+          },
+          {
+            "name": "yyy",
+            "toId": "g"
+          },
+          {
+            "name": "zzz",
+            "toId": "h"
+          }
+        ],
+        "type": "SOAR_ID"
       }
     ]
   },
@@ -137,7 +137,7 @@
         ]
       },
       {
-        "dmId": "a",
+        "dmId": "my root ID",
         "file": "_flags.soar",
         "folder": "_flags",
         "id": "r",
@@ -173,7 +173,7 @@
         "type": "HIGH_LEVEL_IMPASSE_OPERATOR",
         "children": [
           {
-            "dmId": "a",
+            "dmId": "my root ID",
             "file": "evaluate-operator.soar",
             "folder": "evaluate-operator",
             "id": "61",

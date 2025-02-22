@@ -673,8 +673,9 @@ public class SoarWorkingMemoryReader {
   public static SoarWorkingMemoryModel loadFromJson(Datamap datamap, Path dmPath) {
     SoarWorkingMemoryModel swmm = new SoarWorkingMemoryModel(false, null, dmPath);
 
-    // First pass: translate JSON string IDs to internal integer IDs
+    // First pass: translate JSON string IDs to internal integer IDs and find/add root
     Map<String, Integer> jsonIdsToInternalIds = new HashMap<>();
+    DMVertex jsonRootVertex = null;
     int idCounter = 1;
     for (DMVertex v : datamap.vertices) {
       if (jsonIdsToInternalIds.containsKey(v.id)) {
@@ -683,25 +684,35 @@ public class SoarWorkingMemoryReader {
       // root is required to be 0 for internals to work!
       if (datamap.rootId.equals(v.id)) {
         jsonIdsToInternalIds.put(v.id, 0);
+        jsonRootVertex = v;
       } else {
         jsonIdsToInternalIds.put(v.id, idCounter);
         idCounter++;
       }
     }
 
-    // Second pass: convert vertices
+    // Root must be added first to avoid array index out of bounds errors in underlying vector of vertices
+    if (jsonRootVertex == null) {
+      throw new IllegalArgumentException("Datamap root ID is '" + datamap.rootId + "', but no such vertex was found");
+    } else {
+      SoarVertex converted = vertexFromJson(jsonRootVertex, jsonIdsToInternalIds);
+      if (!(converted instanceof SoarIdentifierVertex)) {
+        throw new IllegalArgumentException(
+          "Root datamap vertex (" + jsonRootVertex.id + ") must be of type "
+            + DMVertex.VertexType.SOAR_ID
+            + ", but found "
+            + jsonRootVertex.type);
+      }
+      swmm.setTopstate((SoarIdentifierVertex) converted);
+    }
+
+    // Second pass: convert and add non-root vertices
     for (DMVertex jsonVertex : datamap.vertices) {
       SoarVertex converted = vertexFromJson(jsonVertex, jsonIdsToInternalIds);
       swmm.addVertex(converted);
       if (datamap.rootId.equals(jsonVertex.id)) {
-        if (!(converted instanceof SoarIdentifierVertex)) {
-          throw new IllegalArgumentException(
-              "Root datamap vertex (" + jsonVertex.id + ") must be of type "
-                  + DMVertex.VertexType.SOAR_ID
-                  + ", but found "
-                  + jsonVertex.type);
-        }
-        swmm.setTopstate((SoarIdentifierVertex) converted);
+        // already added above
+        continue;
       }
     }
 

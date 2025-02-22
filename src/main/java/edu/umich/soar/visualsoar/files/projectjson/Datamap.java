@@ -6,10 +6,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.*;
 import java.util.stream.Collectors;
 
-// TODO: create custom exception for document validation
-// TODO: make sure to present JSON parsing errors kindly to the user somehow
 public class Datamap {
-//  TODO: rootVertex field instead of rootId
   public final String rootId;
   public final List<DMVertex> vertices;
 
@@ -34,8 +31,6 @@ public class Datamap {
           "rootId is " + rootId + " but no vertex with that ID can be found");
     }
     DMVertex root = id2Vertex.get(rootId);
-    //    TODO: this should probably be checked when we create the real datamap object, rather than
-    // here
     if (root.type != DMVertex.VertexType.SOAR_ID) {
       throw new IllegalArgumentException(
           "Root vertex must be of type "
