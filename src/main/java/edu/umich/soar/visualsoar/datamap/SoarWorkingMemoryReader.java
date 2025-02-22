@@ -695,7 +695,7 @@ public class SoarWorkingMemoryReader {
     if (jsonRootVertex == null) {
       throw new IllegalArgumentException("Datamap root ID is '" + datamap.rootId + "', but no such vertex was found");
     } else {
-      SoarVertex converted = vertexFromJson(jsonRootVertex, jsonIdsToInternalIds);
+      SoarVertex converted = vertexFromJson(jsonRootVertex, jsonIdsToInternalIds, false);
       if (!(converted instanceof SoarIdentifierVertex)) {
         throw new IllegalArgumentException(
           "Root datamap vertex (" + jsonRootVertex.id + ") must be of type "
@@ -708,7 +708,7 @@ public class SoarWorkingMemoryReader {
 
     // Second pass: convert and add non-root vertices
     for (DMVertex jsonVertex : datamap.vertices) {
-      SoarVertex converted = vertexFromJson(jsonVertex, jsonIdsToInternalIds);
+      SoarVertex converted = vertexFromJson(jsonVertex, jsonIdsToInternalIds, false);
       swmm.addVertex(converted);
       if (datamap.rootId.equals(jsonVertex.id)) {
         // already added above
@@ -761,28 +761,41 @@ public class SoarWorkingMemoryReader {
     }
   }
 
-  private static SoarVertex vertexFromJson(DMVertex jsonVertex, Map<String, Integer> jsonIdsToInternalIds) {
-      int intId = jsonIdsToInternalIds.get(jsonVertex.id);
-      switch(jsonVertex.type) {
-        case SOAR_ID:
-          return new SoarIdentifierVertex(intId, jsonVertex.id);
-        case ENUMERATION:
-          Vector<String> choices = new Vector<>(((DMVertex.EnumerationVertex) jsonVertex).choices);
-          return new EnumerationVertex(intId, jsonVertex.id, choices);
-        case FLOAT:
-          DMVertex.FloatRangeVertex jsonFloatRangeVertex = (DMVertex.FloatRangeVertex)jsonVertex;
-          return new FloatRangeVertex(intId, jsonVertex.id, jsonFloatRangeVertex.min, jsonFloatRangeVertex.max);
-        case FOREIGN:
-          DMVertex.ForeignVertex jsonForeignVertex = (DMVertex.ForeignVertex) jsonVertex;
-          SoarVertex foreignVertex = vertexFromJson(jsonForeignVertex.importedVertex, jsonIdsToInternalIds);
-          return new ForeignVertex(intId, jsonVertex.id, jsonForeignVertex.foreignDMPath, foreignVertex);
-        case INTEGER:
-          DMVertex.IntegerRangeVertex jsonIntegerRangeVertex = (DMVertex.IntegerRangeVertex) jsonVertex;
-          return new IntegerRangeVertex(intId, jsonVertex.id, jsonIntegerRangeVertex.min, jsonIntegerRangeVertex.max);
-        case STRING:
-          return new StringVertex(intId, jsonVertex.id);
-        default:
-          throw new IllegalArgumentException("Unknown node type " + jsonVertex.type);
-      }
+  private static SoarVertex vertexFromJson(
+      DMVertex jsonVertex, Map<String, Integer> jsonIdsToInternalIds, boolean isImported) {
+    int intId;
+    if (isImported) {
+      // imported vertices are not directly added to SoarWorkingMemoryModel; use a negative value to
+      // trigger obvious errors in case we ever do that
+      intId = -1337;
+    } else {
+      intId = jsonIdsToInternalIds.get(jsonVertex.id);
+    }
+    switch (jsonVertex.type) {
+      case SOAR_ID:
+        return new SoarIdentifierVertex(intId, jsonVertex.id);
+      case ENUMERATION:
+        Vector<String> choices = new Vector<>(((DMVertex.EnumerationVertex) jsonVertex).choices);
+        return new EnumerationVertex(intId, jsonVertex.id, choices);
+      case FLOAT:
+        DMVertex.FloatRangeVertex jsonFloatRangeVertex = (DMVertex.FloatRangeVertex) jsonVertex;
+        return new FloatRangeVertex(
+            intId, jsonVertex.id, jsonFloatRangeVertex.min, jsonFloatRangeVertex.max);
+      case FOREIGN:
+        DMVertex.ForeignVertex jsonForeignVertex = (DMVertex.ForeignVertex) jsonVertex;
+        SoarVertex foreignVertex =
+            vertexFromJson(jsonForeignVertex.importedVertex, jsonIdsToInternalIds, true);
+        return new ForeignVertex(
+            intId, jsonVertex.id, jsonForeignVertex.foreignDMPath, foreignVertex);
+      case INTEGER:
+        DMVertex.IntegerRangeVertex jsonIntegerRangeVertex =
+            (DMVertex.IntegerRangeVertex) jsonVertex;
+        return new IntegerRangeVertex(
+            intId, jsonVertex.id, jsonIntegerRangeVertex.min, jsonIntegerRangeVertex.max);
+      case STRING:
+        return new StringVertex(intId, jsonVertex.id);
+      default:
+        throw new IllegalArgumentException("Unknown node type " + jsonVertex.type);
+    }
   }
 }//class SoarWOrkingMemoryReader

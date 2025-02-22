@@ -25,7 +25,7 @@
         "foreignDMPath": "../foo/foo.dm",
         "id": "e",
         "importedVertex": {
-          "id": "my root ID",
+          "id": "foreign ID vertex",
           "outEdges": [
             {
               "comment": "The first letter of the alphabet",
