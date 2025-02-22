@@ -31,6 +31,11 @@ public class OperatorRootNode extends FolderNode implements java.io.Serializable
      */
     private String fullPathStart;
 
+  /**
+   * If true, the project is currently saved as a .vsa.json; otherwise as a .vsa.
+   */
+  private boolean isJson = false;
+
 ///////////////////////////////////////////////////////////////////
 // Constructors
 ///////////////////////////////////////////////////////////////////
@@ -49,13 +54,28 @@ public class OperatorRootNode extends FolderNode implements java.io.Serializable
         super(inName, inId, inFolder);
     }
 
+  /**
+   * This is for deserializing from a JSON-formatted document.
+   */
   public OperatorRootNode(String inName, String serializationId, int inId, String inFolder) {
     super(inName, inId, serializationId, inFolder);
+    isJson = true;
   }
 
-///////////////////////////////////////////////////////////////////
-// Methods
-///////////////////////////////////////////////////////////////////
+  ///////////////////////////////////////////////////////////////////
+  // Methods
+  ///////////////////////////////////////////////////////////////////
+
+  /**
+   * If the project is currently a .vsa, it will hereafter be written and read from a .json instead.
+   *
+   * @return true if the isJson value was changed, false otherwise
+   */
+  public boolean setIsJson(boolean isJson) {
+    boolean retVal = isJson != this.isJson;
+    this.isJson = isJson;
+    return retVal;
+  }
 
     /**
      * @return whether an openDataMap() call on this node will work
@@ -113,7 +133,7 @@ public class OperatorRootNode extends FolderNode implements java.io.Serializable
     }
 
   public String getProjectFile() {
-        return fullPathStart + File.separator + getName() + ".vsa";
+        return fullPathStart + File.separator + getName() + ".vsa" + (isJson ? ".json" : "");
     }
 
     // Not used anymore, but will leave until all backup files are likely to be gone
@@ -163,6 +183,7 @@ public class OperatorRootNode extends FolderNode implements java.io.Serializable
     /**
      * rename
      * is used by {@link #renameAndBackup}
+     * assumes that new project write will be JSON format
      */
     public void rename(OperatorWindow operatorWindow, String newName, String newPath) throws IOException {
         DefaultTreeModel model = (DefaultTreeModel) operatorWindow.getModel();
@@ -171,7 +192,7 @@ public class OperatorRootNode extends FolderNode implements java.io.Serializable
         this.folderName = newFolder.getName();
         this.name = newName;
         this.fullPathStart = newPath;
-        //TODO: set to JSON here
+        isJson = true;
 
         model.nodeChanged(this);
     }//rename

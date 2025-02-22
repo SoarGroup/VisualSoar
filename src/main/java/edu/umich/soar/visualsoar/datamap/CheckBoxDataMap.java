@@ -62,7 +62,7 @@ public class CheckBoxDataMap extends DataMap {
             System.err.println("Error: Couldn't find the top level project node"); //should never happen
             return null;
         }
-        String projectFilename = root.getProjectFile() ;	// Includes .vsa
+        String projectFilename = root.getProjectFile() ;	// Includes .vsa(.json)
 
         //Calculate the root folder of this project
         File localVSA = new File(projectFilename);

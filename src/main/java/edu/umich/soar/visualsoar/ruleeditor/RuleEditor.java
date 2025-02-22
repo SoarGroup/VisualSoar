@@ -1894,7 +1894,7 @@ public class RuleEditor extends CustomInternalFrame {
             String projectFilename = root.getProjectFile();    // Includes .vsa
 
             // Swap the extension from .vsa to .soar
-          projectFilename = projectFilename.replaceFirst(".vsa", ".soar");
+          projectFilename = projectFilename.replaceFirst("\\.vsa(\\.json)?", ".soar");
 
           SoarUtils.sourceFile(projectFilename, RuleEditor.this);
         }

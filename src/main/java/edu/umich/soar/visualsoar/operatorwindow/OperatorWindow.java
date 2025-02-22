@@ -1323,8 +1323,7 @@ public class OperatorWindow extends JTree {
         //Make a copy here:
         OperatorRootNode orn = (OperatorRootNode) (getModel().getRoot());
         orn.renameAndBackup(this, newName, newPath);
-//        TODO: don't add .json here; it should be part of getProjectFile already
-        Prefs.addRecentProject(new File(orn.getProjectFile() + ".json"), false);
+        Prefs.addRecentProject(new File(orn.getProjectFile()), false);
     }
 
   /**
@@ -1340,20 +1339,56 @@ public class OperatorWindow extends JTree {
     Datamap dmJson = workingMemory.toJson();
     LayoutNode layoutNodeJson = TreeSerializer.toJson((DefaultTreeModel) getModel());
     Project project = new Project(dmJson, layoutNodeJson);
-    // TODO: factor out name creation logic .json on elsewhere
-    Json.writeJsonToFile(Paths.get(inProjFile.getAbsolutePath() + ".json"), project);
+    Json.writeJsonToFile(Paths.get(inProjFile.getAbsolutePath()), project);
   }
 
-    /**
-     * Save entire Operator Hierarchy (including datamap)
-     *
-     * @see #writeOutHierarchy
-     */
-    public void saveHierarchy() throws IOException {
-        OperatorRootNode orn = (OperatorRootNode) (getModel().getRoot());
-        File projectFileName = new File(orn.getProjectFile());
-        writeOutHierarchy(projectFileName);
+  /**
+   * Save entire Operator Hierarchy (including datamap)
+   *
+   * @see #writeOutHierarchy
+   */
+  public void saveHierarchy() throws IOException {
+    OperatorRootNode orn = (OperatorRootNode) (getModel().getRoot());
+    boolean formatChanged = orn.setIsJson(true);
+    File projectFileName = new File(orn.getProjectFile());
+
+    // User probably already converted to .vsa.json and then forgot to open it up this time.
+    // Don't let them save over the other one, in case they put a lot of work into it.
+    if (formatChanged && projectFileName.exists()) {
+      JOptionPane.showMessageDialog(
+          MainFrame.getMainFrame(),
+          "You opened the project from "
+              + orn.getName()
+              + ".vsa and tried to save it to "
+              + projectFileName.getName()
+              + ",\nbut that file already exists. Did you mean to open "
+              + projectFileName.getName()
+              + " instead?\n"
+              + "If not, delete it or back it up before trying to save this project again.",
+          "Project Save Failed",
+          JOptionPane.ERROR_MESSAGE);
+      orn.setIsJson(false);
+      return;
     }
+
+    writeOutHierarchy(projectFileName);
+    if (formatChanged) {
+
+      String oldName = projectFileName.getName().replaceAll("\\.vsa\\.json", "");
+      Prefs.addRecentProject(projectFileName, MainFrame.getMainFrame().isReadOnly());
+      JOptionPane.showMessageDialog(
+          MainFrame.getMainFrame(),
+          "Your project has been written in a new format in "
+              + projectFileName.getName()
+              + ". After ensuring you have a backup,\nyou should manually remove the old "
+              + orn.getName()
+              + ".vsa, "
+              + orn.getName()
+              + ".dm and comment.dm files.",
+          "Project Converted",
+          JOptionPane.INFORMATION_MESSAGE);
+    }
+  }
 
     /**
      * Attempts to reduce Working Memory by finding all vertices that are unreachable
@@ -2751,8 +2786,7 @@ public class OperatorWindow extends JTree {
       writeOutControl =
           () -> {
             OperatorRootNode orn = (OperatorRootNode) (getModel().getRoot());
-            // TODO: add .json elsewhere
-            File projectFile = new File(orn.getProjectFile() + ".json" + "~");
+            File projectFile = new File(orn.getProjectFile() + "~");
             try {
               writeOutHierarchy(projectFile);
             } catch (IOException e) {

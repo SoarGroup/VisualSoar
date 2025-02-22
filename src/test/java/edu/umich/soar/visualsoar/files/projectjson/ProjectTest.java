@@ -61,7 +61,7 @@ class ProjectTest {
     Path tempDir = Files.createTempDirectory("roundTripOperatorWindow");
     OperatorWindow.getOperatorWindow()
         .writeOutHierarchy(
-            tempDir.resolve("sample.vsa").toFile()
+            tempDir.resolve("sample.vsa.json").toFile()
         );
     String roundTrippedJson = Files.readString(tempDir.resolve("sample.vsa.json"));
     assertEquals(
