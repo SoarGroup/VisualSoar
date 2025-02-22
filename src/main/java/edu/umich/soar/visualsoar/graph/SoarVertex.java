@@ -1,5 +1,7 @@
 package edu.umich.soar.visualsoar.graph;
 
+import edu.umich.soar.visualsoar.util.IdGenerator;
+
 import javax.swing.*;
 import java.util.HashSet;
 import java.util.Set;
@@ -45,8 +47,7 @@ public abstract class SoarVertex extends Vertex {
      */
     public SoarVertex(int id) {
         super(id);
-        // TODO: generate random string instead
-        serializationId = String.valueOf(id);
+        serializationId = IdGenerator.getId();
     }
 
   /** Constructs a SoarVertex with the given IDs */

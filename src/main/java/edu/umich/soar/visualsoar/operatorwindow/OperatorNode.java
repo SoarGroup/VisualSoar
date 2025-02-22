@@ -10,6 +10,7 @@ import edu.umich.soar.visualsoar.parser.ParseException;
 import edu.umich.soar.visualsoar.parser.SoarProduction;
 import edu.umich.soar.visualsoar.parser.TokenMgrError;
 import edu.umich.soar.visualsoar.ruleeditor.RuleEditor;
+import edu.umich.soar.visualsoar.util.IdGenerator;
 
 import javax.swing.*;
 import javax.swing.tree.TreeNode;
@@ -249,8 +250,7 @@ public abstract class OperatorNode extends VSTreeNode implements java.io.Seriali
     public OperatorNode(String inName, int inId) {
         name = inName;
         id = inId;
-        // TODO: generate random string
-        serializationId = String.valueOf(id);
+        serializationId = IdGenerator.getId();
     }
 
   /**
