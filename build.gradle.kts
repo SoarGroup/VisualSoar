@@ -98,6 +98,7 @@ runtime {
     // won't be able to connect to soar unless SOAR_HOME in is in the users path already :(
     // See readme for details.
     jvmArgs.add("-Djava.library.path={{SOAR_HOME}}")
+    noConsole = true
   }
 }
 
