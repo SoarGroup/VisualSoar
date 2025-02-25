@@ -1343,9 +1343,11 @@ public class MainFrame extends JFrame
 				savePositionAndSize();
 
 				if (CustomInternalFrame.hasEverChanged()) {
+//          TODO: ask user first
 					commitAction.perform();
 				}
 				else {
+//          TODO: shouldn't this be done in above if statement, too?
 					Cfg.writeCfgFile(MainFrame.this);
 					Backup.deleteAutoBackupFiles(MainFrame.this);
 				}
@@ -1371,6 +1373,9 @@ public class MainFrame extends JFrame
     JInternalFrame[] frames = desktopPane.getAllFrames();
     try
     {
+//      TODO: ask user first
+//      TODO: what about cfg?
+      // TODO: can we call this from exitAction? What's the difference between closeProject and exit?
       if ( (!isReadOnly()) && (CustomInternalFrame.hasEverChanged()) ) commitAction.perform();
       Backup.deleteAutoBackupFiles(MainFrame.this);
 

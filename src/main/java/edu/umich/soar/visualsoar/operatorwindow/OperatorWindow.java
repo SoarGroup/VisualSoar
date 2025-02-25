@@ -603,7 +603,8 @@ public class OperatorWindow extends JTree {
           DefaultTreeModel tree = (DefaultTreeModel) getModel();
           OperatorRootNode root = (OperatorRootNode) tree.getRoot();
           try {
-            // Save the change to the .vsa file.
+            // Save the change to the .vsa.json file.
+            // TODO: ask user first
             saveHierarchy();
             root.startSourcing();
           } catch (IOException ioe) {
@@ -1317,7 +1318,7 @@ public class OperatorWindow extends JTree {
      * @see OperatorRootNode#renameAndBackup(OperatorWindow, String, String)
      */
     public void saveProjectAs(String newName, String newPath) throws IOException {
-        //Save the original to file first
+        //Save the original to file first (TODO: ask user first)
         saveHierarchy();
 
         //Make a copy here:
