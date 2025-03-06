@@ -53,9 +53,11 @@ jobs:
       - name: Jar
         run: ./gradlew jar --no-daemon
 
-      # create zip package (no jpackage for now; see README for why)
-      -   name: Runtime Zip
-          run: ./gradlew runtimeZip --no-daemon
+      - name: Runtime Zip
+        run: ./gradlew runtimeZip --no-daemon
+
+      - name: JPackage
+        run: ./gradlew jpackage --no-daemon
 
       - name: Archive build artifacts
         # Only runs if the previous steps were successful
@@ -66,4 +68,5 @@ jobs:
           path: |
             build/libs/*.jar
             build/image.zip
+            build/jpackage
 

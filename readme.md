@@ -28,20 +28,16 @@ We will likely remove it in the future:
 
 To use jlink to create a zip of the containing the application, a custom JRE, and appropriate start scripts:
 
-    ./gradle runtimeZip
+    ./gradlew runtimeZip
 
 ### JPackage standalone application and installer
 
-To create the standalone app for your OS:
+To create the standalone app and installer for your OS:
 
-    ./gradlew jpackageImage
+    ./gradlew jpackage
 
-To create an installer for your OS:
-
-    ./gradlew jpackageImage
-
-Unfortunately, these are not able to connect with Soar unless the user has placed the SOAR_HOME on their
-system `path`. This is due to a confluence of missing features:
+Unfortunately, the resulting application is not able to connect with Soar unless the user has placed the SOAR_HOME on
+their system `path`. This is due to a confluence of missing features:
 
 * To load the SML native library, Soar's Java bindings call `System.loadLibrary(name)`, which requires the library to be in `java.library.path`. This is called in a static block in the `sml` package, and I'm not sure how to mock that out.
 * Java doesn't allow modifying the library path at runtime
