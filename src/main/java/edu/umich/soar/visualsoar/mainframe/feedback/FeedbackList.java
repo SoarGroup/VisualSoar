@@ -168,6 +168,9 @@ public class FeedbackList extends JList<FeedbackListEntry> implements ActionList
         dlm.removeAllElements();
     }//clearListData
 
+    public int getListSize() {
+      return dlm.getSize();
+    }
 
     /**
      * class FeedbackCellRenderer displays a FeedbackListEntry's text as a clickable label in an appropriate color
@@ -213,5 +216,5 @@ public class FeedbackList extends JList<FeedbackListEntry> implements ActionList
         }
 
 
-    }//class FeedbackList
+    }
 }

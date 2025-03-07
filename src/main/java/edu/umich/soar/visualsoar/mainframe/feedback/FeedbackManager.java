@@ -7,16 +7,19 @@ import java.awt.*;
 import java.util.Collection;
 import java.util.List;
 import java.util.Vector;
+import java.util.function.Consumer;
 
 public class FeedbackManager {
 
   private final FeedbackList feedbackList;
   private final JLabel statusBar;
+  private final Consumer<Integer> onCountUpdate;
   private boolean inAtomicFeedback;
 
-  public FeedbackManager(FeedbackList feedbackList, JLabel statusBar) {
+  public FeedbackManager(FeedbackList feedbackList, JLabel statusBar, Consumer<Integer> onCountUpdate) {
     this.feedbackList = feedbackList;
     this.statusBar = statusBar;
+    this.onCountUpdate = onCountUpdate;
   }
 
   /**
@@ -65,6 +68,7 @@ public class FeedbackManager {
     } else {
       feedbackList.setListData(new Vector<>(v));
     }
+    onCountUpdate.accept(feedbackList.getListSize());
   }
 
   /**
@@ -76,6 +80,7 @@ public class FeedbackManager {
 
   public void clearFeedback() {
     feedbackList.clearListData();
+    onCountUpdate.accept(feedbackList.getListSize());
   }
 
   /**

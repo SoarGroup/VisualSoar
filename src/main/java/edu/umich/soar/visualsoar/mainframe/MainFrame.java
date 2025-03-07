@@ -74,7 +74,7 @@ public class MainFrame extends JFrame
 	private final JSplitPane feedbackDesktopSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
 	private final FeedbackList feedbackList = new FeedbackList();
   private final JLabel statusBar = new JLabel("  Welcome to Visual Soar.");
-  private final FeedbackManager feedbackManager = new FeedbackManager(feedbackList, statusBar);
+  private final FeedbackManager feedbackManager;
 
 	private String lastWindowViewOperation = "none"; // can also be "tile" or "cascade"
 
@@ -173,7 +173,12 @@ public class MainFrame extends JFrame
 		operatorDesktopSplit.setOneTouchExpandable(true);
 
 		JScrollPane sp = new JScrollPane(feedbackList);
-		sp.setBorder(new TitledBorder("Feedback"));
+    TitledBorder border = new TitledBorder(" Feedback ");
+		sp.setBorder(border);
+
+    feedbackManager =
+        new FeedbackManager(
+            feedbackList, statusBar, (count) -> border.setTitle(" Feedback (" + count + ") "));
 
 		//Create the main desktop
 		feedbackDesktopSplit.setTopComponent(operatorDesktopSplit);
