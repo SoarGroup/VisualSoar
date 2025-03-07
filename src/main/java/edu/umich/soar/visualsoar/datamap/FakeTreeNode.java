@@ -4,6 +4,7 @@ import edu.umich.soar.visualsoar.graph.EnumerationVertex;
 import edu.umich.soar.visualsoar.graph.NamedEdge;
 import edu.umich.soar.visualsoar.graph.SoarIdentifierVertex;
 import edu.umich.soar.visualsoar.graph.SoarVertex;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.event.TreeModelEvent;
 import java.util.Enumeration;
@@ -110,6 +111,7 @@ public class FakeTreeNode {
         return children.size();
     }
 
+    @Nullable
     public NamedEdge getEdge() {
         return theEdge;
     }

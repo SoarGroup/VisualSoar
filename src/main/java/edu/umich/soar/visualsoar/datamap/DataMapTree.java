@@ -412,7 +412,7 @@ public class DataMapTree extends JTree implements ClipboardOwner, PopupMenuListe
                     FakeTreeNode ftn = ((FakeTreeNode) path.getLastPathComponent());
                     if (ftn == null) return;
                     NamedEdge ne = ftn.getEdge();
-                    if (ne.isGenerated() && (ne.getNode() != null)) {
+                    if (ne != null && ne.isGenerated() && (ne.getNode() != null)) {
                         (ne.getNode()).openRules(MainFrame.getMainFrame(), ne.getLine());
                     }
                 }
