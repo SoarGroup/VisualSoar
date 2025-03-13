@@ -115,7 +115,7 @@ public class EnumerationDialog extends JDialog {
                             focusTarget = NAME;
                         } else if (!DataMapUtils.attributeNameIsValid(nameText)) {
                             JOptionPane.showMessageDialog(EnumerationDialog.this,
-                                    "Attribute names may only contain letter, numbers, and hyphens",
+                                    "Attribute names may only contain letters, numbers, hyphens and underscores",
                                     "Invalid Name", JOptionPane.ERROR_MESSAGE);
                             focusTarget = NAME;
                         } else if (theStrings.isEmpty()) {

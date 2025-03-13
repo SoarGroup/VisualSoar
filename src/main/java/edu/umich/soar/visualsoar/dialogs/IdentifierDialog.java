@@ -77,7 +77,7 @@ public class IdentifierDialog extends JDialog {
                             "Invalid Name", JOptionPane.ERROR_MESSAGE);
                 } else if (!DataMapUtils.attributeNameIsValid(nameText)) {
                     JOptionPane.showMessageDialog(IdentifierDialog.this,
-                            "Attribute names may only contain letters, numbers, and hyphens",
+                            "Attribute names may only contain letters, numbers, hyphens and underscores",
                             "Invalid Name: '" + nameText + "'", JOptionPane.ERROR_MESSAGE);
                 } else {
                     approved = true;
