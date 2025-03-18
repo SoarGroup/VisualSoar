@@ -43,21 +43,21 @@ class FindOptionsPanel extends JPanel {
      * @return true if a downward search is specified
      */
     public Boolean getDirection() {
-        return new Boolean(downButton.isSelected());
+        return downButton.isSelected();
     }
 
     /**
      * @return true if a case specific search is specified
      */
     public Boolean getMatchCase() {
-        return new Boolean(matchCase.isSelected());
+        return matchCase.isSelected();
     }
 
     /**
      * @return true if a wrapped search is specified
      */
     public Boolean getWrap() {
-        return new Boolean(wrap.isSelected());
+        return wrap.isSelected();
     }
 
 }

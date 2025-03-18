@@ -92,7 +92,7 @@ class RangePanel extends JPanel {
                 return (Float.NEGATIVE_INFINITY);
             } else {
                 try {
-                    lowVal = new Float(lowText);
+                    lowVal = Float.valueOf(lowText);
                     return lowVal;
                 } catch (NumberFormatException nfe) {
                     return null;
@@ -124,7 +124,7 @@ class RangePanel extends JPanel {
                 return (Float.POSITIVE_INFINITY);
             } else {
                 try {
-                    highVal = new Float(highText);
+                    highVal = Float.valueOf(highText);
                     return highVal;
                 } catch (NumberFormatException nfe) {
                     return null;
