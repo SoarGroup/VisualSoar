@@ -408,6 +408,7 @@ public class RuleEditor extends CustomInternalFrame {
     /**
      * Highlights a specified substring in the document that is
      * located on a specified line of the document.
+     * TODO: what if the substring occurs multiple times on the line? We should be using line/column spans, not lineNum + assocString
      */
     public void highlightString(int lineNum, String assocString) {
         int startOffset;
@@ -1682,17 +1683,17 @@ public class RuleEditor extends CustomInternalFrame {
 
         private void valueComplete(int pos, String userType, String prodSoFar) {
             try {
+                SoarWorkingMemoryModel dataMap = MainFrame.getMainFrame().getOperatorWindow().getDatamap();
                 prodSoFar = makeStringValidForParser(prodSoFar);
                 SoarParser soarParser = new SoarParser(new StringReader(prodSoFar));
                 SoarProduction sp = soarParser.soarProduction();
                 OperatorNode on = getNode();
                 OperatorNode parent = (OperatorNode) on.getParent();
                 List<SoarVertex> matches;
-                SoarIdentifierVertex siv = parent.getStateIdVertex();
+                SoarIdentifierVertex siv = parent.getStateIdVertex(dataMap);
                 if (siv != null) {
-                    matches = MainFrame.getMainFrame().getOperatorWindow().getDatamap().matches(siv, sp, "<$$>");
+                    matches = dataMap.matches(siv, sp, "<$$>");
                 } else {
-                    SoarWorkingMemoryModel dataMap = MainFrame.getMainFrame().getOperatorWindow().getDatamap();
                     matches = dataMap.matches(dataMap.getTopstate(), sp, "<$$>");
                 }
                 List<String> completeMatches = new LinkedList<>();
@@ -1790,11 +1791,11 @@ public class RuleEditor extends CustomInternalFrame {
         //Find all matching string via the datamap
         OperatorNode on = getNode();
         List<SoarVertex> matches;
-        SoarIdentifierVertex siv = ((OperatorNode) on.getParent()).getStateIdVertex();
+        SoarWorkingMemoryModel dataMap = MainFrame.getMainFrame().getOperatorWindow().getDatamap();
+        SoarIdentifierVertex siv = ((OperatorNode) on.getParent()).getStateIdVertex(dataMap);
         if (siv != null) {
-            matches = MainFrame.getMainFrame().getOperatorWindow().getDatamap().matches(siv, sp, "<$$>");
+            matches = dataMap.matches(siv, sp, "<$$>");
         } else {
-            SoarWorkingMemoryModel dataMap = MainFrame.getMainFrame().getOperatorWindow().getDatamap();
             matches = dataMap.matches(dataMap.getTopstate(), sp, "<$$>");
         }
         List<String> completeMatches = new LinkedList<>();

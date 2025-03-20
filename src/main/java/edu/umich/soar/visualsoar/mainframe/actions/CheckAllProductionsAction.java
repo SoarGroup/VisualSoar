@@ -1,14 +1,19 @@
 package edu.umich.soar.visualsoar.mainframe.actions;
 
+import edu.umich.soar.visualsoar.ProjectModel;
 import edu.umich.soar.visualsoar.mainframe.MainFrame;
 import edu.umich.soar.visualsoar.mainframe.UpdateThread;
+import edu.umich.soar.visualsoar.mainframe.feedback.FeedbackListEntry;
 import edu.umich.soar.visualsoar.misc.PerformableAction;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorNode;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.tree.TreeNode;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.Vector;
 
 /**
@@ -30,14 +35,31 @@ public class CheckAllProductionsAction extends PerformableAction {
   // Same as actionPerformed() but this function waits for the thread to
   // complete before returning (i.e., it's effectively not threaded)
   public void perform() {
+    Vector<OperatorNode> vecNodes =
+        getOperatorNodes(mainFrame.getOperatorWindow().getProjectModel());
+    CheckProductionsThread cpt = new CheckProductionsThread(vecNodes, "Checking Productions...");
+    cpt.start();
+  }
+
+  @NotNull
+  private static Vector<OperatorNode> getOperatorNodes(ProjectModel pm) {
+    // TODO: clearly bfe is assumed to contain only OperatorNodes. Refactor so we don't have to
+    // cast.
     Vector<OperatorNode> vecNodes = new Vector<>(10, 50);
-    Enumeration<TreeNode> bfe = mainFrame.getOperatorWindow().getProjectModel().breadthFirstEnumeration();
+    Enumeration<TreeNode> bfe = pm.breadthFirstEnumeration();
     while (bfe.hasMoreElements()) {
       vecNodes.add((OperatorNode) bfe.nextElement());
     }
+    return vecNodes;
+  }
 
-    CheckProductionsThread cpt = new CheckProductionsThread(vecNodes, "Checking Productions...");
-    cpt.start();
+  public static List<FeedbackListEntry> checkAllProductions(ProjectModel pm) throws IOException {
+    Vector<OperatorNode> vecNodes = getOperatorNodes(pm);
+    Vector<FeedbackListEntry> vecErrors = new Vector<>();
+    for (OperatorNode on : vecNodes) {
+      on.checkAgainstDatamap(vecErrors, pm);
+    }
+    return new ArrayList<>(vecErrors);
   }
 
   public void actionPerformed(ActionEvent ae) {
@@ -50,7 +72,8 @@ public class CheckAllProductionsAction extends PerformableAction {
     }
 
     public boolean checkEntity(Object node) throws IOException {
-      return ((OperatorNode) node).CheckAgainstDatamap(vecErrors);
+      return ((OperatorNode) node)
+          .checkAgainstDatamap(vecErrors, mainFrame.getOperatorWindow().getProjectModel());
     }
   }
 } // class CheckAllProductionsAction

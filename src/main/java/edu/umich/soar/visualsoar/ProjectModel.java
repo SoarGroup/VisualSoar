@@ -37,12 +37,12 @@ public class ProjectModel {
   int nextId = 1;
 
   // TODO: make final
-  public SoarWorkingMemoryModel swwm;
+  public SoarWorkingMemoryModel swmm;
   public DefaultTreeModel operatorHierarchy;
 
-  public ProjectModel(DefaultTreeModel operatorHierarchy, SoarWorkingMemoryModel swwm) {
+  public ProjectModel(DefaultTreeModel operatorHierarchy, SoarWorkingMemoryModel swmm) {
     this.operatorHierarchy = operatorHierarchy;
-    this.swwm = swwm;
+    this.swmm = swmm;
   }
 
   /**
@@ -51,21 +51,20 @@ public class ProjectModel {
    * @param projectPath path to the project .vsa.json file
    */
   public static ProjectModel newProject(String projectName, Path projectPath) {
-    SoarWorkingMemoryModel swwm = new SoarWorkingMemoryModel(true, projectName, projectPath);
+    SoarWorkingMemoryModel swmm = new SoarWorkingMemoryModel(true, projectName, projectPath);
     ProjectModel pm =
-        new ProjectModel(new DefaultTreeModel(new DefaultMutableTreeNode("Dummy")), swwm);
+        new ProjectModel(new DefaultTreeModel(new DefaultMutableTreeNode("Dummy")), swmm);
     pm.operatorHierarchy = pm.createDefaultProjectLayout(projectName, projectPath);
     return pm;
   }
 
-  public static ProjectModel openExistingProject(File projectFile, FeedbackManager feedbackManager)
+  public static ProjectModel openExistingProject(Path projectFile)
       throws IOException {
     ProjectModel pm =
         new ProjectModel(
             new DefaultTreeModel(new DefaultMutableTreeNode("Dummy")),
             new SoarWorkingMemoryModel(false, null, null));
-    pm.openHierarchy(projectFile);
-    feedbackManager.setStatusBarMsg("Opened " + projectFile.getName());
+    pm.openHierarchy(projectFile.toFile());
     return pm;
   }
 
@@ -77,7 +76,7 @@ public class ProjectModel {
    * @see SoarWorkingMemoryModel#toJson()
    */
   public void writeProject(File inProjFile) throws IOException {
-    Datamap dmJson = swwm.toJson();
+    Datamap dmJson = swmm.toJson();
     LayoutNode layoutNodeJson = TreeSerializer.toJson(operatorHierarchy);
     Project project = new Project(dmJson, layoutNodeJson);
     Json.writeJsonToFile(Paths.get(inProjFile.getAbsolutePath()), project);
@@ -95,12 +94,12 @@ public class ProjectModel {
         ((DefaultMutableTreeNode) operatorHierarchy.getRoot()).breadthFirstEnumeration();
     while (e.hasMoreElements()) {
       OperatorNode on = (OperatorNode) e.nextElement();
-      SoarVertex v = on.getStateIdVertex();
+      SoarVertex v = on.getStateIdVertex(swmm);
       if (v != null) {
         vertList.add(v);
       }
     }
-    swwm.reduce(vertList);
+    swmm.reduce(vertList);
   }
 
   /** Returns a breadth first enumeration of the nodes of the operator hierarchy */
@@ -122,15 +121,15 @@ public class ProjectModel {
       List<FeedbackListEntry> errors) {
 
     // Find the state that these productions should be checked against
-    SoarIdentifierVertex siv = parent.getStateIdVertex();
+    SoarIdentifierVertex siv = parent.getStateIdVertex(swmm);
     if (siv == null) {
-      siv = swwm.getTopstate();
+      siv = swmm.getTopstate();
     }
     Enumeration<SoarProduction> prodEnum = productions.elements();
 
     while (prodEnum.hasMoreElements()) {
       SoarProduction sp = prodEnum.nextElement();
-      errors.addAll(swwm.checkProduction(child, siv, sp));
+      errors.addAll(swmm.checkProduction(child, siv, sp));
     }
   }
 
@@ -256,9 +255,7 @@ public class ProjectModel {
       String buffer = ReaderUtils.getWord(fr);
       if (buffer.compareToIgnoreCase("VERSION") == 0) {
         int versionId = ReaderUtils.getInteger(fr);
-        if (versionId == 5) {
-          openVersionFive(fr, in_file.getParent());
-        } else if (versionId == 4) {
+        if (versionId == 4) {
           openVersionFour(fr, in_file.getParent());
         } else if (versionId == 3) {
           openVersionThree(fr, in_file.getParent());
@@ -304,10 +301,10 @@ public class ProjectModel {
     boolean success;
     if (commentFile.exists()) {
       Reader rComment = new FileReader(commentFile);
-      success = SoarWorkingMemoryReader.readSafe(swwm, r, rComment);
+      success = SoarWorkingMemoryReader.readSafe(swmm, r, rComment);
       rComment.close();
     } else {
-      success = SoarWorkingMemoryReader.readSafe(swwm, r, null);
+      success = SoarWorkingMemoryReader.readSafe(swmm, r, null);
     }
     r.close();
     if (!success) {
@@ -348,10 +345,10 @@ public class ProjectModel {
     boolean success;
     if (commentFile.exists()) {
       Reader rComment = new FileReader(commentFile);
-      success = SoarWorkingMemoryReader.readSafe(swwm, r, rComment);
+      success = SoarWorkingMemoryReader.readSafe(swmm, r, rComment);
       rComment.close();
     } else {
-      success = SoarWorkingMemoryReader.readSafe(swwm, r, null);
+      success = SoarWorkingMemoryReader.readSafe(swmm, r, null);
     }
     r.close();
     if (!success) {
@@ -390,10 +387,10 @@ public class ProjectModel {
     boolean success;
     if (commentFile.exists()) {
       Reader rComment = new FileReader(commentFile);
-      success = SoarWorkingMemoryReader.readSafe(swwm, r, rComment);
+      success = SoarWorkingMemoryReader.readSafe(swmm, r, rComment);
       rComment.close();
     } else {
-      success = SoarWorkingMemoryReader.readSafe(swwm, r, null);
+      success = SoarWorkingMemoryReader.readSafe(swmm, r, null);
     }
     r.close();
     if (!success) {
@@ -432,10 +429,10 @@ public class ProjectModel {
     boolean success;
     if (commentFile.exists()) {
       Reader rComment = new FileReader(commentFile);
-      success = SoarWorkingMemoryReader.readSafe(swwm, r, rComment);
+      success = SoarWorkingMemoryReader.readSafe(swmm, r, rComment);
       rComment.close();
     } else {
-      success = SoarWorkingMemoryReader.readSafe(swwm, r, null);
+      success = SoarWorkingMemoryReader.readSafe(swmm, r, null);
     }
     r.close();
     if (!success) {
@@ -444,49 +441,6 @@ public class ProjectModel {
           .setStatusBarError("Unable to parse " + dataMapFile.getName());
     }
 
-    restoreStateIds();
-  }
-
-  /**
-   * Opens a Version Five Operator Hierarchy file
-   *
-   * @see #readVersionOne
-   * @see SoarWorkingMemoryReader#readSafe
-   */
-  private void openVersionFive(FileReader fr, String parentPath)
-      throws IOException, NumberFormatException {
-
-    String relPathToDM = ReaderUtils.getWord(fr);
-    // If this project was created on one platform and ported to another
-    // The wrong file separator might be present
-    if (relPathToDM.charAt(0) != File.separatorChar) {
-      char c = (File.separatorChar == '/') ? '\\' : '/';
-      relPathToDM = relPathToDM.replace(c, File.separatorChar);
-    }
-
-    File dataMapFile = new File(parentPath + relPathToDM);
-    File commentFile = new File(dataMapFile.getParent() + File.separator + "comment.dm");
-    readVersionFive(fr);
-    OperatorRootNode root = (OperatorRootNode) operatorHierarchy.getRoot();
-    root.setFullPath(parentPath);
-    fr.close();
-
-    Reader r = new FileReader(dataMapFile);
-    // If a comment file exists, then make sure that it gets read in by the reader.
-    boolean success;
-    if (commentFile.exists()) {
-      Reader rComment = new FileReader(commentFile);
-      success = SoarWorkingMemoryReader.readSafe(swwm, r, rComment);
-      rComment.close();
-    } else {
-      success = SoarWorkingMemoryReader.readSafe(swwm, r, null);
-    }
-    r.close();
-    if (!success) {
-      MainFrame.getMainFrame()
-          .getFeedbackManager()
-          .setStatusBarError("Unable to parse " + dataMapFile.getName());
-    }
     restoreStateIds();
   }
 
@@ -503,13 +457,13 @@ public class ProjectModel {
 
   private void openProjectJson(Path jsonPath) throws IOException {
     Project projectJson = Project.loadJsonFile(jsonPath);
-    this.swwm = loadFromJson(projectJson.datamap, jsonPath);
+    this.swmm = loadFromJson(projectJson.datamap, jsonPath);
 
     Map<Integer, OperatorNode> idToNode = new HashMap<>();
     List<OperatorNode> linkNodes = new ArrayList<>();
     VSTreeNode root =
         loadOperatorHierarchy(
-            projectJson.layout, null, idToNode, linkNodes, new IdProvider(), this.swwm);
+            projectJson.layout, null, idToNode, linkNodes, new IdProvider(), this.swmm);
     for (OperatorNode node : linkNodes) {
       LinkNode linkNodeToRestore = (LinkNode) node;
       linkNodeToRestore.restore(idToNode);
@@ -535,7 +489,7 @@ public class ProjectModel {
       if (o instanceof SoarOperatorNode) {
         SoarOperatorNode son = (SoarOperatorNode) o;
         if (son.isHighLevel()) {
-          son.restoreId(swwm);
+          son.restoreId(swmm);
         }
       }
     }
@@ -547,8 +501,8 @@ public class ProjectModel {
       Map<Integer, OperatorNode> idToNode,
       List<OperatorNode> linkNodes,
       IdProvider idProvider,
-      SoarWorkingMemoryModel swwm) {
-    OperatorNode node = createNodeFromJson(jsonNode, idProvider, swwm);
+      SoarWorkingMemoryModel swmm) {
+    OperatorNode node = createNodeFromJson(jsonNode, idProvider, swmm);
     idToNode.put(node.getId(), node);
     if (node instanceof LinkNode) {
       linkNodes.add(node);
@@ -559,7 +513,7 @@ public class ProjectModel {
     }
     if (!jsonNode.children.isEmpty()) {
       for (LayoutNode child : jsonNode.children) {
-        loadOperatorHierarchy(child, node, idToNode, linkNodes, idProvider, swwm);
+        loadOperatorHierarchy(child, node, idToNode, linkNodes, idProvider, swmm);
       }
     }
     return node;
@@ -627,7 +581,7 @@ public class ProjectModel {
   } // end of addChild()
 
   private OperatorNode createNodeFromJson(
-      LayoutNode node, IdProvider idProvider, SoarWorkingMemoryModel swwm) {
+      LayoutNode node, IdProvider idProvider, SoarWorkingMemoryModel swmm) {
     int id = idProvider.getId(node.id);
     switch (node.type) {
       case FILE:
@@ -669,7 +623,7 @@ public class ProjectModel {
       case HIGH_LEVEL_OPERATOR:
         {
           LayoutNode.HighLevelOperator hloNode = (LayoutNode.HighLevelOperator) node;
-          SoarVertex dmVertex = getVertexForDmId(swwm, node.id, hloNode.dmId);
+          SoarVertex dmVertex = getVertexForDmId(swmm, node.id, hloNode.dmId);
           int dmId = dmVertex.getValue();
           return new OperatorOperatorNode(
               hloNode.name, id, node.id, hloNode.file, hloNode.folder, dmId);
@@ -677,7 +631,7 @@ public class ProjectModel {
       case HIGH_LEVEL_FILE_OPERATOR:
         {
           LayoutNode.HighLevelFileOperator hlfoNode = (LayoutNode.HighLevelFileOperator) node;
-          SoarVertex dmVertex = getVertexForDmId(swwm, node.id, hlfoNode.dmId);
+          SoarVertex dmVertex = getVertexForDmId(swmm, node.id, hlfoNode.dmId);
           int dmId = dmVertex.getValue();
           return new FileOperatorNode(
               hlfoNode.name, id, node.id, hlfoNode.file, hlfoNode.folder, dmId);
@@ -685,7 +639,7 @@ public class ProjectModel {
       case HIGH_LEVEL_IMPASSE_OPERATOR:
         {
           LayoutNode.HighLevelImpasseOperator hlioNode = (LayoutNode.HighLevelImpasseOperator) node;
-          SoarVertex dmVertex = getVertexForDmId(swwm, node.id, hlioNode.dmId);
+          SoarVertex dmVertex = getVertexForDmId(swmm, node.id, hlioNode.dmId);
           int dmId = dmVertex.getValue();
           return new ImpasseOperatorNode(
               hlioNode.name, id, node.id, hlioNode.file, hlioNode.folder, dmId);
@@ -696,8 +650,8 @@ public class ProjectModel {
   }
 
   private static SoarVertex getVertexForDmId(
-      SoarWorkingMemoryModel swwm, String layoutNodeId, String dmId) {
-    SoarVertex sv = swwm.getVertexForSerializationId(dmId);
+      SoarWorkingMemoryModel swmm, String layoutNodeId, String dmId) {
+    SoarVertex sv = swmm.getVertexForSerializationId(dmId);
     if (sv == null) {
       throw new IllegalArgumentException(
           "Operator node '"
@@ -1094,87 +1048,6 @@ public class ProjectModel {
   }
 
   /**
-   * Opens a Visual Soar project by creating the appropriate node
-   *
-   * @param linkedToMap hashmap used to keep track of linked nodes, not used
-   * @param linkNodesToRestore list of linked nodes needed to restore, not used
-   * @param r .vsa file that is being read to open project
-   * @param parentDataMap parent of created nodes datamap id
-   * @return the created OperatorNode
-   * @see OperatorNode
-   * @see #readVersionFive(Reader)
-   */
-  private OperatorNode makeNodeVersionFive(
-      HashMap<Integer, VSTreeNode> linkedToMap,
-      List<VSTreeNode> linkNodesToRestore,
-      Reader r,
-      SoarIdentifierVertex parentDataMap)
-      throws IOException, NumberFormatException {
-    OperatorNode retVal;
-    String type = ReaderUtils.getWord(r);
-
-    switch (type) {
-      case "HLOPERATOR":
-        retVal =
-            createSoarOperatorNode(
-                ReaderUtils.getWord(r),
-                ReaderUtils.getWord(r),
-                ReaderUtils.getWord(r),
-                ReaderUtils.getInteger(r));
-        break;
-      case "OPERATOR":
-        retVal = createSoarOperatorNode(ReaderUtils.getWord(r), ReaderUtils.getWord(r));
-        break;
-      case "HLFOPERATOR":
-        // High level file operators use the parent operators dataMap
-        retVal =
-            createHighLevelFileOperatorNode(
-                ReaderUtils.getWord(r),
-                ReaderUtils.getWord(r),
-                ReaderUtils.getWord(r),
-                parentDataMap);
-        ReaderUtils.getInteger(r);
-        break;
-      case "FOPERATOR":
-        retVal = createFileOperatorNode(ReaderUtils.getWord(r), ReaderUtils.getWord(r));
-        break;
-      case "HLIOPERATOR":
-        retVal =
-            createHighLevelImpasseOperatorNode(
-                ReaderUtils.getWord(r),
-                ReaderUtils.getWord(r),
-                ReaderUtils.getWord(r),
-                ReaderUtils.getInteger(r));
-        break;
-      case "IOPERATOR":
-        retVal = createImpasseOperatorNode(ReaderUtils.getWord(r), ReaderUtils.getWord(r));
-        break;
-      case "FOLDER":
-        retVal = createFolderNode(ReaderUtils.getWord(r), ReaderUtils.getWord(r));
-        break;
-      case "FILE":
-        retVal = createFileOperatorNode(ReaderUtils.getWord(r), ReaderUtils.getWord(r));
-        break;
-      case "ROOT":
-        retVal = createOperatorRootNode(ReaderUtils.getWord(r), ReaderUtils.getWord(r));
-        break;
-      case "LINK":
-        retVal =
-            createLinkNode(
-                ReaderUtils.getWord(r), ReaderUtils.getWord(r), ReaderUtils.getInteger(r));
-        linkNodesToRestore.add(retVal);
-        break;
-      default:
-        throw new IOException("Parse Error");
-    }
-
-    if (retVal != null) {
-      linkedToMap.put(ReaderUtils.getInteger(r), retVal);
-    }
-    return retVal;
-  }
-
-  /**
    * verifies that a given line from a .vsa file that describes a node is valid. If it's invalid, it
    * attempts to recreate the line as best it can
    *
@@ -1565,69 +1438,6 @@ public class ProjectModel {
       ht.put(nodeId, node);
     }
     operatorHierarchy = new DefaultTreeModel(root);
-  }
-
-  /**
-   * Reads a Version Five .vsa project file and interprets it to create a Visual Soar project from
-   * the file. This version reads the unique ids which are strings consisting of concatenation of
-   * parent names as a value. This method ensures that every id is unique.
-   *
-   * @param r the Reader of the .vsa project file
-   * @see #makeNodeVersionFive(HashMap, java.util.List, Reader, SoarIdentifierVertex)
-   */
-  private void readVersionFive(Reader r) throws IOException, NumberFormatException {
-    // This hash table has keys of ids which are strings consisting of
-    // concatenation of parent names and a pointer as a value.
-    // It is used for parent lookup
-    Hashtable<Integer, VSTreeNode> ht = new Hashtable<>();
-    List<VSTreeNode> linkNodesToRestore = new LinkedList<>();
-    HashMap<Integer, VSTreeNode> persistentIdLookup = new HashMap<>();
-    // Special Case Root Node
-    // tree specific stuff
-    int rootId = ReaderUtils.getInteger(r);
-    SoarIdentifierVertex sv = new SoarIdentifierVertex(0);
-
-    // node stuff
-    VSTreeNode root = makeNodeVersionFive(persistentIdLookup, linkNodesToRestore, r, sv);
-
-    // add the new node to the hash table
-    ht.put(rootId, root);
-
-    // Read in all the other nodes
-    boolean done = false;
-    for (; ; ) {
-      // again read in the tree specific stuff
-      SoarIdentifierVertex parentDataMapId =
-          new SoarIdentifierVertex(0); // reset datamap id to 0, the top level datamap
-
-      String nodeIdOrEnd = ReaderUtils.getWord(r);
-      if (!nodeIdOrEnd.equals("END")) {
-        int nodeId = Integer.parseInt(nodeIdOrEnd);
-        int parentId = ReaderUtils.getInteger(r);
-
-        // try to get DataMapId from the parent in case it is a high level file operator
-        //    high level file operators use the dataMap of the next highest (on the tree) regular
-        // operator
-        if (ht.get(parentId) instanceof SoarOperatorNode) {
-          SoarOperatorNode soarParent = (SoarOperatorNode) ht.get(parentId);
-          parentDataMapId = soarParent.getStateIdVertex();
-        }
-
-        OperatorNode node =
-            makeNodeVersionFive(persistentIdLookup, linkNodesToRestore, r, parentDataMapId);
-        OperatorNode parent = (OperatorNode) ht.get(parentId);
-        addChild(parent, node);
-        // add that node to the hash table
-        ht.put(nodeId, node);
-      } else {
-        for (VSTreeNode vsTreeNode : linkNodesToRestore) {
-          LinkNode linkNodeToRestore = (LinkNode) vsTreeNode;
-          linkNodeToRestore.restore(persistentIdLookup);
-        }
-        operatorHierarchy = new DefaultTreeModel(root);
-        return;
-      }
-    }
   }
 
   /**

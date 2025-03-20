@@ -126,7 +126,7 @@ public abstract class SoarOperatorNode extends FileNode {
         OperatorNode elaborationNode = operatorWindow.getProjectModel().createFileOperatorNode("elaborations", elaborationsFile.getName());
 
         // Create the datamap id
-        dataMapId = swmm.createNewStateId(((OperatorNode) getParent()).getStateIdVertex(), getName());
+        dataMapId = swmm.createNewStateId(((OperatorNode) getParent()).getStateIdVertex(swmm), getName());
         dataMapIdNumber = dataMapId.getValue();
 
         // Make this node high-level
@@ -190,8 +190,7 @@ public abstract class SoarOperatorNode extends FileNode {
         }
     }
 
-    public SoarIdentifierVertex getStateIdVertex() {
-
+    public SoarIdentifierVertex getStateIdVertex(SoarWorkingMemoryModel swmm) {
         return dataMapId;
     }
 
@@ -489,11 +488,11 @@ public abstract class SoarOperatorNode extends FileNode {
             // If File Operator, get the datamap of the first OperatorOperatorNode above it
             if (this instanceof FileOperatorNode) {
                 OperatorNode parent = (OperatorNode) this.getParent();
-                SoarIdentifierVertex dataMapParent = parent.getStateIdVertex();
-                while (((parent.getStateIdVertex()).getValue() != 0)
+                SoarIdentifierVertex dataMapParent = parent.getStateIdVertex(swmm);
+                while (((parent.getStateIdVertex(swmm)).getValue() != 0)
                         && (!(parent instanceof OperatorOperatorNode))) {
                     parent = (OperatorNode) parent.getParent();
-                    dataMapParent = parent.getStateIdVertex();
+                    dataMapParent = parent.getStateIdVertex(swmm);
                 }
                 dataMap = new DataMap(swmm, dataMapParent, parent.toString());
                 pw.addDataMap(dataMap);
@@ -603,7 +602,7 @@ public abstract class SoarOperatorNode extends FileNode {
             }
 
             // Add new ^superstate link
-            SoarVertex soarVertex = newParent.getStateIdVertex();
+            SoarVertex soarVertex = newParent.getStateIdVertex(swmm);
             if (soarVertex == null) soarVertex = swmm.getTopstate();
             swmm.addTriple(dataMapId, "superstate", soarVertex);
         }//if HL operator

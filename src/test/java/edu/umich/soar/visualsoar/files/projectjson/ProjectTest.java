@@ -4,29 +4,23 @@ import static edu.umich.soar.visualsoar.files.projectjson.Json.loadFromJson;
 import static edu.umich.soar.visualsoar.files.projectjson.Json.writeJsonToFile;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import edu.umich.soar.visualsoar.ProjectModel;
+import edu.umich.soar.visualsoar.mainframe.MainFrame;
+import edu.umich.soar.visualsoar.operatorwindow.OperatorWindow;
 import java.io.IOException;
 import java.io.StringReader;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-
-import edu.umich.soar.visualsoar.ProjectModel;
-import edu.umich.soar.visualsoar.mainframe.MainFrame;
-import edu.umich.soar.visualsoar.mainframe.feedback.FeedbackManager;
-import edu.umich.soar.visualsoar.operatorwindow.OperatorWindow;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 class ProjectTest {
   private static Path sampleJsonPath;
   private static String sampleJsonRaw;
-
-  @Mock
-  private FeedbackManager feedbackManager;
 
   @BeforeAll
   public static void setup() throws URISyntaxException, IOException {
@@ -67,8 +61,7 @@ class ProjectTest {
    */
   @Test
   public void roundTripProjectModel() throws IOException {
-    System.out.println("hello");
-    ProjectModel pm = ProjectModel.openExistingProject(sampleJsonPath.toFile(), feedbackManager);
+    ProjectModel pm = ProjectModel.openExistingProject(sampleJsonPath);
 
     Path tempDir = Files.createTempDirectory("roundTripOperatorWindow");
     pm.writeProject(tempDir.resolve("sample.vsa.json").toFile());

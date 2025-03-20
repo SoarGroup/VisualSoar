@@ -16,7 +16,7 @@ import java.util.Vector;
 public abstract class UpdateThread extends Thread {
   private final MainFrame mainFrame;
   protected Runnable update, finish;
-  protected int value, min, max;
+  protected int value, min, numEntities;
   protected JProgressBar progressBar;
   protected JDialog progressDialog;
   protected Vector<OperatorNode> vecEntities;
@@ -26,8 +26,8 @@ public abstract class UpdateThread extends Thread {
   public UpdateThread(MainFrame mainFrame, Vector<OperatorNode> v, String title) {
     this.mainFrame = mainFrame;
     vecEntities = v;
-    max = v.size();
-    progressBar = new JProgressBar(0, max);
+    numEntities = v.size();
+    progressBar = new JProgressBar(0, numEntities);
     progressDialog = new JDialog(mainFrame, title);
     progressDialog.getContentPane().setLayout(new FlowLayout());
     progressDialog.getContentPane().add(progressBar);
@@ -70,7 +70,7 @@ public abstract class UpdateThread extends Thread {
   public void checkEntities() {
     try {
       boolean anyErrors = false;
-      for (int i = 0; i < max; i++) {
+      for (int i = 0; i < numEntities; i++) {
         boolean errDetected = checkEntity(vecEntities.elementAt(i));
         if (errDetected) {
           anyErrors = true;

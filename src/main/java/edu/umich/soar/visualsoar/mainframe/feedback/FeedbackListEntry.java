@@ -30,7 +30,7 @@ public class FeedbackListEntry {
 // Data Members
 ///////////////////////////////////////////////////////////////////
     private String message;                 //message text
-    private boolean isError = false;        //if 'true' message will be displayed in red text
+    protected boolean isError = false;        //if 'true' message will be displayed in red text
 
     //disable to turn off the "go to source" context menu option by default.  A subclass that overrides
     //the react() method should set this to true
@@ -64,8 +64,20 @@ public class FeedbackListEntry {
     /**
      * react
      *
-     * is called when the user interacts with this message typically via a double click.
+     * is called when the user interacts with this message, typically via a double click.
      */
     public void react() { /* do nothing */ }
 
+  /**
+   * @return an LSP <a
+   *     href="https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#diagnostic">Diagnostic</a>
+   *     JSON object formatted in one line
+   */
+  public String toJson() {
+    return "{\"message\": \""
+        + getMessage()
+        + "\", \"severity\": "
+        + (isError() ? "1" : "3")
+        + "\"source\": \"VisualSoar\"}";
+  }
 }//class FeedbackListEntry

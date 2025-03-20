@@ -107,7 +107,16 @@ public class FeedbackEntryDatamap extends FeedbackListEntry {
         dm.selectEdge(this.getEdge());
     }//react
 
-
-
-
+  @Override
+  public String toJson() {
+    return "{\"message\": \""
+        + dataMapName
+        + ":  "
+        + edge.toString()
+        + " "
+        + getMessage()
+        + "\", \"severity\": "
+        + (isError() ? "1" : "3")
+        + ", \"source\": \"VisualSoar\"}";
+  }
 }//class FeedbackEntryDatamap

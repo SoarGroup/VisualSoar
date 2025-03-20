@@ -1,5 +1,6 @@
 package edu.umich.soar.visualsoar.operatorwindow;
 
+import edu.umich.soar.visualsoar.ProjectModel;
 import edu.umich.soar.visualsoar.mainframe.MainFrame;
 import edu.umich.soar.visualsoar.datamap.SoarWorkingMemoryModel;
 import edu.umich.soar.visualsoar.mainframe.feedback.FeedbackListEntry;
@@ -61,6 +62,7 @@ public class FileNode extends OperatorNode implements java.io.Serializable {
      *
      * @return the path to the datamap
      */
+    @Override
     public String getFileName() {
         OperatorNode parent = (OperatorNode) getParent();
         return parent.getFullPathName() + File.separator + fileAssociation;
@@ -80,6 +82,7 @@ public class FileNode extends OperatorNode implements java.io.Serializable {
      * @param operatorWindow pane associated with 'this'
      * @param newFileName    the name of the new operator to add
      */
+    @Override
     public void addFile(OperatorWindow operatorWindow, String newFileName) throws IOException {
         File file = new File(getFullPathName() + File.separator + newFileName + ".soar");
 
@@ -100,6 +103,7 @@ public class FileNode extends OperatorNode implements java.io.Serializable {
      * @param operatorWindow the pane associated with 'this'
      * @param newName        the new name that the user wants this node to be called
      */
+    @Override
     public void rename(OperatorWindow operatorWindow,
                        String newName) throws IOException {
         DefaultTreeModel model = (DefaultTreeModel) operatorWindow.getModel();
@@ -146,10 +150,12 @@ public class FileNode extends OperatorNode implements java.io.Serializable {
      * @param w where the description should be written to
      * @throws IOException if there is an error writing to the writer
      */
+    @Override
     public void exportDesc(Writer w) throws IOException {
         w.write("FILE " + getName());
     }
 
+    @Override
     public void exportType(Writer w) throws IOException {
         w.write("IMPORT_TYPE " + VSEImporter.FILE + "\n");
     }
@@ -161,6 +167,7 @@ public class FileNode extends OperatorNode implements java.io.Serializable {
      * @param w where the file should be written to
      * @throws IOException if there is an error writing to the writer
      */
+    @Override
     public void exportFile(Writer w, int id) throws IOException {
         w.write("RULE_FILE " + id + " ");
         if (ruleEditor == null) {
@@ -204,6 +211,7 @@ public class FileNode extends OperatorNode implements java.io.Serializable {
     /**
      * Removes the selected file from the tree if it is allowed
      */
+    @Override
     public void delete(OperatorWindow operatorWindow) {
         OperatorNode parent = (OperatorNode) getParent();
 
@@ -228,6 +236,7 @@ public class FileNode extends OperatorNode implements java.io.Serializable {
      * productions
      */
 
+    @Override
     public Vector<SoarProduction> parseProductions() throws ParseException, java.io.IOException {
         if (getName().startsWith("_")) return null;
 
@@ -258,7 +267,8 @@ public class FileNode extends OperatorNode implements java.io.Serializable {
      *
      * @param vecErrors any errors found are <em>added</em> to this vector
      */
-    public boolean CheckAgainstDatamap(Vector<FeedbackListEntry> vecErrors) throws IOException {
+    @Override
+    public boolean checkAgainstDatamap(Vector<FeedbackListEntry> vecErrors, ProjectModel pm) throws IOException {
         Vector<SoarProduction> parsedProds = new Vector<>();
 
         //First:  is the code syntactically correct?
@@ -274,21 +284,13 @@ public class FileNode extends OperatorNode implements java.io.Serializable {
 
         //Now check for datamap issues
         if ((parsedProds != null) && (!parsedProds.isEmpty())) {
-            //Use a temp vector so that vecErrors doesn't get cleared
-            //TODO:  is temp vector really needed?
-            Vector<FeedbackListEntry> tmpErrors = new Vector<>();
-            OperatorWindow ow = MainFrame.getMainFrame().getOperatorWindow();
-            ow.getProjectModel()
-                .checkProductions((OperatorNode) getParent(), this, parsedProds, tmpErrors);
-            if (!tmpErrors.isEmpty()) {
-                vecErrors.addAll(tmpErrors);
-            }
+          pm.checkProductions((OperatorNode) getParent(), this, parsedProds, vecErrors);
         }
 
         return (!vecErrors.isEmpty());
 
 
-    }//CheckAgainstDatamap
+    }//checkAgainstDatamap
 
     /**
      * retrieves the text of this FileNode.  If the file is open, the text
@@ -320,6 +322,7 @@ public class FileNode extends OperatorNode implements java.io.Serializable {
      *
      * @author Andrew Nuxoll (29 Sep 2022)
      */
+    @Override
     public Vector<String> getProdNames() {
         //These files won't have productions
         Vector<String> result = new Vector<>();
@@ -371,6 +374,7 @@ public class FileNode extends OperatorNode implements java.io.Serializable {
      *
      * @return -1 if not found
      */
+    @Override
     public int getLineNumForString(String target) {
         //Find the string
         String fileContent = getText();
@@ -436,6 +440,7 @@ public class FileNode extends OperatorNode implements java.io.Serializable {
      * @param pw   the Project window
      * @param line the line number to place the caret on
      */
+    @Override
     public void openRules(MainFrame pw, int line) {
         openRules(pw);
         ruleEditor.setLine(line);
@@ -449,19 +454,23 @@ public class FileNode extends OperatorNode implements java.io.Serializable {
      * @param line        the line number to place the caret on
      * @param assocString the substring to place the caret on
      */
+    @Override
     public void openRulesToString(MainFrame pw, int line, String assocString) {
         openRules(pw);
         ruleEditor.highlightString(line, assocString);
     }
 
+    @Override
     protected String getFullPathName() {
         return null;
     }
 
+    @Override
     public void exportDataMap(Writer w) throws IOException {
         w.write("NODATAMAP\n");
     }
 
+    @Override
     public void copyStructures(File folderToWriteTo) throws IOException {
         File copyOfFile = new File(folderToWriteTo.getPath() + File.separator + fileAssociation);
         Writer w = new FileWriter(copyOfFile);
@@ -471,14 +480,17 @@ public class FileNode extends OperatorNode implements java.io.Serializable {
         r.close();
     }
 
+    @Override
     public void source(Writer w) throws IOException {
         String LINE = System.lineSeparator();
         w.write("source " + fileAssociation + LINE);
     }
 
+    @Override
     public void sourceChildren() throws IOException {
     }
 
+    @Override
     public void sourceRecursive() throws IOException {
     }
 
@@ -504,22 +516,27 @@ public class FileNode extends OperatorNode implements java.io.Serializable {
         }
     }
 
+    @Override
     public void searchTestDataMap(SoarWorkingMemoryModel swmm,
                                   Vector<FeedbackListEntry> errors) {
     }
 
+    @Override
     public void searchCreateDataMap(SoarWorkingMemoryModel swmm,
                                     Vector<FeedbackListEntry> errors) {
     }
 
+    @Override
     public void searchTestNoCreateDataMap(SoarWorkingMemoryModel swmm,
                                           Vector<FeedbackListEntry> errors) {
     }
 
+    @Override
     public void searchCreateNoTestDataMap(SoarWorkingMemoryModel swmm,
                                           Vector<FeedbackListEntry> errors) {
     }
 
+    @Override
     public void searchNoTestNoCreateDataMap(SoarWorkingMemoryModel swmm,
                                             Vector<FeedbackListEntry> errors) {
     }

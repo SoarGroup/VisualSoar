@@ -110,7 +110,7 @@ public class FileOperatorNode extends SoarOperatorNode {
 
         // Determine the datamap id
         if (parent instanceof SoarOperatorNode) {
-            dataMapId = (parent).getStateIdVertex();
+            dataMapId = (parent).getStateIdVertex(swmm);
         } else {
             dataMapId = swmm.getTopstate();
         }

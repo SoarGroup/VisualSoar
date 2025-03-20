@@ -1,5 +1,6 @@
 package edu.umich.soar.visualsoar.operatorwindow;
 
+import edu.umich.soar.visualsoar.ProjectModel;
 import edu.umich.soar.visualsoar.mainframe.MainFrame;
 import edu.umich.soar.visualsoar.datamap.SoarWorkingMemoryModel;
 import edu.umich.soar.visualsoar.dialogs.FileAlreadyExistsDialog;
@@ -373,7 +374,7 @@ public abstract class OperatorNode extends VSTreeNode implements java.io.Seriali
         return null;
     }
 
-    public boolean CheckAgainstDatamap(Vector<FeedbackListEntry> vecErrors) throws IOException {
+    public boolean checkAgainstDatamap(Vector<FeedbackListEntry> vecErrors, ProjectModel pm) throws IOException {
         return false;           // no datamap errors found
     }
 
@@ -769,7 +770,7 @@ public abstract class OperatorNode extends VSTreeNode implements java.io.Seriali
         System.err.println("rename: This operation is not supported on this node");
     }
 
-    public SoarIdentifierVertex getStateIdVertex() {
+    public SoarIdentifierVertex getStateIdVertex(SoarWorkingMemoryModel swmm) {
         return null;
     }
 

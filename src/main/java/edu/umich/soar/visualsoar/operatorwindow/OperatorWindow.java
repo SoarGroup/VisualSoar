@@ -2,17 +2,12 @@ package edu.umich.soar.visualsoar.operatorwindow;
 
 
 import edu.umich.soar.visualsoar.ProjectModel;
-import edu.umich.soar.visualsoar.files.projectjson.Datamap;
-import edu.umich.soar.visualsoar.files.projectjson.Json;
-import edu.umich.soar.visualsoar.files.projectjson.LayoutNode;
-import edu.umich.soar.visualsoar.files.projectjson.Project;
 import edu.umich.soar.visualsoar.mainframe.MainFrame;
 import edu.umich.soar.visualsoar.datamap.SoarWorkingMemoryModel;
 import edu.umich.soar.visualsoar.dialogs.FindInProjectDialog;
 import edu.umich.soar.visualsoar.dialogs.NameDialog;
 import edu.umich.soar.visualsoar.dialogs.ReplaceInProjectDialog;
 import edu.umich.soar.visualsoar.graph.SoarIdentifierVertex;
-import edu.umich.soar.visualsoar.graph.SoarVertex;
 import edu.umich.soar.visualsoar.mainframe.feedback.FeedbackEntryOpNode;
 import edu.umich.soar.visualsoar.mainframe.feedback.FeedbackListEntry;
 import edu.umich.soar.visualsoar.mainframe.feedback.FeedbackManager;
@@ -32,7 +27,6 @@ import java.awt.event.*;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 
 /**
@@ -138,13 +132,15 @@ public class OperatorWindow extends JTree {
      *
      * @param in_file the location of the project to be opened
      * @param readOnly is this project being opened in read-only mode?
-     * @see ProjectModel#openExistingProject(File, FeedbackManager)
+     * @see ProjectModel#openExistingProject(Path)
      */
     public OperatorWindow(File in_file, boolean readOnly) throws NumberFormatException, IOException {
         this();
-        MainFrame.getMainFrame().getFeedbackManager().clearFeedback();
+        FeedbackManager feedbackManager = MainFrame.getMainFrame().getFeedbackManager();
+        feedbackManager.clearFeedback();
         s_OperatorWindow = this;
-        projectModel = ProjectModel.openExistingProject(in_file, MainFrame.getMainFrame().getFeedbackManager());
+        projectModel = ProjectModel.openExistingProject(in_file.toPath());
+        feedbackManager.setStatusBarMsg("Opened " + in_file.getName());
         setModel(projectModel.operatorHierarchy);
         Prefs.addRecentProject(in_file, readOnly);
     }
@@ -212,7 +208,7 @@ public class OperatorWindow extends JTree {
 
         //Attempt to add the new operator
         try {
-            child = parent.addSubOperator(this, projectModel.swwm, opName);
+            child = parent.addSubOperator(this, projectModel.swmm, opName);
         } catch (IOException ioe) {
             //error will be reported below
         }
@@ -301,7 +297,7 @@ public class OperatorWindow extends JTree {
             File file = fileChooser.getSelectedFile();
             if (file != null && state == JFileChooser.APPROVE_OPTION) {
                 Reader r = new FileReader(file);
-                node.importFunc(new FileReader(file), this, projectModel.swwm);
+                node.importFunc(new FileReader(file), this, projectModel.swmm);
                 r.close();
 
                 //Inform user of success
@@ -385,7 +381,7 @@ public class OperatorWindow extends JTree {
             OperatorNode parent = (OperatorNode) tp.getLastPathComponent();
 
             try {
-                parent.addFileOperator(this, projectModel.swwm, s);
+                parent.addFileOperator(this, projectModel.swmm, s);
 
                 if (parent.getChildCount() != 0) {
                     expandPath(tp);
@@ -460,7 +456,7 @@ public class OperatorWindow extends JTree {
         OperatorNode parent = (OperatorNode) tp.getLastPathComponent();
 
         try {
-            parent = parent.addImpasseOperator(this, projectModel.swwm, s);
+            parent = parent.addImpasseOperator(this, projectModel.swmm, s);
 
             if (parent != null) {
                 tp = new TreePath(parent.getPath());
@@ -499,7 +495,7 @@ public class OperatorWindow extends JTree {
             return; //should never happen
         }
         OperatorNode selNode = (OperatorNode) tp.getLastPathComponent();
-        selNode.openDataMap(projectModel.swwm, MainFrame.getMainFrame());
+        selNode.openDataMap(projectModel.swmm, MainFrame.getMainFrame());
     }
 
     /**
@@ -543,7 +539,7 @@ public class OperatorWindow extends JTree {
      * @see SoarWorkingMemoryModel
      */
     public SoarWorkingMemoryModel getDatamap() {
-        return projectModel.swwm;
+        return projectModel.swmm;
     }
 
     /**
@@ -663,16 +659,16 @@ public class OperatorWindow extends JTree {
 
         // Find the datamap that these productions should be checked against
         OperatorNode parentNode = (OperatorNode) opNode.getParent();
-        SoarIdentifierVertex siv = parentNode.getStateIdVertex();
+        SoarIdentifierVertex siv = parentNode.getStateIdVertex(projectModel.swmm);
         if (siv == null) {
-            siv = projectModel.swwm.getTopstate();
+            siv = projectModel.swmm.getTopstate();
         }
 
         //Generate the new datamap entries
         Enumeration<SoarProduction> prodEnum = parsedProds.elements();
         while (prodEnum.hasMoreElements()) {
             SoarProduction sp = prodEnum.nextElement();
-            vecGenerations.addAll(projectModel.swwm.checkGenerateProduction(siv, sp, opNode));
+            vecGenerations.addAll(projectModel.swmm.checkGenerateProduction(siv, sp, opNode));
         }
 
         //Verify our changes worked
@@ -709,9 +705,9 @@ public class OperatorWindow extends JTree {
 
         // Find the datamap that these productions should be checked against
         OperatorNode parentNode = (OperatorNode) opNode.getParent();
-        SoarIdentifierVertex siv = parentNode.getStateIdVertex();
+        SoarIdentifierVertex siv = parentNode.getStateIdVertex(projectModel.swmm);
         if (siv == null) {
-            siv = projectModel.swwm.getTopstate();
+            siv = projectModel.swmm.getTopstate();
         }
 
         //Generate the new datamap entries
@@ -722,7 +718,7 @@ public class OperatorWindow extends JTree {
 
             if (errToFix.getProdName().equals(sp.getName())) {
                 Vector<FeedbackListEntry> errs =
-                  projectModel.swwm.checkGenerateSingleEntry(siv, sp, opNode, errToFix);
+                  projectModel.swmm.checkGenerateSingleEntry(siv, sp, opNode, errToFix);
 
                 //The errs list should not be empty
                 if (errs.isEmpty()) {

@@ -94,7 +94,7 @@ public abstract class SearchDataMapAction extends AbstractAction {
       // For the first run, do a normal production check
       if (numChecks < numNodes) {
         Vector<FeedbackListEntry> v = new Vector<>();
-        boolean rc = opNode.CheckAgainstDatamap(v);
+        boolean rc = opNode.checkAgainstDatamap(v, mainFrame.getOperatorWindow().getProjectModel());
         if (rc) {
           String msg =
               "WARNING:  datamap errors were found in "

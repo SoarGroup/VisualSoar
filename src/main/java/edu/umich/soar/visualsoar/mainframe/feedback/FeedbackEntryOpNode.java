@@ -25,6 +25,8 @@ public class FeedbackEntryOpNode extends FeedbackListEntry {
     // Constructors
     ///////////////////////////////////////////////////////////////////
 
+    // TODO: builder would be better than all of these constructors
+
     /**
      * FeedbackEntryOpNode associated with a specific line in a rules file
      */
@@ -43,9 +45,10 @@ public class FeedbackEntryOpNode extends FeedbackListEntry {
     public FeedbackEntryOpNode(OperatorNode in_node,
                                String in_prod,
                                int in_ln,
-                               String msg) {
-        this(in_node, in_ln, msg);
-        prodName = in_prod;
+                               String msg, boolean isError) {
+      this(in_node, in_ln, msg);
+      prodName = in_prod;
+      this.isError = isError;
     }
 
 
@@ -129,5 +132,25 @@ public class FeedbackEntryOpNode extends FeedbackListEntry {
         }
     }
 
-
+  public String toJson() {
+    // Unfortunately we don't have the character position or end line number.
+    // TODO: derive that from the lineNumber and assocString somehow
+    String position = "{\"line\": " + lineNumber + ", \"character\": 0}";
+    String location =
+        "{\"uri\": \"file://"
+            + getFileName()
+            + "\", \"range\": {\"start\": "
+            + position
+            + ", \"end\": "
+            + position
+            + "}";
+    return "{\"message\": \"Operator node diagnostic\", \"severity\": "
+        + (isError() ? "1" : "3")
+        + ", \"relatedInformation\": [{\"message\": \""
+        + getMessage()
+        + "\", \"location\": "
+        + location
+        + "}]"
+        + ", \"source\": \"VisualSoar\"}";
+  }
 }//class FeedbackEntryOpNode

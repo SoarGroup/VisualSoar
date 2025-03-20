@@ -35,13 +35,11 @@ public class DataMapChecker {
                 ceh);
         if (varMap != null) {
             Set<String> keySet = varMap.keySet();
-            Iterator<String> vars = keySet.iterator();
-            while (vars.hasNext()) {
-                String varKey = vars.next();
-                Set<SoarVertex> value = varMap.get(varKey);
-                if (value.isEmpty()) {
-                    ceh.variableNotMatched(varKey);
-                }
+            for (String varKey : keySet) {
+              Set<SoarVertex> value = varMap.get(varKey);
+              if (value.isEmpty()) {
+                ceh.variableNotMatched(varKey);
+              }
             }
         }
     }
