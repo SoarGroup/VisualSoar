@@ -748,7 +748,7 @@ public class DataMapTree extends JTree implements ClipboardOwner, PopupMenuListe
         Vector<FeedbackListEntry> vecErrors = new Vector<>();
 
         OperatorWindow operatorWindow = MainFrame.getMainFrame().getOperatorWindow();
-        Enumeration<TreeNode> bfe = operatorWindow.breadthFirstEnumeration();
+        Enumeration<TreeNode> bfe = operatorWindow.getProjectModel().breadthFirstEnumeration();
         while (bfe.hasMoreElements()) {
             OperatorNode opNode = (OperatorNode) bfe.nextElement();
             Vector<SoarProduction> parsedProds = null;
@@ -1528,7 +1528,7 @@ public class DataMapTree extends JTree implements ClipboardOwner, PopupMenuListe
         this.swmm.removeTriple(ne.V0(), ne.getName(), ne.V1());
         this.parentWindow.setModified(true);
         OperatorWindow operatorWindow = MainFrame.getMainFrame().getOperatorWindow();
-        operatorWindow.reduceWorkingMemory();
+        operatorWindow.getProjectModel().reduceWorkingMemory();
 
         //Re-add the subtree's root as a new vertex
         fv = new ForeignVertex(this.swmm.getNextVertexId(), fv.getForeignDMName(), foreignSV);

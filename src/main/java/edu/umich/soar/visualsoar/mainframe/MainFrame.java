@@ -1,5 +1,6 @@
 package edu.umich.soar.visualsoar.mainframe;
 
+import edu.umich.soar.visualsoar.ProjectModel;
 import edu.umich.soar.visualsoar.datamap.DataMap;
 import edu.umich.soar.visualsoar.datamap.SoarWorkingMemoryModel;
 import edu.umich.soar.visualsoar.dialogs.*;
@@ -1900,7 +1901,7 @@ public class MainFrame extends JFrame
 			if (operatorWindow == null) return;
 
 			//Get all files
-			Enumeration<TreeNode> bfe = operatorWindow.breadthFirstEnumeration();
+			Enumeration<TreeNode> bfe = operatorWindow.getProjectModel().breadthFirstEnumeration();
 			Vector<OperatorNode> vecNodes = new Vector<>(10, 50);
 			while(bfe.hasMoreElements())
 			{
@@ -2052,7 +2053,7 @@ public class MainFrame extends JFrame
           String newName = spad.getNewAgentName();
           String newRootPath = spad.getNewAgentPath();
           String newProjPath = newRootPath + File.separator + newName;
-          if (OperatorWindow.isProjectNameValid(newName)) {
+          if (ProjectModel.isProjectNameValid(newName)) {
             try {
             operatorWindow.saveProjectAs(newName, newRootPath);
             } catch (IOException exception) {
@@ -2066,7 +2067,6 @@ public class MainFrame extends JFrame
 
             // Regenerate the *_source.soar files in the old project
             try {
-//              TODO: fails if current project is JSON
               OperatorWindow oldOpWin = new OperatorWindow(oldProjectFile, false);
               OperatorRootNode oldOrn = (OperatorRootNode) oldOpWin.getModel().getRoot();
               oldOrn.startSourcing();

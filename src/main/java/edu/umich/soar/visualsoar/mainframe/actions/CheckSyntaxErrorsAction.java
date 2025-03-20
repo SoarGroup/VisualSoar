@@ -38,7 +38,7 @@ public class CheckSyntaxErrorsAction extends AbstractAction {
     // reset the list for the new duplicate name check
     this.allProdNames.clear();
 
-    Enumeration<TreeNode> bfe = mainFrame.getOperatorWindow().breadthFirstEnumeration();
+    Enumeration<TreeNode> bfe = mainFrame.getOperatorWindow().getProjectModel().breadthFirstEnumeration();
     Vector<OperatorNode> vecNodes = new Vector<>(10, 50);
     while (bfe.hasMoreElements()) {
       vecNodes.add((OperatorNode) bfe.nextElement());

@@ -31,7 +31,7 @@ public class CheckAllProductionsAction extends PerformableAction {
   // complete before returning (i.e., it's effectively not threaded)
   public void perform() {
     Vector<OperatorNode> vecNodes = new Vector<>(10, 50);
-    Enumeration<TreeNode> bfe = mainFrame.getOperatorWindow().breadthFirstEnumeration();
+    Enumeration<TreeNode> bfe = mainFrame.getOperatorWindow().getProjectModel().breadthFirstEnumeration();
     while (bfe.hasMoreElements()) {
       vecNodes.add((OperatorNode) bfe.nextElement());
     }

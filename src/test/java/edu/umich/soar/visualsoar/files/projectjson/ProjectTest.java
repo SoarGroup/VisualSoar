@@ -11,14 +11,22 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import edu.umich.soar.visualsoar.ProjectModel;
 import edu.umich.soar.visualsoar.mainframe.MainFrame;
+import edu.umich.soar.visualsoar.mainframe.feedback.FeedbackManager;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorWindow;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 class ProjectTest {
   private static Path sampleJsonPath;
   private static String sampleJsonRaw;
+
+  @Mock
+  private FeedbackManager feedbackManager;
 
   @BeforeAll
   public static void setup() throws URISyntaxException, IOException {
@@ -27,10 +35,13 @@ class ProjectTest {
     sampleJsonRaw = Files.readString(sampleJsonPath).replaceAll("\r\n", "\n");
   }
 
+  @BeforeEach
+  public void init() {
+    MockitoAnnotations.openMocks(this);
+  }
+
   /**
    * Test that a read/write round-trip of JSON (de)serialization is lossless.
-   *
-   * @throws IOException
    */
   @Test
   public void roundTripSerialization() throws IOException {
@@ -53,6 +64,23 @@ class ProjectTest {
   /**
    * Test that a round-trip serialization between JSON and V-S internal project representation is
    * lossless.
+   */
+  @Test
+  public void roundTripProjectModel() throws IOException {
+    System.out.println("hello");
+    ProjectModel pm = ProjectModel.openExistingProject(sampleJsonPath.toFile(), feedbackManager);
+
+    Path tempDir = Files.createTempDirectory("roundTripOperatorWindow");
+    pm.writeProject(tempDir.resolve("sample.vsa.json").toFile());
+    String roundTrippedJson = Files.readString(tempDir.resolve("sample.vsa.json"));
+    assertEquals(
+        sampleJsonRaw,
+        roundTrippedJson,
+        "Expected:\n" + sampleJsonRaw + "\nActual: " + roundTrippedJson);
+  }
+
+  /**
+   * Test that a round-trip serialization between JSON and an OperatorWindow is lossless. This test cannot run in a headless environment.
    */
   @Test
   public void roundTripOperatorWindow() throws IOException {

@@ -1,6 +1,6 @@
 package edu.umich.soar.visualsoar.dialogs;
 
-import edu.umich.soar.visualsoar.operatorwindow.OperatorWindow;
+import edu.umich.soar.visualsoar.ProjectModel;
 
 import javax.swing.*;
 import java.awt.*;
@@ -79,7 +79,7 @@ public class NewAgentDialog extends JDialog {
                 JOptionPane.showMessageDialog(NewAgentDialog.this,
                         "Project names cannot have length zero",
                         "Invalid Name", JOptionPane.ERROR_MESSAGE);
-            } else if (!OperatorWindow.isProjectNameValid(nameText)) {
+            } else if (!ProjectModel.isProjectNameValid(nameText)) {
                 JOptionPane.showMessageDialog(NewAgentDialog.this,
                         "Project names may only contain letter, numbers, hyphens and underscores",
                         "Invalid Name", JOptionPane.ERROR_MESSAGE);

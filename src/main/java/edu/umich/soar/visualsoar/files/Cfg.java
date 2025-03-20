@@ -58,7 +58,7 @@ public class Cfg {
       }
 
       // Find the associated node and open a window for it
-      Enumeration<TreeNode> bfe = operatorWindow.breadthFirstEnumeration();
+      Enumeration<TreeNode> bfe = operatorWindow.getProjectModel().breadthFirstEnumeration();
       boolean applied = false;
       while (bfe.hasMoreElements()) {
         OperatorNode node = (OperatorNode) bfe.nextElement();
@@ -126,7 +126,7 @@ public class Cfg {
         int dmId = dm.getId();
 
         // Find the filename of the SoarOperatorNode associated with this id
-        Enumeration<TreeNode> bfe = mainFrame.getOperatorWindow().breadthFirstEnumeration();
+        Enumeration<TreeNode> bfe = mainFrame.getOperatorWindow().getProjectModel().breadthFirstEnumeration();
         while (bfe.hasMoreElements()) {
           OperatorNode node = (OperatorNode) bfe.nextElement();
           if (node instanceof SoarOperatorNode) {

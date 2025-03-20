@@ -89,8 +89,8 @@ public class FileNode extends OperatorNode implements java.io.Serializable {
         }
 
         //FileNode fn = operatorWindow.createFileNode(newFileName,file.getName());
-        FileOperatorNode fon = operatorWindow.createFileOperatorNode(newFileName, file.getName());
-        operatorWindow.addChild(this, fon);
+        FileOperatorNode fon = operatorWindow.getProjectModel().createFileOperatorNode(newFileName, file.getName());
+        operatorWindow.getProjectModel().addChild(this, fon);
         sourceChildren();
     }
 
@@ -278,7 +278,8 @@ public class FileNode extends OperatorNode implements java.io.Serializable {
             //TODO:  is temp vector really needed?
             Vector<FeedbackListEntry> tmpErrors = new Vector<>();
             OperatorWindow ow = MainFrame.getMainFrame().getOperatorWindow();
-            ow.checkProductions((OperatorNode) getParent(), this, parsedProds, tmpErrors);
+            ow.getProjectModel()
+                .checkProductions((OperatorNode) getParent(), this, parsedProds, tmpErrors);
             if (!tmpErrors.isEmpty()) {
                 vecErrors.addAll(tmpErrors);
             }

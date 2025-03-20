@@ -1426,10 +1426,11 @@ public class RuleEditor extends CustomInternalFrame {
 
             try {
                 Vector<SoarProduction> prodVec = parseProductions();
-                MainFrame.getMainFrame().getOperatorWindow().checkProductions((OperatorNode) associatedNode.getParent(),
-                        associatedNode,
-                        prodVec,
-                        errors);
+                MainFrame.getMainFrame()
+                    .getOperatorWindow()
+                    .getProjectModel()
+                    .checkProductions(
+                        (OperatorNode) associatedNode.getParent(), associatedNode, prodVec, errors);
             } catch (TokenMgrError tme) {
                 String errMsg = "Could not check productions due to syntax Error:";
                 errMsg += tme.getMessage();

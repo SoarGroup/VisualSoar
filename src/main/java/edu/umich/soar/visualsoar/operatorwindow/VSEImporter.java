@@ -67,37 +67,37 @@ class VSEImporter {
             String type = ReaderUtils.getWord(r);
             if (type.equals("HLOPERATOR")) {
                 String name = ReaderUtils.getWord(r);
-                node = operatorWindow.createSoarOperatorNode(name, name + ".soar", name, ReaderUtils.getInteger(r) + swmm.numberOfVertices());
-                operatorWindow.addChild(parent, node);
+                node = operatorWindow.getProjectModel().createSoarOperatorNode(name, name + ".soar", name, ReaderUtils.getInteger(r) + swmm.numberOfVertices());
+                operatorWindow.getProjectModel().addChild(parent, node);
                 File file = new File(node.getFolderName());
                 file.mkdir();
                 hlOperators.add(node);
             } else if (type.equals("HLFOPERATOR")) {
                 String name = ReaderUtils.getWord(r);
-                node = operatorWindow.createHighLevelFileOperatorNode(name, name + ".soar", name, ReaderUtils.getInteger(r) + swmm.numberOfVertices());
-                operatorWindow.addChild(parent, node);
+                node = operatorWindow.getProjectModel().createHighLevelFileOperatorNode(name, name + ".soar", name, ReaderUtils.getInteger(r) + swmm.numberOfVertices());
+                operatorWindow.getProjectModel().addChild(parent, node);
                 File file = new File(node.getFolderName());
                 file.mkdir();
                 hlOperators.add(node);
             } else if (type.equals("HLIOPERATOR")) {
                 String name = ReaderUtils.getWord(r);
-                node = operatorWindow.createHighLevelImpasseOperatorNode(name, name + ".soar", name, ReaderUtils.getInteger(r) + swmm.numberOfVertices());
-                operatorWindow.addChild(parent, node);
+                node = operatorWindow.getProjectModel().createHighLevelImpasseOperatorNode(name, name + ".soar", name, ReaderUtils.getInteger(r) + swmm.numberOfVertices());
+                operatorWindow.getProjectModel().addChild(parent, node);
                 File file = new File(node.getFolderName());
                 file.mkdir();
                 hlOperators.add(node);
             } else if (type.equals("OPERATOR")) {
                 String name = ReaderUtils.getWord(r);
-                node = operatorWindow.createSoarOperatorNode(name, name + ".soar");
-                operatorWindow.addChild(parent, node);
+                node = operatorWindow.getProjectModel().createSoarOperatorNode(name, name + ".soar");
+                operatorWindow.getProjectModel().addChild(parent, node);
             } else if (type.equals("FOPERATOR")) {
                 String name = ReaderUtils.getWord(r);
-                node = operatorWindow.createFileOperatorNode(name, name + ".soar");
-                operatorWindow.addChild(parent, node);
+                node = operatorWindow.getProjectModel().createFileOperatorNode(name, name + ".soar");
+                operatorWindow.getProjectModel().addChild(parent, node);
             } else if (type.equals("IOPERATOR")) {
                 String name = ReaderUtils.getWord(r);
-                node = operatorWindow.createImpasseOperatorNode(name, name + ".soar");
-                operatorWindow.addChild(parent, node);
+                node = operatorWindow.getProjectModel().createImpasseOperatorNode(name, name + ".soar");
+                operatorWindow.getProjectModel().addChild(parent, node);
             } else if (type.equals("FILE")) {
 				String name = ReaderUtils.getWord(r);
 				if (currentNode == 0) {
@@ -105,7 +105,7 @@ class VSEImporter {
 						return;
 					}
 				}
-				node = operatorWindow.createFileOperatorNode(name, name + ".soar");
+				node = operatorWindow.getProjectModel().createFileOperatorNode(name, name + ".soar");
 				// Put in alphabetical order
 				boolean found = false;
 				for (int i = 0; i < parent.getChildCount() && !found; ++i) {
@@ -119,12 +119,12 @@ class VSEImporter {
 									JOptionPane.ERROR_MESSAGE);
 							return;
 						} else {
-							operatorWindow.addChild(parent, node);
+							operatorWindow.getProjectModel().addChild(parent, node);
 						}
 					}
 				}
 				if (!found) {
-					operatorWindow.addChild(parent, node);
+					operatorWindow.getProjectModel().addChild(parent, node);
 				}
 			} else {
 				throw new IOException("Parse Error");

@@ -108,8 +108,8 @@ public class FolderNode extends OperatorNode implements java.io.Serializable {
             return;
         }
         //FileNode fn = operatorWindow.createFileNode(newFileName,file.getName());
-        FileOperatorNode fon = operatorWindow.createFileOperatorNode(newFileName, file.getName());
-        operatorWindow.addChild(this, fon);
+        FileOperatorNode fon = operatorWindow.getProjectModel().createFileOperatorNode(newFileName, file.getName());
+        operatorWindow.getProjectModel().addChild(this, fon);
         sourceChildren();
     }
 
@@ -138,9 +138,9 @@ public class FolderNode extends OperatorNode implements java.io.Serializable {
             throw new IOException();
         }
 
-        OperatorNode child = operatorWindow.createSoarOperatorNode(newOperatorName,
+        OperatorNode child = operatorWindow.getProjectModel().createSoarOperatorNode(newOperatorName,
                 rules.getName());
-        operatorWindow.addChild(this, child);
+        operatorWindow.getProjectModel().addChild(this, child);
         sourceChildren();
         return child;
     }
@@ -164,9 +164,9 @@ public class FolderNode extends OperatorNode implements java.io.Serializable {
             throw new IOException();
         }
 
-        SoarOperatorNode ion = operatorWindow.createImpasseOperatorNode(newOperatorName,
+        SoarOperatorNode ion = operatorWindow.getProjectModel().createImpasseOperatorNode(newOperatorName,
                 rules.getName());
-        operatorWindow.addChild(this, ion);
+        operatorWindow.getProjectModel().addChild(this, ion);
         sourceChildren();
 
         //Automatically create an elaborations file.  Impasses do not have files

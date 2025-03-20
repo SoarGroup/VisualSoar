@@ -37,7 +37,7 @@ public abstract class SearchDataMapAction extends AbstractAction {
     numNodes = 0;
     numChecks = 0;
 
-    Enumeration<TreeNode> bfe = mainFrame.getOperatorWindow().breadthFirstEnumeration();
+    Enumeration<TreeNode> bfe = mainFrame.getOperatorWindow().getProjectModel().breadthFirstEnumeration();
     Vector<OperatorNode> vecNodes = new Vector<>(10, 50);
     while (bfe.hasMoreElements()) {
       vecNodes.add((OperatorNode) bfe.nextElement());
@@ -47,7 +47,7 @@ public abstract class SearchDataMapAction extends AbstractAction {
     // Add the nodes a second time because we'll be scanning them twice,
     // once to check productions against the datamap and again to check
     // the datamap for untested WMEs.  (See checkEntity() below.)
-    bfe = mainFrame.getOperatorWindow().breadthFirstEnumeration();
+    bfe = mainFrame.getOperatorWindow().getProjectModel().breadthFirstEnumeration();
     while (bfe.hasMoreElements()) {
       vecNodes.add((OperatorNode) bfe.nextElement());
     }

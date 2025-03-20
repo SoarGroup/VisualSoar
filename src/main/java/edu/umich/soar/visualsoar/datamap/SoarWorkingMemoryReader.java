@@ -1,12 +1,12 @@
 package edu.umich.soar.visualsoar.datamap;
 
+import edu.umich.soar.visualsoar.ProjectModel;
 import edu.umich.soar.visualsoar.files.projectjson.DMVertex;
 import edu.umich.soar.visualsoar.files.projectjson.Datamap;
 import edu.umich.soar.visualsoar.files.projectjson.Project;
 import edu.umich.soar.visualsoar.mainframe.MainFrame;
 import edu.umich.soar.visualsoar.graph.*;
 import edu.umich.soar.visualsoar.mainframe.feedback.FeedbackListEntry;
-import edu.umich.soar.visualsoar.operatorwindow.OperatorWindow;
 import edu.umich.soar.visualsoar.util.ReaderUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -495,7 +495,7 @@ public class SoarWorkingMemoryReader {
 
         // get the edge name
         String edgeName = words[1];
-        if (!OperatorWindow.operatorNameIsValid(edgeName)) {
+        if (!ProjectModel.operatorNameIsValid(edgeName)) {
           errors.add(
               new FeedbackListEntry(
                   "Warning:  Ignoring datamap edge entry with invalid edge name: " + line));

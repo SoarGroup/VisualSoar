@@ -1,6 +1,6 @@
 package edu.umich.soar.visualsoar.dialogs;
 
-import edu.umich.soar.visualsoar.operatorwindow.OperatorWindow;
+import edu.umich.soar.visualsoar.ProjectModel;
 
 import javax.swing.*;
 import java.awt.*;
@@ -78,7 +78,7 @@ public class NameDialog extends JDialog {
                     JOptionPane.showMessageDialog(NameDialog.this,
                             "Names may not contain spaces",
                             "Invalid Name", JOptionPane.ERROR_MESSAGE);
-                } else if (!OperatorWindow.operatorNameIsValid(nameText)) {
+                } else if (!ProjectModel.operatorNameIsValid(nameText)) {
                     JOptionPane.showMessageDialog(NameDialog.this,
                             "Names may only contain letters, numbers, hyphens, and underscores",
                             "Invalid Name", JOptionPane.ERROR_MESSAGE);

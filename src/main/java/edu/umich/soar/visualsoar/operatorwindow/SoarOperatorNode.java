@@ -1,6 +1,5 @@
 package edu.umich.soar.visualsoar.operatorwindow;
 
-import edu.umich.soar.visualsoar.graph.ForeignVertex;
 import edu.umich.soar.visualsoar.mainframe.MainFrame;
 import edu.umich.soar.visualsoar.datamap.DataMap;
 import edu.umich.soar.visualsoar.datamap.SoarWorkingMemoryModel;
@@ -124,7 +123,7 @@ public abstract class SoarOperatorNode extends FileNode {
         elaborationsFile.createNewFile();
 
         // Create the elaborations node
-        OperatorNode elaborationNode = operatorWindow.createFileOperatorNode("elaborations", elaborationsFile.getName());
+        OperatorNode elaborationNode = operatorWindow.getProjectModel().createFileOperatorNode("elaborations", elaborationsFile.getName());
 
         // Create the datamap id
         dataMapId = swmm.createNewStateId(((OperatorNode) getParent()).getStateIdVertex(), getName());
@@ -134,7 +133,7 @@ public abstract class SoarOperatorNode extends FileNode {
         isHighLevel = true;
 
         //Add the elaborations node and folder
-        operatorWindow.addChild(this, elaborationNode);
+        operatorWindow.getProjectModel().addChild(this, elaborationNode);
         folderName = folder.getName();
 
         return true;
@@ -336,9 +335,9 @@ public abstract class SoarOperatorNode extends FileNode {
             throw new IOException();
         }
 
-        OperatorNode child = operatorWindow.createSoarOperatorNode(newOperatorName,
+        OperatorNode child = operatorWindow.getProjectModel().createSoarOperatorNode(newOperatorName,
                 rules.getName());
-        operatorWindow.addChild(this, child);
+        operatorWindow.getProjectModel().addChild(this, child);
 
         SoarVertex opName = swmm.createNewEnumeration(newOperatorName);
         SoarVertex operId = swmm.createNewSoarId();
@@ -369,9 +368,9 @@ public abstract class SoarOperatorNode extends FileNode {
             throw new IOException();
         }
 
-        SoarOperatorNode ion = operatorWindow.createImpasseOperatorNode(newOperatorName,
+        SoarOperatorNode ion = operatorWindow.getProjectModel().createImpasseOperatorNode(newOperatorName,
                 rules.getName());
-        operatorWindow.addChild(this, ion);
+        operatorWindow.getProjectModel().addChild(this, ion);
         sourceChildren();
 
 
@@ -407,8 +406,8 @@ public abstract class SoarOperatorNode extends FileNode {
         File file = new File(getFullPathName() + File.separator + newFileName + ".soar");
         if (checkCreateReplace(file)) return;
 
-        FileOperatorNode fon = operatorWindow.createFileOperatorNode(newFileName, file.getName());
-        operatorWindow.addChild(this, fon);
+        FileOperatorNode fon = operatorWindow.getProjectModel().createFileOperatorNode(newFileName, file.getName());
+        operatorWindow.getProjectModel().addChild(this, fon);
         sourceChildren();
     }//addFileOperator
 
@@ -619,7 +618,7 @@ public abstract class SoarOperatorNode extends FileNode {
         model.removeNodeFromParent(this);
         oldParent.notifyDeletionOfChild(operatorWindow, this);
 
-        operatorWindow.addChild(newParent, this);
+        operatorWindow.getProjectModel().addChild(newParent, this);
         // Adjust rule editor if one is open
         if (ruleEditor != null) {
             ruleEditor.fileRenamed(newFile.getPath());

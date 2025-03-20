@@ -33,7 +33,7 @@ public class GenerateDataMapAction extends AbstractAction {
 
   public void actionPerformed(ActionEvent ae) {
     int numNodes = 0;
-    Enumeration<TreeNode> bfe = mainFrame.getOperatorWindow().breadthFirstEnumeration();
+    Enumeration<TreeNode> bfe = mainFrame.getOperatorWindow().getProjectModel().breadthFirstEnumeration();
     while (bfe.hasMoreElements()) {
       numNodes++;
       bfe.nextElement();
@@ -56,7 +56,7 @@ public class GenerateDataMapAction extends AbstractAction {
 
     Vector<FeedbackListEntry> errors = new Vector<>();
     int repCount = 0;
-    Enumeration<TreeNode> bfe = mainFrame.getOperatorWindow().breadthFirstEnumeration();
+    Enumeration<TreeNode> bfe = mainFrame.getOperatorWindow().getProjectModel().breadthFirstEnumeration();
     OperatorNode current;
     Vector<FeedbackListEntry> vecErrors = new Vector<>();
 
@@ -101,7 +101,7 @@ public class GenerateDataMapAction extends AbstractAction {
       do {
         repCount++;
         errors.clear();
-        bfe = mainFrame.getOperatorWindow().breadthFirstEnumeration();
+        bfe = mainFrame.getOperatorWindow().getProjectModel().breadthFirstEnumeration();
 
         while (bfe.hasMoreElements()) {
           current = (OperatorNode) bfe.nextElement();

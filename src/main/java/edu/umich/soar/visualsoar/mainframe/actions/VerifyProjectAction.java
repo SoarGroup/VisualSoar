@@ -30,7 +30,7 @@ public class VerifyProjectAction extends PerformableAction {
   }
 
   public void perform() {
-    Enumeration<TreeNode> bfe = mainFrame.getOperatorWindow().breadthFirstEnumeration();
+    Enumeration<TreeNode> bfe = mainFrame.getOperatorWindow().getProjectModel().breadthFirstEnumeration();
     Vector<OperatorNode> vecNodes = new Vector<>(10, 50);
     while (bfe.hasMoreElements()) {
       Object obj = bfe.nextElement();
