@@ -41,14 +41,11 @@ public class OperatorRootNode extends FolderNode implements java.io.Serializable
 // Constructors
 ///////////////////////////////////////////////////////////////////
 
-    /**
-     * This constructs the normal OperatorRootNode object
-     *
-     * @param inName the name of the node
-     */
-    public OperatorRootNode(String inName, int inId, String inFullPathStart, String inFolder) {
-        super(inName, inId, inFolder);
-        fullPathStart = inFullPathStart;
+    public static OperatorRootNode rootNodeForNewProject(String inName, int inId, String inFullPathStart, String inFolder) {
+        OperatorRootNode node = new OperatorRootNode(inName, inId, inFolder);
+        node.fullPathStart = inFullPathStart;
+        node.setIsJson(true);
+        return node;
     }
 
     public OperatorRootNode(String inName, int inId, String inFolder) {
@@ -60,7 +57,7 @@ public class OperatorRootNode extends FolderNode implements java.io.Serializable
    */
   public OperatorRootNode(String inName, String serializationId, int inId, String inFolder) {
     super(inName, inId, serializationId, inFolder);
-    isJson = true;
+    setIsJson(true);
   }
 
   ///////////////////////////////////////////////////////////////////
@@ -76,6 +73,10 @@ public class OperatorRootNode extends FolderNode implements java.io.Serializable
     boolean retVal = isJson != this.isJson;
     this.isJson = isJson;
     return retVal;
+  }
+
+  public boolean isJson() {
+    return isJson;
   }
 
     /**

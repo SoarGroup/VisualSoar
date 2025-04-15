@@ -238,7 +238,7 @@ public class ProjectModel {
    */
   public OperatorRootNode createOperatorRootNode(
       String inName, String inFullPathStart, String inFolderName) {
-    return new OperatorRootNode(inName, getNextId(), inFullPathStart, inFolderName);
+    return OperatorRootNode.rootNodeForNewProject(inName, getNextId(), inFullPathStart, inFolderName);
   }
 
   /**

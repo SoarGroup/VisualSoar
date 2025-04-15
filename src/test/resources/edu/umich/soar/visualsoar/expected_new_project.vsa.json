@@ -1,0 +1,238 @@
+{
+  "datamap": {
+    "rootId": "1",
+    "vertices": [
+      {
+        "id": "1",
+        "outEdges": [
+          {
+            "name": "epmem",
+            "toId": "13"
+          },
+          {
+            "name": "io",
+            "toId": "2"
+          },
+          {
+            "name": "name",
+            "toId": "8"
+          },
+          {
+            "name": "operator",
+            "toId": "5"
+          },
+          {
+            "name": "reward-link",
+            "toId": "10"
+          },
+          {
+            "name": "smem",
+            "toId": "17"
+          },
+          {
+            "name": "superstate",
+            "toId": "7"
+          },
+          {
+            "name": "top-state",
+            "toId": "1"
+          },
+          {
+            "name": "type",
+            "toId": "6"
+          }
+        ],
+        "type": "SOAR_ID"
+      },
+      {
+        "id": "10",
+        "outEdges": [
+          {
+            "name": "reward",
+            "toId": "11"
+          }
+        ],
+        "type": "SOAR_ID"
+      },
+      {
+        "id": "11",
+        "outEdges": [
+          {
+            "name": "value",
+            "toId": "12"
+          }
+        ],
+        "type": "SOAR_ID"
+      },
+      {
+        "id": "12",
+        "type": "FLOAT"
+      },
+      {
+        "id": "13",
+        "outEdges": [
+          {
+            "name": "command",
+            "toId": "14"
+          },
+          {
+            "name": "present-id",
+            "toId": "15"
+          },
+          {
+            "name": "result",
+            "toId": "16"
+          }
+        ],
+        "type": "SOAR_ID"
+      },
+      {
+        "id": "14",
+        "outEdges": [ ],
+        "type": "SOAR_ID"
+      },
+      {
+        "id": "15",
+        "type": "INTEGER"
+      },
+      {
+        "id": "16",
+        "outEdges": [ ],
+        "type": "SOAR_ID"
+      },
+      {
+        "id": "17",
+        "outEdges": [
+          {
+            "name": "command",
+            "toId": "18"
+          },
+          {
+            "name": "result",
+            "toId": "19"
+          }
+        ],
+        "type": "SOAR_ID"
+      },
+      {
+        "id": "18",
+        "outEdges": [ ],
+        "type": "SOAR_ID"
+      },
+      {
+        "id": "19",
+        "outEdges": [ ],
+        "type": "SOAR_ID"
+      },
+      {
+        "id": "2",
+        "outEdges": [
+          {
+            "name": "input-link",
+            "toId": "3"
+          },
+          {
+            "name": "output-link",
+            "toId": "4"
+          }
+        ],
+        "type": "SOAR_ID"
+      },
+      {
+        "id": "3",
+        "outEdges": [ ],
+        "type": "SOAR_ID"
+      },
+      {
+        "id": "4",
+        "outEdges": [ ],
+        "type": "SOAR_ID"
+      },
+      {
+        "id": "5",
+        "outEdges": [
+          {
+            "name": "name",
+            "toId": "9"
+          }
+        ],
+        "type": "SOAR_ID"
+      },
+      {
+        "choices": [
+          "state"
+        ],
+        "id": "6",
+        "type": "ENUMERATION"
+      },
+      {
+        "choices": [
+          "nil"
+        ],
+        "id": "7",
+        "type": "ENUMERATION"
+      },
+      {
+        "choices": [
+          "foo"
+        ],
+        "id": "8",
+        "type": "ENUMERATION"
+      },
+      {
+        "choices": [
+          "initialize-foo"
+        ],
+        "id": "9",
+        "type": "ENUMERATION"
+      }
+    ]
+  },
+  "layout": {
+    "folder": "foo",
+    "id": "20",
+    "name": "foo",
+    "type": "OPERATOR_ROOT",
+    "children": [
+      {
+        "file": "_firstload.soar",
+        "id": "22",
+        "name": "_firstload",
+        "type": "FILE_OPERATOR"
+      },
+      {
+        "folder": "all",
+        "id": "23",
+        "name": "all",
+        "type": "FOLDER"
+      },
+      {
+        "folder": "elaborations",
+        "id": "21",
+        "name": "elaborations",
+        "type": "FOLDER",
+        "children": [
+          {
+            "file": "_all.soar",
+            "id": "24",
+            "name": "_all",
+            "type": "FILE_OPERATOR"
+          },
+          {
+            "file": "top-state.soar",
+            "id": "25",
+            "name": "top-state",
+            "type": "FILE_OPERATOR"
+          }
+        ]
+      },
+      {
+        "file": "initialize-foo.soar",
+        "id": "26",
+        "name": "initialize-foo",
+        "type": "OPERATOR"
+      }
+    ]
+  },
+  "version": "6"
+}
