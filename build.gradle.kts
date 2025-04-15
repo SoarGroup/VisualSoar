@@ -1,3 +1,4 @@
+import org.javacc.plugin.gradle.javacc.CompileJavaccTask
 import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.util.*
@@ -8,6 +9,7 @@ plugins {
   java
   application
   id("org.beryx.runtime") version "1.13.1"
+  id("org.javacc.javacc") version "4.0.1"
 }
 
 repositories {
@@ -86,6 +88,16 @@ tasks.named<Test>("test") {
   // Use JUnit Platform for unit tests.
   useJUnitPlatform()
 }
+
+//////////////////////////////
+// JavaCC-based Soar Parser //
+//////////////////////////////
+
+tasks.named<CompileJavaccTask>("compileJavacc") {
+  inputDirectory = file("src/main/javacc")
+  outputDirectory = file("src/main/java/edu/umich/soar/visualsoar/parser")
+}
+
 
 ////////////////////////////////////
 // JVM-included application build //

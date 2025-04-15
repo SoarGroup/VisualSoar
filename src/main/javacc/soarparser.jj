@@ -26,12 +26,12 @@ import java.util.*;
 	@author Brad Jones
 	if you are looking at the java file, it isn't going to make a lot of sense
 	I used the Java Compiler Compiler to make the lexer and parser
-	the homepage is http://www.metamata.com
+	the homepage is <a href="https://javacc.github.io/javacc/">here</a>
 */
 public class SoarParser {}
 PARSER_END(SoarParser)
 
-SKIP: 
+SKIP:
 {
 	 < "#" (~["\n","\r"])*>
 	|<";#" (~["\n","\r"])*>
@@ -48,7 +48,7 @@ TOKEN:
     |<SOARCMD:  ("global"|"set"|"puts"|"alias"|"attention-lapse"|"attribute_preferences_mode"|"capture-input"|"chunk"|"chunk-name-format"|"command-to-file"|"debug"|"decide"|"default_wme_depth"|"dirs"|"echo"|"epmem"|"excise"|"explain-backtraces"|"firing-counts"|"format-watch"|"gds_print"|"help"|"indifferent-selection"|"init-soar"|"input-period"|"internal-symbols"|"io"|"learn"|"log"|"matches"|"max-chunks"|"max-elaborations"|"max-nil-output-cycles"|"max_chunks"|"max_elaborations"|"memories"|"monitor"|"multi-attributes"|"o-support-mode"|"output"|"output-strings-destination"|"o_support_mode"|"popd"|"predefined-aliases"|"predict"|"preferences"|"print"|"production"|"production-find"|"pushd"|"pwatch"|"quit"|"remove-wme"|"replay-input"|"rete-net"|"rhsfun"|"rl"|"run"|"save_backtraces"|"select"|"send"|"smem"|"soar"|"soar8"|"soarnews"|"soartk"|"start-attention-lapse"|"stats"|"stop-soar"|"svs"|"topd"|"trace"|"tsi"|"unalias"|"variables"|"version"|"viSTEAM"|"visualize"|"vt"|"vtutor"|"wake-from-attention-lapse"|"wake"|"warnings"|"watch"|"wm")(~["\n","\r"])*>
 }
 
-< IN_SOAR_PRODUCTION > SKIP: 
+< IN_SOAR_PRODUCTION > SKIP:
 {
 	 < "#" (~["\n","\r"])*>
 	|<";#" (~["\n","\r"])*>
@@ -95,7 +95,7 @@ TOKEN:
 	 |<VARIABLE: "<" (["a"-"z","A"-"Z","0"-"9","$","%","&","*","+","-","/",":","=","?","_"])+ ">" >
 	 |<INTEGER_CONST: (["+","-"])? (["0"-"9"])+ >
 	 |<SYMBOLIC_CONST: (["a"-"z","A"-"Z","0"-"9","$","%","&","*","+","-","/","<","=",">","?","_"])(["a"-"z","A"-"Z","0"-"9","$","%","&","*","+","-","/",":","<","=",">","?","_"])* | ("|" (~["|"]|"\\|")* "|") >
-	 |<FLOATING_POINT_CONST: 
+	 |<FLOATING_POINT_CONST:
 	 					(["0"-"9"])+ "." (["0"-"9"])* (<EXPONENT>)? (["f","F","d","D"])?
 	 				| "." (["0"-"9"])+ (<EXPONENT>)? (["f","F","d","D"])?
 	 				| (["0"-"9"])+ <EXPONENT> (["f","F","d","D"])?
@@ -138,7 +138,7 @@ SoarProduction soarProduction() :
 // Begining of the production
 	(<SP> | <GP>)
 	(<LBRACE> | <QUOTE>)
-// its name	
+// its name
 	t = <SYMBOLIC_CONST>
 	{   sp.setName(t.image);
 		sp.setStartLine(t.beginLine);
@@ -147,10 +147,10 @@ SoarProduction soarProduction() :
 	handleDocumentationQuote(sp)
 // production type
 	(s = productionType() { sp.setProductionType(s); } )*
-	cs = conditionSide() 
+	cs = conditionSide()
 	{ sp.setConditionSide(cs); }
 	<RARROW>
-	as = actionSide() 
+	as = actionSide()
 	{ sp.setActionSide(as); }
 	(<RBRACE> | <QUOTE>)
 	{
@@ -188,22 +188,22 @@ void handleDocumentationQuote(SoarProduction sp)
 /*
 	The grammar that this recognizes
 	<ConditionSide> 			::= <Condition>+
-	<FirstCondition>			::= '(' "state" VARIABLE <AttributeValueTest>* ')' 
+	<FirstCondition>			::= '(' "state" VARIABLE <AttributeValueTest>* ')'
 	<Condition>					::= ['-'] PositiveCondition
 	<PositiveCondition>	    	::= <ConditionForOneIdentifier>
 									| '{' <Condition>+ '}'
 	<ConditionForOneIdentifier>	::= '(' VARIABLE <AttributeValueTest>* ')'
-	<AttributeValueTest>		::= ['-'] ^ <AttributeTest> ['.'<AttributeTest>]* <ValueTest>* 
+	<AttributeValueTest>		::= ['-'] ^ <AttributeTest> ['.'<AttributeTest>]* <ValueTest>*
 	<AttributeTest>				::= <Test>
 	<ValueTest>					::= <Test> ['+']
 	<Test> 						::= <ConjunctiveTest> | <SimpleTest>
 	<ConjunctiveTest>			::= '{' <SimpleTest>+ '}'
 	<SimpleTest>				::= <DisjunctionTest> | <RelationalTest>
 	<DisjunctionTest>			::= '<<' <Constant>+ '>>'
-	<RelationalTest>            ::=	 [<Relation>] <SingleTest>	
+	<RelationalTest>            ::=	 [<Relation>] <SingleTest>
 	<Relation>					::=  '<>' | '<=>' | '<' | '<=' | '>=' | '>' | '='
 	<SingleTest>				::= <Constant> | VARIABLE
-	<Constant> 					::= INTEGER_CONST | SYMBOLIC_CONST | FLOATING_POINT_CONST	
+	<Constant> 					::= INTEGER_CONST | SYMBOLIC_CONST | FLOATING_POINT_CONST
 */
 
 // Ok
@@ -228,18 +228,18 @@ Condition condition() :
 	PositiveCondition pcond;
 }
 {
-	(<HYPHEN> { negated = true; })? 
+	(<HYPHEN> { negated = true; })?
 	(pcond = positiveCondition())
 	{ return new Condition(negated,pcond); }
 }
 
 // Ok
-PositiveCondition positiveCondition() : 
+PositiveCondition positiveCondition() :
 {
 	ConditionForOneIdentifier cfoi;
 	Condition cond;
 	PositiveCondition retVal;
-	
+
 }
 {
 	(cfoi = conditionForOneIdentifier()) {
@@ -248,7 +248,7 @@ PositiveCondition positiveCondition() :
 	| (<LBRACE>
 		{
 			retVal = new PositiveCondition();
-		} 
+		}
 		(cond = condition()
 		{
 			retVal.add(cond);
@@ -268,12 +268,12 @@ ConditionForOneIdentifier conditionForOneIdentifier() :
 }
 {
 	<LPAREN>
-	( (t = <SYMBOLIC_CONST> { 
-		if(t.image.equals("state"))	
-			hasState = true; 
-		else 
+	( (t = <SYMBOLIC_CONST> {
+		if(t.image.equals("state"))
+			hasState = true;
+		else
 			throw new ParseException("only state allowed.");
-	})? 
+	})?
 	t = <VARIABLE>
 	{
 		cfoi = new ConditionForOneIdentifier(hasState,new Pair(t.image,t.beginLine));
@@ -282,7 +282,7 @@ ConditionForOneIdentifier conditionForOneIdentifier() :
 	{
 		cfoi.add(avt);
 	})*
-	<RPAREN>	
+	<RPAREN>
 	{ return cfoi; }
 }
 
@@ -297,14 +297,14 @@ AttributeValueTest attributeValueTest() :
 	(<HYPHEN>
 	{
 		avt.negate();
-	})? 
-	<CARET> 
+	})?
+	<CARET>
 	(at = attributeTest())
 	{ avt.add(at); }
-	(<PERIOD> at = attributeTest() { avt.add(at); })* 
+	(<PERIOD> at = attributeTest() { avt.add(at); })*
 	(vt = valueTest() { avt.add(vt); } )*
 	{ return avt;}
-	
+
 }
 
 // Ok
@@ -313,7 +313,7 @@ AttributeTest attributeTest() :
 	Test t;
 }
 {
-	t = test() 
+	t = test()
 	{ return new AttributeTest(t); }
 }
 
@@ -326,14 +326,14 @@ ValueTest valueTest() :
 {
 	  t = test() {
 	  	vt = new ValueTest(t);
-	  } 
-	  (<PLUS>{ 
+	  }
+	  (<PLUS>{
 	  	vt.acceptablePreference();
 	  }
 	  )?
 	  { return vt; }
-	  
-	// | ConditionsForOneId() John Laird told me to take this out 7/6/99 
+
+	// | ConditionsForOneId() John Laird told me to take this out 7/6/99
 }
 
 // Ok
@@ -347,17 +347,17 @@ Test test() :
 	{ return new Test(ct); }
 	| st = simpleTest()
 	{ return new Test(st); }
-} 
+}
 
 // Ok
 ConjunctiveTest conjunctiveTest() :
-{ 
+{
 	ConjunctiveTest retVal = new ConjunctiveTest();
 	SimpleTest st;
 }
 {
 	<LBRACE>
-	( st = simpleTest() 
+	( st = simpleTest()
 	{ retVal.add(st);}
 	)+
 	<RBRACE>
@@ -371,10 +371,10 @@ SimpleTest simpleTest() :
 	RelationalTest rt;
 }
 {
-	 dt = disjunctionTest() 
+	 dt = disjunctionTest()
 	 { return new SimpleTest(dt); }
-	 | rt = relationalTest() 
-	 { return new SimpleTest(rt);} 
+	 | rt = relationalTest()
+	 { return new SimpleTest(rt);}
 }
 
 
@@ -441,7 +441,7 @@ int relation() :
 	|<BANGAT> {
 		return RelationalTest.BANGAT;
 	}
-        
+
 }
 
 // Ok
@@ -454,7 +454,7 @@ SingleTest singleTest() :
 	t = <VARIABLE>	{
 		return new SingleTest(new Pair(t.image,t.beginLine));
 	}
-	| 
+	|
 	c = constant() {
 	  	return new SingleTest(c);
 	}
@@ -505,13 +505,13 @@ Constant constant() :
    <AttributeValueMake> ::= ^ <RHSValue> ['.'<RHSValue>]* <ValueMake>+
    <ValueMake> ::= <RHSValue> <Preferences>
 
-   <Preferences> ::= <PreferenceSpecifier>*   
+   <Preferences> ::= <PreferenceSpecifier>*
    <PreferenceSpecifier> ::= <NaturallyUnaryPreference> [,]
                             | <ForcedUnaryPreference>
                             | <BinaryPreference> <RHSValue> [,]
-   <NaturallyUnaryPreference> ::= + | - | ! | ~ 
-   <BinaryPreference> ::= > | = | < 
-   <ForcedUnaryPreference> ::= <BinaryPreference> [,]   
+   <NaturallyUnaryPreference> ::= + | - | ! | ~
+   <BinaryPreference> ::= > | = | <
+   <ForcedUnaryPreference> ::= <BinaryPreference> [,]
 ===================================================================== */
 
 // Done
@@ -521,7 +521,7 @@ ActionSide actionSide() :
 	Action a;
 }
 {
-	(a = action() { 
+	(a = action() {
 		if(a != null)
 			retVal.add(a);
 	})*
@@ -558,9 +558,9 @@ VarAttrValMake varAttrValMake() :
 }
 {
 	<LPAREN>
-	(t = <VARIABLE> 
+	(t = <VARIABLE>
 	{ retVal = new VarAttrValMake(new Pair(t.image,t.beginLine));})
-	(avm = attributeValueMake() { retVal.add(avm); })+ 
+	(avm = attributeValueMake() { retVal.add(avm); })+
 	<RPAREN>
 	{ return retVal; }
 }
@@ -573,13 +573,13 @@ FunctionCall functionCall() :
 	RHSValue rhsv;
 }
 {
-	<LPAREN>	
+	<LPAREN>
 	(funcName = functionName() { funcCall = new FunctionCall(funcName); } )
 	(
 	rhsv = rhsValue() { funcCall.add(rhsv); }
 	| <TCL_PREPROCESS>
 	)*
-	<RPAREN>	
+	<RPAREN>
 	{ return funcCall; }
 }
 
@@ -588,7 +588,7 @@ Pair functionName() :
 {
 	Token t;
 }
-{	
+{
 	(t = <SYMBOLIC_CONST> {
 		return new Pair(t.image,t.beginLine);
 	} )
@@ -613,12 +613,12 @@ RHSValue rhsValue() :
 		return new RHSValue(c);
 	})
 	| (fc = functionCall()
-	{ 
+	{
 		return new RHSValue(fc);
 	} )
-	| (t = <VARIABLE> 
-	{ 
-		return new RHSValue(new Pair(t.image,t.beginLine)); 
+	| (t = <VARIABLE>
+	{
+		return new RHSValue(new Pair(t.image,t.beginLine));
 	})
 }
 
@@ -630,16 +630,16 @@ AttributeValueMake attributeValueMake() :
 	ValueMake vm;
 }
 {
-	<CARET> (rhsv = rhsValue() 
+	<CARET> (rhsv = rhsValue()
 	{ avm.add(rhsv); })
-	
-	(<PERIOD> rhsv = rhsValue() { avm.add(rhsv); })* 
+
+	(<PERIOD> rhsv = rhsValue() { avm.add(rhsv); })*
 	( vm = valueMake() { avm.add(vm); } )+
 	{return avm; }
 }
 
 
-// Ok 
+// Ok
 ValueMake valueMake() :
 {
 	PreferenceSpecifier ps;
@@ -647,14 +647,14 @@ ValueMake valueMake() :
 	ValueMake vm;
 }
 {
-	rhsv = rhsValue() 
+	rhsv = rhsValue()
 	{ vm = new ValueMake(rhsv); }
-	 
+
 	(	(ps = preferenceSpecifier()
 		{ vm.add(ps); })
 	)*
 	{ return vm; }
-	
+
 }
 
 
@@ -702,13 +702,13 @@ int binaryPreference() :
 	{ return BinaryPreference.LESS; }
 	| <AMPERSAND>
 	{ return BinaryPreference.AMPERSAND; }
-	
+
 }
 
 
 // Ok
 ForcedUnaryPreference forcedUnaryPreference() :
-{ 
+{
 	int type;
 }
 {

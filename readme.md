@@ -11,6 +11,23 @@ simply open the project root folder, and IntelliJ will ask if you'd like to impo
 project that it found. Select "yes" and you'll be able to run and debug files normally, as well
 as run the Gradle targets from IntelliJ. Eclipse understands Gradle projects, as well.
 
+### Soar Parser
+
+The Soar parser used in VisualSoar is specified in `src/main/javacc/soarparser.jj`, and the Java code is then
+generated via [JavaCC](https://javacc.github.io/javacc/).
+
+To regenerate the required files, run the top-level `compileJavacc` gradle task.
+
+The following classes are generated:
+
+* ParseException.java
+* SimpleCharStream.java
+* SoarParser.java
+* SoarParserConstants.java
+* SoarParserTokenManager.java
+* Token.java
+* TokenMgrError.java
+
 ### Building the jar for release with Soar
 
 The slim jar we distribute with Soar:
