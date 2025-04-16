@@ -17,7 +17,7 @@ class FindPanel extends JPanel {
   JTextField findField = new JTextField(20);
   FindOptionsPanel optionsPanel;
 
-  public FindPanel() {
+  public FindPanel(String initialText) {
     optionsPanel = new FindOptionsPanel();
 
     setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
@@ -29,12 +29,8 @@ class FindPanel extends JPanel {
             BorderFactory.createTitledBorder("Find"),
             BorderFactory.createEmptyBorder(10, 10, 10, 10)));
 
-    // So that enter can affirmatively dismiss the dialog
+    // So that we can attach actions to the enter key
     findField.getKeymap().removeKeyStrokeBinding(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0));
-  }
-
-  public FindPanel(String initialText) {
-    this();
     findField.setText(initialText);
   }
 

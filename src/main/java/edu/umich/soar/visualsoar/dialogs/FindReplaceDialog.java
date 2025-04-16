@@ -24,20 +24,20 @@ public class FindReplaceDialog extends JDialog {
     /**
      * panel which contains the find input field and option buttons
      */
-    FindPanel findPanel = new FindPanel();
+    private final FindPanel findPanel;
 
     /**
      * the rule editor this find was excecuted from, null if this is
      * a project-wide search
      */
-    RuleEditor d_ruleEditor;
+    private final RuleEditor d_ruleEditor;
 
     /**
      * panel which contians all the replace input field
      */
-    ReplacePanel replacePanel = new ReplacePanel();
+    private final ReplacePanel replacePanel = new ReplacePanel();
 
-    FindReplaceButtonPanel buttonPanel = new FindReplaceButtonPanel();
+    private final FindReplaceButtonPanel buttonPanel = new FindReplaceButtonPanel();
 
     /**
      * @param owner      Frame which owns the dialog
@@ -57,6 +57,7 @@ public class FindReplaceDialog extends JDialog {
         c.gridwidth = GridBagConstraints.REMAINDER;
         c.fill = GridBagConstraints.HORIZONTAL;
 
+        findPanel = new FindPanel(ruleEditor.getSelectedText());
         contentPane.add(findPanel, c);
         contentPane.add(replacePanel, c);
         contentPane.add(buttonPanel, c);
