@@ -11,43 +11,38 @@ import java.awt.*;
  * @see FindReplaceDialog
  */
 class FindButtonPanel extends JPanel {
-    private static final long serialVersionUID = 20221225L;
+  private static final long serialVersionUID = 20221225L;
 
+  JCheckBox keepDialog;
+  JButton cancelButton = new JButton("Cancel");
+  JButton findButton = new JButton("Find");
 
-    JCheckBox keepDialog;
-    JButton cancelButton = new JButton("Cancel");
-    JButton findButton = new JButton("Find");
+  /**
+   * The 'find in project' version
+   *
+   * @param findInProject is not used but needed to distinguish this ctor from the single file
+   *     version. This could be done a cleaner way but *shrug*
+   */
+  public FindButtonPanel(boolean findInProject) {
+    cancelButton.setMnemonic('c');
+    findButton.setMnemonic('f');
 
-    /**
-     * The 'find in project' version
-     *
-     * @param findInProject is not used but needed to distinguish this ctor
-     *                      from the single file version.  This could be done
-     *                      a cleaner way but *shrug*
-     */
-    public FindButtonPanel(boolean findInProject) {
-        cancelButton.setMnemonic('c');
-        findButton.setMnemonic('f');
+    setLayout(new FlowLayout());
+    add(findButton);
+    add(cancelButton);
+  }
 
-        setLayout(new FlowLayout());
-        add(findButton);
-        add(cancelButton);
-    }
+  /** The default single-file find version */
+  public FindButtonPanel() {
+    keepDialog = new JCheckBox("Keep Dialog", true);
 
+    cancelButton.setMnemonic('c');
+    findButton.setMnemonic('f');
+    keepDialog.setMnemonic('k');
 
-    /**
-     * The default single-file find version
-     */
-    public FindButtonPanel() {
-        keepDialog = new JCheckBox("Keep Dialog", false);
-
-        cancelButton.setMnemonic('c');
-        findButton.setMnemonic('f');
-        keepDialog.setMnemonic('k');
-
-        setLayout(new FlowLayout());
-        add(keepDialog);
-        add(findButton);
-        add(cancelButton);
-    }
+    setLayout(new FlowLayout());
+    add(keepDialog);
+    add(findButton);
+    add(cancelButton);
+  }
 }
