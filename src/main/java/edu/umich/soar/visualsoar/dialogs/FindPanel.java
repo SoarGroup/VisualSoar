@@ -5,53 +5,56 @@ import javax.swing.border.CompoundBorder;
 import java.awt.event.KeyEvent;
 
 /**
- * Panel that contains the input field for the find string and the
- * option panel for the find dialogs
+ * Panel that contains the input field for the find string and the option panel for the find dialogs
  *
  * @author Jon Bauman
  * @see FindDialog
  * @see FindReplaceDialog
  */
 class FindPanel extends JPanel {
-    private static final long serialVersionUID = 20221225L;
+  private static final long serialVersionUID = 20221225L;
 
+  JTextField findField = new JTextField(20);
+  FindOptionsPanel optionsPanel;
 
-    JTextField findField = new JTextField(20);
-    FindOptionsPanel optionsPanel;
+  public FindPanel() {
+    optionsPanel = new FindOptionsPanel();
 
-    public FindPanel() {
-        optionsPanel = new FindOptionsPanel();
+    setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+    add(findField);
+    add(optionsPanel);
 
-        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-        add(findField);
-        add(optionsPanel);
+    setBorder(
+        new CompoundBorder(
+            BorderFactory.createTitledBorder("Find"),
+            BorderFactory.createEmptyBorder(10, 10, 10, 10)));
 
-        setBorder(new CompoundBorder(
-                BorderFactory.createTitledBorder("Find"),
-                BorderFactory.createEmptyBorder(10, 10, 10, 10)));
+    // So that enter can affirmatively dismiss the dialog
+    findField.getKeymap().removeKeyStrokeBinding(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0));
+  }
 
-        // So that enter can affirmatively dismiss the dialog
-        findField.getKeymap().removeKeyStrokeBinding(
-                KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0));
-    }
+  public FindPanel(String initialText) {
+    this();
+    findField.setText(initialText);
+  }
 
-    /**
-     * gets all the data input into the panel by the user
-     *
-     * @return an array of objects representing the data
-     */
-    public Object[] getData() {
-        Object[] findData = new Object[4];
+  /**
+   * gets all the data input into the panel by the user
+   *
+   * @return an array of objects representing the data
+   */
+  public Object[] getData() {
+    Object[] findData = new Object[4];
 
-        findData[0] = findField.getText();
-        findData[1] = optionsPanel.getDirection();
-        findData[2] = optionsPanel.getMatchCase();
-        findData[3] = optionsPanel.getWrap();
+    findData[0] = findField.getText();
+    findData[1] = optionsPanel.getDirection();
+    findData[2] = optionsPanel.getMatchCase();
+    findData[3] = optionsPanel.getWrap();
 
-        return findData;
-    }
+    return findData;
+  }
 
-    public void requestFocus() {
-        findField.requestFocus();
-    }
+  public void requestFocus() {
+    findField.requestFocus();
+  }
 }

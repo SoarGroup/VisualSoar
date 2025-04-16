@@ -14,6 +14,7 @@ import edu.umich.soar.visualsoar.operatorwindow.OperatorRootNode;
 import edu.umich.soar.visualsoar.parser.*;
 import edu.umich.soar.visualsoar.ruleeditor.actions.*;
 import edu.umich.soar.visualsoar.util.*;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -377,6 +378,15 @@ public class RuleEditor extends CustomInternalFrame {
                 new edu.umich.soar.visualsoar.util.TabRemovingReader(new FileReader(fn));
         editorPane.read(fr);
         fr.close();
+    }
+
+    @NotNull
+    public String getSelectedText() {
+      String selectedText = editorPane.getSelectedText();
+      if (selectedText == null) {
+        return "";
+      }
+      return selectedText;
     }
 
     /**

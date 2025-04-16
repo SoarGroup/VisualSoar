@@ -25,7 +25,7 @@ public class EditorPane extends javax.swing.JEditorPane {
      */
     private final DropTargetListener dtListener = new EPDropTargetListener();
 
-    /**
+  /**
      * @serial a reference to the DropTarget for Drag and Drop operations, may be deleted in future
      */
 
