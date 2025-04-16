@@ -13,7 +13,6 @@ import java.awt.*;
 class FindButtonPanel extends JPanel {
   private static final long serialVersionUID = 20221225L;
 
-  JCheckBox keepDialog;
   JButton cancelButton = new JButton("Cancel");
   JButton findButton = new JButton("Find");
 
@@ -34,14 +33,10 @@ class FindButtonPanel extends JPanel {
 
   /** The default single-file find version */
   public FindButtonPanel() {
-    keepDialog = new JCheckBox("Keep Dialog", true);
-
     cancelButton.setMnemonic('c');
     findButton.setMnemonic('f');
-    keepDialog.setMnemonic('k');
 
     setLayout(new FlowLayout());
-    add(keepDialog);
     add(findButton);
     add(cancelButton);
   }

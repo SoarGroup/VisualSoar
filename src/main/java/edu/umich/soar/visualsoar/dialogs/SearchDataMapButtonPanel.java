@@ -12,19 +12,14 @@ import java.awt.*;
 class SearchDataMapButtonPanel extends JPanel {
     private static final long serialVersionUID = 20221225L;
 
-
-    JCheckBox keepDialog = new JCheckBox("Keep Dialog", true);
-
     JButton cancelButton = new JButton("Cancel");
     JButton findNextButton = new JButton("Find Next");
 
     public SearchDataMapButtonPanel() {
         cancelButton.setMnemonic('c');
         findNextButton.setMnemonic('f');
-        keepDialog.setMnemonic('k');
 
         setLayout(new FlowLayout());
-        add(keepDialog);
         add(findNextButton);
         add(cancelButton);
     }

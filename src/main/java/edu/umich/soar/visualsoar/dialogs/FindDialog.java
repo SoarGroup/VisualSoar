@@ -76,9 +76,6 @@ public class FindDialog extends JDialog {
 
             d_ruleEditor.setFindReplaceData(toFind, forward, caseSensitive, wrap);
             d_ruleEditor.find();
-            if (!buttonPanel.keepDialog.isSelected()) {
-              dispose();
-            }
           }
         });
   }
