@@ -34,7 +34,7 @@ public class FindInProjectDialog extends JDialog {
     public FindInProjectDialog(final Frame owner,
                                OperatorWindow operators,
                                OperatorNode opNode) {
-        super(owner, "Find", false);
+        super(owner, "Find in Project", false);
 
         findPanel = new FindInProjectPanel();
         buttonPanel = new FindButtonPanel(true);
