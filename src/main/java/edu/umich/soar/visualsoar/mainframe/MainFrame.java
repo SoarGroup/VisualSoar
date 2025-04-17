@@ -522,40 +522,44 @@ public class MainFrame extends JFrame
 	private JMenu createViewMenu()
     {
 		final JMenu viewMenu = new JMenu("View");
+      int numberViewMenuItems = 0;
 		//Close All Windows
 		JMenuItem closeAllWindowsItem = new JMenuItem("Close All Windows");
 		closeAllWindowsItem.addActionListener(closeAllWindowsAction);
 		closeAllWindowsItem.addPropertyChangeListener(
 				new ActionButtonAssociation(closeAllWindowsAction,closeAllWindowsItem));
 		viewMenu.add(closeAllWindowsItem);
+      numberViewMenuItems++;
 
-
-		// View Menu
 		JMenuItem cascadeItem = new JMenuItem("Cascade Windows");
 		cascadeItem.addActionListener(cascadeAction);
 		cascadeItem.addPropertyChangeListener(
             new ActionButtonAssociation(cascadeAction,cascadeItem));
 		viewMenu.add(cascadeItem);
+      numberViewMenuItems++;
 
 		JMenuItem tileWindowItem = new JMenuItem("Tile Windows Horizontally");
 		tileWindowItem.addActionListener(tileWindowsAction);
 		tileWindowItem.addPropertyChangeListener(
             new ActionButtonAssociation(tileWindowsAction,tileWindowItem));
 		viewMenu.add(tileWindowItem);
+      numberViewMenuItems++;
 
 		JMenuItem reTileWindowItem = new JMenuItem("Tile Windows Vertically");
 		reTileWindowItem.addActionListener(reTileWindowsAction);
 		reTileWindowItem.addPropertyChangeListener(
             new ActionButtonAssociation(reTileWindowsAction,reTileWindowItem));
 		viewMenu.add(reTileWindowItem);
+      numberViewMenuItems++;
 
-		viewMenu.addMenuListener(
+      final int finalNumberViewMenuItems = numberViewMenuItems;
+      viewMenu.addMenuListener(
             new MenuListener()
             {
                 public void menuCanceled(MenuEvent e) {}
                 public void menuDeselected(MenuEvent e)
                     {
-                        for(int i = viewMenu.getMenuComponentCount() - 1; i > 2; --i)
+                        for(int i = viewMenu.getMenuComponentCount() - 1; i > finalNumberViewMenuItems - 1; --i)
                         {
                             viewMenu.remove(i);
                         }
