@@ -105,6 +105,7 @@ public class DataMap extends CustomInternalFrame implements MenuListener {
         JMenuBar menuBar = new JMenuBar();
         JMenu editMenu = new JMenu("Edit");
         editMenu.addMenuListener(this);
+        JMenu searchMenu = new JMenu("Search");
         JMenu validateMenu = new JMenu("Validation");
 
 /*		Too Dangerous, see DataMapTree.java
@@ -133,7 +134,7 @@ public class DataMap extends CustomInternalFrame implements MenuListener {
         linkItem.addActionListener(dataMapTree.linkAction);
 
         JMenuItem searchItem = new JMenuItem("Search Datamap");
-        editMenu.add(searchItem);
+        searchMenu.add(searchItem);
         searchItem.setAccelerator(KeyStroke.getKeyStroke("control F"));
         searchItem.addActionListener(dataMapTree.searchAction);
 
@@ -145,6 +146,7 @@ public class DataMap extends CustomInternalFrame implements MenuListener {
         validateMenu.add(removeItem);
         removeItem.addActionListener(dataMapTree.removeInvalidAction);
 
+        menuBar.add(searchMenu);
         menuBar.add(editMenu);
         menuBar.add(validateMenu);
 
