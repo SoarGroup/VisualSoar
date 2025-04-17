@@ -21,7 +21,7 @@ class FindOptionsPanel extends JPanel {
     JRadioButton downButton = new JRadioButton("Down", true);
     ButtonGroup upDownGroup = new ButtonGroup();
     JCheckBox matchCase = new JCheckBox("Match Case", false);
-    JCheckBox wrap = new JCheckBox("Wrap", false);
+    JCheckBox wrap = new JCheckBox("Wrap", true);
 
     public FindOptionsPanel() {
         upButton.setMnemonic('u');
