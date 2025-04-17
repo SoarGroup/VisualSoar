@@ -65,6 +65,8 @@ public class EnumerationDialog extends JDialog {
         contentPane.add(buttonPanel, c);
         pack();
 
+        DialogUtils.closeOnEscapeKey(this, owner);
+
         KeyStroke enter = KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0);
 
         namePanel.nameField.getKeymap().addActionForKeyStroke(enter, enterAction);

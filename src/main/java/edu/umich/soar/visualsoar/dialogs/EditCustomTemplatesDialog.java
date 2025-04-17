@@ -6,10 +6,7 @@ import edu.umich.soar.visualsoar.ruleeditor.RuleEditor;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.awt.event.*;
 import java.io.File;
 import java.util.Vector;
 
@@ -22,7 +19,7 @@ import java.util.Vector;
  * @see edu.umich.soar.visualsoar.misc.Template
  *
  */
-public class EditCustomTemplatesDialog extends JFrame implements ActionListener {
+public class EditCustomTemplatesDialog extends JDialog implements ActionListener {
     private static final long serialVersionUID = 20221225L;
 
     //parent window
@@ -97,6 +94,8 @@ public class EditCustomTemplatesDialog extends JFrame implements ActionListener 
         editButton.addActionListener(this);
         dirButton.addActionListener(this);
         closeButton.addActionListener(this);
+
+        DialogUtils.closeOnEscapeKey(this, owner);
 
     }//ctor
 

@@ -2,10 +2,7 @@ package edu.umich.soar.visualsoar.dialogs;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.awt.event.*;
 
 /**
  * Dialog which takes input for the editing of one of four different
@@ -76,6 +73,8 @@ public class EditNumberDialog extends JDialog {
         contentPane.add(buttonPanel, c);
         pack();
         getRootPane().setDefaultButton(buttonPanel.okButton);
+
+        DialogUtils.closeOnEscapeKey(this, owner);
 
         addWindowListener(new WindowAdapter() {
             public void windowActivated(WindowEvent we) {

@@ -4,10 +4,7 @@ import edu.umich.soar.visualsoar.ruleeditor.RuleEditor;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.awt.event.*;
 
 /**
  * Dialog which takes input for, and initiates a find or replace operation
@@ -55,6 +52,7 @@ public class FindReplaceDialog extends JDialog {
     pack();
     getRootPane().setDefaultButton(buttonPanel.findButton);
 
+    DialogUtils.closeOnEscapeKey(this, owner);
     // Set the options components as unfocusable so user can
     // quickly tab between the find & replace fields
     findPanel.optionsPanel.upButton.setFocusable(false);

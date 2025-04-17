@@ -2,10 +2,7 @@ package edu.umich.soar.visualsoar.dialogs;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.awt.event.*;
 
 /**
  * Dialog which comes up when a requested 'add file' command already
@@ -44,6 +41,8 @@ public class FileAlreadyExistsDialog extends JDialog {
         FileAlreadyExistsButtonPanel buttonPanel = new FileAlreadyExistsButtonPanel();
         contentPane.add(buttonPanel, c);
         pack();
+
+        DialogUtils.closeOnEscapeKey(this, owner);
 
         addWindowListener(new WindowAdapter() {
             public void windowOpened(WindowEvent we) {

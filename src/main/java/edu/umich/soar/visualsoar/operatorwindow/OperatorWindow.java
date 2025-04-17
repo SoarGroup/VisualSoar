@@ -2,6 +2,7 @@ package edu.umich.soar.visualsoar.operatorwindow;
 
 
 import edu.umich.soar.visualsoar.ProjectModel;
+import edu.umich.soar.visualsoar.dialogs.DialogUtils;
 import edu.umich.soar.visualsoar.mainframe.MainFrame;
 import edu.umich.soar.visualsoar.datamap.SoarWorkingMemoryModel;
 import edu.umich.soar.visualsoar.dialogs.FindInProjectDialog;
@@ -197,6 +198,7 @@ public class OperatorWindow extends JTree {
         NameDialog theDialog = new NameDialog(MainFrame.getMainFrame());
         theDialog.setTitle("Enter Operator Name");
         theDialog.setVisible(true);
+        DialogUtils.closeOnEscapeKey(theDialog, this);
         if (! theDialog.wasApproved()) return;  //User hit Cancel button
         opName = theDialog.getText();
 

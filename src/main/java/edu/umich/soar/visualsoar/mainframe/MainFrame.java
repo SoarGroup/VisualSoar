@@ -102,8 +102,8 @@ public class MainFrame extends JFrame
 	PerformableAction saveDataMapAndProjectAction = new SaveDataMapAndProjectAction(this);
 	Action preferencesAction = new PreferencesAction(this);
 
-	public static final String TOGGLE_RO_ON = "Turn On Read-Only...";
-	public static final String TOGGLE_RO_OFF = "Turn Off Read-Only...";
+	public static final String TOGGLE_RO_ON = "Turn On Read-Only";
+	public static final String TOGGLE_RO_OFF = "Turn Off Read-Only";
 	public static final String RO_LABEL = "Read-Only: ";
 
 	//Note:  these menu items must be an instance variable because they are changed in read-only mode

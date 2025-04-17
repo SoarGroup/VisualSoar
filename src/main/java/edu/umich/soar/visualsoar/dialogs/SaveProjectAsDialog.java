@@ -4,10 +4,7 @@ import edu.umich.soar.visualsoar.ProjectModel;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.awt.event.*;
 
 /**
  * Dialog which takes input for saving an agent as a new agent
@@ -52,6 +49,8 @@ public class SaveProjectAsDialog extends JDialog {
         contentPane.add(buttonPanel, c);
         pack();
         getRootPane().setDefaultButton(buttonPanel.newButton);
+
+        DialogUtils.closeOnEscapeKey(this, owner);
 
         addWindowListener(new WindowAdapter() {
             public void windowActivated(WindowEvent we) {

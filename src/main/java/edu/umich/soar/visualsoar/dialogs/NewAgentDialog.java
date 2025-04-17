@@ -4,10 +4,7 @@ import edu.umich.soar.visualsoar.ProjectModel;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.awt.event.*;
 
 /**
  * Dialog which takes input for the creation of a new VisualSoar agent
@@ -57,6 +54,8 @@ public class NewAgentDialog extends JDialog {
         contentPane.add(buttonPanel, c);
         pack();
         getRootPane().setDefaultButton(buttonPanel.newButton);
+
+        DialogUtils.closeOnEscapeKey(this, owner);
 
         addWindowListener(new WindowAdapter() {
             public void windowActivated(WindowEvent we) {

@@ -4,10 +4,7 @@ import edu.umich.soar.visualsoar.datamap.DataMapUtils;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.awt.event.*;
 
 /**
  * Dialog which takes input for the creation of one of four different
@@ -88,6 +85,7 @@ public class NumberDialog extends JDialog {
         pack();
         getRootPane().setDefaultButton(buttonPanel.okButton);
 
+        DialogUtils.closeOnEscapeKey(this, owner);
         addWindowListener(new WindowAdapter() {
             public void windowActivated(WindowEvent we) {
                 setLocationRelativeTo(owner);

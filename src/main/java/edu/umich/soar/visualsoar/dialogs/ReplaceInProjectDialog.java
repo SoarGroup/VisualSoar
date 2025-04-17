@@ -10,10 +10,7 @@ import edu.umich.soar.visualsoar.ruleeditor.RuleEditor;
 import javax.swing.*;
 import javax.swing.tree.TreeNode;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.awt.event.*;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
@@ -102,6 +99,7 @@ public class ReplaceInProjectDialog extends JDialog {
     // quickly tab between the find & replace fields
     findPanel.optionsPanel.matchCase.setFocusable(false);
 
+    DialogUtils.closeOnEscapeKey(this, owner);
     addWindowListener(
         new WindowAdapter() {
           public void windowOpened(WindowEvent we) {

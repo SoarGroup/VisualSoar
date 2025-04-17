@@ -4,10 +4,7 @@ import edu.umich.soar.visualsoar.ruleeditor.RuleEditor;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.awt.event.*;
 
 /**
  * Dialog which takes input for, and initiates a find operation
@@ -49,6 +46,8 @@ public class FindDialog extends JDialog {
     contentPane.add(buttonPanel, c);
     pack();
     getRootPane().setDefaultButton(buttonPanel.findButton);
+
+    DialogUtils.closeOnEscapeKey(this, owner);
 
     addWindowListener(
         new WindowAdapter() {
