@@ -16,6 +16,7 @@ import edu.umich.soar.visualsoar.operatorwindow.*;
 import edu.umich.soar.visualsoar.ruleeditor.RuleEditor;
 import edu.umich.soar.visualsoar.threepenny.SoarRuntimeSendRawCommandDialog;
 import edu.umich.soar.visualsoar.util.ActionButtonAssociation;
+import edu.umich.soar.visualsoar.util.KeyStrokeUtil;
 import edu.umich.soar.visualsoar.util.MenuAdapter;
 import edu.umich.soar.visualsoar.util.SoarUtils;
 import org.jetbrains.annotations.NotNull;
@@ -305,7 +306,7 @@ public class MainFrame extends JFrame
             new ActionButtonAssociation(closeProjectAction,closeProjectItem));
 
 		saveItem.addActionListener(commitAction);
-        saveItem.setAccelerator(KeyStroke.getKeyStroke("control S"));
+    saveItem.setAccelerator(KeyStrokeUtil.getPlatformKeyStroke("S"));
 		commitAction.addPropertyChangeListener(
             new ActionButtonAssociation(commitAction, saveItem));
 
@@ -336,14 +337,14 @@ public class MainFrame extends JFrame
 
 		fileMenu.add(exitItem);
 
-		// register mnemonics and accelerators
-		fileMenu.setMnemonic('F');
-		newProjectItem.setAccelerator(KeyStroke.getKeyStroke("control N"));
-		newProjectItem.setMnemonic(KeyEvent.VK_N);
-		openProjectItem.setAccelerator(KeyStroke.getKeyStroke("control O"));
-		openProjectItem.setMnemonic(KeyEvent.VK_O);
-        openFileItem.setAccelerator(KeyStroke.getKeyStroke("control F"));
-        openFileItem.setMnemonic(KeyEvent.VK_F);
+    // register mnemonics and accelerators
+    fileMenu.setMnemonic('F');
+    newProjectItem.setAccelerator(KeyStrokeUtil.getPlatformKeyStroke("N"));
+    newProjectItem.setMnemonic(KeyEvent.VK_N);
+    openProjectItem.setAccelerator(KeyStrokeUtil.getPlatformKeyStroke("O"));
+    openProjectItem.setMnemonic(KeyEvent.VK_O);
+    openFileItem.setAccelerator(KeyStrokeUtil.getPlatformKeyStroke("F"));
+    openFileItem.setMnemonic(KeyEvent.VK_F);
 
 		// Note: on Mac a ≈ character gets inserted before the document is saved. See
 		// https://github.com/SoarGroup/VisualSoar/issues/30
@@ -425,11 +426,11 @@ public class MainFrame extends JFrame
 
 		searchMenu.setMnemonic('A');
 		findInProjectItem.setMnemonic(KeyEvent.VK_F);
-		findInProjectItem.setAccelerator(KeyStroke.getKeyStroke("control shift F"));
+		findInProjectItem.setAccelerator(KeyStrokeUtil.getPlatformKeyStroke("shift F"));
 		replaceInProjectItem.setMnemonic(KeyEvent.VK_R);
-		replaceInProjectItem.setAccelerator(KeyStroke.getKeyStroke("control shift R"));
+		replaceInProjectItem.setAccelerator(KeyStrokeUtil.getPlatformKeyStroke("shift R"));
 		findAllProdsItem.setMnemonic(KeyEvent.VK_D);
-		findAllProdsItem.setAccelerator(KeyStroke.getKeyStroke("control shift D"));
+		findAllProdsItem.setAccelerator(KeyStrokeUtil.getPlatformKeyStroke("shift D"));
 
 		return searchMenu;
 
@@ -578,8 +579,8 @@ public class MainFrame extends JFrame
 		viewMenu.setMnemonic('V');
 		//cascadeWindowItem.setMnemonic(KeyEvent.VK_C);
 		tileWindowItem.setMnemonic(KeyEvent.VK_T);
-		tileWindowItem.setAccelerator(KeyStroke.getKeyStroke("control T"));
-		reTileWindowItem.setAccelerator(KeyStroke.getKeyStroke("control shift T"));
+		tileWindowItem.setAccelerator(KeyStrokeUtil.getPlatformKeyStroke("T"));
+		reTileWindowItem.setAccelerator(KeyStrokeUtil.getPlatformKeyStroke("shift T"));
 		return viewMenu;
 	}
 

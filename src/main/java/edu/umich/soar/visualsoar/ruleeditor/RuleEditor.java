@@ -503,6 +503,9 @@ public class RuleEditor extends CustomInternalFrame {
      * @return whether or not it found the string
      */
     private boolean findForward() {
+        if (findString == null) {
+          return false;
+        }
         String searchString;
 
         if (matchCase) {
@@ -1065,105 +1068,130 @@ public class RuleEditor extends CustomInternalFrame {
         readOnlyDisabledMenuItems.add(revertToSavedItem);
     }
 
-    private void initEditMenu(JMenuBar menuBar) {
-        JMenu editMenu = new JMenu("Edit");
+  private void initEditMenu(JMenuBar menuBar) {
+    JMenu editMenu = new JMenu("Edit");
 
-        JMenuItem undoItem = new JMenuItem("Undo");
-        editMenu.add(undoItem);
-        undoItem.addActionListener(undoAction);
-        undoAction.addPropertyChangeListener(
-                new ActionButtonAssociation(undoAction, undoItem));
+    JMenuItem undoItem = new JMenuItem("Undo");
+    editMenu.add(undoItem);
+    undoItem.addActionListener(undoAction);
+    undoAction.addPropertyChangeListener(new ActionButtonAssociation(undoAction, undoItem));
 
-        JMenuItem redoItem = new JMenuItem("Redo");
-        editMenu.add(redoItem);
-        redoItem.addActionListener(redoAction);
-        redoAction.addPropertyChangeListener(
-                new ActionButtonAssociation(redoAction, redoItem));
+    JMenuItem redoItem = new JMenuItem("Redo");
+    editMenu.add(redoItem);
+    redoItem.addActionListener(redoAction);
+    redoAction.addPropertyChangeListener(new ActionButtonAssociation(redoAction, redoItem));
 
-        editMenu.addMenuListener(
-                new MenuAdapter() {
-                    public void menuSelected(MenuEvent e) {
-                        undoAction.setEnabled(undoManager.canUndo());
-                        redoAction.setEnabled(undoManager.canRedo());
-                    }
-                });
+    editMenu.addMenuListener(
+        new MenuAdapter() {
+          public void menuSelected(MenuEvent e) {
+            undoAction.setEnabled(undoManager.canUndo());
+            redoAction.setEnabled(undoManager.canRedo());
+          }
+        });
 
-        editMenu.addSeparator();
-        JMenuItem commentOutItem = new JMenuItem("Comment Out");
-        commentOutItem.addActionListener(commentOutAction);
-        editMenu.add(commentOutItem);
+    editMenu.addSeparator();
+    JMenuItem commentOutItem = new JMenuItem("Comment Out");
+    commentOutItem.addActionListener(commentOutAction);
+    editMenu.add(commentOutItem);
 
-        JMenuItem uncommentOutItem = new JMenuItem("Uncomment Out");
-        uncommentOutItem.addActionListener(uncommentOutAction);
-        editMenu.add(uncommentOutItem);
+    JMenuItem uncommentOutItem = new JMenuItem("Uncomment Out");
+    uncommentOutItem.addActionListener(uncommentOutAction);
+    editMenu.add(uncommentOutItem);
 
-        editMenu.addSeparator();
+    editMenu.addSeparator();
 
-        JMenuItem cutItem = new JMenuItem("Cut");
-        cutItem.addActionListener(cutAction);
-        editMenu.add(cutItem);
+    JMenuItem cutItem = new JMenuItem("Cut");
+    cutItem.addActionListener(cutAction);
+    editMenu.add(cutItem);
 
-        JMenuItem copyItem = new JMenuItem("Copy");
-        copyItem.addActionListener(copyAction);
-        editMenu.add(copyItem);
+    JMenuItem copyItem = new JMenuItem("Copy");
+    copyItem.addActionListener(copyAction);
+    editMenu.add(copyItem);
 
-        JMenuItem pasteItem = new JMenuItem("Paste");
-        pasteItem.addActionListener(pasteAction);
-        editMenu.add(pasteItem);
+    JMenuItem pasteItem = new JMenuItem("Paste");
+    pasteItem.addActionListener(pasteAction);
+    editMenu.add(pasteItem);
 
-		JMenuItem selectAllItem = new JMenuItem("Select All");
-		selectAllItem.addActionListener(selectAllAction);
-		editMenu.add(selectAllItem);
+    JMenuItem selectAllItem = new JMenuItem("Select All");
+    selectAllItem.addActionListener(selectAllAction);
+    editMenu.add(selectAllItem);
 
-        editMenu.addSeparator();
+    editMenu.addSeparator();
 
-        JMenuItem insertTextFromFileItem = new JMenuItem("Insert Text From File...");
-        insertTextFromFileItem.addActionListener(insertTextFromFileAction);
-        editMenu.add(insertTextFromFileItem);
+    JMenuItem insertTextFromFileItem = new JMenuItem("Insert Text From File...");
+    insertTextFromFileItem.addActionListener(insertTextFromFileAction);
+    editMenu.add(insertTextFromFileItem);
 
-        JMenuItem reDrawItem = new JMenuItem("Redraw Color Syntax");
-        reDrawItem.addActionListener(reDrawAction);
-        editMenu.add(reDrawItem);
+    JMenuItem reDrawItem = new JMenuItem("Redraw Color Syntax");
+    reDrawItem.addActionListener(reDrawAction);
+    editMenu.add(reDrawItem);
 
-        JMenuItem reJustifyItem = new JMenuItem("ReJustify Text");
-        reJustifyItem.addActionListener(reJustifyAction);
-        editMenu.add(reJustifyItem);
+    JMenuItem reJustifyItem = new JMenuItem("ReJustify Text");
+    reJustifyItem.addActionListener(reJustifyAction);
+    editMenu.add(reJustifyItem);
 
-        // register accel and remember thingys
-        editMenu.setMnemonic('E');
-        undoItem.setMnemonic(KeyEvent.VK_Z);
-        undoItem.setAccelerator(KeyStroke.getKeyStroke("control Z"));
-        redoItem.setMnemonic(KeyEvent.VK_R & KeyEvent.SHIFT_DOWN_MASK);
-        redoItem.setAccelerator(KeyStroke.getKeyStroke("control shift Z"));
-        cutItem.setMnemonic(KeyEvent.VK_T);
-        cutItem.setAccelerator(KeyStroke.getKeyStroke("control X"));
-        copyItem.setMnemonic(KeyEvent.VK_C);
-        copyItem.setAccelerator(KeyStroke.getKeyStroke("control C"));
-        pasteItem.setMnemonic(KeyEvent.VK_P);
-        pasteItem.setAccelerator(KeyStroke.getKeyStroke("control V"));
-		selectAllItem.setMnemonic(KeyEvent.VK_A);
-		selectAllItem.setAccelerator(KeyStroke.getKeyStroke("control A"));
-        reDrawItem.setMnemonic(KeyEvent.VK_D);
-        reDrawItem.setAccelerator(KeyStroke.getKeyStroke("control D"));
-        reJustifyItem.setMnemonic(KeyEvent.VK_J);
-        reJustifyItem.setAccelerator(KeyStroke.getKeyStroke("control J"));
+    // register accel and remember thingys
+    editMenu.setMnemonic('E');
 
-        commentOutItem.setMnemonic(KeyEvent.VK_SLASH);
-        commentOutItem.setAccelerator(KeyStroke.getKeyStroke("control SLASH"));
+    Keymap keymap = editorPane.getKeymap();
 
+    KeyStroke zKey = KeyStrokeUtil.getPlatformKeyStroke("Z");
+    undoItem.setMnemonic(KeyEvent.VK_Z);
+    keymap.addActionForKeyStroke(zKey, undoAction);
+    undoItem.setAccelerator(zKey);
 
-        menuBar.add(editMenu);
+    KeyStroke shiftZKey = KeyStrokeUtil.getPlatformKeyStroke("shift Z");
+    redoItem.setMnemonic(KeyEvent.VK_R & KeyEvent.SHIFT_DOWN_MASK);
+    keymap.addActionForKeyStroke(shiftZKey, redoAction);
+    redoItem.setAccelerator(shiftZKey);
 
-        //To support read-only mode
-        readOnlyDisabledMenuItems.add(undoItem);
-        readOnlyDisabledMenuItems.add(redoItem);
-        readOnlyDisabledMenuItems.add(cutItem);
-        readOnlyDisabledMenuItems.add(pasteItem);
-        readOnlyDisabledMenuItems.add(commentOutItem);
-        readOnlyDisabledMenuItems.add(uncommentOutItem);
-        readOnlyDisabledMenuItems.add(insertTextFromFileItem);
-        readOnlyDisabledMenuItems.add(reJustifyItem);
-    }
+    KeyStroke xKey = KeyStrokeUtil.getPlatformKeyStroke("X");
+    cutItem.setMnemonic(KeyEvent.VK_T);
+    cutItem.setAccelerator(xKey);
+    keymap.addActionForKeyStroke(xKey, cutAction);
+
+    KeyStroke cKey = KeyStrokeUtil.getPlatformKeyStroke("C");
+    copyItem.setMnemonic(KeyEvent.VK_C);
+    copyItem.setAccelerator(cKey);
+    keymap.addActionForKeyStroke(cKey, copyAction);
+
+    KeyStroke vKey = KeyStrokeUtil.getPlatformKeyStroke("V");
+    pasteItem.setMnemonic(KeyEvent.VK_P);
+    pasteItem.setAccelerator(vKey);
+    keymap.addActionForKeyStroke(vKey, pasteAction);
+
+    selectAllItem.setMnemonic(KeyEvent.VK_A);
+    KeyStroke aKey = KeyStrokeUtil.getPlatformKeyStroke("A");
+    keymap.addActionForKeyStroke(aKey, selectAllAction);
+    selectAllItem.setAccelerator(aKey);
+
+    KeyStroke dKey = KeyStrokeUtil.getPlatformKeyStroke("D");
+    reDrawItem.setMnemonic(KeyEvent.VK_D);
+    reDrawItem.setAccelerator(dKey);
+    keymap.addActionForKeyStroke(dKey, reDrawAction);
+
+    KeyStroke jKey = KeyStrokeUtil.getPlatformKeyStroke("J");
+    reJustifyItem.setMnemonic(KeyEvent.VK_J);
+    reJustifyItem.setAccelerator(jKey);
+    keymap.addActionForKeyStroke(jKey, reJustifyAction);
+
+    KeyStroke slashKey = KeyStrokeUtil.getPlatformKeyStroke("SLASH");
+    commentOutItem.setMnemonic(KeyEvent.VK_SLASH);
+    commentOutItem.setAccelerator(slashKey);
+    keymap.addActionForKeyStroke(slashKey, commentOutAction);
+
+    menuBar.add(editMenu);
+
+    // To support read-only mode
+    readOnlyDisabledMenuItems.add(undoItem);
+    readOnlyDisabledMenuItems.add(redoItem);
+    readOnlyDisabledMenuItems.add(cutItem);
+    readOnlyDisabledMenuItems.add(pasteItem);
+    readOnlyDisabledMenuItems.add(commentOutItem);
+    readOnlyDisabledMenuItems.add(uncommentOutItem);
+    readOnlyDisabledMenuItems.add(insertTextFromFileItem);
+    readOnlyDisabledMenuItems.add(reJustifyItem);
+  }
 
     private void initSearchMenu(JMenuBar menuBar) {
         JMenu searchMenu = new JMenu("Search");
@@ -1197,14 +1225,35 @@ public class RuleEditor extends CustomInternalFrame {
         replaceAllAction.addPropertyChangeListener(new ActionButtonAssociation(replaceAllAction, replaceAllItem));
         searchMenu.add(replaceAllItem);
 
-        // Register accel and mnemonics
+        // Register accelerators, mnemonics, shortcuts
+        Keymap keymap = editorPane.getKeymap();
+
         searchMenu.setMnemonic('S');
-        findItem.setAccelerator(KeyStroke.getKeyStroke("control F"));
+
+        KeyStroke controlF = KeyStrokeUtil.getPlatformKeyStroke("F");
+        findItem.setAccelerator(controlF);
+        keymap.addActionForKeyStroke(controlF, findAction);
         findItem.setMnemonic(KeyEvent.VK_F);
-        findAgainItem.setAccelerator(KeyStroke.getKeyStroke("control G"));
-        findAndReplaceItem.setAccelerator(KeyStroke.getKeyStroke("control R"));
-        replaceItem.setAccelerator(KeyStroke.getKeyStroke("control EQUALS"));
-        replaceAndFindAgainItem.setAccelerator(KeyStroke.getKeyStroke("control H"));
+
+        KeyStroke controlG = KeyStrokeUtil.getPlatformKeyStroke("G");
+        findAgainItem.setAccelerator(controlG);
+        keymap.addActionForKeyStroke(controlG, findAgainAction);
+        findAgainItem.setMnemonic(KeyEvent.VK_G);
+
+        KeyStroke controlR = KeyStrokeUtil.getPlatformKeyStroke("R");
+        findAndReplaceItem.setAccelerator(controlR);
+        keymap.addActionForKeyStroke(controlR, findAndReplaceAction);
+        findAndReplaceItem.setMnemonic(KeyEvent.VK_R);
+
+        KeyStroke controlEquals = KeyStrokeUtil.getPlatformKeyStroke("EQUALS");
+        replaceItem.setAccelerator(controlEquals);
+        keymap.addActionForKeyStroke(controlEquals, replaceAction);
+        replaceItem.setMnemonic(KeyEvent.VK_EQUALS);
+
+        KeyStroke controlH = KeyStrokeUtil.getPlatformKeyStroke("H");
+        replaceAndFindAgainItem.setAccelerator(controlH);
+        keymap.addActionForKeyStroke(controlH, replaceAction);
+        replaceAndFindAgainItem.setMnemonic(KeyEvent.VK_H);
 
         menuBar.add(searchMenu);
 
@@ -1237,7 +1286,7 @@ public class RuleEditor extends CustomInternalFrame {
         tabCompleteItem.addActionListener(tabCompleteAction);
         soarMenu.add(tabCompleteItem);
 
-        tabCompleteItem.setAccelerator(KeyStroke.getKeyStroke("control ENTER"));
+        tabCompleteItem.setAccelerator(KeyStrokeUtil.getPlatformKeyStroke("ENTER"));
 
         ///////////////////////////////////////
         // Insert Template menu

@@ -6,9 +6,11 @@ import edu.umich.soar.visualsoar.graph.SoarIdentifierVertex;
 import edu.umich.soar.visualsoar.misc.CustomInternalFrame;
 import edu.umich.soar.visualsoar.mainframe.feedback.FeedbackListEntry;
 import edu.umich.soar.visualsoar.misc.Prefs;
+import edu.umich.soar.visualsoar.util.KeyStrokeUtil;
 
 import javax.swing.*;
 import javax.swing.event.*;
+import javax.swing.text.Keymap;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 import java.util.Vector;
@@ -94,70 +96,81 @@ public class DataMap extends CustomInternalFrame implements MenuListener {
         mf.selectNewInternalFrame();
     }//closeMyselfAndReTile
 
+  /**
+   * setupMenuBar
+   *
+   * <p>called by the ctor to initialize the menu for a datamap window
+   */
+  private void setupMenuBar() {
+    JMenuBar menuBar = new JMenuBar();
+    JMenu editMenu = new JMenu("Edit");
+    editMenu.addMenuListener(this);
+    JMenu searchMenu = new JMenu("Search");
+    JMenu validateMenu = new JMenu("Validation");
 
+    InputMap inputMap = dataMapTree.getInputMap(JComponent.WHEN_FOCUSED);
+    ActionMap actionMap = dataMapTree.getActionMap();
 
-    /**
-     * setupMenuBar
-     *
-     * called by the ctor to initialize the menu for a datamap window
-     */
-    private void setupMenuBar() {
-        JMenuBar menuBar = new JMenuBar();
-        JMenu editMenu = new JMenu("Edit");
-        editMenu.addMenuListener(this);
-        JMenu searchMenu = new JMenu("Search");
-        JMenu validateMenu = new JMenu("Validation");
+    /*		Too Dangerous, see DataMapTree.java
 
-/*		Too Dangerous, see DataMapTree.java
+    		JMenuItem cutItem = new JMenuItem("Cut");
+    		editMenu.add(cutItem);
+    		cutItem.setAccelerator(KeyStrokeUtil.getPlatformKeyStroke("X"));
+    		cutItem.addActionListener(dataMapTree.cutAction);
+    */
 
-		JMenuItem cutItem = new JMenuItem("Cut");
-		editMenu.add(cutItem);
-		cutItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_X,Event.CTRL_MASK));
-		cutItem.addActionListener(dataMapTree.cutAction);
-*/
+    JMenuItem copyItem = new JMenuItem("Copy");
+    editMenu.add(copyItem);
+    copyItem.addActionListener(dataMapTree.copyAction);
+    KeyStroke cKey = KeyStrokeUtil.getPlatformKeyStroke("C");
+    copyItem.setAccelerator(cKey);
+    inputMap.put(cKey, "copyAction");
+    actionMap.put("copyAction", dataMapTree.copyAction);
 
-        JMenuItem copyItem = new JMenuItem("Copy");
-        editMenu.add(copyItem);
-        copyItem.setAccelerator(KeyStroke.getKeyStroke("control C"));
-        copyItem.addActionListener(dataMapTree.copyAction);
+    this.pasteItem = new JMenuItem("Paste");
+    editMenu.add(pasteItem);
+    pasteItem.addActionListener(dataMapTree.pasteAction);
+    KeyStroke vKey = KeyStrokeUtil.getPlatformKeyStroke("V");
+    pasteItem.setAccelerator(vKey);
+    inputMap.put(vKey, "pasteAction");
+    actionMap.put("pasteAction", dataMapTree.pasteAction);
 
+    this.linkItem = new JMenuItem("Paste as Link");
+    editMenu.add(linkItem);
+    linkItem.addActionListener(dataMapTree.linkAction);
+    KeyStroke lKey = KeyStrokeUtil.getPlatformKeyStroke("L");
+    linkItem.setAccelerator(lKey);
+    inputMap.put(lKey, "linkAction");
+    actionMap.put("linkAction", dataMapTree.linkAction);
 
-        this.pasteItem = new JMenuItem("Paste");
-        editMenu.add(pasteItem);
-        pasteItem.setAccelerator(KeyStroke.getKeyStroke("control V"));
-        pasteItem.addActionListener(dataMapTree.pasteAction);
+    JMenuItem searchItem = new JMenuItem("Search Datamap");
+    searchMenu.add(searchItem);
+    searchItem.addActionListener(dataMapTree.searchAction);
+    KeyStroke fKey = KeyStrokeUtil.getPlatformKeyStroke("F");
+    searchItem.setAccelerator(fKey);
+    inputMap.put(fKey, "searchAction");
+    actionMap.put("searchAction", dataMapTree.searchAction);
 
+    JMenuItem validateItem = new JMenuItem("Validate Datamap");
+    validateMenu.add(validateItem);
+    validateItem.addActionListener(dataMapTree.validateDataMapAction);
 
-        this.linkItem = new JMenuItem("Paste as Link");
-        editMenu.add(linkItem);
-        linkItem.setAccelerator(KeyStroke.getKeyStroke("control L"));
-        linkItem.addActionListener(dataMapTree.linkAction);
+    JMenuItem removeItem = new JMenuItem("Remove Non-Validated");
+    validateMenu.add(removeItem);
+    removeItem.addActionListener(dataMapTree.removeInvalidAction);
 
-        JMenuItem searchItem = new JMenuItem("Search Datamap");
-        searchMenu.add(searchItem);
-        searchItem.setAccelerator(KeyStroke.getKeyStroke("control F"));
-        searchItem.addActionListener(dataMapTree.searchAction);
+    menuBar.add(searchMenu);
+    menuBar.add(editMenu);
+    menuBar.add(validateMenu);
 
-        JMenuItem validateItem = new JMenuItem("Validate Datamap");
-        validateMenu.add(validateItem);
-        validateItem.addActionListener(dataMapTree.validateDataMapAction);
+    setJMenuBar(menuBar);
 
-        JMenuItem removeItem = new JMenuItem("Remove Non-Validated");
-        validateMenu.add(removeItem);
-        removeItem.addActionListener(dataMapTree.removeInvalidAction);
-
-        menuBar.add(searchMenu);
-        menuBar.add(editMenu);
-        menuBar.add(validateMenu);
-
-        setJMenuBar(menuBar);
-
-        //These are menu-items that are disabled in read-only mode
-        readOnlyDisabledMenuItems.add(copyItem);
-        readOnlyDisabledMenuItems.add(pasteItem);
-        readOnlyDisabledMenuItems.add(linkItem);
-        readOnlyDisabledMenuItems.add(removeItem);
-    }//setupMenuBar
+    // These are menu-items that are disabled in read-only mode
+    readOnlyDisabledMenuItems.add(copyItem);
+    readOnlyDisabledMenuItems.add(pasteItem);
+    readOnlyDisabledMenuItems.add(linkItem);
+    readOnlyDisabledMenuItems.add(removeItem);
+  } // setupMenuBar
 
     public int getId() {
         return id;
