@@ -2,6 +2,14 @@
 
 This is an IDE for [Soar](https://soar.eecs.umich.edu/) agent development.
 
+## Soar Project Organization
+
+A Soar project is organized into a hierarchy based on the agent's operators and sub-operators. VisualSoar then links the Soar source in these files to entries in a datamap, which is a specification of the structure and contents of working memory. Soar productions can then be automatically checked for errors.
+
+### Project JSON Format
+
+The project JSON format's canonical definition is in POJO classes processed by [Jackson](https://github.com/FasterXML/jackson). However, if you would like to work with the JSON in other tools, you can use the JSON schema provided in [`doc/`](./doc/project_schema.json).
+
 ## Developing
 
 To compile VisualSoar, you must put a copy of the latest version of sml.lib (from the SoarSuite) into the lib directory.

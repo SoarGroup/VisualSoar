@@ -1,0 +1,604 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "http://https://soar.eecs.umich.edu/VisualSoar/project_schema.json",
+  "title": "Project",
+  "type": "object",
+  "version": "9.6.4",
+  "description": "A Soar project description consisting of the working memory layout (datamap) and the file/operator layout. This is used by VisualSoar to manage the project.",
+  "properties": {
+    "version": {
+      "type": "string",
+      "description": "The version of the project format.",
+      "enum": [
+        "6"
+      ]
+    },
+    "datamap": {
+      "$ref": "#/definitions/Datamap",
+      "description": "The datamap associated with the project."
+    },
+    "layout": {
+      "$ref": "#/definitions/LayoutNode",
+      "description": "The root of the project's operator/file layout tree."
+    }
+  },
+  "required": [
+    "version",
+    "datamap",
+    "layout"
+  ],
+  "additionalProperties": false,
+  "definitions": {
+    "Datamap": {
+      "type": "object",
+      "description": "A datamap is a graph structure that specifies the shape and contents of an agent's working memory.",
+      "properties": {
+        "rootId": {
+          "type": "string",
+          "description": "The ID of the root vertex in the datamap."
+        },
+        "vertices": {
+          "type": "array",
+          "description": "A list of vertices in the datamap.",
+          "items": {
+            "$ref": "#/definitions/DMVertex"
+          }
+        }
+      },
+      "required": [
+        "rootId",
+        "vertices"
+      ],
+      "additionalProperties": false
+    },
+    "DMVertex": {
+      "type": "object",
+      "description": "A datamap vertex maps to a Soar working memory element (WME), and can be of various types. See ((https://soar.eecs.umich.edu/soar_manual/03_SyntaxOfSoarPrograms/#working-memory).",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "The unique identifier for the vertex. This is used within the project JSON to refer to this vertex. This is not the same as the Soar identifier, and it has no meaning outside of this JSON document. This may be a unique human-readable string, but VisualSoar generates UUIDs for this purpose."
+        },
+        "type": {
+          "type": "string",
+          "description": "The type of the vertex, which specifies which more specific definition below applies to the vertex.",
+          "enum": [
+            "SOAR_ID",
+            "ENUMERATION",
+            "INTEGER",
+            "FLOAT",
+            "STRING",
+            "FOREIGN"
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "type"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "SOAR_ID"
+              }
+            }
+          },
+          "then": {
+            "$ref": "#/definitions/SoarIdVertex"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "ENUMERATION"
+              }
+            }
+          },
+          "then": {
+            "$ref": "#/definitions/EnumerationVertex"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "INTEGER"
+              }
+            }
+          },
+          "then": {
+            "$ref": "#/definitions/IntegerRangeVertex"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "FLOAT"
+              }
+            }
+          },
+          "then": {
+            "$ref": "#/definitions/FloatRangeVertex"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "FOREIGN"
+              }
+            }
+          },
+          "then": {
+            "$ref": "#/definitions/ForeignVertex"
+          }
+        }
+      ]
+    },
+    "SoarIdVertex": {
+      "type": "object",
+      "description": "A vertex that represents a Soar identifier (https://soar.eecs.umich.edu/soar_manual/03_SyntaxOfSoarPrograms/#symbols). This is the basis for all others vertex types.",
+      "allOf": [
+        {
+          "$ref": "#/definitions/DMVertex"
+        },
+        {
+          "properties": {
+            "outEdges": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/OutEdge"
+              },
+              "description": "The outgoing edges from this vertex. These correspond to WME attributes (https://soar.eecs.umich.edu/soar_manual/03_SyntaxOfSoarPrograms/#working-memory). Null/missing is treated the same as an empty list."
+            }
+          }
+        }
+      ]
+    },
+    "EnumerationVertex": {
+      "type": "object",
+      "description": "A vertex that represents an enumeration of possible string values.",
+      "allOf": [
+        {
+          "$ref": "#/definitions/DMVertex"
+        },
+        {
+          "properties": {
+            "choices": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "The list of choices for this enumeration vertex."
+            }
+          },
+          "required": [
+            "choices"
+          ]
+        }
+      ]
+    },
+    "IntegerRangeVertex": {
+      "type": "object",
+      "description": "A vertex that represents a range of integer values. Soar uses 64-bit integers, but VisualSoar currently uses 32-bit integers, meaning that the range of acceptable values is in [-2147483648, 2147483647].",
+      "allOf": [
+        {
+          "$ref": "#/definitions/DMVertex"
+        },
+        {
+          "properties": {
+            "min": {
+              "type": "integer",
+              "description": "The minimum value for this integer range vertex. If null, there is no minimum value."
+            },
+            "max": {
+              "type": "integer",
+              "description": "The maximum value for this integer range vertex. If null, there is no maximum value."
+            }
+          }
+        }
+      ]
+    },
+    "FloatRangeVertex": {
+      "type": "object",
+      "description": "A vertex that represents a range of float values. These are 64-bit doubles.",
+      "allOf": [
+        {
+          "$ref": "#/definitions/DMVertex"
+        },
+        {
+          "properties": {
+            "min": {
+              "type": "number",
+              "description": "The minimum value for this float range vertex. If null, there is no minimum value."
+            },
+            "max": {
+              "type": "number",
+              "description": "The maximum value for this float range vertex. If null, there is no maximum value."
+            }
+          }
+        }
+      ]
+    },
+    "ForeignVertex": {
+      "type": "object",
+      "description": "A vertex that is copied from a datamap in another project, and may be updated when that project updates its vertex. Note that the other datamap need not be a JSON datamap, but may also be a legacy .dm file.",
+      "allOf": [
+        {
+          "$ref": "#/definitions/DMVertex"
+        },
+        {
+          "properties": {
+            "foreignDMPath": {
+              "type": "string",
+              "description": "The path to the external datamap."
+            },
+            "importedVertex": {
+              "$ref": "#/definitions/DMVertex",
+              "description": "The imported vertex from the external datamap. It will have its own ID, which is not the same as this vertex's ID. This vertex's ID is used to refer to this vertex in the project JSON, while the imported vertex's ID is used to refer to it in the external datamap."
+            }
+          },
+          "required": [
+            "foreignDMPath",
+            "importedVertex"
+          ]
+        }
+      ]
+    },
+    "OutEdge": {
+      "type": "object",
+      "description": "An outgoing edge from a vertex in the datamap. This corresponds to a WME attribute (https://soar.eecs.umich.edu/soar_manual/03_SyntaxOfSoarPrograms/#working-memory).",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The name of the edge, corresponding to the WME attribute name."
+        },
+        "toId": {
+          "type": "string",
+          "description": "The ID of the vertex this edge points to, which will describe the attribute value."
+        },
+        "comment": {
+          "type": "string",
+          "description": "An optional comment describing this WME attribute."
+        },
+        "generated": {
+          "type": "boolean",
+          "description": "Indicates whether this edge was generated automatically by VisualSoar. This is marked graphically until the user approves it, at which point this value is set to false.",
+          "default": false
+        }
+      },
+      "required": [
+        "name",
+        "toId"
+      ]
+    },
+    "LayoutNode": {
+      "type": "object",
+      "description": "Each layout node is file or folder, and may also be linked to an operator. The project layout is a tree structure containing both the operator and file hierarchies, so that high-level operators have corresponding folders containing further folders corresponding to each sub-operator. Some of the descriptions here may be inaccurate; please file an issue if you find one: https://github.com/SoarGroup/VisualSoar/issues",
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "The type of the layout node. This specifies which more specific definition below applies to the layout node.",
+          "enum": [
+            "FILE",
+            "FILE_OPERATOR",
+            "FOLDER",
+            "HIGH_LEVEL_FILE_OPERATOR",
+            "HIGH_LEVEL_IMPASSE_OPERATOR",
+            "HIGH_LEVEL_OPERATOR",
+            "IMPASSE_OPERATOR",
+            "LINK",
+            "OPERATOR",
+            "OPERATOR_ROOT"
+          ]
+        },
+        "id": {
+          "type": "string",
+          "description": "The unique identifier for the layout node. This is used within the project JSON to refer to this node and is not used in display. This may be a unique human-readable string, but VisualSoar generates UUIDs for this purpose."
+        },
+        "children": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/LayoutNode"
+          },
+          "description": "The child nodes of this layout node. This is null/missing if this node is a file or operator, and is an empty list if this node has no children."
+        }
+      },
+      "required": [
+        "type",
+        "id"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "FILE"
+              }
+            }
+          },
+          "then": {
+            "$ref": "#/definitions/File"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "FILE_OPERATOR"
+              }
+            }
+          },
+          "then": {
+            "$ref": "#/definitions/FileOperator"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "FOLDER"
+              }
+            }
+          },
+          "then": {
+            "$ref": "#/definitions/Folder"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "HIGH_LEVEL_FILE_OPERATOR"
+              }
+            }
+          },
+          "then": {
+            "$ref": "#/definitions/HighLevelFileOperator"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "HIGH_LEVEL_OPERATOR"
+              }
+            }
+          },
+          "then": {
+            "$ref": "#/definitions/HighLevelOperator"
+          }
+        }
+      ]
+    },
+    "File": {
+      "type": "object",
+      "description": "A file node in the layout. The associated file is assumed not to contain Soar source code, and VisualSoar does not attempt to parse it. This is used for files such as .txt, .png, etc.",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The display name for the file."
+        },
+        "file": {
+          "type": "string",
+          "description": "The file path for the file. This is relative to the parent node's directory."
+        }
+      },
+      "required": [
+        "name",
+        "file"
+      ]
+    },
+    "FileOperator": {
+      "type": "object",
+      "description": "A file node in the layout that contains Soar source code and is associated with an operator, but uses the datamap vertex of its operator parent instead of having its own. It supports sub-filing as well.",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The display name for the file."
+        },
+        "file": {
+          "type": "string",
+          "description": "The file path for the file. This is relative to the parent node's directory. This should normally be the same as the name property, but with a .soar prefix."
+        }
+      },
+      "required": [
+        "name",
+        "file"
+      ]
+    },
+    "Folder": {
+      "type": "object",
+      "description": "A folder node in the layout. This folder may contain other folders and files. It does not correspond to its own operator, but rather uses the datamap vertex of its operator parent instead.",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The display name for the folder"
+        },
+        "folder": {
+          "type": "string",
+          "description": "The directory that this folder is associated with, relative to the parent node's directory."
+        }
+      },
+      "required": [
+        "name",
+        "folder"
+      ]
+    },
+    "HighLevelFileOperator": {
+      "type": "object",
+      "description": "A high-level operator has sub-operators, and is associated with a folder that contains further files/folders corresponding to each sub-operator.",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The name of the operator"
+        },
+        "file": {
+          "type": "string",
+          "description": "The root file to source the operator from. This is relative to the folder. This should normally be the same as the operator name, but with a .soar prefix"
+        },
+        "dmId": {
+          "type": "string",
+          "description": "The ID of the datamap vertex that this operator is associated with. This is used to link the operator to the datamap."
+        },
+        "folder": {
+          "type": "string",
+          "description": "The directory that this operator is associated with, relative to the parent node's directory. This should normally be the same as the operator name."
+        }
+      },
+      "required": [
+        "name",
+        "file",
+        "dmId",
+        "folder"
+      ]
+    },
+    "HighLevelImpasseOperator": {
+      "type": "object",
+      "description": "An impasse operator is a special type of operator that is used to handle impasses in the Soar architecture. A high-level impasse operator has sub-operators, and is associated with a folder that contains further files/folders corresponding to each sub-operator. It is displayed differently in the UI from other high-level operators, and only has a limited number of possible naming options.",
+      "properties": {
+        "name": {
+          "enum": [
+            "Impasse__Operator_Tie",
+            "Impasse__Operator_Conflict",
+            "Impasse__Operator_Constraint-Failure",
+            "Impasse__State_No-Change"
+          ],
+          "description": "The name of the operator."
+        },
+        "file": {
+          "type": "string",
+          "description": "The root file to source the operator from. This is relative to the folder. This should normally be the same as the operator name, but with a .soar prefix"
+        },
+        "dmId": {
+          "type": "string",
+          "description": "The ID of the datamap vertex that this operator is associated with. This is used to link the operator to the datamap."
+        },
+        "folder": {
+          "type": "string",
+          "description": "The directory that this operator is associated with, relative to the parent node's directory. This should normally be the same as the operator name."
+        }
+      },
+      "required": [
+        "name",
+        "file",
+        "dmId",
+        "folder"
+      ]
+    },
+    "HighLevelOperator": {
+      "type": "object",
+      "description": "A high-level operator has sub-operators, and is associated with a folder that contains further files/folders corresponding to each sub-operator.",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The name of the operator."
+        },
+        "file": {
+          "type": "string",
+          "description": "The root file to source the operator from. This is relative to the folder. This should normally be the same as the operator name, but with a .soar prefix."
+        },
+        "dmId": {
+          "type": "string",
+          "description": "The ID of the datamap vertex that this operator is associated with. This is used to link the operator to the datamap."
+        },
+        "folder": {
+          "type": "string",
+          "description": "The directory that this operator is associated with, relative to the parent node's directory. This should normally be the same as the operator name."
+        }
+      },
+      "required": [
+        "name",
+        "file",
+        "dmId",
+        "folder"
+      ]
+    },
+    "ImpasseOperator": {
+      "type": "object",
+      "description": "An impasse operator is a special type of operator that is used to handle impasses in the Soar architecture. It is displayed differently in the VisualSoar UI from other operators, and only has a limited number of possible naming options.",
+      "properties": {
+        "name": {
+          "description": "The name of the operator.",
+          "enum": [
+            "Impasse__Operator_Tie",
+            "Impasse__Operator_Conflict",
+            "Impasse__Operator_Constraint-Failure",
+            "Impasse__State_No-Change"
+          ]
+        },
+        "file": {
+          "type": "string",
+          "description": "The file path for the file. This is relative to the parent node's directory. This should normally be the same as the operator name, but with a .soar prefix."
+        }
+      },
+      "required": [
+        "name",
+        "file"
+      ]
+    },
+    "Link": {
+      "type": "object",
+      "description": "Points to a layout node in a non-standard location. In previous versions of VisualSoar, links could be created via drag and drop, but this is no longer supported. This is here for backwards compatibility.",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The display name for the link."
+        },
+        "file": {
+          "type": "string",
+          "description": "The file path for the file. This is relative to the parent node's directory."
+        },
+        "linkedNodeId": {
+          "type": "string",
+          "description": "The ID of the node that this link points to."
+        }
+      },
+      "required": [
+        "name",
+        "file",
+        "linkedNodeId"
+      ]
+    },
+    "Operator": {
+      "type": "object",
+      "description": "An operator node in the layout with an associated file. This is used for operators that are not high-level operators, and do not have sub-operators.",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The name of the operator."
+        },
+        "file": {
+          "type": "string",
+          "description": "The file path for the file. This is relative to the parent node's directory. This should normally be the same as the operator name, but with a .soar prefix."
+        }
+      },
+      "required": [
+        "name",
+        "file"
+      ]
+    },
+    "OperatorRoot": {
+      "type": "object",
+      "description": "The root node of the operator tree. This is not a real node in the layout, but is used to represent the root of the operator tree.",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The display name for the operator root. This is normally the same as the project name."
+        },
+        "folder": {
+          "type": "string",
+          "description": "The directory to use for the project root, relative to the location of this JSON document."
+        }
+      },
+      "required": [
+        "name",
+        "folder"
+      ]
+    }
+  }
+}
