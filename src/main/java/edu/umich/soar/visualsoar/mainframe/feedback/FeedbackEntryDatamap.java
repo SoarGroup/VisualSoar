@@ -1,5 +1,6 @@
 package edu.umich.soar.visualsoar.mainframe.feedback;
 
+import com.fasterxml.jackson.core.io.JsonStringEncoder;
 import edu.umich.soar.visualsoar.mainframe.MainFrame;
 import edu.umich.soar.visualsoar.datamap.DataMap;
 import edu.umich.soar.visualsoar.datamap.SoarWorkingMemoryModel;
@@ -109,12 +110,15 @@ public class FeedbackEntryDatamap extends FeedbackListEntry {
 
   @Override
   public String toJson() {
+    String escapedDatamapName = String.valueOf(JsonStringEncoder.getInstance().quoteAsString(dataMapName));
+    String escapedEdge = String.valueOf(JsonStringEncoder.getInstance().quoteAsString(edge.toString()));
+    String escapedMessage = String.valueOf(JsonStringEncoder.getInstance().quoteAsString(getMessage()));
     return "{\"message\": \""
-        + dataMapName
+        + escapedDatamapName
         + ":  "
-        + edge.toString()
+        + escapedEdge
         + " "
-        + getMessage()
+        + escapedMessage
         + "\", \"severity\": "
         + (isError() ? "1" : "3")
         + ", \"source\": \"VisualSoar\"}";

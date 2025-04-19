@@ -1,5 +1,6 @@
 package edu.umich.soar.visualsoar.mainframe.feedback;
 
+import com.fasterxml.jackson.core.io.JsonStringEncoder;
 import edu.umich.soar.visualsoar.mainframe.MainFrame;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorNode;
 
@@ -136,18 +137,20 @@ public class FeedbackEntryOpNode extends FeedbackListEntry {
     // Unfortunately we don't have the character position or end line number.
     // TODO: derive that from the lineNumber and assocString somehow
     String position = "{\"line\": " + lineNumber + ", \"character\": 0}";
+    String escapedFileName = String.valueOf(JsonStringEncoder.getInstance().quoteAsString(getFileName()));
     String location =
         "{\"uri\": \"file://"
-            + getFileName()
+            + escapedFileName
             + "\", \"range\": {\"start\": "
             + position
             + ", \"end\": "
             + position
-            + "}";
+            + "}}";
+    String escapedMessage = String.valueOf(JsonStringEncoder.getInstance().quoteAsString(getMessage()));
     return "{\"message\": \"Operator node diagnostic\", \"severity\": "
         + (isError() ? "1" : "3")
         + ", \"relatedInformation\": [{\"message\": \""
-        + getMessage()
+        + escapedMessage
         + "\", \"location\": "
         + location
         + "}]"

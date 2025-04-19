@@ -275,7 +275,7 @@ public class FileNode extends OperatorNode implements java.io.Serializable {
         try {
             parsedProds = parseProductions();
         } catch (ParseException pe) {
-            vecErrors.add(new FeedbackListEntry("Unable to check productions due to parse error"));
+            vecErrors.add(new FeedbackListEntry("Unable to check productions due to parse error", true));
             vecErrors.add(this.parseParseException(pe));
             return true;
         } catch (TokenMgrError tme) {

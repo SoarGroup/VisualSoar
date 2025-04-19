@@ -1,6 +1,8 @@
 package edu.umich.soar.visualsoar.mainframe.feedback;
 
 
+import com.fasterxml.jackson.core.io.JsonStringEncoder;
+
 /**
  * A FeedbackListEntry contains a message to be displayed to the user in the
  * Feedback Pane (bottom of window) along with additional information.
@@ -39,7 +41,8 @@ public class FeedbackListEntry {
 ///////////////////////////////////////////////////////////////////
 // Constructors
 ///////////////////////////////////////////////////////////////////
-    public FeedbackListEntry(String message) { this.message = message; }
+    public FeedbackListEntry(String message) {
+      this.message = message; }
 
     public FeedbackListEntry(String message, boolean isError) {
         this(message);
@@ -74,10 +77,11 @@ public class FeedbackListEntry {
    *     JSON object formatted in one line
    */
   public String toJson() {
+    String escapedMessage = String.valueOf(JsonStringEncoder.getInstance().quoteAsString(getMessage()));
     return "{\"message\": \""
-        + getMessage()
+        + escapedMessage
         + "\", \"severity\": "
         + (isError() ? "1" : "3")
-        + "\"source\": \"VisualSoar\"}";
+        + ", \"source\": \"VisualSoar\"}";
   }
 }//class FeedbackListEntry

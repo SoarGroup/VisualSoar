@@ -12,7 +12,7 @@ The project JSON format's canonical definition is in POJO classes processed by [
 
 ### Datamap Validation
 
-Normally users will run datamap validation within the IDE, but it is also possible to run the validation from the command line by adding the parameters `--check productionsAgainstDatamap` and `--project <path to project file>`. This will check the productions in the Soar agent against the datamap and report any errors. You can also pass in `--json` to get JSON output suitable for processing in other tools. The JSON structure follows the [LSP specification for diagnostics](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#diagnostic).
+Normally users will run datamap validation within the IDE, but it is also possible to run the validation from the command line by adding the parameters `--check productionsAgainstDatamap` and `--project <path to project file>`. This will check the productions in the Soar agent against the datamap and report any errors. You can also pass in `--json` to get [JSON lines](https://jsonlines.org/) output suitable for processing in other tools. The JSON structure follows the [LSP specification for diagnostics](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#diagnostic).
 
 To run this from the project's Gradle build, you must wrap the arguments in a `--args` parameter, like so:
 
