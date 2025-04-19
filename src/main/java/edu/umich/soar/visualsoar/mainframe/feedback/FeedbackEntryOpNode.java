@@ -133,7 +133,7 @@ public class FeedbackEntryOpNode extends FeedbackListEntry {
         }
     }
 
-  public String toJson() {
+  public String toJsonLine() {
     // Unfortunately we don't have the character position or end line number.
     // TODO: derive that from the lineNumber and assocString somehow
     String position = "{\"line\": " + lineNumber + ", \"character\": 0}";

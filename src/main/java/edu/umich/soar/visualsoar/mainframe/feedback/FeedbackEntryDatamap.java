@@ -109,7 +109,7 @@ public class FeedbackEntryDatamap extends FeedbackListEntry {
     }//react
 
   @Override
-  public String toJson() {
+  public String toJsonLine() {
     String escapedDatamapName = String.valueOf(JsonStringEncoder.getInstance().quoteAsString(dataMapName));
     String escapedEdge = String.valueOf(JsonStringEncoder.getInstance().quoteAsString(edge.toString()));
     String escapedMessage = String.valueOf(JsonStringEncoder.getInstance().quoteAsString(getMessage()));

@@ -76,7 +76,7 @@ public class FeedbackListEntry {
    *     href="https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#diagnostic">Diagnostic</a>
    *     JSON object formatted in one line
    */
-  public String toJson() {
+  public String toJsonLine() {
     String escapedMessage = String.valueOf(JsonStringEncoder.getInstance().quoteAsString(getMessage()));
     return "{\"message\": \""
         + escapedMessage

@@ -92,7 +92,7 @@ public class VisualSoar {
     }
     for (FeedbackListEntry entry : feedback) {
       if (jsonFormat) {
-        System.out.println(entry.toJson());
+        System.out.println(entry.toJsonLine());
       } else {
         String emoji = entry.isError() ? "❌ " : "ℹ️ ";
         System.out.println(emoji + entry);
