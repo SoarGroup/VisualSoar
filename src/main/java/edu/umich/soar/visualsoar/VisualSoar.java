@@ -120,8 +120,12 @@ public class VisualSoar {
 
     if (cmd.hasOption(CHECK_OPT)) {
       ProjectModel pm = null;
+      String projectParameter = cmd.getOptionValue(PROJECT_OPT);
+      if (projectParameter == null) {
+        exitWithError("Please specify the project .vsa or .vsa.json path with --" + PROJECT_OPT + ".");
+      }
       try {
-        Path projectPath = Paths.get(cmd.getOptionValue(PROJECT_OPT));
+        Path projectPath = Paths.get(projectParameter);
         pm = ProjectModel.openExistingProject(projectPath);
       } catch (IOException e) {
         exitWithError("Could not open project file for checking: " + e);

@@ -1,6 +1,6 @@
 # VisualSoar
 
-This is an IDE for [Soar](https://soar.eecs.umich.edu/) agent development.
+This is an IDE for [Soar](https://soar.eecs.umich.edu/) agent development. Please see the [user manual](./doc/usersman/VisualSoar_UsersManual.docx) for more information on how to use it.
 
 ## Soar Project Organization
 
@@ -8,7 +8,17 @@ A Soar project is organized into a hierarchy based on the agent's operators and 
 
 ### Project JSON Format
 
-The project JSON format's canonical definition is in POJO classes processed by [Jackson](https://github.com/FasterXML/jackson). However, if you would like to work with the JSON in other tools, you can use the JSON schema provided in [`doc/`](./doc/project_schema.json).
+The project JSON format's canonical definition is in POJO classes processed by [Jackson](https://github.com/FasterXML/jackson). However, if you would like to work with the JSON in other tools, the format and contents are documented thoroughly in a JSON schema: [`project_schema.json`](./doc/project_schema.json).
+
+### Datamap Validation
+
+Normally users will run datamap validation within the IDE, but it is also possible to run the validation from the command line by adding the parameters `--check productionsAgainstDatamap` and `--project <path to project file>`. This will check the productions in the Soar agent against the datamap and report any errors. You can also pass in `--json` to get JSON output suitable for processing in other tools. The JSON structure follows the [LSP specification for diagnostics](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#diagnostic).
+
+To run this from the project's Gradle build, you must wrap the arguments in a `--args` parameter, like so:
+
+```bash
+./gradlew run --args="--check productionsAgainstDatamap --project <path to project file> --json"
+```
 
 ## Developing
 
