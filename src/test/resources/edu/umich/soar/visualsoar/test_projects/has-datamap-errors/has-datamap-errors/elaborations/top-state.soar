@@ -1,0 +1,13 @@
+sp {elaborate*top-state*top-state
+   (state <s> ^superstate nil)
+-->
+   (<s> ^top-state <s>)
+}
+
+
+sp {bad-syntax-imssing-paren
+   (state <s> ^operator <op>)
+   <op> ^name initialize-has-datamap-errors)
+-->
+   (<s> ^name has-datamap-errors)
+}

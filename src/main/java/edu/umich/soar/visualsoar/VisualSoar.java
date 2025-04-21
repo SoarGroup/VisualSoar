@@ -74,18 +74,24 @@ public class VisualSoar {
   private static void exitWithError(String message) {
     System.err.println(message);
     printHelp();
-    System.exit(1);
+    systemExit(1);
   }
 
-  private static void reportFeedback(List<FeedbackListEntry> feedback, String successMessage, boolean jsonFormat) {
+  /** Placed in a dedicated, public method so that it can be mocked for testing */
+  public static void systemExit(int code) {
+    System.exit(code);
+  }
+
+  private static void reportFeedback(
+      List<FeedbackListEntry> feedback, String successMessage, boolean jsonFormat) {
     if (feedback.isEmpty()) {
       if (jsonFormat) {
         System.out.println(
-        "{\"message\": \""
-          + successMessage
-          + "\", \"severity\": 3, "
-          + "\"source\": \"VisualSoar\"}");
-      }else {
+            "{\"message\": \""
+                + successMessage
+                + "\", \"severity\": 3, "
+                + "\"source\": \"VisualSoar\"}");
+      } else {
         System.out.println(successMessage);
       }
       return;
@@ -98,7 +104,7 @@ public class VisualSoar {
         System.out.println(emoji + entry);
       }
     }
-    System.exit(1);
+    systemExit(1);
   }
 
   /**

@@ -1,0 +1,14 @@
+sp {propose*initialize-has-datamap-errors
+   (state <s> ^superstate nil
+             -^name)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name wrong-name)
+}
+
+sp {apply*initialize-has-datamap-errors
+   (state <s> ^operator <op>)
+   (<op> ^name initialize-has-datamap-errors)
+-->
+   (<s> ^name has-datamap-errors)
+}

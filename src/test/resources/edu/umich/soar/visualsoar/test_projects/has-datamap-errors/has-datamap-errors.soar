@@ -1,0 +1,3 @@
+pushd has-datamap-errors
+source has-datamap-errors_source.soar
+popd
