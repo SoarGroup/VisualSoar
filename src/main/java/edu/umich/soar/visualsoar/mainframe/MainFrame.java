@@ -113,7 +113,6 @@ public class MainFrame extends JFrame
 	JMenu openRecentMenu = new JMenu("Open Recent");
 
 	Action toggleReadOnlyAction = new ToggleReadOnlyAction();
-	PerformableAction commitAction = new CommitAction();
 	Action exitAction = new ExitAction();
 	Action closeAllWindowsAction = new CloseAllWindowsAction(this);
     Action cascadeAction = new CascadeAction();
@@ -146,6 +145,13 @@ public class MainFrame extends JFrame
 	Action soarRuntimeTermAction = new SoarRuntimeTermAction();
 	Action soarRuntimeSendRawCommandAction = new SoarRuntimeSendRawCommandAction();
 	Action soarRuntimeSendAllFilesAction = new SendAllFilesToSoarAction() ;
+  PerformableAction commitAction =
+      new CommitAction(
+          this,
+          saveAllFilesAction,
+          exportAgentAction,
+          saveDataMapAndProjectAction,
+          checkAllProductionsAction);
 
 	public Agent getActiveAgent()
 	{
@@ -1409,9 +1415,13 @@ public class MainFrame extends JFrame
     setTitle("VisualSoar");
   }
 
+  public boolean projectIsOpen() {
+    return operatorWindow != null;
+  }
+
   public void openProject(@NotNull File vsaFile, boolean readOnly) {
-    //Get rid of the old project (if it exists)
-    if (operatorWindow != null) {
+    // Get rid of the old project (if it exists)
+    if (projectIsOpen()) {
       closeProjectAction.perform();
     }
 
@@ -1842,7 +1852,7 @@ public class MainFrame extends JFrame
         {
 			//If the user invokes this action when no project is open just ignore it
 			//For more info on why this is necessary, see the comment in projectActionsEnable()
-			if (operatorWindow == null) return;
+			if (!projectIsOpen()) return;
 
 			FindInProjectDialog theDialog =
                 new FindInProjectDialog(MainFrame.this,
@@ -1874,7 +1884,7 @@ public class MainFrame extends JFrame
         {
 			//If the user invokes this action when no project is open just ignore it
 			//For more info on why this is necessary, see the comment in projectActionsEnable()
-			if (operatorWindow == null) return;
+			if (!projectIsOpen()) return;
 
 			//If the project is in Read-Only mode reject the action
 			if (isReadOnly) {
@@ -1905,7 +1915,7 @@ public class MainFrame extends JFrame
 		{
 			//If the user invokes this action when no project is open just ignore it
 			//For more info on why this is necessary, see the comment in projectActionsEnable()
-			if (operatorWindow == null) return;
+			if (!projectIsOpen()) return;
 
 			//Get all files
 			Enumeration<TreeNode> bfe = operatorWindow.getProjectModel().breadthFirstEnumeration();
@@ -1931,35 +1941,7 @@ public class MainFrame extends JFrame
 		}//actionPerformed
 	}//class FindAllProdsAction
 
-
-	class CommitAction extends PerformableAction
-    {
-		private static final long serialVersionUID = 20221225L;
-
-		public CommitAction()
-        {
-			super("Commit");
-			setEnabled(false);
-		}
-
-		public void perform()
-        {
-			saveAllFilesAction.perform();
-			if(operatorWindow != null)
-            {
-				exportAgentAction.perform();
-				saveDataMapAndProjectAction.perform();
-			}
-		}
-
-		public void actionPerformed(ActionEvent e)
-        {
-			perform();
-      getFeedbackManager().setStatusBarMsg("Save Finished");
-		}
-	}//class CommitAction
-
-	class SaveProjectAsAction extends AbstractAction
+  class SaveProjectAsAction extends AbstractAction
     {
 		private static final long serialVersionUID = 20221225L;
 
