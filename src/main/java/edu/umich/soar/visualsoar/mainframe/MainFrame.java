@@ -390,6 +390,8 @@ public class MainFrame extends JFrame
 		JMenuItem preferencesItem = new JMenuItem("Preferences...");
 		preferencesItem.addActionListener(preferencesAction);
 		editMenu.add(preferencesItem);
+    preferencesItem.setMnemonic('P');
+    preferencesItem.setAccelerator(KeyStrokeUtil.getPlatformKeyStroke("COMMA"));
 
 		//Note:  toggleReadOnlyItem must be an instance var so its text can be changed "On" <--> "Off" to match the isReadOnly boolean
 		toggleReadOnlyItem.addActionListener(toggleReadOnlyAction);
