@@ -1,6 +1,6 @@
 package edu.umich.soar.visualsoar.mainframe.actions;
 
-import edu.umich.soar.visualsoar.dialogs.PreferencesDialog;
+import edu.umich.soar.visualsoar.dialogs.prefs.PreferencesDialog;
 import edu.umich.soar.visualsoar.mainframe.MainFrame;
 
 import javax.swing.*;

@@ -26,7 +26,7 @@ public enum Prefs {
     operDividerPosition("" + MainFrame.DEFAULT_OPER_DIV_POS),
     fbDividerPosition("" + MainFrame.DEFAULT_FB_DIV_POS),
     customTemplateFolder(""),
-    //Filenames of last 5 .vsa files that have been loaded
+    /** Filenames of last 5 .vsa files that have been loaded */
     recentProj0(""),
     recentProj1(""),
     recentProj2(""),
@@ -35,7 +35,11 @@ public enum Prefs {
     lastXPos(null),
     lastYPos(null),
     lastWidth(null),
-    lastHeight(null);
+    lastHeight(null),
+  /** Validate the project against the datamap whenever it is saved */
+  checkDmOnSave(true),
+  /** Save the project whenever a datamap check passes */
+  saveOnDmCheckPass(false);
 
     private static final Preferences preferences = Preferences.userRoot().node("edu/umich/soar/visualsoar");
     private static final SyntaxColor[] colors = SyntaxColor.getDefaultSyntaxColors();
