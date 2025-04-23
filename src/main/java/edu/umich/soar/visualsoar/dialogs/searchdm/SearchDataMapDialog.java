@@ -46,7 +46,7 @@ public class SearchDataMapDialog extends JDialog {
    *     search will begin at.
    */
   public SearchDataMapDialog(final Frame owner, DataMapTree tree, FakeTreeNode rootNode) {
-    super(owner, "Search DataMap", false);
+    super(owner, "Search Datamap (" + rootNode.toString() + ")", false);
 
     dmt = tree;
     swmm = (MainFrame.getMainFrame()).getOperatorWindow().getDatamap();
