@@ -30,32 +30,28 @@ import java.util.Vector;
 public class ReplaceInProjectDialog extends JDialog {
   private static final long serialVersionUID = 20221225L;
 
-  /** These keep track of place in directory tree that search is currently being performed. */
-  OperatorNode root;
-
-  Enumeration<TreeNode> bfe;
-  boolean
-      searchingRuleEditor; // is the current file being searched open in a rule editor window right
-                           // now?
-  boolean stringFound;
-  boolean stringSelected;
-  OperatorNode current;
-  String fn;
-  String lastToFind;
-
   /** panel which contains the find input field and match case option */
-  FindInProjectPanel findPanel;
-
-  /** Holds the current rule editor that find/replace is currently in */
-  RuleEditor d_ruleEditor = null;
-
-  OperatorWindow opWin;
+  private final FindInProjectPanel findPanel;
 
   /** panel which contains all the "replace input" fields */
-  ReplacePanel replacePanel = new ReplacePanel();
+  private final ReplacePanel replacePanel = new ReplacePanel();
 
-  FindReplaceButtonPanel buttonPanel = new FindReplaceButtonPanel();
-  Vector<FeedbackListEntry> v = new Vector<>();
+  private final Vector<FeedbackListEntry> v = new Vector<>();
+
+  /** These keep track of place in directory tree that search is currently being performed. */
+  private final OperatorNode root;
+
+  private Enumeration<TreeNode> bfe;
+
+  // is the current file being searched open in a rule editor window right now?
+  private boolean searchingRuleEditor;
+  private boolean stringFound;
+  private boolean stringSelected;
+  private OperatorNode current;
+  private String lastToFind;
+
+  /** Holds the current rule editor that find/replace is currently in */
+  private RuleEditor d_ruleEditor = null;
 
   /**
    * Dialog that searches through all the files within a project for a string and replaces that
@@ -71,7 +67,6 @@ public class ReplaceInProjectDialog extends JDialog {
   public ReplaceInProjectDialog(final Frame owner, OperatorWindow operators, OperatorNode opNode) {
     super(owner, "Find and Replace In Project", false);
 
-    opWin = operators;
     setResizable(false);
     Container contentPane = getContentPane();
     GridBagLayout gridbag = new GridBagLayout();
@@ -93,6 +88,7 @@ public class ReplaceInProjectDialog extends JDialog {
     findPanel = new FindInProjectPanel(Util.getSelectedText());
     contentPane.add(findPanel, c);
     contentPane.add(replacePanel, c);
+    FindReplaceButtonPanel buttonPanel = new FindReplaceButtonPanel();
     contentPane.add(buttonPanel, c);
     pack();
     getRootPane().setDefaultButton(buttonPanel.findButton);
@@ -295,7 +291,7 @@ public class ReplaceInProjectDialog extends JDialog {
     while (!stringFound && (bfe.hasMoreElements() || searchingRuleEditor)) {
       if (!searchingRuleEditor) {
         current = (OperatorNode) bfe.nextElement();
-        fn = current.getFileName();
+        String fn = current.getFileName();
 
         // See if Rule Editor is already open for that file.  If it is, then start searching Rule
         // Editor
