@@ -14,14 +14,14 @@ public class CommitAction extends PerformableAction {
   private final PerformableAction saveAllFilesAction;
   private final PerformableAction exportAgentAction;
   private final PerformableAction saveDatamapAndProjectAction;
-  private final PerformableAction checkAllProductionsAction;
+  private final CheckAllProductionsAction checkAllProductionsAction;
 
   public CommitAction(
       MainFrame mainFrame,
       PerformableAction saveAllFilesAction,
       PerformableAction exportAgentAction,
       PerformableAction saveDatamapAndProjectAction,
-      PerformableAction checkAllProductionsAction) {
+      CheckAllProductionsAction checkAllProductionsAction) {
     super("Commit");
     this.mainFrame = mainFrame;
     this.saveAllFilesAction = saveAllFilesAction;
@@ -32,15 +32,25 @@ public class CommitAction extends PerformableAction {
   }
 
   public void perform() {
+    perform(true);
+  }
 
+  /**
+   * Save the project and all Soar source files.
+   * Same as {@link #perform()}, but allows skipping the datamap check to avoid infinite recursion.
+   *
+   * @param checkDm perform the project datamap check if true and set in preferences, skip it if
+   *     false
+   */
+  public void perform(boolean checkDm) {
     try (FeedbackManager.AtomicContext ignored =
         mainFrame.getFeedbackManager().beginAtomicContext()) {
       saveAllFilesAction.perform();
       if (mainFrame.projectIsOpen()) {
         exportAgentAction.perform();
         saveDatamapAndProjectAction.perform();
-        if (Prefs.checkDmOnSave.getBoolean()) {
-          checkAllProductionsAction.perform();
+        if (checkDm && Prefs.checkDmOnSave.getBoolean()) {
+          checkAllProductionsAction.perform(false);
         }
       }
     }

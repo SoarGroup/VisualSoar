@@ -5,6 +5,7 @@ import edu.umich.soar.visualsoar.mainframe.MainFrame;
 import edu.umich.soar.visualsoar.mainframe.UpdateThread;
 import edu.umich.soar.visualsoar.mainframe.feedback.FeedbackListEntry;
 import edu.umich.soar.visualsoar.misc.PerformableAction;
+import edu.umich.soar.visualsoar.misc.Prefs;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorNode;
 import org.jetbrains.annotations.NotNull;
 
@@ -32,13 +33,25 @@ public class CheckAllProductionsAction extends PerformableAction {
     setEnabled(false);
   }
 
-  // Same as actionPerformed() but this function waits for the thread to
-  // complete before returning (i.e., it's effectively not threaded)
   public void perform() {
+    perform(true);
+  }
+
+  /**
+   * Same as {@link #perform()}, but allows skipping commit to avoid infinite recursion.
+   *
+   * @param commit call {@link MainFrame#commit(boolean)} if true and set in preferences, skip it if
+   *     false
+   */
+  void perform(boolean commit) {
+    CheckProductionsThread cpt = createCheckProductionsThread(commit);
+    cpt.start();
+  }
+
+  private CheckProductionsThread createCheckProductionsThread(boolean commit) {
     Vector<OperatorNode> vecNodes =
         getOperatorNodes(mainFrame.getOperatorWindow().getProjectModel());
-    CheckProductionsThread cpt = new CheckProductionsThread(vecNodes, "Checking Productions...");
-    cpt.start();
+    return new CheckProductionsThread(vecNodes, "Checking Productions...", commit);
   }
 
   @NotNull
@@ -67,13 +80,22 @@ public class CheckAllProductionsAction extends PerformableAction {
   }
 
   class CheckProductionsThread extends UpdateThread {
-    public CheckProductionsThread(Vector<OperatorNode> v, String title) {
+    private final boolean commit;
+
+    public CheckProductionsThread(Vector<OperatorNode> v, String title, boolean commit) {
       super(mainFrame, v, title);
+      this.commit = commit;
     }
 
     public boolean checkEntity(Object node) throws IOException {
       return ((OperatorNode) node)
           .checkAgainstDatamap(vecErrors, mainFrame.getOperatorWindow().getProjectModel());
     }
+
+    public void postAction() {
+      if (commit && Prefs.saveOnDmCheckPass.getBoolean() && !foundAnyErrors()) {
+        mainFrame.commit(false);
+      }
+    }
   }
-} // class CheckAllProductionsAction
+}

@@ -23,6 +23,8 @@ public abstract class UpdateThread extends Thread {
   protected Vector<FeedbackListEntry> vecErrors = new Vector<>();
   protected int entityNum = 0;
 
+  private boolean anyErrors;
+
   public UpdateThread(MainFrame mainFrame, Vector<OperatorNode> v, String title) {
     this.mainFrame = mainFrame;
     vecEntities = v;
@@ -52,7 +54,13 @@ public abstract class UpdateThread extends Thread {
 
   public void run() {
     checkEntities();
+    postAction();
   }
+
+  /**
+   * This will be called when {@link #run()} is finished.
+   */
+  public void postAction(){}
 
   private void updateProgressBar(int value) {
     progressBar.setValue(value);
@@ -69,7 +77,7 @@ public abstract class UpdateThread extends Thread {
 
   public void checkEntities() {
     try {
-      boolean anyErrors = false;
+      anyErrors = false;
       for (int i = 0; i < numEntities; i++) {
         boolean errDetected = checkEntity(vecEntities.elementAt(i));
         if (errDetected) {
@@ -95,6 +103,13 @@ public abstract class UpdateThread extends Thread {
     } catch (IOException ioe) {
       ioe.printStackTrace();
     }
+  }
+
+  /**
+   * @return true if the call to {@link #checkEntities()} found any errors, false otherwise
+   */
+  public boolean foundAnyErrors() {
+    return anyErrors;
   }
 
   /**

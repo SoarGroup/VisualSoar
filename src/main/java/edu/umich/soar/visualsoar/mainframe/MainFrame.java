@@ -122,7 +122,7 @@ public class MainFrame extends JFrame
 	Action checkSyntaxErrorsAction = new CheckSyntaxErrorsAction(this);
 	Action loadTopStateDatamapAction = new LoadTopStateDatamapAction(this);
 	Action linkDataMapAction = new LinkDataMapAction(this);
-	PerformableAction checkAllProductionsAction = new CheckAllProductionsAction(this);
+	CheckAllProductionsAction checkAllProductionsAction = new CheckAllProductionsAction(this);
     Action searchDataMapCreateAction = new SearchDataMapCreateAction(this);
     Action searchDataMapTestAction = new SearchDataMapTestAction(this);
     Action searchDataMapCreateNoTestAction = new SearchDataMapCreateNoTestAction(this);
@@ -145,7 +145,7 @@ public class MainFrame extends JFrame
 	Action soarRuntimeTermAction = new SoarRuntimeTermAction();
 	Action soarRuntimeSendRawCommandAction = new SoarRuntimeSendRawCommandAction();
 	Action soarRuntimeSendAllFilesAction = new SendAllFilesToSoarAction() ;
-  PerformableAction commitAction =
+  CommitAction commitAction =
       new CommitAction(
           this,
           saveAllFilesAction,
@@ -738,8 +738,17 @@ public class MainFrame extends JFrame
 
 	}
 
+  /**
+   * Save the project and all Soar source files.
+   *
+   * @param checkDm perform the project datamap check if true and set in preferences, skip it if
+   *     false
+   */
+  public void commit(boolean checkDm) {
+    commitAction.perform(checkDm);
+  }
 
-	/**
+  /**
      * When the Soar Runtime|Agent menu is selected, this listener
      * populates the menu with the agents that exist in the kernel
      * we're currently connected to through SML.
