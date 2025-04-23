@@ -1,6 +1,4 @@
-package edu.umich.soar.visualsoar.dialogs;
-
-import edu.umich.soar.visualsoar.dialogs.find.FindInProjectOptionsPanel;
+package edu.umich.soar.visualsoar.dialogs.find;
 
 import javax.swing.*;
 import javax.swing.border.CompoundBorder;
@@ -10,17 +8,17 @@ import java.awt.event.KeyEvent;
  * Panel that contains the input field for the find string and the
  * option panel for the find dialogs
  *
- * @author Brian Harleton
- * @see SearchDataMapDialog
+ * @author Andrew Nuxoll
+ * @see FindInProjectDialog
  */
-class SearchDataMapFindPanel extends JPanel {
+public class FindInProjectPanel extends JPanel {
     private static final long serialVersionUID = 20221225L;
 
+    private final JTextField findField = new JTextField(20);
+    //FIXME:  this shouldn't need to be public
+    public final FindInProjectOptionsPanel optionsPanel;
 
-    JTextField findField = new JTextField(20);
-    FindInProjectOptionsPanel optionsPanel;
-
-    public SearchDataMapFindPanel() {
+    public FindInProjectPanel() {
         optionsPanel = new FindInProjectOptionsPanel();
 
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
@@ -35,7 +33,6 @@ class SearchDataMapFindPanel extends JPanel {
         findField.getKeymap().removeKeyStrokeBinding(
                 KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0));
     }
-
 
     /**
      * gets all the data input into the panel by the user

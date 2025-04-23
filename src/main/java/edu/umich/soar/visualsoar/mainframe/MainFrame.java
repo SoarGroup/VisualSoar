@@ -4,6 +4,8 @@ import edu.umich.soar.visualsoar.ProjectModel;
 import edu.umich.soar.visualsoar.datamap.DataMap;
 import edu.umich.soar.visualsoar.datamap.SoarWorkingMemoryModel;
 import edu.umich.soar.visualsoar.dialogs.*;
+import edu.umich.soar.visualsoar.dialogs.find.FindDialog;
+import edu.umich.soar.visualsoar.dialogs.find.FindInProjectDialog;
 import edu.umich.soar.visualsoar.files.Backup;
 import edu.umich.soar.visualsoar.files.Cfg;
 import edu.umich.soar.visualsoar.mainframe.actions.*;

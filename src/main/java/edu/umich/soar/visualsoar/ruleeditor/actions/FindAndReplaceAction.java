@@ -1,7 +1,7 @@
 package edu.umich.soar.visualsoar.ruleeditor.actions;
 
 import edu.umich.soar.visualsoar.mainframe.MainFrame;
-import edu.umich.soar.visualsoar.dialogs.FindReplaceDialog;
+import edu.umich.soar.visualsoar.dialogs.find.FindReplaceDialog;
 import edu.umich.soar.visualsoar.ruleeditor.RuleEditor;
 
 import javax.swing.*;

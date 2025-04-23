@@ -11,11 +11,10 @@ import java.awt.event.KeyEvent;
  * @author Jon Bauman
  * @see ReplaceInProjectDialog
  */
-class ReplacePanel extends JPanel {
+public class ReplacePanel extends JPanel {
     private static final long serialVersionUID = 20221225L;
 
-
-    JTextField replaceField = new JTextField(20);
+    private final JTextField replaceField = new JTextField(20);
 
     public ReplacePanel() {
         setLayout(new BoxLayout(this, BoxLayout.X_AXIS));

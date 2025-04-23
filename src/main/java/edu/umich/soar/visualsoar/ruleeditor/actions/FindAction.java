@@ -1,7 +1,7 @@
 package edu.umich.soar.visualsoar.ruleeditor.actions;
 
 import edu.umich.soar.visualsoar.mainframe.MainFrame;
-import edu.umich.soar.visualsoar.dialogs.FindDialog;
+import edu.umich.soar.visualsoar.dialogs.find.FindDialog;
 import edu.umich.soar.visualsoar.ruleeditor.RuleEditor;
 
 import javax.swing.*;

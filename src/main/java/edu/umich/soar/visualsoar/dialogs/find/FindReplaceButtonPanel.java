@@ -1,4 +1,4 @@
-package edu.umich.soar.visualsoar.dialogs;
+package edu.umich.soar.visualsoar.dialogs.find;
 
 import javax.swing.*;
 import java.awt.*;
@@ -9,13 +9,13 @@ import java.awt.*;
  * @author Jon Bauman
  * @see FindReplaceDialog
  */
-class FindReplaceButtonPanel extends JPanel {
+public class FindReplaceButtonPanel extends JPanel {
   private static final long serialVersionUID = 20221225L;
 
-  JButton cancelButton = new JButton("Cancel");
-  JButton replaceAllButton = new JButton("Replace All");
-  JButton replaceButton = new JButton("Replace");
-  JButton findButton = new JButton("Find");
+  public final JButton cancelButton = new JButton("Cancel");
+  public final JButton replaceAllButton = new JButton("Replace All");
+  public final JButton replaceButton = new JButton("Replace");
+  public final JButton findButton = new JButton("Find");
 
   public FindReplaceButtonPanel() {
     cancelButton.setMnemonic('c');

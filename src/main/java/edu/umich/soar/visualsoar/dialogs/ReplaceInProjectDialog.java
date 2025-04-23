@@ -1,5 +1,8 @@
 package edu.umich.soar.visualsoar.dialogs;
 
+import edu.umich.soar.visualsoar.dialogs.find.FindInProjectDialog;
+import edu.umich.soar.visualsoar.dialogs.find.FindInProjectPanel;
+import edu.umich.soar.visualsoar.dialogs.find.FindReplaceButtonPanel;
 import edu.umich.soar.visualsoar.mainframe.MainFrame;
 import edu.umich.soar.visualsoar.mainframe.feedback.FeedbackEntryOpNode;
 import edu.umich.soar.visualsoar.mainframe.feedback.FeedbackListEntry;

@@ -1,5 +1,6 @@
-package edu.umich.soar.visualsoar.dialogs;
+package edu.umich.soar.visualsoar.dialogs.find;
 
+import edu.umich.soar.visualsoar.dialogs.DialogUtils;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorNode;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorWindow;
 
@@ -16,12 +17,11 @@ import java.awt.event.*;
  * @see FindDialog
  */
 public class FindInProjectDialog extends JDialog {
-    private static final long serialVersionUID = 20221225L;
+  private static final long serialVersionUID = 20221225L;
 
-    FindInProjectPanel findPanel;
-    FindButtonPanel buttonPanel;
-    OperatorWindow opWin = null;
-    OperatorNode root;
+  private final FindInProjectPanel findPanel;
+  private final OperatorWindow opWin;
+  private final OperatorNode root;
 
     /**
      * The 'find in project' version
@@ -37,7 +37,7 @@ public class FindInProjectDialog extends JDialog {
         super(owner, "Find in Project", false);
 
         findPanel = new FindInProjectPanel();
-        buttonPanel = new FindButtonPanel(true);
+        FindButtonPanel buttonPanel = new FindButtonPanel();
         opWin = operators;
         root = opNode;
         setResizable(false);

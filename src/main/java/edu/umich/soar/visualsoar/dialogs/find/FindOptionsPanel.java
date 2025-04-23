@@ -1,4 +1,4 @@
-package edu.umich.soar.visualsoar.dialogs;
+package edu.umich.soar.visualsoar.dialogs.find;
 
 import javax.swing.*;
 import java.awt.*;
