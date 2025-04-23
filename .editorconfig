@@ -7,6 +7,9 @@ charset = utf-8
 trim_trailing_whitespace = true
 insert_final_newline = true
 
-[{*.md *.markdown}]
+[{*.md,*.markdown}]
 # trailing whitespace is semantic in markdown
 trim_trailing_whitespace = false
+
+[*.bat]
+end_of_line = crlf
