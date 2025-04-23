@@ -1,5 +1,6 @@
-package edu.umich.soar.visualsoar.dialogs;
+package edu.umich.soar.visualsoar.dialogs.searchdm;
 
+import edu.umich.soar.visualsoar.dialogs.DialogUtils;
 import edu.umich.soar.visualsoar.mainframe.MainFrame;
 import edu.umich.soar.visualsoar.datamap.DataMap;
 import edu.umich.soar.visualsoar.datamap.DataMapTree;
@@ -23,11 +24,9 @@ import java.awt.event.*;
 public class SearchDataMapDialog extends JDialog {
   private static final long serialVersionUID = 20221225L;
 
-  SearchDataMapFindPanel findPanel = new SearchDataMapFindPanel();
+  private final SearchDataMapFindPanel findPanel = new SearchDataMapFindPanel();
 
-  SearchDataMapOptionsPanel optionsPanel = new SearchDataMapOptionsPanel();
-
-  SearchDataMapButtonPanel buttonPanel = new SearchDataMapButtonPanel();
+  private final SearchDataMapOptionsPanel optionsPanel = new SearchDataMapOptionsPanel();
 
   private final DataMapTree dmt;
   private final SoarWorkingMemoryModel swmm;
@@ -66,6 +65,7 @@ public class SearchDataMapDialog extends JDialog {
 
     contentPane.add(findPanel, c);
     contentPane.add(optionsPanel, c);
+    SearchDataMapButtonPanel buttonPanel = new SearchDataMapButtonPanel();
     contentPane.add(buttonPanel, c);
     pack();
     getRootPane().setDefaultButton(buttonPanel.findNextButton);
