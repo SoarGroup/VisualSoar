@@ -76,33 +76,35 @@ public abstract class UpdateThread extends Thread {
   public abstract boolean checkEntity(Object o) throws IOException;
 
   public void checkEntities() {
-    try {
-      anyErrors = false;
-      for (int i = 0; i < numEntities; i++) {
+    anyErrors = false;
+    for (int i = 0; i < numEntities; i++) {
+      try {
         boolean errDetected = checkEntity(vecEntities.elementAt(i));
         if (errDetected) {
           anyErrors = true;
         }
-        updateProgressBar(++entityNum);
-        SwingUtilities.invokeLater(update);
+      } catch(IOException e) {
+        e.printStackTrace();
+        vecErrors.add(new FeedbackListEntry(e.getMessage(), true));
+        anyErrors = true;
       }
-
-      if (!anyErrors) {
-        String message = getSuccessMessage();
-        if (message != null) {
-          vecErrors.add(new FeedbackListEntry(message));
-        }
-      } else if (vecErrors.isEmpty()) {
-        // This should never happen, as errors should be added to vecErrors.
-        // TODO: return vecErrors from checkEntities instead so we don't have
-        // two separate indicators for errors.
-        vecErrors.add(new FeedbackListEntry("Unknown error occurred"));
-      }
-      mainFrame.getFeedbackManager().showFeedback(vecErrors);
-      SwingUtilities.invokeLater(finish);
-    } catch (IOException ioe) {
-      ioe.printStackTrace();
+      updateProgressBar(++entityNum);
+      SwingUtilities.invokeLater(update);
     }
+
+    if (!anyErrors) {
+      String message = getSuccessMessage();
+      if (message != null) {
+        vecErrors.add(new FeedbackListEntry(message));
+      }
+    } else if (vecErrors.isEmpty()) {
+      // This should never happen, as errors should be added to vecErrors.
+      // TODO: return vecErrors from checkEntities instead so we don't have
+      // two separate indicators for errors.
+      vecErrors.add(new FeedbackListEntry("Unknown error occurred"));
+    }
+    mainFrame.getFeedbackManager().showFeedback(vecErrors);
+    SwingUtilities.invokeLater(finish);
   }
 
   /**
