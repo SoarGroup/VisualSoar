@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import java.io.ByteArrayOutputStream;
+import java.io.OutputStream;
 import java.io.PrintStream;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
@@ -105,11 +106,11 @@ class VisualSoarTest {
             });
         mockedVisualSoar.verify(() -> VisualSoar.systemExit(1)); // Verify systemExit(1) was called
 
-        actualOutput = outputStream.toString().replace("\r\n", "\n").trim();
+        actualOutput = getNormalizedOutput(outputStream.toString(), errorProjectPath);
         expectedOutput =
             "❌ propose*initialize-has-datamap-errors: initialize-has-datamap-errors(6): could not match constraint (<o>,name,wrong-name) in production\n"
                 + "❌ Unable to check productions due to parse error\n"
-                + "❌ elaborations/top-state(10): parser.ParseException: Encountered \" <VARIABLE> \"<op> \"\" at line 10, column 4.\n"
+                + "❌ elaborations\\top-state(10): parser.ParseException: Encountered \" <VARIABLE> \"<op> \"\" at line 10, column 4.\n"
                 + "Was expecting:\n"
                 + "    \"-->\" ...";
         assertEquals(expectedOutput, actualOutput);
@@ -128,17 +129,23 @@ class VisualSoarTest {
             });
         mockedVisualSoar.verify(() -> VisualSoar.systemExit(1)); // Verify systemExit(1) was called
 
-        actualOutput = outputStream.toString().replace("\r\n", "\n").trim();
+        actualOutput = getNormalizedOutput(outputStream.toString(), errorProjectPath);
         expectedOutput =
-            ("{\"message\": \"Operator node diagnostic\", \"severity\": 1, \"relatedInformation\": [{\"message\": \"could not match constraint (<o>,name,wrong-name) in production\", \"location\": {\"uri\": \"file://<PROJ_PATH>/has-datamap-errors/has-datamap-errors/initialize-has-datamap-errors.soar\", \"range\": {\"start\": {\"line\": 6, \"character\": 0}, \"end\": {\"line\": 6, \"character\": 0}}}}], \"source\": \"VisualSoar\"}\n"
+            ("{\"message\": \"Operator node diagnostic\", \"severity\": 1, \"relatedInformation\": [{\"message\": \"could not match constraint (<o>,name,wrong-name) in production\", \"location\": {\"uri\": \"file:\\\\<PROJ_PATH>\\has-datamap-errors\\has-datamap-errors\\initialize-has-datamap-errors.soar\", \"range\": {\"start\": {\"line\": 6, \"character\": 0}, \"end\": {\"line\": 6, \"character\": 0}}}}], \"source\": \"VisualSoar\"}\n"
                     + "{\"message\": \"Unable to check productions due to parse error\", \"severity\": 1, \"source\": \"VisualSoar\"}\n"
                     + "{\"message\": \"Operator node diagnostic\", \"severity\": 1, \"relatedInformation\": [{\"message\": \"parser.ParseException: Encountered \\\" <VARIABLE> \\\"<op> \\\"\\\" at line 10, column 4.\\nWas expecting:\\n    \\\"-->\\\" ...\\n    \", \"location\": {\"uri\": \"file://<PROJ_PATH>/has-datamap-errors/has-datamap-errors/elaborations/top-state.soar\", \"range\": {\"start\": {\"line\": 10, \"character\": 0}, \"end\": {\"line\": 10, \"character\": 0}}}}], \"source\": \"VisualSoar\"}")
                 .replace("<PROJ_PATH>", errorProjectPath.getParent().toString());
+        expectedOutput = getNormalizedOutput(expectedOutput, errorProjectPath);
         assertEquals(expectedOutput, actualOutput);
 
       } finally {
         System.setOut(originalOut);
       }
     }
+  }
+
+  private static String getNormalizedOutput(String output, Path projectPath) {
+    // normalize to backslash because we don't want to replace the escape chars in JSON strings
+    return output.replace("<PROJ_PATH>", projectPath.getParent().toString()).replace("\r\n", "\n").replace("/", "\\").trim();
   }
 }
