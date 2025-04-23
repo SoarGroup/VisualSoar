@@ -7,7 +7,7 @@ import edu.umich.soar.visualsoar.mainframe.MainFrame;
 import edu.umich.soar.visualsoar.datamap.SoarWorkingMemoryModel;
 import edu.umich.soar.visualsoar.dialogs.find.FindInProjectDialog;
 import edu.umich.soar.visualsoar.dialogs.NameDialog;
-import edu.umich.soar.visualsoar.dialogs.ReplaceInProjectDialog;
+import edu.umich.soar.visualsoar.dialogs.find.ReplaceInProjectDialog;
 import edu.umich.soar.visualsoar.graph.SoarIdentifierVertex;
 import edu.umich.soar.visualsoar.mainframe.feedback.FeedbackEntryOpNode;
 import edu.umich.soar.visualsoar.mainframe.feedback.FeedbackListEntry;

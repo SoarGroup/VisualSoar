@@ -18,7 +18,7 @@ public class FindInProjectPanel extends JPanel {
     //FIXME:  this shouldn't need to be public
     public final FindInProjectOptionsPanel optionsPanel;
 
-    public FindInProjectPanel() {
+    public FindInProjectPanel(String initialText) {
         optionsPanel = new FindInProjectOptionsPanel();
 
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
@@ -32,6 +32,7 @@ public class FindInProjectPanel extends JPanel {
         // So that enter can affirmatively dismiss the dialog
         findField.getKeymap().removeKeyStrokeBinding(
                 KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0));
+        findField.setText(initialText);
     }
 
     /**

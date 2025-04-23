@@ -1,8 +1,6 @@
-package edu.umich.soar.visualsoar.dialogs;
+package edu.umich.soar.visualsoar.dialogs.find;
 
-import edu.umich.soar.visualsoar.dialogs.find.FindInProjectDialog;
-import edu.umich.soar.visualsoar.dialogs.find.FindInProjectPanel;
-import edu.umich.soar.visualsoar.dialogs.find.FindReplaceButtonPanel;
+import edu.umich.soar.visualsoar.dialogs.DialogUtils;
 import edu.umich.soar.visualsoar.mainframe.MainFrame;
 import edu.umich.soar.visualsoar.mainframe.feedback.FeedbackEntryOpNode;
 import edu.umich.soar.visualsoar.mainframe.feedback.FeedbackListEntry;
@@ -46,7 +44,7 @@ public class ReplaceInProjectDialog extends JDialog {
   String lastToFind;
 
   /** panel which contains the find input field and match case option */
-  FindInProjectPanel findPanel = new FindInProjectPanel();
+  FindInProjectPanel findPanel;
 
   /** Holds the current rule editor that find/replace is currently in */
   RuleEditor d_ruleEditor = null;
@@ -92,6 +90,7 @@ public class ReplaceInProjectDialog extends JDialog {
     c.gridwidth = GridBagConstraints.REMAINDER;
     c.fill = GridBagConstraints.HORIZONTAL;
 
+    findPanel = new FindInProjectPanel(Util.getSelectedText());
     contentPane.add(findPanel, c);
     contentPane.add(replacePanel, c);
     contentPane.add(buttonPanel, c);
