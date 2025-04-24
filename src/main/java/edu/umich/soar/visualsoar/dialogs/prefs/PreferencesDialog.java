@@ -5,13 +5,13 @@ import edu.umich.soar.visualsoar.dialogs.DialogUtils;
 import edu.umich.soar.visualsoar.dialogs.NumberTextField;
 import edu.umich.soar.visualsoar.misc.Prefs;
 import edu.umich.soar.visualsoar.misc.SyntaxColor;
+import edu.umich.soar.visualsoar.ruleeditor.EditorPane;
 import edu.umich.soar.visualsoar.ruleeditor.SoarDocument;
 
 import javax.swing.*;
 import javax.swing.border.CompoundBorder;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.Iterator;
 import java.util.TreeMap;
 
 /**
@@ -25,6 +25,9 @@ public class PreferencesDialog extends JDialog {
 
   /** Panel which contains the syntax color editing buttons */
   private final SyntaxColorsPanel colorPanel;
+
+  private final CurrentSelectionOccurrenceHighlightingPanel selectionOccurrenceHighlightingPanel =
+      new CurrentSelectionOccurrenceHighlightingPanel();
 
   /** Panel which contains the auto-tiling pref buttons */
   private final AutoTilePanel tilePanel = new AutoTilePanel();
@@ -89,6 +92,7 @@ public class PreferencesDialog extends JDialog {
 
     ruleEditorPanel.setLayout(new BoxLayout(ruleEditorPanel, BoxLayout.Y_AXIS));
     ruleEditorPanel.add(colorPanel);
+    ruleEditorPanel.add(selectionOccurrenceHighlightingPanel);
     ruleEditorPanel.add(editorFontPanel);
     ruleEditorPanel.add(checkBoxPanel);
 
@@ -138,6 +142,12 @@ public class PreferencesDialog extends JDialog {
             Prefs.autoIndentingEnabled.setBoolean(autoSoarCompleteCheckBox.isSelected());
             Prefs.saveOnDmCheckPass.setBoolean(saveActionsPanel.getSaveOnDmCheckPass());
             Prefs.checkDmOnSave.setBoolean(saveActionsPanel.getCheckDmOnSave());
+            Prefs.enableCurrentSelectionOccurrenceHighlighting.setBoolean(
+                selectionOccurrenceHighlightingPanel.enabled());
+
+            Color selectionOccurrenceHighlightColor = selectionOccurrenceHighlightingPanel.getSelectedColor();
+            Prefs.currentSelectionOccurrenceHighlightColor.setInt(selectionOccurrenceHighlightColor.getRGB());
+            EditorPane.setCurrentSelectionOccurrenceHighlightColor(selectionOccurrenceHighlightColor);
 
             commitChanges();
             Prefs.setSyntaxColors(colorTable);

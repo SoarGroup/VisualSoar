@@ -3,6 +3,7 @@ package edu.umich.soar.visualsoar.misc;
 import edu.umich.soar.visualsoar.mainframe.MainFrame;
 import edu.umich.soar.visualsoar.ruleeditor.SoarDocument;
 
+import java.awt.*;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -39,7 +40,10 @@ public enum Prefs {
   /** Validate the project against the datamap whenever it is saved */
   checkDmOnSave(true),
   /** Save the project whenever a datamap check passes */
-  saveOnDmCheckPass(false);
+  saveOnDmCheckPass(false),
+  enableCurrentSelectionOccurrenceHighlighting(true),
+  // Semi-transparent light green
+  currentSelectionOccurrenceHighlightColor((new Color(153, 255, 153, 128)).getRGB());
 
     private static final Preferences preferences = Preferences.userRoot().node("edu/umich/soar/visualsoar");
     private static final SyntaxColor[] colors = SyntaxColor.getDefaultSyntaxColors();
@@ -339,19 +343,27 @@ public enum Prefs {
         MainFrame.getMainFrame().updateRecentProjectsSubMenu();
     }//addRecentProject
 
+  private final String def;
+  private final boolean defBoolean;
+  private final int defInt;
 
-    private final String def;
-    private final boolean defBoolean;
+  Prefs(String def) {
+    this.def = def;
+    this.defBoolean = false;
+    this.defInt = 0;
+  }
 
-    Prefs(String def) {
-        this.def = def;
-        this.defBoolean = false;
-    }
+  Prefs(boolean def) {
+    this.def = null;
+    this.defBoolean = def;
+    this.defInt = 0;
+  }
 
-    Prefs(boolean def) {
-        this.def = null;
-        this.defBoolean = def;
-    }
+  Prefs(int def) {
+    this.def = null;
+    this.defBoolean = false;
+    this.defInt = def;
+  }
 
     public String get() {
         return preferences.get(this.toString(), def);
@@ -368,6 +380,14 @@ public enum Prefs {
     public void setBoolean(boolean value) {
         preferences.putBoolean(this.toString(), value);
     }
+
+  public int getInt() {
+    return preferences.getInt(this.toString(), defInt);
+  }
+
+  public void setInt(int value) {
+    preferences.putInt(this.toString(), value);
+  }
 
     public static void flush() {
         try {
