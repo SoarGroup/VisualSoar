@@ -1,6 +1,7 @@
 package edu.umich.soar.visualsoar.dialogs.find;
 
 import edu.umich.soar.visualsoar.datamap.DataMapTree;
+import edu.umich.soar.visualsoar.datamap.FakeTreeNode;
 import edu.umich.soar.visualsoar.mainframe.feedback.FeedbackList;
 import edu.umich.soar.visualsoar.mainframe.feedback.FeedbackListEntry;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorWindow;
@@ -25,11 +26,7 @@ public class Util {
       initialText = editorPane.getSelectedText();
     } else if (focusedComponent instanceof JTree) {
       // covers both OperatorWindow and DataMapTree
-      JTree tree = (JTree) focusedComponent;
-      TreePath path = tree.getSelectionPath();
-      if (path != null) {
-        initialText = path.getLastPathComponent().toString();
-      }
+      initialText = getJtreeTextSelection((JTree) focusedComponent);
     } else if (focusedComponent instanceof FeedbackList) {
       FeedbackList fbList = (FeedbackList) focusedComponent;
       FeedbackListEntry entry = fbList.getSelectedValue();
@@ -39,6 +36,24 @@ public class Util {
     }
     if (initialText == null) {
       initialText = ""; // Default to empty if no text is selected
+    }
+    return initialText;
+  }
+
+  private static String getJtreeTextSelection(JTree jTree) {
+    String initialText = null;
+    TreePath path = jTree.getSelectionPath();
+    if (path != null) {
+      Object lastPathComponent = path.getLastPathComponent();
+      if (lastPathComponent instanceof FakeTreeNode) {
+        FakeTreeNode ftn = (FakeTreeNode) lastPathComponent;
+        if (ftn.getEdge() != null) {
+          initialText = ftn.getEdge().getName();
+        }
+      }
+      if (initialText == null) {
+        initialText = path.getLastPathComponent().toString();
+      }
     }
     return initialText;
   }
