@@ -564,6 +564,21 @@ public class MainFrame extends JFrame
 		viewMenu.add(reTileWindowItem);
       numberViewMenuItems++;
 
+    JMenuItem increaseFontSizeItem = new JMenuItem("Increase Font Size");
+    increaseFontSizeItem.addActionListener(
+      new IncreaseFontSizeAction(this));
+    increaseFontSizeItem.setAccelerator(KeyStrokeUtil.getPlatformKeyStroke("EQUALS"));
+    viewMenu.add(increaseFontSizeItem);
+    numberViewMenuItems++;
+
+    // Add Decrease Font Size
+    JMenuItem decreaseFontSizeItem = new JMenuItem("Decrease Font Size");
+    decreaseFontSizeItem.addActionListener(
+      new DecreaseFontSizeAction(this));
+    decreaseFontSizeItem.setAccelerator(KeyStrokeUtil.getPlatformKeyStroke("MINUS"));
+    viewMenu.add(decreaseFontSizeItem);
+    numberViewMenuItems++;
+
       final int finalNumberViewMenuItems = numberViewMenuItems;
       viewMenu.addMenuListener(
             new MenuListener()
@@ -587,11 +602,14 @@ public class MainFrame extends JFrame
 						}
                     }
             });
+
 		viewMenu.setMnemonic('V');
 		//cascadeWindowItem.setMnemonic(KeyEvent.VK_C);
 		tileWindowItem.setMnemonic(KeyEvent.VK_T);
 		tileWindowItem.setAccelerator(KeyStrokeUtil.getPlatformKeyStroke("T"));
 		reTileWindowItem.setAccelerator(KeyStrokeUtil.getPlatformKeyStroke("shift T"));
+
+
 		return viewMenu;
 	}
 
@@ -2160,5 +2178,6 @@ public class MainFrame extends JFrame
             lastWindowViewOperation = "cascade";
         }
     }//class CascadeAction
+
 }//class MainFrame
 

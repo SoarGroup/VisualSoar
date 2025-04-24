@@ -157,7 +157,7 @@ public class PreferencesDialog extends JDialog {
             int fontSize = getFontSize();
             if (fontSize != SoarDocument.getFontSize()) {
               SoarDocument.setFontSize(fontSize);
-              Prefs.editorFontSize.set(editorFontField.getText());
+              Prefs.editorFontSize.setInt(fontSize);
             }
           }
         });

@@ -1245,11 +1245,6 @@ public class RuleEditor extends CustomInternalFrame {
         keymap.addActionForKeyStroke(controlR, findAndReplaceAction);
         findAndReplaceItem.setMnemonic(KeyEvent.VK_R);
 
-        KeyStroke controlEquals = KeyStrokeUtil.getPlatformKeyStroke("EQUALS");
-        replaceItem.setAccelerator(controlEquals);
-        keymap.addActionForKeyStroke(controlEquals, replaceAction);
-        replaceItem.setMnemonic(KeyEvent.VK_EQUALS);
-
         KeyStroke controlH = KeyStrokeUtil.getPlatformKeyStroke("H");
         replaceAndFindAgainItem.setAccelerator(controlH);
         keymap.addActionForKeyStroke(controlH, replaceAction);
