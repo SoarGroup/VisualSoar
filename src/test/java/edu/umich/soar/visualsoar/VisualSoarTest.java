@@ -3,14 +3,11 @@ package edu.umich.soar.visualsoar;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import com.fasterxml.jackson.core.io.JsonStringEncoder;
 import java.io.ByteArrayOutputStream;
-import java.io.OutputStream;
 import java.io.PrintStream;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-
-import com.fasterxml.jackson.core.io.JsonStringEncoder;
 import org.apache.commons.cli.ParseException;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
@@ -133,7 +130,7 @@ class VisualSoarTest {
             });
         mockedVisualSoar.verify(() -> VisualSoar.systemExit(1)); // Verify systemExit(1) was called
 
-        actualOutput = outputStream.toString().replace("\r\n", "\n").trim();
+        actualOutput = outputStream.toString().replace("\r\n", "\n").replace("\\r\\n", "\\n").trim();
         expectedOutput =
             ("{\"message\": \"Operator node diagnostic\", \"severity\": 1, \"relatedInformation\": [{\"message\": \"could not match constraint (<o>,name,wrong-name) in production\", \"location\": {\"uri\": \"file://"
                     + jsonPathString(
