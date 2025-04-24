@@ -258,6 +258,17 @@ public class EditorPane extends javax.swing.JEditorPane {
     }
   }
 
+  @Override
+  public void removeNotify() {
+    super.removeNotify();
+
+    // perform document cleanup
+    SoarDocument doc = getSoarDocument();
+    if (doc != null) {
+      doc.close();
+    }
+  }
+
   /** Colors the syntax of the whole document */
   public void colorSyntax() {
     getSoarDocument().colorSyntax(new StringReader(getText()));

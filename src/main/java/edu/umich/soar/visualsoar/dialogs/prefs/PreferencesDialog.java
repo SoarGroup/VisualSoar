@@ -87,7 +87,7 @@ public class PreferencesDialog extends JDialog {
             BorderFactory.createEmptyBorder(10, 10, 10, 10)));
     editorFontPanel.add(Box.createHorizontalBox());
     editorFontPanel.add(new JLabel("Font Size: "));
-    editorFontField.setText(String.valueOf(SoarDocument.getFontSize()));
+    editorFontField.setText(Prefs.editorFontSize.get());
     editorFontPanel.add(editorFontField);
 
     ruleEditorPanel.setLayout(new BoxLayout(ruleEditorPanel, BoxLayout.Y_AXIS));
@@ -155,8 +155,7 @@ public class PreferencesDialog extends JDialog {
 
             // Set a new font size
             int fontSize = getFontSize();
-            if (fontSize != SoarDocument.getFontSize()) {
-              SoarDocument.setFontSize(fontSize);
+            if (fontSize != Prefs.editorFontSize.getInt()) {
               Prefs.editorFontSize.setInt(fontSize);
             }
           }
@@ -168,7 +167,7 @@ public class PreferencesDialog extends JDialog {
    * enforce min/max rules.
    */
   private int getFontSize() {
-    int fontSize = SoarDocument.getFontSize();
+    int fontSize = Prefs.editorFontSize.getInt();
     try {
       fontSize = Integer.parseInt(editorFontField.getText());
     } catch (NumberFormatException nfe) {

@@ -9,10 +9,17 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.FileSystems;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Vector;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
+/**
+ * Preference values are persisted on the user's computer. Clients can listen for changes by
+ * creating a {@link PrefsChangeListener} and passing it to {@link
+ * #addChangeListener(PrefsChangeListener)} for the particular preference of interest.
+ */
 public enum Prefs {
     openFolder(System.getProperty("user.dir")),
     autoTileEnabled(true),
@@ -347,6 +354,15 @@ public enum Prefs {
   private final boolean defBoolean;
   private final int defInt;
 
+  public interface PrefsChangeListener {
+    /**
+     * @param newValue new String, boolean, or integer value
+     */
+    void onPreferenceChanged(Object newValue);
+  }
+
+  private final List<PrefsChangeListener> listeners = new ArrayList<>();
+
   Prefs(String def) {
     this.def = def;
     this.defBoolean = false;
@@ -365,21 +381,37 @@ public enum Prefs {
     this.defInt = def;
   }
 
-    public String get() {
-        return preferences.get(this.toString(), def);
-    }
+  public void addChangeListener(PrefsChangeListener listener) {
+    listeners.add(listener);
+  }
 
-    public void set(String value) {
-        preferences.put(this.toString(), value);
-    }
+  public void removeChangeListener(PrefsChangeListener listener) {
+    listeners.remove(listener);
+  }
 
-    public boolean getBoolean() {
-        return preferences.getBoolean(this.toString(), defBoolean);
+  private void notifyListeners(Object newValue) {
+    for (PrefsChangeListener listener : listeners) {
+      listener.onPreferenceChanged(newValue);
     }
+  }
 
-    public void setBoolean(boolean value) {
-        preferences.putBoolean(this.toString(), value);
-    }
+  public String get() {
+    return preferences.get(this.toString(), def);
+  }
+
+  public void set(String value) {
+    preferences.put(this.toString(), value);
+    notifyListeners(value);
+  }
+
+  public boolean getBoolean() {
+    return preferences.getBoolean(this.toString(), defBoolean);
+  }
+
+  public void setBoolean(boolean value) {
+    preferences.putBoolean(this.toString(), value);
+    notifyListeners(value);
+  }
 
   public int getInt() {
     return preferences.getInt(this.toString(), defInt);
@@ -387,14 +419,14 @@ public enum Prefs {
 
   public void setInt(int value) {
     preferences.putInt(this.toString(), value);
+    notifyListeners(value);
   }
 
-    public static void flush() {
-        try {
-            preferences.flush();
-        } catch (BackingStoreException e) {
-            e.printStackTrace();
-        }
+  public static void flush() {
+    try {
+      preferences.flush();
+    } catch (BackingStoreException e) {
+      e.printStackTrace();
     }
-
+  }
 }

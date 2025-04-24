@@ -5,6 +5,8 @@ import edu.umich.soar.visualsoar.misc.Prefs;
 import edu.umich.soar.visualsoar.misc.SyntaxColor;
 import edu.umich.soar.visualsoar.parser.*;
 
+import javax.swing.*;
+import javax.swing.event.DocumentEvent;
 import javax.swing.text.*;
 import java.awt.*;
 import java.io.IOException;
@@ -34,26 +36,50 @@ public class SoarDocument extends DefaultStyledDocument {
 
     /** to support Read-Only mode */
     public boolean isReadOnly = false;
+    private Prefs.PrefsChangeListener fontSizeListener;
 
 
-    public SoarDocument() {
+  public SoarDocument() {
         colorTable = Prefs.getSyntaxColors().clone();
 
         //set font size and style
         Style defaultStyle = this.getStyle("default");
         MutableAttributeSet attributeSet = new SimpleAttributeSet();
-        SoarDocument.fontSize = Integer.parseInt(Prefs.editorFontSize.get());
-        StyleConstants.setFontSize(attributeSet, SoarDocument.fontSize);
+        StyleConstants.setFontSize(attributeSet, Prefs.editorFontSize.getInt());
         defaultStyle.addAttributes(attributeSet);
+
+        fontSizeListener = newVal -> {
+          try {
+            int newFontSize = (int) newVal;
+            setFontSize(newFontSize);
+          } catch (ClassCastException e) {
+            e.printStackTrace();
+          }
+        };
+
+        Prefs.editorFontSize.addChangeListener(fontSizeListener);
     }
 
-    public static int getFontSize() {
-        return SoarDocument.fontSize;
-    }
+  public void setFontSize(int size) {
+    SoarDocument.fontSize = size;
 
-    public static void setFontSize(int size) {
-        SoarDocument.fontSize = size;
-    }
+    // Create or update a style for the font size
+    StyleContext context = StyleContext.getDefaultStyleContext();
+    Style fontStyle = context.getStyle(StyleContext.DEFAULT_STYLE);
+
+    // Update the font size in the style
+    MutableAttributeSet attributeSet = new SimpleAttributeSet();
+    StyleConstants.setFontSize(attributeSet, size);
+    fontStyle.addAttributes(attributeSet);
+
+    // Apply the updated style to the entire document
+    SwingUtilities.invokeLater(() -> {
+      setCharacterAttributes(0, getLength(), attributeSet, false);
+
+      // Notify observers to repaint the editor
+      fireChangedUpdate(new DefaultDocumentEvent(0, getLength(), DocumentEvent.EventType.CHANGE));
+    });
+  }
 
     public String getLastInsertedText() {
         return this.lastInsertedText;
@@ -1158,5 +1184,13 @@ public class SoarDocument extends DefaultStyledDocument {
         return prevLine;
     }
 
-
+  /** Cleanup method to be called when the document is closed. */
+  public void close() {
+    // Remove the font size listener so that we don't accumulate them every time a new window
+    // is opened and closed
+    if (fontSizeListener != null) {
+      Prefs.editorFontSize.removeChangeListener(fontSizeListener);
+      fontSizeListener = null;
+    }
+  }
 } // class SoarDocument
