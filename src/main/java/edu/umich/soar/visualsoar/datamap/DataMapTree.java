@@ -8,6 +8,7 @@ import edu.umich.soar.visualsoar.mainframe.feedback.FeedbackEntryDatamap;
 import edu.umich.soar.visualsoar.mainframe.feedback.FeedbackEntryForeignDatamap;
 import edu.umich.soar.visualsoar.mainframe.feedback.FeedbackEntryOpNode;
 import edu.umich.soar.visualsoar.mainframe.feedback.FeedbackListEntry;
+import edu.umich.soar.visualsoar.misc.Prefs;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorNode;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorRootNode;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorWindow;
@@ -130,6 +131,8 @@ public class DataMapTree extends JTree implements ClipboardOwner, PopupMenuListe
     private static final JMenuItem ChangeToStringItem = new JMenuItem("to String");
 
     public static TreePath OriginalSelectionPath;
+
+  private static final int ROW_TEXT_MARGIN = 7;
 
     /////////////////////////////////////////////////////////////////////
     //This block constructs the context menu
@@ -366,9 +369,23 @@ public class DataMapTree extends JTree implements ClipboardOwner, PopupMenuListe
         if (forEditing) {
             setupEditingEventHandling();
             displayGeneratedNodes();
-        }
-
+    }
+    setFontSize(Prefs.editorFontSize.getInt());
+    Prefs.editorFontSize.addChangeListener(
+        newValue -> {
+          setFontSize((int) newValue);
+        });
     }//ctor
+
+  private void setFontSize(int fontSize) {
+    final Font newSizedFont =
+      new Font(
+        getFont().getName(),
+        getFont().getStyle(),
+        fontSize);
+    setFont(newSizedFont);
+    setRowHeight(fontSize + ROW_TEXT_MARGIN);
+  }
 
     /**
      * setupEditingEventHandling

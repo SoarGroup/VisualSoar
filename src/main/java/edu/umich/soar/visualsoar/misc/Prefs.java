@@ -30,7 +30,10 @@ public enum Prefs {
     sharedProjectFile(null),
     sharedProjectEnabled(false),
     userName("User"),
-    editorFontSize(SoarDocument.DEFAULT_FONT_SIZE),
+  /**
+   * This now actually applies to all windows, not just editors.
+   */
+  editorFontSize(SoarDocument.DEFAULT_FONT_SIZE),
     operDividerPosition("" + MainFrame.DEFAULT_OPER_DIV_POS),
     fbDividerPosition("" + MainFrame.DEFAULT_FB_DIV_POS),
     customTemplateFolder(""),

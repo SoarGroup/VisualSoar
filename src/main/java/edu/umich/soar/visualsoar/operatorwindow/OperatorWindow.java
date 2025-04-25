@@ -22,6 +22,7 @@ import edu.umich.soar.visualsoar.ruleeditor.RuleEditor;
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.tree.*;
+import java.awt.*;
 import java.awt.datatransfer.Transferable;
 import java.awt.dnd.*;
 import java.awt.event.*;
@@ -50,65 +51,84 @@ public class OperatorWindow extends JTree {
     DragGestureListener dgListener = new OWDragGestureListener();
 
   private ProjectModel projectModel;
-    private static OperatorWindow s_OperatorWindow;
+  private static OperatorWindow s_OperatorWindow;
 
+  private static final int ROW_TEXT_MARGIN = 7;
 
-    /**
-     * Private usage only.
-     * Default constructor to do common things such as
-     * setting up the mouse and keyboard listeners and backup threads
-     *
-     * @see BackupThread
-     */
-    private OperatorWindow() {
+  /**
+   * Private usage only. Default constructor to do common things such as setting up the mouse and
+   * keyboard listeners and backup threads
+   *
+   * @see BackupThread
+   */
+  private OperatorWindow() {
 
-        setCellRenderer(new OperatorWindowRenderer());
+    setCellRenderer(new OperatorWindowRenderer());
 
-        s_OperatorWindow = this;
+    s_OperatorWindow = this;
 
-        toggleClickCount = 3;
-        getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
-        DragSource.getDefaultDragSource().createDefaultDragGestureRecognizer(this, DnDConstants.ACTION_MOVE | DnDConstants.ACTION_LINK, dgListener);
-        addMouseListener(new MouseAdapter() {
-            public void mousePressed(MouseEvent e) {
-                if (e.isPopupTrigger()) {
-                    suggestShowContextMenu(e.getX(), e.getY());
-                }
-                if ((e.getClickCount() == 2 && ((e.getModifiersEx() & InputEvent.BUTTON1_DOWN_MASK) == InputEvent.BUTTON1_DOWN_MASK))) {
-                    openRules();
-                }
+    toggleClickCount = 3;
+    getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
+    DragSource.getDefaultDragSource()
+        .createDefaultDragGestureRecognizer(
+            this, DnDConstants.ACTION_MOVE | DnDConstants.ACTION_LINK, dgListener);
+    addMouseListener(
+        new MouseAdapter() {
+          public void mousePressed(MouseEvent e) {
+            if (e.isPopupTrigger()) {
+              suggestShowContextMenu(e.getX(), e.getY());
             }
-
-            public void mouseReleased(MouseEvent e) {
-                if (e.isPopupTrigger()) {
-                    suggestShowContextMenu(e.getX(), e.getY());
-                }
+            if ((e.getClickCount() == 2
+                && ((e.getModifiersEx() & InputEvent.BUTTON1_DOWN_MASK)
+                    == InputEvent.BUTTON1_DOWN_MASK))) {
+              openRules();
             }
+          }
+
+          public void mouseReleased(MouseEvent e) {
+            if (e.isPopupTrigger()) {
+              suggestShowContextMenu(e.getX(), e.getY());
+            }
+          }
         });
 
-        registerKeyboardAction(e -> delete(),
-                KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, 0),
-                WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+    registerKeyboardAction(
+        e -> delete(),
+        KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, 0),
+        WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
 
-        registerKeyboardAction(e -> delete(),
-                KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0),
-                WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+    registerKeyboardAction(
+        e -> delete(),
+        KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0),
+        WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
 
-        registerKeyboardAction(e -> {
-            TreePath tp = getSelectionPath();
-            if (tp != null) {
-                OperatorNode selNode = (OperatorNode) tp.getLastPathComponent();
-                selNode.openRules(MainFrame.getMainFrame());
-            }
+    registerKeyboardAction(
+        e -> {
+          TreePath tp = getSelectionPath();
+          if (tp != null) {
+            OperatorNode selNode = (OperatorNode) tp.getLastPathComponent();
+            selNode.openRules(MainFrame.getMainFrame());
+          }
         },
-                KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0),
-                WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+        KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0),
+        WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
 
-        //Auto-backup
-        if (MainFrame.getMainFrame() != null && !MainFrame.getMainFrame().isReadOnly()) {
-            new BackupThread().start();
-        }
+    // Auto-backup
+    if (MainFrame.getMainFrame() != null && !MainFrame.getMainFrame().isReadOnly()) {
+      new BackupThread().start();
     }
+    setFontSize(Prefs.editorFontSize.getInt());
+    Prefs.editorFontSize.addChangeListener(
+        newValue -> {
+          setFontSize((int) newValue);
+        });
+  }
+
+  private void setFontSize(int fontSize) {
+    final Font newSizedFont = new Font(getFont().getName(), getFont().getStyle(), fontSize);
+    setFont(newSizedFont);
+    setRowHeight(fontSize + ROW_TEXT_MARGIN);
+  }
 
     /**
      * Creates an Operator Window given a project name.

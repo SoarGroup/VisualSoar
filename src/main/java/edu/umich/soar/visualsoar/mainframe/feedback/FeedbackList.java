@@ -1,11 +1,11 @@
 package edu.umich.soar.visualsoar.mainframe.feedback;
 
 import edu.umich.soar.visualsoar.mainframe.MainFrame;
+import edu.umich.soar.visualsoar.misc.Prefs;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorNode;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorWindow;
 
 import javax.swing.*;
-import javax.swing.border.Border;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -26,7 +26,8 @@ import java.util.Vector;
 
 
 public class FeedbackList extends JList<FeedbackListEntry> implements ActionListener {
-    private static final long serialVersionUID = 20221225L;
+  private static final long serialVersionUID = 20221225L;
+  private static final int ROW_TEXT_MARGIN = 7;
 
 ///////////////////////////////////////////////////////////////////
 // Instance Variables
@@ -38,6 +39,7 @@ public class FeedbackList extends JList<FeedbackListEntry> implements ActionList
     private final JMenuItem gotoSourceMenuItem = new JMenuItem("See Related Source Code or Datamap Entry");
     private final JMenuItem dmAddMenuItem = new JMenuItem("Add Non-Validated Support to Datamap");
 
+    private final FeedbackCellRenderer cellRenderer = new FeedbackCellRenderer();
 
 ///////////////////////////////////////////////////////////////////
 // Constructors
@@ -92,9 +94,21 @@ public class FeedbackList extends JList<FeedbackListEntry> implements ActionList
                     }
                 });
 
-        setCellRenderer(new FeedbackCellRenderer());
+        setCellRenderer(cellRenderer);
 
+      setFontSize(Prefs.editorFontSize.getInt());
+      Prefs.editorFontSize.addChangeListener(
+        newValue -> {
+          setFontSize((int) newValue);
+        });
     }
+
+
+  private void setFontSize(int fontSize) {
+    final Font newSizedFont = new Font(getFont().getName(), getFont().getStyle(), fontSize);
+    setFont(newSizedFont);
+    cellRenderer.setFontSize(fontSize);
+  }
 ///////////////////////////////////////////////////////////////////
 // Methods
 ///////////////////////////////////////////////////////////////////
@@ -172,49 +186,4 @@ public class FeedbackList extends JList<FeedbackListEntry> implements ActionList
       return dlm.getSize();
     }
 
-    /**
-     * class FeedbackCellRenderer displays a FeedbackListEntry's text as a clickable label in an appropriate color
-     */
-    static class FeedbackCellRenderer extends JLabel implements ListCellRenderer<FeedbackListEntry> {
-        private static final long serialVersionUID = 20221225L;
-
-        private static final Border EMPTY_BORDER = BorderFactory.createEmptyBorder(2, 2, 2, 2);
-        private static final Color FEEDBACK_ERROR_COLOR = Color.red;
-        private static final Color FEEDBACK_MSG_COLOR = Color.blue.darker();
-
-        public FeedbackCellRenderer() {
-            setOpaque(true);
-            setFont(new Font("SansSerif", Font.PLAIN, 12));
-        }
-
-        @Override
-        public Component getListCellRendererComponent(JList list,
-                                                      FeedbackListEntry entry,
-                                                      int index,
-                                                      boolean isSelected,
-                                                      boolean cellHasFocus) {
-            setText(entry.toString());
-            setForeground(list.getForeground());
-            setBackground(list.getBackground());
-
-            //special fonts and colors
-            if (isSelected) {
-                setForeground(list.getSelectionForeground());
-                setBackground(list.getSelectionBackground());
-            } else if (entry.isError()) {
-                setForeground(FEEDBACK_ERROR_COLOR);
-            }
-            else if (entry instanceof FeedbackEntryOpNode) {
-                if (((FeedbackEntryOpNode)entry).canFix()) {
-                    setForeground(FEEDBACK_MSG_COLOR);
-                }
-            }
-
-
-            setBorder(EMPTY_BORDER);
-            return this;
-        }
-
-
-    }
 }
