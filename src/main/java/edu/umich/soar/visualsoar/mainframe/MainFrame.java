@@ -42,6 +42,8 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.*;
 
+import static edu.umich.soar.visualsoar.components.FontUtils.*;
+
 // 3P
 
 // The global application class
@@ -223,6 +225,13 @@ public class MainFrame extends JFrame
         icons.add(tk.getImage(MainFrame.class.getResource("/vs16.png")));
 		this.setIconImages(icons);
 
+    setMenuBarFontSize(getJMenuBar(), Prefs.editorFontSize.getInt());
+    border.setTitleFont(getResizedFont(border.getTitleFont(), Prefs.editorFontSize.getInt()));
+    Prefs.editorFontSize.addChangeListener(
+      newValue -> {
+        setMenuBarFontSize(getJMenuBar(), (int) newValue);
+        border.setTitleFont(getResizedFont(border.getTitleFont(), (int) newValue));
+      });
 	}//MainFrame ctor
 
 ////////////////////////////////////////
@@ -580,28 +589,28 @@ public class MainFrame extends JFrame
     numberViewMenuItems++;
 
       final int finalNumberViewMenuItems = numberViewMenuItems;
-      viewMenu.addMenuListener(
-            new MenuListener()
-            {
-                public void menuCanceled(MenuEvent e) {}
-                public void menuDeselected(MenuEvent e)
-                    {
-                        for(int i = viewMenu.getMenuComponentCount() - 1; i > finalNumberViewMenuItems - 1; --i)
-                        {
-                            viewMenu.remove(i);
-                        }
-                    }
+    viewMenu.addMenuListener(
+        new MenuListener() {
+          public void menuCanceled(MenuEvent e) {}
 
-                public void menuSelected(MenuEvent e)
-                    {
-                        JInternalFrame[] frames = desktopPane.getAllFrames();
-						for (JInternalFrame frame : frames) {
-							JMenuItem menuItem = new JMenuItem(frame.getTitle());
-							menuItem.addActionListener(new WindowMenuListener(frame));
-							viewMenu.add(menuItem);
-						}
-                    }
-            });
+          public void menuDeselected(MenuEvent e) {
+            for (int i = viewMenu.getMenuComponentCount() - 1;
+                i > finalNumberViewMenuItems - 1;
+                --i) {
+              viewMenu.remove(i);
+            }
+          }
+
+          public void menuSelected(MenuEvent e) {
+            JInternalFrame[] frames = desktopPane.getAllFrames();
+            for (JInternalFrame frame : frames) {
+              JMenuItem menuItem = new JMenuItem(frame.getTitle());
+              menuItem.addActionListener(new WindowMenuListener(frame));
+              setMenuItemFontSize(menuItem, Prefs.editorFontSize.getInt());
+              viewMenu.add(menuItem);
+            }
+          }
+        });
 
 		viewMenu.setMnemonic('V');
 		//cascadeWindowItem.setMnemonic(KeyEvent.VK_C);

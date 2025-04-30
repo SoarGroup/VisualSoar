@@ -1,5 +1,6 @@
 package edu.umich.soar.visualsoar.mainframe.feedback;
 
+import edu.umich.soar.visualsoar.misc.Prefs;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -9,6 +10,8 @@ import java.util.List;
 import java.util.Vector;
 import java.util.function.Consumer;
 
+import static edu.umich.soar.visualsoar.components.FontUtils.setFontSize;
+
 public class FeedbackManager {
 
   private final FeedbackList feedbackList;
@@ -16,10 +19,14 @@ public class FeedbackManager {
   private final Consumer<Integer> onCountUpdate;
   private boolean inAtomicFeedback;
 
-  public FeedbackManager(FeedbackList feedbackList, JLabel statusBar, Consumer<Integer> onCountUpdate) {
+  public FeedbackManager(
+      FeedbackList feedbackList, JLabel statusBar, Consumer<Integer> onCountUpdate) {
     this.feedbackList = feedbackList;
     this.statusBar = statusBar;
     this.onCountUpdate = onCountUpdate;
+
+    setFontSize(statusBar, Prefs.editorFontSize.getInt());
+    Prefs.editorFontSize.addChangeListener(newValue -> setFontSize(statusBar, (int) newValue));
   }
 
   /**
@@ -46,7 +53,7 @@ public class FeedbackManager {
 
   /**
    * Use with try-with-resources syntax to start and end an atomic feedback context
-   * automatically. While the mode is active, {@link #showFeedback(Vector)} will append
+   * automatically. While the mode is active, {@link #showFeedback(Collection)} will append
    * feedback rather than replacing the entire list with its argument. This is useful for
    * complex actions where nested calls may register feedback multiple times.
    * @return an autocloseable

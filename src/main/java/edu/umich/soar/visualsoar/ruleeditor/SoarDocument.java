@@ -36,8 +36,16 @@ public class SoarDocument extends DefaultStyledDocument {
 
     /** to support Read-Only mode */
     public boolean isReadOnly = false;
-    private Prefs.PrefsChangeListener fontSizeListener;
 
+  private final Prefs.PrefsChangeListener fontSizeListener =
+      newVal -> {
+        try {
+          int newFontSize = (int) newVal;
+          setFontSize(newFontSize);
+        } catch (ClassCastException e) {
+          e.printStackTrace();
+        }
+      };
 
   public SoarDocument() {
         colorTable = Prefs.getSyntaxColors().clone();
@@ -47,15 +55,6 @@ public class SoarDocument extends DefaultStyledDocument {
         MutableAttributeSet attributeSet = new SimpleAttributeSet();
         StyleConstants.setFontSize(attributeSet, Prefs.editorFontSize.getInt());
         defaultStyle.addAttributes(attributeSet);
-
-        fontSizeListener = newVal -> {
-          try {
-            int newFontSize = (int) newVal;
-            setFontSize(newFontSize);
-          } catch (ClassCastException e) {
-            e.printStackTrace();
-          }
-        };
 
         Prefs.editorFontSize.addChangeListener(fontSizeListener);
     }
@@ -1188,9 +1187,6 @@ public class SoarDocument extends DefaultStyledDocument {
   public void close() {
     // Remove the font size listener so that we don't accumulate them every time a new window
     // is opened and closed
-    if (fontSizeListener != null) {
-      Prefs.editorFontSize.removeChangeListener(fontSizeListener);
-      fontSizeListener = null;
-    }
+    Prefs.editorFontSize.removeChangeListener(fontSizeListener);
   }
 } // class SoarDocument

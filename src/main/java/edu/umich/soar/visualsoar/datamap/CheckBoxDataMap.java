@@ -18,7 +18,7 @@ import java.nio.file.Paths;
  *
  * is specifically for managing datamaps that are displayed with checkboxes
  * for selecting items to import from a foreign datamap.  This is as opposed
- * a regular datamap window used for viewing and editing a datamap.
+ * to a regular datamap window used for viewing and editing a datamap.
  *
  * @see CheckBoxDataMapTree
  * @see CheckBoxDataMapTreeRenderer
@@ -133,7 +133,7 @@ public class CheckBoxDataMap extends DataMap {
         cancelButton.addActionListener(new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                closeMyselfAndReTile();
+                close();
             }
         });
 
@@ -146,7 +146,7 @@ public class CheckBoxDataMap extends DataMap {
                 }
                 CheckBoxDataMapTree cbdmt = (CheckBoxDataMapTree)dataMapTree;
                 cbdmt.importFromForeignDataMap();
-                closeMyselfAndReTile();
+                close();
             }
         });
     }//setupImportButtons

@@ -10,10 +10,11 @@ import edu.umich.soar.visualsoar.util.KeyStrokeUtil;
 
 import javax.swing.*;
 import javax.swing.event.*;
-import javax.swing.text.Keymap;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 import java.util.Vector;
+
+import static edu.umich.soar.visualsoar.components.FontUtils.*;
 
 /**
  * This class is the internal frame in which the DataMap resides
@@ -31,6 +32,9 @@ public class DataMap extends CustomInternalFrame implements MenuListener {
     //These menu items must be instance variable since they might or might not be enabled
     private JMenuItem pasteItem;
     private JMenuItem linkItem;
+
+  private final Prefs.PrefsChangeListener fontSizeListener =
+      (newValue) -> setMenuBarFontSize(getJMenuBar(), (int) newValue);
 
 ////////////////////////////////////////
 // Constructors
@@ -50,7 +54,7 @@ public class DataMap extends CustomInternalFrame implements MenuListener {
         addInternalFrameListener(
                 new InternalFrameAdapter() {
                     public void internalFrameClosing(InternalFrameEvent e) {
-                        closeMyselfAndReTile();
+                        close();
                     }
                 });
 
@@ -84,17 +88,23 @@ public class DataMap extends CustomInternalFrame implements MenuListener {
         setReadOnly(MainFrame.getMainFrame().isReadOnly());
     }//ctor
 
-    /** this datamap window removes itself from the main frame and causes the remaining windows to be re-tiled */
-    protected void closeMyselfAndReTile() {
-        MainFrame mf = MainFrame.getMainFrame();
-        mf.getDesktopPane().dmRemove(id);
-        dispose();
+  /**
+   * this datamap window removes itself from the main frame and causes the remaining windows to be
+   * re-tiled
+   */
+  protected void close() {
+    MainFrame mf = MainFrame.getMainFrame();
+    mf.getDesktopPane().dmRemove(id);
+    dispose();
 
-        if (Prefs.autoTileEnabled.getBoolean()) {
-            mf.getDesktopPane().performTileAction();
-        }
-        mf.selectNewInternalFrame();
-    }//closeMyselfAndReTile
+    if (Prefs.autoTileEnabled.getBoolean()) {
+      mf.getDesktopPane().performTileAction();
+    }
+    mf.selectNewInternalFrame();
+    if (fontSizeListener != null) {
+      Prefs.editorFontSize.removeChangeListener(fontSizeListener);
+    }
+  }
 
   /**
    * setupMenuBar
@@ -170,6 +180,9 @@ public class DataMap extends CustomInternalFrame implements MenuListener {
     readOnlyDisabledMenuItems.add(pasteItem);
     readOnlyDisabledMenuItems.add(linkItem);
     readOnlyDisabledMenuItems.add(removeItem);
+
+    setMenuBarFontSize(getJMenuBar(), Prefs.editorFontSize.getInt());
+    Prefs.editorFontSize.addChangeListener(fontSizeListener);
   } // setupMenuBar
 
     public int getId() {

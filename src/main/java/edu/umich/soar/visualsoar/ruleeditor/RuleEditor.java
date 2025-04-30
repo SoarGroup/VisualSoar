@@ -32,6 +32,8 @@ import javax.swing.Action;
 import javax.swing.event.*;
 import javax.swing.text.*;
 
+import static edu.umich.soar.visualsoar.components.FontUtils.setMenuBarFontSize;
+
 /**
  * This is the rule editor window
  *
@@ -118,8 +120,10 @@ public class RuleEditor extends CustomInternalFrame {
     private final Action sendExciseProductionToSoarAction = new SendExciseProductionToSoarAction(this, getToolkit());
 
     private BackupThread backupThread;
+  private final Prefs.PrefsChangeListener fontSizeListener =
+    (newValue) -> setMenuBarFontSize(getJMenuBar(), (int) newValue);
 
-    // Constructors
+  // Constructors
 
     /**
      * Constructs a new JInternalFrame, sets its size and
@@ -1032,6 +1036,8 @@ public class RuleEditor extends CustomInternalFrame {
         initSoarRuntimeMenu(menuBar);
 
         setJMenuBar(menuBar);
+        setMenuBarFontSize(getJMenuBar(), Prefs.editorFontSize.getInt());
+        Prefs.editorFontSize.addChangeListener(fontSizeListener);
     }
 
     private void initMenuBarExternFile() {
@@ -1418,6 +1424,7 @@ public class RuleEditor extends CustomInternalFrame {
                             ioe.printStackTrace();
                         }
                     }
+                    Prefs.editorFontSize.removeChangeListener(fontSizeListener);
                 }
             }
         }
