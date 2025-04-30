@@ -1,7 +1,6 @@
 package edu.umich.soar.visualsoar.operatorwindow;
 
-import edu.umich.soar.visualsoar.util.TextFolderIcons;
-import edu.umich.soar.visualsoar.util.TextIcons;
+import edu.umich.soar.visualsoar.components.TreeIcons;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultTreeCellRenderer;
@@ -41,42 +40,40 @@ public class OperatorWindowRenderer extends DefaultTreeCellRenderer {
             OperatorNode node = (OperatorNode) value;
 
             if (node instanceof FolderNode) {
-                setIcon(TextFolderIcons.getIcon("file"));
+                setIcon(TreeIcons.getFolderIcon(TreeIcons.IconType.FILE));
             } else if (node instanceof SoarOperatorNode) {
                 SoarOperatorNode soarNode = (SoarOperatorNode) value;
                 // Make sure that it is a leaf node
                 if (!soarNode.isHighLevel()) {
                     if (node.toString().startsWith("Impasse")) {
                         // Impasse
-                        setIcon(TextIcons.getIcon("impasse"));
-
-
+                        setIcon(TreeIcons.getFileIcon(TreeIcons.IconType.IMPASSE));
                     } else if (node instanceof FileOperatorNode) {
                         // FileOperator
-                        setIcon(TextIcons.getIcon("file"));
+                      setIcon(TreeIcons.getFileIcon(TreeIcons.IconType.FILE));
                     } else {
                         // Operator
-                        setIcon(TextIcons.getIcon("operator"));
+                      setIcon(TreeIcons.getFileIcon(TreeIcons.IconType.OPERATOR));
                     }
                 } else {
                     if (node.toString().startsWith("Impasse")) {
                         // Impasse
-                        setIcon(TextFolderIcons.getIcon("impasse"));
+                        setIcon(TreeIcons.getFolderIcon(TreeIcons.IconType.IMPASSE));
                     } else if (node instanceof FileOperatorNode) {
                         // FileOperator
-                        setIcon(TextFolderIcons.getIcon("file"));
+                        setIcon(TreeIcons.getFolderIcon(TreeIcons.IconType.FILE));
                     } else {
                         // Operator
-                        setIcon(TextFolderIcons.getIcon("operator"));
+                        setIcon(TreeIcons.getFolderIcon(TreeIcons.IconType.OPERATOR));
                     }
                 }     // end of else is a high level operator
             }   // end of if is a SoarOperatorNode
             else if (node instanceof LinkNode) {
                 // Link Node
-                setIcon(TextIcons.getIcon("link"));
+              setIcon(TreeIcons.getFileIcon(TreeIcons.IconType.LINK));
             } else if (node instanceof FileNode) {
                 // File
-                setIcon(TextIcons.getIcon("file"));
+              setIcon(TreeIcons.getFileIcon(TreeIcons.IconType.FILE));
             }
         }
 
