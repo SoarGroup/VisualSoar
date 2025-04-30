@@ -139,7 +139,6 @@ public class RuleEditor extends CustomInternalFrame {
         associatedNode = inNode;
         fileName = inFileName.getPath();
         getData(inFileName);
-        editorPane.setFont(new Font("Monospaced", Font.PLAIN, 12));
         setBounds(0, 0, 250, 100);
         initMenuBar();
         initLayout();
@@ -238,8 +237,6 @@ public class RuleEditor extends CustomInternalFrame {
         associatedNode = null;
         fileName = inFileName.getPath();
         getData(inFileName);
-
-        editorPane.setFont(new Font("Monospaced", Font.PLAIN, 14));
 
         setBounds(0, 0, 250, 100);
         initMenuBarExternFile();

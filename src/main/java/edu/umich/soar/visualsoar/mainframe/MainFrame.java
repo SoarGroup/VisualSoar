@@ -231,6 +231,13 @@ public class MainFrame extends JFrame
       newValue -> {
         setMenuBarFontSize(getJMenuBar(), (int) newValue);
         border.setTitleFont(getResizedFont(border.getTitleFont(), (int) newValue));
+        UIManager.getLookAndFeelDefaults().forEach((key, value) -> {
+          if (key.toString().endsWith(".font") && value instanceof Font) {
+            Font oldFont = (Font) value;
+            Font newFont = new Font(oldFont.getName(), oldFont.getStyle(), (int) newValue);
+            UIManager.put(key, newFont);
+          }
+        });
       });
 	}//MainFrame ctor
 

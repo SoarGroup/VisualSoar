@@ -15,8 +15,6 @@ class FeedbackCellRenderer extends JLabel implements ListCellRenderer<FeedbackLi
 
   public FeedbackCellRenderer() {
     setOpaque(true);
-
-    setFont(new Font("SansSerif", Font.PLAIN, 12));
   }
 
   void setFontSize(int fontSize) {
