@@ -7,6 +7,7 @@ import edu.umich.soar.visualsoar.dialogs.FileAlreadyExistsDialog;
 import edu.umich.soar.visualsoar.graph.SoarIdentifierVertex;
 import edu.umich.soar.visualsoar.mainframe.feedback.FeedbackEntryOpNode;
 import edu.umich.soar.visualsoar.mainframe.feedback.FeedbackListEntry;
+import edu.umich.soar.visualsoar.misc.Prefs;
 import edu.umich.soar.visualsoar.parser.ParseException;
 import edu.umich.soar.visualsoar.parser.SoarProduction;
 import edu.umich.soar.visualsoar.parser.TokenMgrError;
@@ -22,6 +23,8 @@ import java.io.*;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
+
+import static edu.umich.soar.visualsoar.components.FontUtils.setContainerFontSize;
 
 
 /**
@@ -53,185 +56,29 @@ public abstract class OperatorNode extends VSTreeNode implements java.io.Seriali
     ///////////////////////////////////////////////////////////////////
 // Data Members
 ////////////////////////////////////////////////////////////////////
-    static protected JPopupMenu contextMenu = new JPopupMenu();
-    static protected JMenuItem addSubOperatorItem = new JMenuItem("Add a Sub-Operator...");
-    static protected JMenuItem addTopFolderItem = new JMenuItem("Add a Top-Level Folder...");
-    static protected JMenuItem addFileItem = new JMenuItem("Add a File...");
+//    TODO: wrap menu items into a dedicated class
+    static protected final JMenuItem addSubOperatorItem = new JMenuItem("Add a Sub-Operator...");
+    static protected final JMenuItem addTopFolderItem = new JMenuItem("Add a Top-Level Folder...");
+    static protected final JMenuItem addFileItem = new JMenuItem("Add a File...");
 
-    static protected JMenu impasseSubMenu = new JMenu("Add an Impasse...");
-    static protected JMenuItem tieImpasseItem = new JMenuItem("Operator Tie Impasse");
-    static protected JMenuItem conflictImpasseItem = new JMenuItem("Operator Conflict Impasse");
-    static protected JMenuItem constraintImpasseItem = new JMenuItem("Operator Constraint-Failure Impasse");
-    static protected JMenuItem stateNoChangeImpasseItem = new JMenuItem("State No-Change Impasse");
+    static protected final JMenu impasseSubMenu = new JMenu("Add an Impasse...");
+    static protected final JMenuItem tieImpasseItem = new JMenuItem("Operator Tie Impasse");
+    static protected final JMenuItem conflictImpasseItem = new JMenuItem("Operator Conflict Impasse");
+    static protected final JMenuItem constraintImpasseItem = new JMenuItem("Operator Constraint-Failure Impasse");
+    static protected final JMenuItem stateNoChangeImpasseItem = new JMenuItem("State No-Change Impasse");
 
-    static protected JMenuItem openRulesItem = new JMenuItem("Open Rules");
-    static protected JMenuItem openDataMapItem = new JMenuItem("Open Datamap");
-    static protected JMenuItem searchItem = new JMenuItem("Find...");
-    static protected JMenuItem replaceItem = new JMenuItem("Replace...");
-    static protected JMenuItem deleteItem = new JMenuItem("Delete");
-    static protected JMenuItem renameItem = new JMenuItem("Rename...");
-    static protected JMenuItem exportItem = new JMenuItem("Export");
-    static protected JMenuItem importItem = new JMenuItem("Import...");
-    static protected JMenuItem checkChildrenAgainstDataMapItem = new JMenuItem("Check Children Against Datamap");
-    static protected JMenuItem generateDataMapItem = new JMenuItem("Generate Datamap Entries for this File");
+    static protected final JMenuItem openRulesItem = new JMenuItem("Open Rules");
+    static protected final JMenuItem openDataMapItem = new JMenuItem("Open Datamap");
+    static protected final JMenuItem searchItem = new JMenuItem("Find...");
+    static protected final JMenuItem replaceItem = new JMenuItem("Replace...");
+    static protected final JMenuItem deleteItem = new JMenuItem("Delete");
+    static protected final JMenuItem renameItem = new JMenuItem("Rename...");
+    static protected final JMenuItem exportItem = new JMenuItem("Export");
+    static protected final JMenuItem importItem = new JMenuItem("Import...");
+    static protected final JMenuItem checkChildrenAgainstDataMapItem = new JMenuItem("Check Children Against Datamap");
+    static protected final JMenuItem generateDataMapItem = new JMenuItem("Generate Datamap Entries for this File");
 
-    static {
-        contextMenu.add(addSubOperatorItem);
-        addSubOperatorItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                OperatorWindow ow = (OperatorWindow) contextMenu.getInvoker();
-                ow.addSubOperator();
-            }
-        });
-
-        contextMenu.add(addTopFolderItem);
-        addTopFolderItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                OperatorWindow ow = (OperatorWindow) contextMenu.getInvoker();
-                ow.addTopFolder();
-            }
-        });
-
-        contextMenu.add(addFileItem);
-        addFileItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                OperatorWindow ow = (OperatorWindow) contextMenu.getInvoker();
-                ow.addFile();
-            }
-        });
-
-        impasseSubMenu.add(tieImpasseItem);
-        tieImpasseItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                OperatorWindow ow = (OperatorWindow) contextMenu.getInvoker();
-                ow.addImpasse("Impasse__Operator_Tie");
-            }
-        });
-
-        impasseSubMenu.add(conflictImpasseItem);
-        conflictImpasseItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                OperatorWindow ow = (OperatorWindow) contextMenu.getInvoker();
-                ow.addImpasse("Impasse__Operator_Conflict");
-            }
-        });
-
-        impasseSubMenu.add(constraintImpasseItem);
-        constraintImpasseItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                OperatorWindow ow = (OperatorWindow) contextMenu.getInvoker();
-                ow.addImpasse("Impasse__Operator_Constraint-Failure");
-            }
-        });
-
-        impasseSubMenu.add(stateNoChangeImpasseItem);
-        stateNoChangeImpasseItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                OperatorWindow ow = (OperatorWindow) contextMenu.getInvoker();
-                ow.addImpasse("Impasse__State_No-Change");
-            }
-        });
-
-        contextMenu.add(impasseSubMenu);
-
-
-        contextMenu.add(openRulesItem);
-        openRulesItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                OperatorWindow ow = (OperatorWindow) contextMenu.getInvoker();
-                ow.openRules();
-            }
-        });
-
-        contextMenu.add(openDataMapItem);
-        openDataMapItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                OperatorWindow ow = (OperatorWindow) contextMenu.getInvoker();
-                ow.openDataMap();
-            }
-        });
-
-        contextMenu.addSeparator();
-
-        contextMenu.add(searchItem);
-        searchItem.addActionListener(
-                new ActionListener() {
-                    public void actionPerformed(ActionEvent e) {
-                        OperatorWindow ow = (OperatorWindow) contextMenu.getInvoker();
-                        ow.searchFiles();
-                    }
-                });
-
-        contextMenu.add(replaceItem);
-        replaceItem.addActionListener(
-                new ActionListener() {
-                    public void actionPerformed(ActionEvent e) {
-                        OperatorWindow ow = (OperatorWindow) contextMenu.getInvoker();
-                        ow.replaceFiles();
-                    }
-                });
-
-        contextMenu.addSeparator();
-
-        contextMenu.add(deleteItem);
-        deleteItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                OperatorWindow ow = (OperatorWindow) contextMenu.getInvoker();
-                ow.delete();
-            }
-        });
-
-        contextMenu.add(renameItem);
-        renameItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                OperatorWindow ow = (OperatorWindow) contextMenu.getInvoker();
-                ow.rename();
-            }
-        });
-
-        contextMenu.add(exportItem);
-        exportItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                OperatorWindow ow = (OperatorWindow) contextMenu.getInvoker();
-                ow.export();
-            }
-        });
-
-        contextMenu.add(importItem);
-        importItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                OperatorWindow ow = (OperatorWindow) contextMenu.getInvoker();
-                ow.importFunc();
-            }
-        });
-
-        contextMenu.add(generateDataMapItem);
-        generateDataMapItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent ae) {
-                Vector<FeedbackListEntry> parseErrors = new Vector<>();
-                Vector<FeedbackListEntry> vecGenerations = new Vector<>();
-
-                //Generate the new entries
-                OperatorWindow ow = (OperatorWindow) contextMenu.getInvoker();
-                ow.generateDataMap(null, parseErrors, vecGenerations);
-
-                //Report the results
-                MainFrame.getMainFrame().getFeedbackManager().showFeedback(vecGenerations);
-
-            }//actionPerformed
-        });
-
-        contextMenu.add(checkChildrenAgainstDataMapItem);
-        checkChildrenAgainstDataMapItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                OperatorWindow ow = (OperatorWindow) contextMenu.getInvoker();
-                ow.checkChildrenAgainstDataMap();
-            }
-        });
-
-    }
-
-    protected String name;
+    protected final String name;
     protected final int id;
     // Used for uniquely identifying this node in a project file
     private final String serializationId;
@@ -482,10 +329,157 @@ public abstract class OperatorNode extends VSTreeNode implements java.io.Seriali
      *          be displayed
      */
     public void showContextMenu(Component c, int x, int y) {
-        enableContextMenuItems();
-        if (MainFrame.getMainFrame().isReadOnly()) disableContextMenuItemsForReadOnlyMode();
-        contextMenu.show(c, x, y);
+      JPopupMenu contextMenu = createContextMenu();
+
+      enableContextMenuItems();
+      if (MainFrame.getMainFrame().isReadOnly()) {
+        disableContextMenuItemsForReadOnlyMode();
+      }
+
+    setContainerFontSize(contextMenu, Prefs.editorFontSize.getInt());
+
+      // Show the context menu
+      contextMenu.show(c, x, y);
     }
+
+  private JPopupMenu createContextMenu() {
+    JPopupMenu contextMenu = new JPopupMenu();
+    contextMenu.add(addSubOperatorItem);
+    addSubOperatorItem.addActionListener(
+      e -> {
+        OperatorWindow ow = (OperatorWindow) contextMenu.getInvoker();
+        ow.addSubOperator();
+      });
+
+    contextMenu.add(addTopFolderItem);
+    addTopFolderItem.addActionListener(
+      e -> {
+        OperatorWindow ow = (OperatorWindow) contextMenu.getInvoker();
+        ow.addTopFolder();
+      });
+
+    contextMenu.add(addFileItem);
+    addFileItem.addActionListener(
+      e -> {
+        OperatorWindow ow = (OperatorWindow) contextMenu.getInvoker();
+        ow.addFile();
+      });
+
+    impasseSubMenu.add(tieImpasseItem);
+    tieImpasseItem.addActionListener(
+      e -> {
+        OperatorWindow ow = (OperatorWindow) contextMenu.getInvoker();
+        ow.addImpasse("Impasse__Operator_Tie");
+      });
+
+    impasseSubMenu.add(conflictImpasseItem);
+    conflictImpasseItem.addActionListener(
+      e -> {
+        OperatorWindow ow = (OperatorWindow) contextMenu.getInvoker();
+        ow.addImpasse("Impasse__Operator_Conflict");
+      });
+
+    impasseSubMenu.add(constraintImpasseItem);
+    constraintImpasseItem.addActionListener(
+      e -> {
+        OperatorWindow ow = (OperatorWindow) contextMenu.getInvoker();
+        ow.addImpasse("Impasse__Operator_Constraint-Failure");
+      });
+
+    impasseSubMenu.add(stateNoChangeImpasseItem);
+    stateNoChangeImpasseItem.addActionListener(
+      e -> {
+        OperatorWindow ow = (OperatorWindow) contextMenu.getInvoker();
+        ow.addImpasse("Impasse__State_No-Change");
+      });
+
+    contextMenu.add(impasseSubMenu);
+
+    contextMenu.add(openRulesItem);
+    openRulesItem.addActionListener(
+      e -> {
+        OperatorWindow ow = (OperatorWindow) contextMenu.getInvoker();
+        ow.openRules();
+      });
+
+    contextMenu.add(openDataMapItem);
+    openDataMapItem.addActionListener(
+      e -> {
+        OperatorWindow ow = (OperatorWindow) contextMenu.getInvoker();
+        ow.openDataMap();
+      });
+
+    contextMenu.addSeparator();
+
+    contextMenu.add(searchItem);
+    searchItem.addActionListener(
+      e -> {
+        OperatorWindow ow = (OperatorWindow) contextMenu.getInvoker();
+        ow.searchFiles();
+      });
+
+    contextMenu.add(replaceItem);
+    replaceItem.addActionListener(
+      e -> {
+        OperatorWindow ow = (OperatorWindow) contextMenu.getInvoker();
+        ow.replaceFiles();
+      });
+
+    contextMenu.addSeparator();
+
+    contextMenu.add(deleteItem);
+    deleteItem.addActionListener(
+      e -> {
+        OperatorWindow ow = (OperatorWindow) contextMenu.getInvoker();
+        ow.delete();
+      });
+
+    contextMenu.add(renameItem);
+    renameItem.addActionListener(
+      e -> {
+        OperatorWindow ow = (OperatorWindow) contextMenu.getInvoker();
+        ow.rename();
+      });
+
+    contextMenu.add(exportItem);
+    exportItem.addActionListener(
+      e -> {
+        OperatorWindow ow = (OperatorWindow) contextMenu.getInvoker();
+        ow.export();
+      });
+
+    contextMenu.add(importItem);
+    importItem.addActionListener(
+      e -> {
+        OperatorWindow ow = (OperatorWindow) contextMenu.getInvoker();
+        ow.importFunc();
+      });
+
+    contextMenu.add(generateDataMapItem);
+    // actionPerformed
+    generateDataMapItem.addActionListener(
+      ae -> {
+        Vector<FeedbackListEntry> parseErrors = new Vector<>();
+        Vector<FeedbackListEntry> vecGenerations = new Vector<>();
+
+        // Generate the new entries
+        OperatorWindow ow = (OperatorWindow) contextMenu.getInvoker();
+        ow.generateDataMap(null, parseErrors, vecGenerations);
+
+        // Report the results
+        MainFrame.getMainFrame().getFeedbackManager().showFeedback(vecGenerations);
+      });
+
+    contextMenu.add(checkChildrenAgainstDataMapItem);
+    checkChildrenAgainstDataMapItem.addActionListener(
+        new ActionListener() {
+          public void actionPerformed(ActionEvent e) {
+            OperatorWindow ow = (OperatorWindow) contextMenu.getInvoker();
+            ow.checkChildrenAgainstDataMap();
+          }
+        });
+    return contextMenu;
+  }
 
     /**
      * just returns the name of the node

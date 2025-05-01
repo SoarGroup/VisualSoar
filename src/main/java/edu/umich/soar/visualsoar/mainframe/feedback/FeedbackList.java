@@ -15,6 +15,8 @@ import java.util.Collection;
 import java.util.Enumeration;
 import java.util.Vector;
 
+import static edu.umich.soar.visualsoar.components.FontUtils.setContainerFontSize;
+
 /**
  * A class that is the FeedbackList window in the MainFrame
  * its job is to provide various forms of messages from
@@ -103,12 +105,13 @@ public class FeedbackList extends JList<FeedbackListEntry> implements ActionList
         });
     }
 
-
   private void setFontSize(int fontSize) {
     final Font newSizedFont = new Font(getFont().getName(), getFont().getStyle(), fontSize);
     setFont(newSizedFont);
+    setContainerFontSize(rightClickContextMenu, fontSize);
     cellRenderer.setFontSize(fontSize);
   }
+
 ///////////////////////////////////////////////////////////////////
 // Methods
 ///////////////////////////////////////////////////////////////////

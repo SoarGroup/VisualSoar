@@ -18,7 +18,7 @@ import java.io.StringReader;
 public class EditorPane extends javax.swing.JEditorPane {
   private static final long serialVersionUID = 20221225L;
 
-  private final JPopupMenu contextMenu;
+  private final JPopupMenu contextMenu = new JPopupMenu();
 
   // used for keeping track of when the cursor selection changes
   private int previousSelectionStart = 0;
@@ -63,7 +63,6 @@ public class EditorPane extends javax.swing.JEditorPane {
     setKeymap(map);
 
     // Setup the context menu
-    contextMenu = new JPopupMenu();
     MouseListener popupListener = new PopupListener();
     addMouseListener(popupListener);
 

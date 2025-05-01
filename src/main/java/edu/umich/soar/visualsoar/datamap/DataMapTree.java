@@ -1,5 +1,6 @@
 package edu.umich.soar.visualsoar.datamap;
 
+import edu.umich.soar.visualsoar.components.FontUtils;
 import edu.umich.soar.visualsoar.dialogs.searchdm.SearchDataMapDialog;
 import edu.umich.soar.visualsoar.mainframe.MainFrame;
 import edu.umich.soar.visualsoar.dialogs.*;
@@ -385,6 +386,7 @@ public class DataMapTree extends JTree implements ClipboardOwner, PopupMenuListe
         fontSize);
     setFont(newSizedFont);
     setRowHeight(fontSize + ROW_TEXT_MARGIN);
+    FontUtils.setContainerFontSize(contextMenu, fontSize);
   }
 
     /**

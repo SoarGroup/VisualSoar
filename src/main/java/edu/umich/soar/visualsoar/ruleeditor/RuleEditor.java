@@ -32,6 +32,7 @@ import javax.swing.Action;
 import javax.swing.event.*;
 import javax.swing.text.*;
 
+import static edu.umich.soar.visualsoar.components.FontUtils.setContainerFontSize;
 import static edu.umich.soar.visualsoar.components.FontUtils.setMenuBarFontSize;
 
 /**
@@ -121,7 +122,7 @@ public class RuleEditor extends CustomInternalFrame {
 
     private BackupThread backupThread;
   private final Prefs.PrefsChangeListener fontSizeListener =
-    (newValue) -> setMenuBarFontSize(getJMenuBar(), (int) newValue);
+      (newValue) -> setFontSize((int) newValue);
 
   // Constructors
 
@@ -219,6 +220,9 @@ public class RuleEditor extends CustomInternalFrame {
 
         adjustKeymap();
         setupContextMenu();
+
+      setFontSize(Prefs.editorFontSize.getInt());
+      Prefs.editorFontSize.addChangeListener(fontSizeListener);
     }//RuleEditor ctor
 
     /**
@@ -1033,9 +1037,12 @@ public class RuleEditor extends CustomInternalFrame {
         initSoarRuntimeMenu(menuBar);
 
         setJMenuBar(menuBar);
-        setMenuBarFontSize(getJMenuBar(), Prefs.editorFontSize.getInt());
-        Prefs.editorFontSize.addChangeListener(fontSizeListener);
     }
+
+  private void setFontSize(int fontSize) {
+    setMenuBarFontSize(getJMenuBar(), fontSize);
+    setContainerFontSize(editorPane.getContextMenu(), fontSize);
+  }
 
     private void initMenuBarExternFile() {
         JMenuBar menuBar = new JMenuBar();
