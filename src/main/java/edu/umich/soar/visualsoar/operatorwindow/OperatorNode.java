@@ -78,7 +78,7 @@ public abstract class OperatorNode extends VSTreeNode implements java.io.Seriali
     static protected final JMenuItem checkChildrenAgainstDataMapItem = new JMenuItem("Check Children Against Datamap");
     static protected final JMenuItem generateDataMapItem = new JMenuItem("Generate Datamap Entries for this File");
 
-    protected final String name;
+    protected String name;
     protected final int id;
     // Used for uniquely identifying this node in a project file
     private final String serializationId;
