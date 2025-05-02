@@ -195,8 +195,9 @@ public class MainFrame extends JFrame
 
 		//Create the main desktop
 		feedbackDesktopSplit.setTopComponent(operatorDesktopSplit);
-        feedbackDesktopSplit.setBottomComponent(sp);
-        feedbackDesktopSplit.setOneTouchExpandable(true);
+    feedbackDesktopSplit.setBottomComponent(sp);
+    feedbackDesktopSplit.setOneTouchExpandable(true);
+    feedbackDesktopSplit.setContinuousLayout(true);
 		feedbackDividerSetup();
     resizeHandlerSetup();
 
