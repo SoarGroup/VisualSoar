@@ -70,7 +70,7 @@ public class MainFrame extends JFrame
 /////////////////////////////////////////
 	private static MainFrame s_mainFrame = null;
 
-////////////////////////////////////////
+  ////////////////////////////////////////
 // Data Members
 ////////////////////////////////////////
 	private OperatorWindow operatorWindow;
@@ -80,7 +80,6 @@ public class MainFrame extends JFrame
 	private final JSplitPane operatorDesktopSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
 	private final JSplitPane feedbackDesktopSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
 	private final FeedbackList feedbackList = new FeedbackList();
-  private final JLabel statusBar = new JLabel("  Welcome to Visual Soar.");
   private final FeedbackManager feedbackManager;
 
 	private String lastWindowViewOperation = "none"; // can also be "tile" or "cascade"
@@ -189,7 +188,8 @@ public class MainFrame extends JFrame
     TitledBorder border = new TitledBorder(" Feedback ");
 		sp.setBorder(border);
 
-    feedbackManager =
+      JLabel statusBar = new JLabel("  Welcome to Visual Soar.");
+      feedbackManager =
         new FeedbackManager(
             feedbackList, statusBar, (count) -> border.setTitle(" Feedback (" + count + ") "));
 
@@ -198,6 +198,7 @@ public class MainFrame extends JFrame
         feedbackDesktopSplit.setBottomComponent(sp);
         feedbackDesktopSplit.setOneTouchExpandable(true);
 		feedbackDividerSetup();
+    resizeHandlerSetup();
 
 		//Add the desktop to the window with status bar at the bottom
 		Box vbox = Box.createVerticalBox();
@@ -225,6 +226,7 @@ public class MainFrame extends JFrame
         icons.add(tk.getImage(MainFrame.class.getResource("/vs16.png")));
 		this.setIconImages(icons);
 
+//    TODO: refactor and fix lack of initialization
     setMenuBarFontSize(getJMenuBar(), Prefs.editorFontSize.getInt());
     border.setTitleFont(getResizedFont(border.getTitleFont(), Prefs.editorFontSize.getInt()));
     Prefs.editorFontSize.addChangeListener(
@@ -244,6 +246,10 @@ public class MainFrame extends JFrame
 ////////////////////////////////////////
 // Methods
 ////////////////////////////////////////
+
+  private boolean canAutoTile() {
+    return Prefs.autoTileEnabled.getBoolean() || lastWindowViewOperation.equals("tile");
+  }
 
 	/**
      * This method scans open windows on the VisualSoar desktop for unsaved
@@ -972,8 +978,7 @@ public class MainFrame extends JFrame
                 //Unable to maximize window.  Oh, well.
             }
         }
-		else if ( (Prefs.autoTileEnabled.getBoolean())
-                  || (lastWindowViewOperation.equals("tile")) )
+		else if (canAutoTile())
         {
 			desktopPane.performTileAction();
 		}
@@ -1209,49 +1214,60 @@ public class MainFrame extends JFrame
 		t.start();
 	}//scheduleDelayedReTile
 
-	/**
-	 * sets the divider position between the feedback pane and the desktop
-	 * based upon the last user setting.
-	 */
-	private static boolean feedbackListenerSetup = false;  //avoid re-creating listener
-	private void feedbackDividerSetup() {
-		double position = Double.parseDouble(Prefs.fbDividerPosition.get());
-		if ((position < MIN_DIV_POS) || (position > MAX_DIV_POS)) {
-			position = DEFAULT_FB_DIV_POS;
-			Prefs.fbDividerPosition.set("" + DEFAULT_FB_DIV_POS);
-		}
-		feedbackDesktopSplit.setDividerLocation( ((int) (getSize().getHeight() * position)) );
+  /**
+   * sets the divider position between the feedback pane and the desktop based upon the last user
+   * setting.
+   */
+  private void feedbackDividerSetup() {
+    setFeedbackDividerPosFromPrefs();
+    // Whenever the user moves the divider, remember the user's preference
+    feedbackDesktopSplit.addPropertyChangeListener(
+        JSplitPane.DIVIDER_LOCATION_PROPERTY,
+        evt -> {
+          // Retrieve the value as a double
+          String valStr = evt.getNewValue().toString();
+          int dividerLocation = Integer.parseInt(valStr);
 
-		//Whenever the user moves the divider, remember the user's preference
-		if (!feedbackListenerSetup) {
-			feedbackDesktopSplit.addPropertyChangeListener(
-					JSplitPane.DIVIDER_LOCATION_PROPERTY,
-					new PropertyChangeListener() {
-						@Override
-						public void propertyChange(PropertyChangeEvent evt) {
-							//Retrieve the value as a double
-							String valStr = evt.getNewValue().toString();
-							int val = Integer.parseInt(valStr);
+          // Convert it to a fraction of split pane's size
+          double proportion = (double) dividerLocation / getHeight();
 
-							//Convert it to a fraction of split pane's size
-							int paneHeight = feedbackDesktopSplit.getHeight();
-							double proportion = (double) val / (double) paneHeight;
+          // Save the new value to Prefs (if sane)
+          if ((proportion >= MIN_DIV_POS) && (proportion <= MAX_DIV_POS)) {
+            Prefs.fbDividerPosition.set("" + proportion);
+            Prefs.flush();
+          }
 
-							//Save the new value to Prefs (if sane)
-							if ((proportion >= MIN_DIV_POS) && (proportion <= MAX_DIV_POS)) {
-								Prefs.fbDividerPosition.set("" + proportion);
-								Prefs.flush();
-							}
+          // Re-tile the windows as a result
+          scheduleDelayedReTile();
+        });
+  } // dividerSetup
 
-							//Re-tile the windows as a result
-							scheduleDelayedReTile();
-						}
-					}
-			);
-			feedbackListenerSetup = true;
-		}//listener setup
-	}//dividerSetup
+  private int feedbackPanelHeight = -1;
+  private void setFeedbackDividerPosFromPrefs() {
+    double position = Double.parseDouble(Prefs.fbDividerPosition.get());
+    if ((position < MIN_DIV_POS) || (position > MAX_DIV_POS)) {
+      position = DEFAULT_FB_DIV_POS;
+      Prefs.fbDividerPosition.set("" + DEFAULT_FB_DIV_POS);
+    }
+    int newHeight = ((int) (getHeight() * position));
+    feedbackDesktopSplit.setDividerLocation(newHeight);
+    feedbackPanelHeight = getHeight() - newHeight;
+  }
 
+  private void resizeHandlerSetup() {
+    ComponentAdapter resizeListener =
+        new ComponentAdapter() {
+          @Override
+          public void componentResized(ComponentEvent e) {
+            if (canAutoTile()) {
+              desktopPane.performTileAction();
+            }
+            // make the feedback panel stick remain the same size (stick to bottom of the window)
+            feedbackDesktopSplit.setDividerLocation(getHeight() - feedbackPanelHeight);
+          }
+        };
+    addComponentListener(resizeListener);
+  }
 
 	/**
 	 * setReadOnly
