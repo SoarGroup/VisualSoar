@@ -926,6 +926,11 @@ public class SoarDocument extends DefaultStyledDocument {
 
     } // justifyDocument()
 
+  /**
+   *
+   * @param caretPos caret position where the justification was requested
+   * @return new caret position, or -1 if none was selected
+   */
     public int autoJustify(int caretPos) {
         if (!edu.umich.soar.visualsoar.misc.Prefs.autoIndentingEnabled.getBoolean()) {
             return -1;
@@ -976,7 +981,7 @@ public class SoarDocument extends DefaultStyledDocument {
                     || ((trimmed.startsWith("^")) && (trimmed.endsWith(")")))
                     || (trimmed.startsWith("-->"))) {
                 numSpaces = 3;
-            } else if ((trimmed.startsWith("(") || trimmed.startsWith("^"))
+            } else if ((trimmed.startsWith("(") || trimmed.startsWith("^") || trimmed.startsWith("-^"))
                     && (!trimmed.contains(")"))
                     && (trimmed.contains("^"))) {
                 numSpaces = prevLine.indexOf("^");
