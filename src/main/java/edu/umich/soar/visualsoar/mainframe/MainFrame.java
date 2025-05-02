@@ -69,6 +69,7 @@ public class MainFrame extends JFrame
 // Static Members
 /////////////////////////////////////////
 	private static MainFrame s_mainFrame = null;
+  private final TitledBorder feedbackListBorder = new TitledBorder(" Feedback ");
 
   ////////////////////////////////////////
 // Data Members
@@ -185,13 +186,12 @@ public class MainFrame extends JFrame
 		operatorDesktopSplit.setOneTouchExpandable(true);
 
 		JScrollPane sp = new JScrollPane(feedbackList);
-    TitledBorder border = new TitledBorder(" Feedback ");
-		sp.setBorder(border);
+		sp.setBorder(feedbackListBorder);
 
       JLabel statusBar = new JLabel("  Welcome to Visual Soar.");
       feedbackManager =
         new FeedbackManager(
-            feedbackList, statusBar, (count) -> border.setTitle(" Feedback (" + count + ") "));
+            feedbackList, statusBar, (count) -> feedbackListBorder.setTitle(" Feedback (" + count + ") "));
 
 		//Create the main desktop
 		feedbackDesktopSplit.setTopComponent(operatorDesktopSplit);
@@ -227,26 +227,28 @@ public class MainFrame extends JFrame
         icons.add(tk.getImage(MainFrame.class.getResource("/vs16.png")));
 		this.setIconImages(icons);
 
-//    TODO: refactor and fix lack of initialization
+    setFontSize(Prefs.editorFontSize.getInt());
     setMenuBarFontSize(getJMenuBar(), Prefs.editorFontSize.getInt());
-    border.setTitleFont(getResizedFont(border.getTitleFont(), Prefs.editorFontSize.getInt()));
-    Prefs.editorFontSize.addChangeListener(
-      newValue -> {
-        setMenuBarFontSize(getJMenuBar(), (int) newValue);
-        border.setTitleFont(getResizedFont(border.getTitleFont(), (int) newValue));
-        UIManager.getLookAndFeelDefaults().forEach((key, value) -> {
-          if (key.toString().endsWith(".font") && value instanceof Font) {
-            Font oldFont = (Font) value;
-            Font newFont = new Font(oldFont.getName(), oldFont.getStyle(), (int) newValue);
-            UIManager.put(key, newFont);
-          }
-        });
-      });
+    feedbackListBorder.setTitleFont(
+        getResizedFont(feedbackListBorder.getTitleFont(), Prefs.editorFontSize.getInt()));
+    Prefs.editorFontSize.addChangeListener(newValue -> setFontSize((int) newValue));
 	}//MainFrame ctor
 
 ////////////////////////////////////////
 // Methods
 ////////////////////////////////////////
+
+  private void setFontSize(int fontSize) {
+    setMenuBarFontSize(getJMenuBar(), fontSize);
+    feedbackListBorder.setTitleFont(getResizedFont(feedbackListBorder.getTitleFont(), fontSize));
+    UIManager.getLookAndFeelDefaults().forEach((key, value) -> {
+      if (key.toString().endsWith(".font") && value instanceof Font) {
+        Font oldFont = (Font) value;
+        Font newFont = new Font(oldFont.getName(), oldFont.getStyle(), fontSize);
+        UIManager.put(key, newFont);
+      }
+    });
+  }
 
   private boolean canAutoTile() {
     return Prefs.autoTileEnabled.getBoolean() || lastWindowViewOperation.equals("tile");
