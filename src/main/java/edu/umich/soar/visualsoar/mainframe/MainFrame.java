@@ -185,20 +185,13 @@ public class MainFrame extends JFrame
 		operatorDesktopSplit.setRightComponent(desktopPane);
 		operatorDesktopSplit.setOneTouchExpandable(true);
 
-		JScrollPane sp = new JScrollPane(feedbackList);
-		sp.setBorder(feedbackListBorder);
-
       JLabel statusBar = new JLabel("  Welcome to Visual Soar.");
       feedbackManager =
         new FeedbackManager(
             feedbackList, statusBar, (count) -> feedbackListBorder.setTitle(" Feedback (" + count + ") "));
 
-		//Create the main desktop
-		feedbackDesktopSplit.setTopComponent(operatorDesktopSplit);
-    feedbackDesktopSplit.setBottomComponent(sp);
-    feedbackDesktopSplit.setOneTouchExpandable(true);
-    feedbackDesktopSplit.setContinuousLayout(true);
-		feedbackDividerSetup();
+
+		desktopSetup();
     resizeHandlerSetup();
 
 		//Add the desktop to the window with status bar at the bottom
@@ -1218,10 +1211,16 @@ public class MainFrame extends JFrame
 	}//scheduleDelayedReTile
 
   /**
-   * sets the divider position between the feedback pane and the desktop based upon the last user
-   * setting.
    */
-  private void feedbackDividerSetup() {
+  private void desktopSetup() {
+    JScrollPane sp = new JScrollPane(feedbackList);
+    sp.setBorder(feedbackListBorder);
+
+    feedbackDesktopSplit.setTopComponent(operatorDesktopSplit);
+    feedbackDesktopSplit.setBottomComponent(sp);
+    feedbackDesktopSplit.setOneTouchExpandable(true);
+    feedbackDesktopSplit.setContinuousLayout(true);
+    
     setFeedbackDividerPosFromPrefs();
     // Whenever the user moves the divider, remember the user's preference
     feedbackDesktopSplit.addPropertyChangeListener(
@@ -1246,6 +1245,11 @@ public class MainFrame extends JFrame
   } // dividerSetup
 
   private int feedbackPanelHeight = -1;
+
+  /**
+   * Sets the divider position between the feedback pane and the desktop based upon the last user
+   * setting.
+   */
   private void setFeedbackDividerPosFromPrefs() {
     double position = Double.parseDouble(Prefs.fbDividerPosition.get());
     if ((position < MIN_DIV_POS) || (position > MAX_DIV_POS)) {
