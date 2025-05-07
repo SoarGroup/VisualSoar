@@ -1722,6 +1722,7 @@ public class RuleEditor extends CustomInternalFrame {
             int caret = prodSoFar.lastIndexOf("^");
             int period = prodSoFar.lastIndexOf(".");
             int space = prodSoFar.lastIndexOf(" ");
+            int leftAngle = prodSoFar.lastIndexOf("<");
             String userType;
             // The most relevant is the caret
             if ((period == -1 && caret != -1 && space != -1 && caret > space)
@@ -1738,10 +1739,10 @@ public class RuleEditor extends CustomInternalFrame {
             }
             // The most relevant is the space
             else if ((period == -1 && caret != -1 && space != -1 && space > caret)
-                    || (period != -1 && caret != -1 && space != -1 && space > caret && space > period)) {
-                userType = prodSoFar.substring(space + 1);
-                prodSoFar = prodSoFar.substring(0, space + 1) + "<$$>" + end;
-                valueComplete(pos, userType, prodSoFar);
+              || (period != -1 && caret != -1 && space != -1 && space > caret && space > period)) {
+              userType = prodSoFar.substring(space + 1);
+              prodSoFar = prodSoFar.substring(0, space + 1) + "<$$>" + end;
+              valueComplete(pos, userType, prodSoFar);
             }
             // Failure
             else {
@@ -1750,6 +1751,8 @@ public class RuleEditor extends CustomInternalFrame {
         }//actionPerformed
 
         private void valueComplete(int pos, String userType, String prodSoFar) {
+//          TODO: here we should also suggest a <variable> with the name of its matched attribute
+//          TODO: It should not be suggested if the user has typed something that doesn't start with <
             try {
                 SoarWorkingMemoryModel dataMap = MainFrame.getMainFrame().getOperatorWindow().getDatamap();
                 prodSoFar = makeStringValidForParser(prodSoFar);
@@ -1803,14 +1806,12 @@ public class RuleEditor extends CustomInternalFrame {
             while (stillGood && curPos < matched.length()) {
                 String newAddedCharacters = addedCharacters + matched.charAt(curPos);
                 String potStartString = userType + newAddedCharacters;
-                Iterator<String> j = completeMatches.iterator();
-                while (j.hasNext()) {
-                    String currentString = j.next();
-                    if (!currentString.startsWith(potStartString)) {
-                        stillGood = false;
-                        break;
-                    }
+              for (String currentString : completeMatches) {
+                if (!currentString.startsWith(potStartString)) {
+                  stillGood = false;
+                  break;
                 }
+              }
 
                 if (stillGood) {
                     addedCharacters = newAddedCharacters;
@@ -1820,7 +1821,10 @@ public class RuleEditor extends CustomInternalFrame {
 			EditingUtils.insert(editorPane.getDocument(), addedCharacters, pos);
 
             //report all matches to the user
-            MainFrame.getMainFrame().getFeedbackManager().setStatusBarMsgList(completeMatches);
+          // TODO: No! Show a drop-down list for the user to pick a completion from
+          RuleEditor.this.showInsertionDropdown(pos, userType, completeMatches);
+          MainFrame.getMainFrame().getFeedbackManager().setStatusBarMsgList(completeMatches);
+
 
         }//complete
 
@@ -1832,6 +1836,36 @@ public class RuleEditor extends CustomInternalFrame {
         }//attributeComplete
 
     }//class TabCompleteAction
+
+
+  private void showInsertionDropdown(int pos, String userType, List<String> completeMatches) {
+    JPopupMenu popupMenu = new JPopupMenu();
+
+    for (String match : completeMatches) {
+      JMenuItem menuItem = new JMenuItem(match);
+      menuItem.addActionListener(e -> {
+        try {
+          // Insert the selected suggestion into the document
+          String toInsert = match.substring(userType.length());
+          EditingUtils.insert(editorPane.getDocument(), toInsert, pos);
+        } catch (Exception ex) {
+          ex.printStackTrace();
+        }
+      });
+      popupMenu.add(menuItem);
+    }
+
+    try {
+      // Get the caret position on screen
+      Rectangle caretRect = editorPane.modelToView2D(pos).getBounds();
+      Point popupLocation = new Point(caretRect.x, caretRect.y + caretRect.height);
+
+      // Show the popup menu at the caret location
+      popupMenu.show(editorPane, popupLocation.x, popupLocation.y);
+    } catch (BadLocationException ex) {
+      ex.printStackTrace();
+    }
+  }
 
     /**
      * getMatchingStrings
