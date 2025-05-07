@@ -1220,7 +1220,7 @@ public class MainFrame extends JFrame
     feedbackDesktopSplit.setBottomComponent(sp);
     feedbackDesktopSplit.setOneTouchExpandable(true);
     feedbackDesktopSplit.setContinuousLayout(true);
-    
+
     setFeedbackDividerPosFromPrefs();
     // Whenever the user moves the divider, remember the user's preference
     feedbackDesktopSplit.addPropertyChangeListener(
@@ -1238,6 +1238,8 @@ public class MainFrame extends JFrame
             Prefs.fbDividerPosition.set("" + proportion);
             Prefs.flush();
           }
+
+          feedbackPanelHeight = getHeight() - dividerLocation;
 
           // Re-tile the windows as a result
           scheduleDelayedReTile();
