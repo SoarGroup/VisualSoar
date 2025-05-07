@@ -51,7 +51,7 @@ public class SoarDocument extends DefaultStyledDocument {
         colorTable = Prefs.getSyntaxColors().clone();
 
         //set font size and style
-        Style defaultStyle = this.getStyle("default");
+        Style defaultStyle = this.getStyle(StyleContext.DEFAULT_STYLE);
         MutableAttributeSet attributeSet = new SimpleAttributeSet();
         StyleConstants.setFontSize(attributeSet, Prefs.editorFontSize.getInt());
         defaultStyle.addAttributes(attributeSet);
@@ -63,13 +63,12 @@ public class SoarDocument extends DefaultStyledDocument {
     SoarDocument.fontSize = size;
 
     // Create or update a style for the font size
-    StyleContext context = StyleContext.getDefaultStyleContext();
-    Style fontStyle = context.getStyle(StyleContext.DEFAULT_STYLE);
+    Style defaultStyle = getStyle(StyleContext.DEFAULT_STYLE);
 
-    // Update the font size in the style
+    // Update the font size in the default style
     MutableAttributeSet attributeSet = new SimpleAttributeSet();
     StyleConstants.setFontSize(attributeSet, size);
-    fontStyle.addAttributes(attributeSet);
+    defaultStyle.addAttributes(attributeSet);
 
     // Apply the updated style to the entire document
     SwingUtilities.invokeLater(() -> {
