@@ -90,6 +90,10 @@ public class FeedbackManager {
     onCountUpdate.accept(feedbackList.getListSize());
   }
 
+  public void clearStatusBar() {
+    statusBar.setText("");
+  }
+
   /**
    * Method updates the status bar text with a message
    */

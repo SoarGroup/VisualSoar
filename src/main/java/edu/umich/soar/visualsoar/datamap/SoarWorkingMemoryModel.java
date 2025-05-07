@@ -594,13 +594,13 @@ public class SoarWorkingMemoryModel {
    * @param variable the string that function tries to match
    * @return a List of matches, empty list if nothing found
    */
-  public List<SoarVertex> matches(SoarIdentifierVertex sv, SoarProduction sp, String variable) {
+  public List<DataMapMatcher.Match> matches(SoarIdentifierVertex sv, SoarProduction sp, String variable) {
     TriplesExtractor triplesExtractor = new TriplesExtractor(sp);
-    Map<String, HashSet<SoarVertex>> matchesMap =
+    Map<String, Set<DataMapMatcher.Match>> matchesMap =
         DataMapMatcher.matches(this, sv, triplesExtractor, new DoNothingMatcherErrorHandler());
-    List<SoarVertex> matches = new LinkedList<>();
+    List<DataMapMatcher.Match> matches = new LinkedList<>();
     if (matchesMap != null) {
-      HashSet<SoarVertex> matchesSet = matchesMap.get(variable);
+      Set<DataMapMatcher.Match> matchesSet = matchesMap.get(variable);
       if (matchesSet != null) {
         matches.addAll(matchesSet);
       }

@@ -35,6 +35,10 @@ public class EditorPane extends javax.swing.JEditorPane {
     occurrenceHighlightPainter = new DefaultHighlighter.DefaultHighlightPainter(c);
   }
 
+  protected void processKeyEvent(KeyEvent e) {
+    super.processKeyEvent(e);
+  }
+
   public EditorPane() {
 
     if (Prefs.highlightingEnabled.getBoolean()) {

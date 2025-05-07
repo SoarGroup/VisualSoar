@@ -1,11 +1,12 @@
 package edu.umich.soar.visualsoar.ruleeditor;
 
+import edu.umich.soar.visualsoar.components.AutocompletePopup;
+import edu.umich.soar.visualsoar.datamap.DataMapMatcher;
 import edu.umich.soar.visualsoar.mainframe.MainFrame;
 import edu.umich.soar.visualsoar.datamap.SoarWorkingMemoryModel;
 import edu.umich.soar.visualsoar.dialogs.EditCustomTemplatesDialog;
 import edu.umich.soar.visualsoar.graph.EnumerationVertex;
 import edu.umich.soar.visualsoar.graph.SoarIdentifierVertex;
-import edu.umich.soar.visualsoar.graph.SoarVertex;
 import edu.umich.soar.visualsoar.mainframe.feedback.FeedbackEntryOpNode;
 import edu.umich.soar.visualsoar.mainframe.feedback.FeedbackListEntry;
 import edu.umich.soar.visualsoar.misc.*;
@@ -17,9 +18,7 @@ import edu.umich.soar.visualsoar.util.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
+import java.awt.event.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyVetoException;
 import java.beans.VetoableChangeListener;
@@ -75,6 +74,8 @@ public class RuleEditor extends CustomInternalFrame {
     JMenuItem deleteSelectedTextItem = new JMenuItem("Delete");
 
     JMenuItem openDataMapItem = new JMenuItem("Open Corresponding Datamap");
+
+    private final JMenuItem tabCompleteItem = new JMenuItem("Soar Complete");
 
 	// last thing the user did was save the document; bookkeeping used by undo manager
 	private final BooleanProperty lastActionWasSave = new BooleanProperty(true);
@@ -1290,7 +1291,6 @@ public class RuleEditor extends CustomInternalFrame {
         checkProductionsItem.setMnemonic(KeyEvent.VK_P);
 
         // "Soar Complete" menu item
-        JMenuItem tabCompleteItem = new JMenuItem("Soar Complete");
         tabCompleteItem.addActionListener(tabCompleteAction);
         soarMenu.add(tabCompleteItem);
 
@@ -1662,19 +1662,10 @@ public class RuleEditor extends CustomInternalFrame {
             if (period != -1 && caret != -1 && space != -1 && period > caret && period > space) {
                 String userType = prodSoFar.substring(period + 1);
                 prodSoFar = prodSoFar.substring(0, period + 1) + "<$$>" + end;
-                attributeComplete(userType, prodSoFar);
+              List<String> completeMatches = getMatchingStrings(userType, prodSoFar);
+              display(completeMatches);
             }
         } // end of actionPerformed()
-
-        /**
-         * uses the soar parser to generate all the possible attributes that can follow
-         */
-        private void attributeComplete(String userType, String prodSoFar) {
-            List<String> completeMatches = getMatchingStrings(userType, prodSoFar);
-            if (completeMatches == null) return;
-            display(completeMatches);
-
-        }   // end of attributeComplete()
 
         /**
          * Displays all the possible attributes that can follow the dot/period to the
@@ -1704,140 +1695,220 @@ public class RuleEditor extends CustomInternalFrame {
 
 
         public void actionPerformed(ActionEvent e) {
-            int pos = editorPane.getCaretPosition();
-            String text = editorPane.getText();
-            int sp_pos = text.lastIndexOf("sp ", pos);
-            if (sp_pos == -1) {
-                getToolkit().beep();
-                return;
+            RuleEditor.this.complete();
+        }
+    }
+
+  private void complete() {
+    int pos = editorPane.getCaretPosition();
+    String text = editorPane.getText();
+    int sp_pos = text.lastIndexOf("sp ", pos);
+    if (sp_pos == -1) {
+      getToolkit().beep();
+      return;
+    }
+    String prodSoFar = text.substring(sp_pos, pos);
+    int arrowPos = prodSoFar.indexOf("-->");
+    String end;
+    if (arrowPos == -1) {
+      end = ") --> }";
+    } else {
+      end = " <$$$>)}";
+    }
+    int caret = prodSoFar.lastIndexOf("^");
+    int period = prodSoFar.lastIndexOf(".");
+    int space = prodSoFar.lastIndexOf(" ");
+    int leftAngle = prodSoFar.lastIndexOf("<");
+    String userType;
+    // The most relevant is the caret
+    if ((period == -1 && caret != -1 && space != -1 && caret > space)
+      || (period != -1 && caret != -1 && space != -1 && period < caret && space < caret)) {
+      userType = prodSoFar.substring(caret + 1);
+      prodSoFar = prodSoFar.substring(0, caret + 1) + "<$$>" + end;
+      attributeComplete(pos, userType, prodSoFar);
+    }
+    // The most relevant is the period
+    else if (period != -1 && caret != -1 && space != -1 && period > caret && period > space) {
+      userType = prodSoFar.substring(period + 1);
+      prodSoFar = prodSoFar.substring(0, period + 1) + "<$$>" + end;
+      attributeComplete(pos, userType, prodSoFar);
+    }
+    // The most relevant is the space
+    else if ((period == -1 && caret != -1 && space != -1 && space > caret)
+      || (period != -1 && caret != -1 && space != -1 && space > caret && space > period)) {
+      userType = prodSoFar.substring(space + 1);
+      prodSoFar = prodSoFar.substring(0, space + 1) + "<$$>" + end;
+      valueComplete(pos, userType, prodSoFar);
+    }
+    // Failure
+    else {
+      getToolkit().beep();
+    }
+  }
+
+
+  private void valueComplete(int pos, String userType, String prodSoFar) {
+//          TODO: here we should also suggest a <variable> with the name of its matched attribute
+//          TODO: It should not be suggested if the user has typed something that doesn't start with <
+    try {
+      SoarWorkingMemoryModel dataMap = MainFrame.getMainFrame().getOperatorWindow().getDatamap();
+      prodSoFar = makeStringValidForParser(prodSoFar);
+      SoarParser soarParser = new SoarParser(new StringReader(prodSoFar));
+      SoarProduction sp = soarParser.soarProduction();
+      OperatorNode on = getNode();
+      OperatorNode parent = (OperatorNode) on.getParent();
+      List<DataMapMatcher.Match> matches;
+      SoarIdentifierVertex siv = parent.getStateIdVertex(dataMap);
+      if (siv != null) {
+        matches = dataMap.matches(siv, sp, "<$$>");
+      } else {
+        matches = dataMap.matches(dataMap.getTopstate(), sp, "<$$>");
+      }
+      List<String> completeMatches = new LinkedList<>();
+      for (DataMapMatcher.Match match : matches) {
+        if (match.getVertex() instanceof EnumerationVertex) {
+          EnumerationVertex ev = (EnumerationVertex) match.getVertex();
+          Iterator<String> iter = ev.getEnumeration();
+          while (iter.hasNext()) {
+            String enumString = iter.next();
+            if (enumString.startsWith(userType)) {
+              completeMatches.add(enumString);
             }
-            String prodSoFar = text.substring(sp_pos, pos);
-            int arrowPos = prodSoFar.indexOf("-->");
-            String end;
-            if (arrowPos == -1) {
-                end = ") --> }";
-            } else {
-                end = " <$$$>)}";
-            }
-            int caret = prodSoFar.lastIndexOf("^");
-            int period = prodSoFar.lastIndexOf(".");
-            int space = prodSoFar.lastIndexOf(" ");
-            String userType;
-            // The most relevant is the caret
-            if ((period == -1 && caret != -1 && space != -1 && caret > space)
-                    || (period != -1 && caret != -1 && space != -1 && period < caret && space < caret)) {
-                userType = prodSoFar.substring(caret + 1);
-                prodSoFar = prodSoFar.substring(0, caret + 1) + "<$$>" + end;
-                attributeComplete(pos, userType, prodSoFar);
-            }
-            // The most relevant is the period
-            else if (period != -1 && caret != -1 && space != -1 && period > caret && period > space) {
-                userType = prodSoFar.substring(period + 1);
-                prodSoFar = prodSoFar.substring(0, period + 1) + "<$$>" + end;
-                attributeComplete(pos, userType, prodSoFar);
-            }
-            // The most relevant is the space
-            else if ((period == -1 && caret != -1 && space != -1 && space > caret)
-                    || (period != -1 && caret != -1 && space != -1 && space > caret && space > period)) {
-                userType = prodSoFar.substring(space + 1);
-                prodSoFar = prodSoFar.substring(0, space + 1) + "<$$>" + end;
-                valueComplete(pos, userType, prodSoFar);
-            }
-            // Failure
-            else {
-                getToolkit().beep();
-            }
-        }//actionPerformed
+          }
+        }
+      }
 
-        private void valueComplete(int pos, String userType, String prodSoFar) {
-            try {
-                SoarWorkingMemoryModel dataMap = MainFrame.getMainFrame().getOperatorWindow().getDatamap();
-                prodSoFar = makeStringValidForParser(prodSoFar);
-                SoarParser soarParser = new SoarParser(new StringReader(prodSoFar));
-                SoarProduction sp = soarParser.soarProduction();
-                OperatorNode on = getNode();
-                OperatorNode parent = (OperatorNode) on.getParent();
-                List<SoarVertex> matches;
-                SoarIdentifierVertex siv = parent.getStateIdVertex(dataMap);
-                if (siv != null) {
-                    matches = dataMap.matches(siv, sp, "<$$>");
-                } else {
-                    matches = dataMap.matches(dataMap.getTopstate(), sp, "<$$>");
-                }
-                List<String> completeMatches = new LinkedList<>();
-                for (SoarVertex vertex : matches) {
-                    if (vertex instanceof EnumerationVertex) {
-                        EnumerationVertex ev = (EnumerationVertex) vertex;
-                        Iterator<String> iter = ev.getEnumeration();
-                        while (iter.hasNext()) {
-                            String enumString = iter.next();
-                            if (enumString.startsWith(userType)) {
-                                completeMatches.add(enumString);
-                            }
-                        }
-                    }
-                }
-                complete(pos, userType, completeMatches);
-            } catch (ParseException pe) {
-                getToolkit().beep();
-            }
-        }//valueComplete
+      Collections.sort(completeMatches);
+      complete(pos, userType, completeMatches);
+    } catch (ParseException pe) {
+      getToolkit().beep();
+    }
+  }//valueComplete
 
 
-        private void complete(int pos, String userType, List<String> completeMatches) {
-            if (completeMatches.isEmpty()) {
-                return;
-            }
+  private void complete(int pos, String userType, List<String> completeMatches) {
+    if (completeMatches.isEmpty()) {
+      return;
+    }
 
-            if (completeMatches.size() == 1) {
-                String matched = completeMatches.get(0);
-				EditingUtils.insert(editorPane.getDocument(), matched.substring(userType.length()), pos);
-                return;
-            }
+    if (completeMatches.size() == 1) {
+      String matched = completeMatches.get(0);
+      EditingUtils.insert(editorPane.getDocument(), matched.substring(userType.length()), pos);
+      editorPane.colorSyntax();
+      return;
+    }
 
-            //If we reach this point:  more than one match
-            boolean stillGood = true;
-            String addedCharacters = "";
-            String matched = completeMatches.get(0);
-            int curPos = userType.length();
-            while (stillGood && curPos < matched.length()) {
-                String newAddedCharacters = addedCharacters + matched.charAt(curPos);
-                String potStartString = userType + newAddedCharacters;
-                Iterator<String> j = completeMatches.iterator();
-                while (j.hasNext()) {
-                    String currentString = j.next();
-                    if (!currentString.startsWith(potStartString)) {
-                        stillGood = false;
-                        break;
-                    }
-                }
+    //If we reach this point:  more than one match
+    boolean stillGood = true;
+    String addedCharacters = "";
+    String matched = completeMatches.get(0);
+    int curPos = userType.length();
+    while (stillGood && curPos < matched.length()) {
+      String newAddedCharacters = addedCharacters + matched.charAt(curPos);
+      String potStartString = userType + newAddedCharacters;
+      for (String currentString : completeMatches) {
+        if (!currentString.startsWith(potStartString)) {
+          stillGood = false;
+          break;
+        }
+      }
 
-                if (stillGood) {
-                    addedCharacters = newAddedCharacters;
-                    ++curPos;
-                }
-            }
-			EditingUtils.insert(editorPane.getDocument(), addedCharacters, pos);
+      if (stillGood) {
+        addedCharacters = newAddedCharacters;
+        ++curPos;
+      }
+    }
+    // TODO: hmmm, if the user decides they don't want the completion after all, then they have to undo. Not super smooth.
+    EditingUtils.insert(editorPane.getDocument(), addedCharacters, pos);
+    editorPane.colorSyntax();
 
-            //report all matches to the user
-            MainFrame.getMainFrame().getFeedbackManager().setStatusBarMsgList(completeMatches);
+    //report all matches to the user
+    RuleEditor.this.showAutocompletePopup(pos + addedCharacters.length(), userType + addedCharacters, completeMatches);
+    if(completeMatches.isEmpty()) {
+      MainFrame.getMainFrame().getFeedbackManager().setStatusBarMsg("No auto-complete matches found.");
+    }
 
-        }//complete
 
-        private void attributeComplete(int pos, String userType, String prodSoFar) {
-            List<String> completeMatches = getMatchingStrings(userType, prodSoFar);
-            if (completeMatches == null) return;
-            complete(pos, userType, completeMatches);
+  }//complete
 
-        }//attributeComplete
+  private void attributeComplete(int pos, String userType, String prodSoFar) {
+    List<String> completeMatches = getMatchingStrings(userType, prodSoFar);
+    complete(pos, userType, completeMatches);
+  }
 
-    }//class TabCompleteAction
+  private AutocompletePopup autocompletePopup = null;
+
+  private void showAutocompletePopup(int pos, String userType, List<String> completeMatches) {
+    hideAutocompletePopup();
+
+    if (completeMatches.isEmpty()) {
+      return;
+    }
+    autocompletePopup = new AutocompletePopup(editorPane, pos, completeMatches, (selected) -> insertCompletion(pos, userType, selected));
+    MainFrame.getMainFrame().getFeedbackManager().setStatusBarMsg(autocompletePopup.shortInstructions());
+    autocompletePopup.addPopupMenuListener(new PopupMenuListener() {
+      @Override
+      public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
+
+      }
+
+      @Override
+      public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
+        MainFrame.getMainFrame().getFeedbackManager().clearStatusBar();
+        autocompletePopup = null;
+      }
+
+      @Override
+      public void popupMenuCanceled(PopupMenuEvent e) {
+
+      }
+    });
+  }
+
+  private void hideAutocompletePopup() {
+    if (autocompletePopup != null) {
+      autocompletePopup.setVisible(false);
+      autocompletePopup = null;
+    }
+  }
+
+  private void insertCompletion(int pos, String userType, String selected) {
+    try {
+      String toInsert = selected.substring(userType.length());
+      EditingUtils.insert(editorPane.getDocument(), toInsert, pos);
+      editorPane.colorSyntax();
+      hideAutocompletePopup();
+    } catch (Exception ex) {
+      ex.printStackTrace();
+    }
+  }
+
+  private void updatePopupMenu(int pos, String initialUserType) {
+    if (autocompletePopup == null) {
+      return; // No active popup to update
+    }
+
+    try {
+      int caretPos = editorPane.getCaretPosition();
+      String text = editorPane.getText(0, caretPos);
+      int lastSeparator = Math.max(text.lastIndexOf(" "), text.lastIndexOf("."));
+      String currentUserType = text.substring(lastSeparator + 1);
+
+      List<String> filteredMatches = getMatchingStrings(currentUserType, text);
+      if (filteredMatches.isEmpty()) {
+        hideAutocompletePopup();
+      } else {
+        showAutocompletePopup(pos, currentUserType, filteredMatches);
+      }
+    } catch (BadLocationException ex) {
+      ex.printStackTrace();
+    }
+  }
 
     /**
      * getMatchingStrings
      * <p>
-     * is a helper method for {@link TabCompleteAction#attributeComplete}
-     * and {@link AutoSoarCompleteAction#attributeComplete}.  It retrieves
+     * is a helper method for {@link TabCompleteAction#attributeComplete}. It retrieves
      * the strings associated with entries in the datamap with attributes
      * that match the user's current production.
      *
@@ -1853,12 +1924,12 @@ public class RuleEditor extends CustomInternalFrame {
         try {
             sp = soarParser.soarProduction();
         } catch (ParseException pe) {
-            return null;
+            return Collections.emptyList();
         }
 
         //Find all matching string via the datamap
         OperatorNode on = getNode();
-        List<SoarVertex> matches;
+        List<DataMapMatcher.Match> matches;
         SoarWorkingMemoryModel dataMap = MainFrame.getMainFrame().getOperatorWindow().getDatamap();
         SoarIdentifierVertex siv = ((OperatorNode) on.getParent()).getStateIdVertex(dataMap);
         if (siv != null) {
@@ -1867,18 +1938,13 @@ public class RuleEditor extends CustomInternalFrame {
             matches = dataMap.matches(dataMap.getTopstate(), sp, "<$$>");
         }
         List<String> completeMatches = new LinkedList<>();
-        //Ignore Compiler Warning: This iterator can't be given a parameter.  See my note
-        // below and in DataMapMatcher.addConstraint() -:AMN:
-        Iterator i = matches.iterator();
-        while (i.hasNext()) {
-            //This cast is wacky.  Let's take what *should* be a SoarVertex
-            //and cast it to a String because String objects have been
-            //inserted into the Set<SoarVertex> in 'matches'.
-            String matched = (String) i.next();
-            if (matched.startsWith(userType)) {
-                completeMatches.add(matched);
-            }
+      for (DataMapMatcher.Match match : matches) {
+        String matched = match.toString();
+        if (matched.startsWith(userType)) {
+          completeMatches.add(matched);
         }
+      }
+      Collections.sort(completeMatches);
         return completeMatches;
     }
 
