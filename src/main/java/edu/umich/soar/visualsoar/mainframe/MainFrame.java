@@ -227,20 +227,26 @@ public class MainFrame extends JFrame
     Prefs.editorFontSize.addChangeListener(newValue -> setFontSize((int) newValue));
 	}//MainFrame ctor
 
-////////////////////////////////////////
-// Methods
-////////////////////////////////////////
+  ////////////////////////////////////////
+  // Methods
+  ////////////////////////////////////////
 
   private void setFontSize(int fontSize) {
-    setMenuBarFontSize(getJMenuBar(), fontSize);
-    feedbackListBorder.setTitleFont(getResizedFont(feedbackListBorder.getTitleFont(), fontSize));
-    UIManager.getLookAndFeelDefaults().forEach((key, value) -> {
-      if (key.toString().endsWith(".font") && value instanceof Font) {
-        Font oldFont = (Font) value;
-        Font newFont = new Font(oldFont.getName(), oldFont.getStyle(), fontSize);
-        UIManager.put(key, newFont);
-      }
-    });
+    SwingUtilities.invokeLater(
+        () -> {
+          setMenuBarFontSize(getJMenuBar(), fontSize);
+          feedbackListBorder.setTitleFont(
+              getResizedFont(feedbackListBorder.getTitleFont(), fontSize));
+          UIManager.getLookAndFeelDefaults()
+              .forEach(
+                  (key, value) -> {
+                    if (key.toString().endsWith(".font") && value instanceof Font) {
+                      Font oldFont = (Font) value;
+                      Font newFont = new Font(oldFont.getName(), oldFont.getStyle(), fontSize);
+                      UIManager.put(key, newFont);
+                    }
+                  });
+        });
   }
 
   private boolean canAutoTile() {

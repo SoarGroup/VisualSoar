@@ -1040,8 +1040,11 @@ public class RuleEditor extends CustomInternalFrame {
     }
 
   private void setFontSize(int fontSize) {
-    setMenuBarFontSize(getJMenuBar(), fontSize);
-    setContainerFontSize(editorPane.getContextMenu(), fontSize);
+    SwingUtilities.invokeLater(
+        () -> {
+          setMenuBarFontSize(getJMenuBar(), fontSize);
+          setContainerFontSize(editorPane.getContextMenu(), fontSize);
+        });
   }
 
     private void initMenuBarExternFile() {

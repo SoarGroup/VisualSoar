@@ -379,14 +379,13 @@ public class DataMapTree extends JTree implements ClipboardOwner, PopupMenuListe
     }//ctor
 
   private void setFontSize(int fontSize) {
-    final Font newSizedFont =
-      new Font(
-        getFont().getName(),
-        getFont().getStyle(),
-        fontSize);
-    setFont(newSizedFont);
-    setRowHeight(fontSize + ROW_TEXT_MARGIN);
-    FontUtils.setContainerFontSize(contextMenu, fontSize);
+    final Font newSizedFont = new Font(getFont().getName(), getFont().getStyle(), fontSize);
+    SwingUtilities.invokeLater(
+        () -> {
+          setFont(newSizedFont);
+          setRowHeight(fontSize + ROW_TEXT_MARGIN);
+          FontUtils.setContainerFontSize(contextMenu, fontSize);
+        });
   }
 
     /**

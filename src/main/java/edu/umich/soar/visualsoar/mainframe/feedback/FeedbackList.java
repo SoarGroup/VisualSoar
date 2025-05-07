@@ -107,9 +107,12 @@ public class FeedbackList extends JList<FeedbackListEntry> implements ActionList
 
   private void setFontSize(int fontSize) {
     final Font newSizedFont = new Font(getFont().getName(), getFont().getStyle(), fontSize);
-    setFont(newSizedFont);
-    setContainerFontSize(rightClickContextMenu, fontSize);
-    cellRenderer.setFontSize(fontSize);
+    SwingUtilities.invokeLater(
+        () -> {
+          setFont(newSizedFont);
+          setContainerFontSize(rightClickContextMenu, fontSize);
+          cellRenderer.setFontSize(fontSize);
+        });
   }
 
 ///////////////////////////////////////////////////////////////////

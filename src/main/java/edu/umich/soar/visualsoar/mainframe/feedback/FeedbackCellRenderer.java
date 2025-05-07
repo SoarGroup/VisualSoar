@@ -17,6 +17,7 @@ class FeedbackCellRenderer extends JLabel implements ListCellRenderer<FeedbackLi
     setOpaque(true);
   }
 
+  /** This method should only be called from the EDT, and it does not take care to do so itself. */
   void setFontSize(int fontSize) {
     final Font newSizedFont = new Font(getFont().getName(), getFont().getStyle(), fontSize);
     setFont(newSizedFont);

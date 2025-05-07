@@ -51,6 +51,8 @@ public class OperatorWindow extends JTree {
     DragGestureListener dgListener = new OWDragGestureListener();
 
   private ProjectModel projectModel;
+
+  private final DefaultTreeCellRenderer owCellRenderer = new OperatorWindowRenderer();
   private static OperatorWindow s_OperatorWindow;
 
   private static final int ROW_TEXT_MARGIN = 7;
@@ -63,7 +65,7 @@ public class OperatorWindow extends JTree {
    */
   private OperatorWindow() {
 
-    setCellRenderer(new OperatorWindowRenderer());
+    setCellRenderer(owCellRenderer);
 
     s_OperatorWindow = this;
 
@@ -119,15 +121,16 @@ public class OperatorWindow extends JTree {
     }
     setFontSize(Prefs.editorFontSize.getInt());
     Prefs.editorFontSize.addChangeListener(
-        newValue -> {
-          setFontSize((int) newValue);
-        });
+        newValue -> setFontSize((int) newValue));
   }
 
   private void setFontSize(int fontSize) {
     final Font newSizedFont = new Font(getFont().getName(), getFont().getStyle(), fontSize);
-    setFont(newSizedFont);
-    setRowHeight(fontSize + ROW_TEXT_MARGIN);
+    SwingUtilities.invokeLater(() -> {
+      setFont(newSizedFont);
+      owCellRenderer.setFont(newSizedFont);
+      setRowHeight(fontSize + ROW_TEXT_MARGIN);
+    });
   }
 
     /**
