@@ -1960,6 +1960,7 @@ public class RuleEditor extends CustomInternalFrame {
     try {
       String toInsert = selected.substring(userType.length());
       EditingUtils.insert(editorPane.getDocument(), toInsert, pos);
+      editorPane.colorSyntax();
       hideAutocompletePopup();
     } catch (Exception ex) {
       ex.printStackTrace();
