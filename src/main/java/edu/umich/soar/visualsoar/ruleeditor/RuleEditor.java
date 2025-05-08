@@ -1,5 +1,6 @@
 package edu.umich.soar.visualsoar.ruleeditor;
 
+import edu.umich.soar.visualsoar.datamap.DataMapMatcher;
 import edu.umich.soar.visualsoar.mainframe.MainFrame;
 import edu.umich.soar.visualsoar.datamap.SoarWorkingMemoryModel;
 import edu.umich.soar.visualsoar.dialogs.EditCustomTemplatesDialog;
@@ -1759,7 +1760,7 @@ public class RuleEditor extends CustomInternalFrame {
                 SoarProduction sp = soarParser.soarProduction();
                 OperatorNode on = getNode();
                 OperatorNode parent = (OperatorNode) on.getParent();
-                List<SoarVertex> matches;
+                List<DataMapMatcher.Match> matches;
                 SoarIdentifierVertex siv = parent.getStateIdVertex(dataMap);
                 if (siv != null) {
                     matches = dataMap.matches(siv, sp, "<$$>");
@@ -1767,9 +1768,9 @@ public class RuleEditor extends CustomInternalFrame {
                     matches = dataMap.matches(dataMap.getTopstate(), sp, "<$$>");
                 }
                 List<String> completeMatches = new LinkedList<>();
-                for (SoarVertex vertex : matches) {
-                    if (vertex instanceof EnumerationVertex) {
-                        EnumerationVertex ev = (EnumerationVertex) vertex;
+                for (DataMapMatcher.Match match : matches) {
+                    if (match.getVertex() instanceof EnumerationVertex) {
+                        EnumerationVertex ev = (EnumerationVertex) match.getVertex();
                         Iterator<String> iter = ev.getEnumeration();
                         while (iter.hasNext()) {
                             String enumString = iter.next();
@@ -1857,6 +1858,11 @@ public class RuleEditor extends CustomInternalFrame {
 
     JScrollPane scrollPane = new JScrollPane(suggestionList);
     scrollPane.setFocusable(false); // Prevent the scroll pane from stealing focus
+
+    // Add a border to the popup
+    JPanel panel = new JPanel(new BorderLayout());
+    panel.add(scrollPane, BorderLayout.CENTER);
+    panel.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1)); // Add a gray border
 
     // Add a mouse listener to handle selection
     suggestionList.addMouseListener(new MouseAdapter() {
@@ -2007,7 +2013,7 @@ public class RuleEditor extends CustomInternalFrame {
 
         //Find all matching string via the datamap
         OperatorNode on = getNode();
-        List<SoarVertex> matches;
+        List<DataMapMatcher.Match> matches;
         SoarWorkingMemoryModel dataMap = MainFrame.getMainFrame().getOperatorWindow().getDatamap();
         SoarIdentifierVertex siv = ((OperatorNode) on.getParent()).getStateIdVertex(dataMap);
         if (siv != null) {
@@ -2016,12 +2022,7 @@ public class RuleEditor extends CustomInternalFrame {
             matches = dataMap.matches(dataMap.getTopstate(), sp, "<$$>");
         }
         List<String> completeMatches = new LinkedList<>();
-        //Ignore Compiler Warning: This iterator can't be given a parameter.  See my note
-        // below and in DataMapMatcher.addConstraint() -:AMN:
-      for (SoarVertex match : matches) {
-        //This cast is wacky.  Let's take what *should* be a SoarVertex
-        //and cast it to a String because String objects have been
-        //inserted into the Set<SoarVertex> in 'matches'.
+      for (DataMapMatcher.Match match : matches) {
         String matched = match.toString();
         if (matched.startsWith(userType)) {
           completeMatches.add(matched);

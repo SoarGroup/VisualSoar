@@ -28,7 +28,7 @@ public class DataMapChecker {
                              SoarIdentifierVertex startVertex,
                              TriplesExtractor triplesExtractor,
                              CheckerErrorHandler ceh) {
-        Map<String, HashSet<SoarVertex>> varMap = DataMapMatcher.matches(
+        Map<String, Set<DataMapMatcher.Match>> varMap = DataMapMatcher.matches(
                 dataMap,
                 startVertex,
                 triplesExtractor,
@@ -36,8 +36,8 @@ public class DataMapChecker {
         if (varMap != null) {
             Set<String> keySet = varMap.keySet();
             for (String varKey : keySet) {
-              Set<SoarVertex> value = varMap.get(varKey);
-              if (value.isEmpty()) {
+              Set<DataMapMatcher.Match> matches = varMap.get(varKey);
+              if (matches.isEmpty()) {
                 ceh.variableNotMatched(varKey);
               }
             }

@@ -4,6 +4,7 @@ import edu.umich.soar.visualsoar.graph.*;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorNode;
 import edu.umich.soar.visualsoar.parser.*;
 import edu.umich.soar.visualsoar.util.EnumerationIteratorWrapper;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.tree.TreePath;
 import java.util.*;
@@ -21,26 +22,77 @@ public class DataMapMatcher {
     private DataMapMatcher() {
     }
 
-    // Static Member Functions
+  public static final class Match {
 
-    /**
-     * Checks to see if a production has a matching data structure in the
-     * datamap
-     *
-     * @param dataMap          Soar Working Memory
-     * @param startVertex      the state in working memory that is being examined
-     * @param triplesExtractor all the triples that were in a production
-     * @param meh              the structure that holds the errors when they are found
-     */
-    public static Map<String, HashSet<SoarVertex>>  matches(
-                                            SoarWorkingMemoryModel dataMap,
-                                            SoarIdentifierVertex startVertex,
-                                            TriplesExtractor triplesExtractor,
-                                            MatcherErrorHandler meh) {
-        Map<String, HashSet<SoarVertex>> varMap = new HashMap<>();
+    private final SoarVertex vertex;
+    private final String name;
+
+    Match(SoarVertex vertex, String name) {
+      this.vertex = vertex;
+      this.name = name;
+    }
+
+    static Match fromVertex(@NotNull SoarVertex vertex) {
+      return new Match(vertex, null);
+    }
+
+    static Match fromString(@NotNull String name) {
+      return new Match(null, name);
+    }
+
+    public boolean hasVertex() {
+      return vertex != null;
+    }
+
+    public SoarVertex getVertex() {
+      return vertex;
+    }
+
+    public String getName() {
+      return name;
+    }
+
+    @Override
+    public String toString() {
+      if (vertex != null) {
+        return vertex.toString();
+      }
+      return name;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+      Match match = (Match) o;
+      return Objects.equals(vertex, match.vertex) && Objects.equals(name, match.name);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(vertex, name);
+    }
+  }
+
+  // Static Member Functions
+
+  /**
+   * Checks to see if a production has a matching data structure in the datamap
+   *
+   * @param dataMap Soar Working Memory
+   * @param startVertex the state in working memory that is being examined
+   * @param triplesExtractor all the triples that were in a production
+   * @param meh the structure that holds the errors when they are found
+   */
+  public static Map<String, Set<Match>> matches(
+      SoarWorkingMemoryModel dataMap,
+      SoarIdentifierVertex startVertex,
+      TriplesExtractor triplesExtractor,
+      MatcherErrorHandler meh) {
+        Map<String, Set<Match>> varMap = new HashMap<>();
         Iterator<Pair> pairIter = triplesExtractor.variables();
         while (pairIter.hasNext()) {
-            varMap.put(pairIter.next().getString(), new HashSet<SoarVertex>());
+      varMap.put(pairIter.next().getString(), new HashSet<>());
         }
 
         // Take care of the first Variable
@@ -55,8 +107,8 @@ public class DataMapMatcher {
         }
 
         Pair stateVar = triplesExtractor.stateVariable();
-        Set<SoarVertex> stateSet = varMap.get(stateVar.getString());
-        stateSet.add(startVertex);
+        Set<Match> stateSet = varMap.get(stateVar.getString());
+        stateSet.add(Match.fromVertex(startVertex));
 
         EnumerationIteratorWrapper tripleEnum = new EnumerationIteratorWrapper(triplesExtractor.triples());
         while (tripleEnum.hasMoreElements()) {
@@ -84,16 +136,16 @@ public class DataMapMatcher {
                                 TriplesExtractor triplesExtractor,
                                 MatcherErrorHandler meh,
                                 OperatorNode current) {
-        Map<String, HashSet<SoarVertex>> varMap = new HashMap<>();
+        Map<String, Set<Match>> varMap = new HashMap<>();
         Iterator<Pair> iter = triplesExtractor.variables();
         while (iter.hasNext()) {
-            varMap.put((iter.next()).getString(), new HashSet<SoarVertex>());
+      varMap.put((iter.next()).getString(), new HashSet<>());
         }
 
 
         Pair stateVar = triplesExtractor.stateVariable();
-        Set<SoarVertex> stateSet = varMap.get(stateVar.getString());
-        stateSet.add(startVertex);
+        Set<Match> stateSet = varMap.get(stateVar.getString());
+        stateSet.add(Match.fromVertex(startVertex));
 
 
         EnumerationIteratorWrapper iterEnumWrap = new EnumerationIteratorWrapper(triplesExtractor.triples());
@@ -111,7 +163,7 @@ public class DataMapMatcher {
                     return;
                 }
 
-                Set<SoarVertex> varSet = varMap.get(currentTriple.getVariable().getString());
+                Set<Match> varSet = varMap.get(currentTriple.getVariable().getString());
 
 
                 // for every possible start
@@ -372,20 +424,15 @@ public class DataMapMatcher {
 
     private static boolean addConstraint(SoarWorkingMemoryModel dataMap,
                                          Triple triple,
-                                         Map<String, HashSet<SoarVertex>> match) {
-        Set<SoarVertex> varSet = match.get(triple.getVariable().getString());
+                                         Map<String, Set<Match>> matches) {
+        Set<Match> varSet = matches.get(triple.getVariable().getString());
         boolean matched = false;
         // for every possible start
-        EnumerationIteratorWrapper iterWrap = new EnumerationIteratorWrapper(varSet.iterator());
-        while (iterWrap.hasMoreElements()) {
-            Object o = iterWrap.nextElement();
-
-            // In case they try to use an attribute variable as
-            // soar identifier
-            if (!(o instanceof SoarVertex)) {
-                continue;
-            }
-            SoarVertex currentSV = (SoarVertex) o;
+        for (Match match : varSet){
+          if (!match.hasVertex()) {
+            continue;
+          }
+            SoarVertex currentSV = match.vertex;
 
             // Get all the edges from the start
             Enumeration<NamedEdge> edges = dataMap.emanatingEdges(currentSV);
@@ -403,21 +450,14 @@ public class DataMapMatcher {
                         matched = true;
                     }
 
-                    //TODO:  This code is confusing to me and should be revisited.
-                    // match.get() is returning a HashSet<SoarVertex> and then
-                    // the code immediately turns around and adds a String to
-                    // it!  However, that String is what's used for Soar Complete.
-                    // So, how does a SoarVertex become a String??  IntelliJ
-                    // is also confused since it's throwing a warning here.
-                    //                                     -:AMN: 23 Dec 2022
                     if (TripleUtils.isVariable(triple.getAttribute().getString())) {
-                        Set attrSet = match.get(triple.getAttribute().getString());
+                      Set<Match> attrSet = matches.get(triple.getAttribute().getString());
 
-                        attrSet.add(currentEdge.getName());
+                        attrSet.add(Match.fromString(currentEdge.getName()));
                     }
                     if (TripleUtils.isVariable(triple.getValue().getString())) {
-                        Set<SoarVertex> valSet = match.get(triple.getValue().getString());
-                        valSet.add(currentEdge.V1());
+                        Set<Match> valSet = matches.get(triple.getValue().getString());
+                        valSet.add(Match.fromVertex(currentEdge.V1()));
                     }
                 }
             }
@@ -580,7 +620,7 @@ public class DataMapMatcher {
         TriplesExtractor te = new TriplesExtractor(sp);
         Vector<Triple> vecMatches = new Vector<>();
 
-        pmpHelper(vecEdges, 0, te, new Vector<Triple>(), null, null, vecMatches);
+    pmpHelper(vecEdges, 0, te, new Vector<>(), null, null, vecMatches);
 
         return vecMatches;
 
