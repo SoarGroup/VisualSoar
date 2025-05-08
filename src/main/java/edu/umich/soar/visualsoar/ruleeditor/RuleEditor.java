@@ -1662,19 +1662,10 @@ public class RuleEditor extends CustomInternalFrame {
             if (period != -1 && caret != -1 && space != -1 && period > caret && period > space) {
                 String userType = prodSoFar.substring(period + 1);
                 prodSoFar = prodSoFar.substring(0, period + 1) + "<$$>" + end;
-                attributeComplete(userType, prodSoFar);
+              List<String> completeMatches = getMatchingStrings(userType, prodSoFar);
+              display(completeMatches);
             }
         } // end of actionPerformed()
-
-        /**
-         * uses the soar parser to generate all the possible attributes that can follow
-         */
-        private void attributeComplete(String userType, String prodSoFar) {
-            List<String> completeMatches = getMatchingStrings(userType, prodSoFar);
-            if (completeMatches == null) return;
-            display(completeMatches);
-
-        }   // end of attributeComplete()
 
         /**
          * Displays all the possible attributes that can follow the dot/period to the
@@ -1704,141 +1695,146 @@ public class RuleEditor extends CustomInternalFrame {
 
 
         public void actionPerformed(ActionEvent e) {
-            int pos = editorPane.getCaretPosition();
-            String text = editorPane.getText();
-            int sp_pos = text.lastIndexOf("sp ", pos);
-            if (sp_pos == -1) {
-                getToolkit().beep();
-                return;
-            }
-            String prodSoFar = text.substring(sp_pos, pos);
-            int arrowPos = prodSoFar.indexOf("-->");
-            String end;
-            if (arrowPos == -1) {
-                end = ") --> }";
-            } else {
-                end = " <$$$>)}";
-            }
-            int caret = prodSoFar.lastIndexOf("^");
-            int period = prodSoFar.lastIndexOf(".");
-            int space = prodSoFar.lastIndexOf(" ");
-            int leftAngle = prodSoFar.lastIndexOf("<");
-            String userType;
-            // The most relevant is the caret
-            if ((period == -1 && caret != -1 && space != -1 && caret > space)
-                    || (period != -1 && caret != -1 && space != -1 && period < caret && space < caret)) {
-                userType = prodSoFar.substring(caret + 1);
-                prodSoFar = prodSoFar.substring(0, caret + 1) + "<$$>" + end;
-                attributeComplete(pos, userType, prodSoFar);
-            }
-            // The most relevant is the period
-            else if (period != -1 && caret != -1 && space != -1 && period > caret && period > space) {
-                userType = prodSoFar.substring(period + 1);
-                prodSoFar = prodSoFar.substring(0, period + 1) + "<$$>" + end;
-                attributeComplete(pos, userType, prodSoFar);
-            }
-            // The most relevant is the space
-            else if ((period == -1 && caret != -1 && space != -1 && space > caret)
-              || (period != -1 && caret != -1 && space != -1 && space > caret && space > period)) {
-              userType = prodSoFar.substring(space + 1);
-              prodSoFar = prodSoFar.substring(0, space + 1) + "<$$>" + end;
-              valueComplete(pos, userType, prodSoFar);
-            }
-            // Failure
-            else {
-                getToolkit().beep();
-            }
-        }//actionPerformed
+            RuleEditor.this.complete();
+        }
+    }
 
-        private void valueComplete(int pos, String userType, String prodSoFar) {
+  private void complete() {
+    int pos = editorPane.getCaretPosition();
+    String text = editorPane.getText();
+    int sp_pos = text.lastIndexOf("sp ", pos);
+    if (sp_pos == -1) {
+      getToolkit().beep();
+      return;
+    }
+    String prodSoFar = text.substring(sp_pos, pos);
+    int arrowPos = prodSoFar.indexOf("-->");
+    String end;
+    if (arrowPos == -1) {
+      end = ") --> }";
+    } else {
+      end = " <$$$>)}";
+    }
+    int caret = prodSoFar.lastIndexOf("^");
+    int period = prodSoFar.lastIndexOf(".");
+    int space = prodSoFar.lastIndexOf(" ");
+    int leftAngle = prodSoFar.lastIndexOf("<");
+    String userType;
+    // The most relevant is the caret
+    if ((period == -1 && caret != -1 && space != -1 && caret > space)
+      || (period != -1 && caret != -1 && space != -1 && period < caret && space < caret)) {
+      userType = prodSoFar.substring(caret + 1);
+      prodSoFar = prodSoFar.substring(0, caret + 1) + "<$$>" + end;
+      attributeComplete(pos, userType, prodSoFar);
+    }
+    // The most relevant is the period
+    else if (period != -1 && caret != -1 && space != -1 && period > caret && period > space) {
+      userType = prodSoFar.substring(period + 1);
+      prodSoFar = prodSoFar.substring(0, period + 1) + "<$$>" + end;
+      attributeComplete(pos, userType, prodSoFar);
+    }
+    // The most relevant is the space
+    else if ((period == -1 && caret != -1 && space != -1 && space > caret)
+      || (period != -1 && caret != -1 && space != -1 && space > caret && space > period)) {
+      userType = prodSoFar.substring(space + 1);
+      prodSoFar = prodSoFar.substring(0, space + 1) + "<$$>" + end;
+      valueComplete(pos, userType, prodSoFar);
+    }
+    // Failure
+    else {
+      getToolkit().beep();
+    }
+  }
+
+
+  private void valueComplete(int pos, String userType, String prodSoFar) {
 //          TODO: here we should also suggest a <variable> with the name of its matched attribute
 //          TODO: It should not be suggested if the user has typed something that doesn't start with <
-            try {
-                SoarWorkingMemoryModel dataMap = MainFrame.getMainFrame().getOperatorWindow().getDatamap();
-                prodSoFar = makeStringValidForParser(prodSoFar);
-                SoarParser soarParser = new SoarParser(new StringReader(prodSoFar));
-                SoarProduction sp = soarParser.soarProduction();
-                OperatorNode on = getNode();
-                OperatorNode parent = (OperatorNode) on.getParent();
-                List<DataMapMatcher.Match> matches;
-                SoarIdentifierVertex siv = parent.getStateIdVertex(dataMap);
-                if (siv != null) {
-                    matches = dataMap.matches(siv, sp, "<$$>");
-                } else {
-                    matches = dataMap.matches(dataMap.getTopstate(), sp, "<$$>");
-                }
-                List<String> completeMatches = new LinkedList<>();
-                for (DataMapMatcher.Match match : matches) {
-                    if (match.getVertex() instanceof EnumerationVertex) {
-                        EnumerationVertex ev = (EnumerationVertex) match.getVertex();
-                        Iterator<String> iter = ev.getEnumeration();
-                        while (iter.hasNext()) {
-                            String enumString = iter.next();
-                            if (enumString.startsWith(userType)) {
-                                completeMatches.add(enumString);
-                            }
-                        }
-                    }
-                }
-                complete(pos, userType, completeMatches);
-            } catch (ParseException pe) {
-                getToolkit().beep();
-            }
-        }//valueComplete
-
-
-        private void complete(int pos, String userType, List<String> completeMatches) {
-            if (completeMatches.isEmpty()) {
-                return;
-            }
-
-            if (completeMatches.size() == 1) {
-                String matched = completeMatches.get(0);
-				EditingUtils.insert(editorPane.getDocument(), matched.substring(userType.length()), pos);
-                return;
-            }
-
-            //If we reach this point:  more than one match
-            boolean stillGood = true;
-            String addedCharacters = "";
-            String matched = completeMatches.get(0);
-            int curPos = userType.length();
-            while (stillGood && curPos < matched.length()) {
-                String newAddedCharacters = addedCharacters + matched.charAt(curPos);
-                String potStartString = userType + newAddedCharacters;
-              for (String currentString : completeMatches) {
-                if (!currentString.startsWith(potStartString)) {
-                  stillGood = false;
-                  break;
-                }
-              }
-
-                if (stillGood) {
-                    addedCharacters = newAddedCharacters;
-                    ++curPos;
-                }
-            }
-            // TODO: hmmm, no I don't think so, let the user choose what to insert
-			EditingUtils.insert(editorPane.getDocument(), addedCharacters, pos);
-
-            //report all matches to the user
-          // TODO: No! Show a drop-down list for the user to pick a completion from
-          RuleEditor.this.showInsertionDropdown(pos, userType, completeMatches);
-          MainFrame.getMainFrame().getFeedbackManager().setStatusBarMsgList(completeMatches);
-
-
-        }//complete
-
-        private void attributeComplete(int pos, String userType, String prodSoFar) {
-            List<String> completeMatches = getMatchingStrings(userType, prodSoFar);
-      if (completeMatches.isEmpty()) {
-        return;
+    try {
+      SoarWorkingMemoryModel dataMap = MainFrame.getMainFrame().getOperatorWindow().getDatamap();
+      prodSoFar = makeStringValidForParser(prodSoFar);
+      SoarParser soarParser = new SoarParser(new StringReader(prodSoFar));
+      SoarProduction sp = soarParser.soarProduction();
+      OperatorNode on = getNode();
+      OperatorNode parent = (OperatorNode) on.getParent();
+      List<DataMapMatcher.Match> matches;
+      SoarIdentifierVertex siv = parent.getStateIdVertex(dataMap);
+      if (siv != null) {
+        matches = dataMap.matches(siv, sp, "<$$>");
+      } else {
+        matches = dataMap.matches(dataMap.getTopstate(), sp, "<$$>");
       }
-            complete(pos, userType, completeMatches);
+      List<String> completeMatches = new LinkedList<>();
+      for (DataMapMatcher.Match match : matches) {
+        if (match.getVertex() instanceof EnumerationVertex) {
+          EnumerationVertex ev = (EnumerationVertex) match.getVertex();
+          Iterator<String> iter = ev.getEnumeration();
+          while (iter.hasNext()) {
+            String enumString = iter.next();
+            if (enumString.startsWith(userType)) {
+              completeMatches.add(enumString);
+            }
+          }
+        }
+      }
+      complete(pos, userType, completeMatches);
+    } catch (ParseException pe) {
+      getToolkit().beep();
+    }
+  }//valueComplete
 
-        }//attributeComplete
 
-    }//class TabCompleteAction
+  private void complete(int pos, String userType, List<String> completeMatches) {
+    if (completeMatches.isEmpty()) {
+      return;
+    }
+
+    if (completeMatches.size() == 1) {
+      String matched = completeMatches.get(0);
+      EditingUtils.insert(editorPane.getDocument(), matched.substring(userType.length()), pos);
+      return;
+    }
+
+    //If we reach this point:  more than one match
+    boolean stillGood = true;
+    String addedCharacters = "";
+    String matched = completeMatches.get(0);
+    int curPos = userType.length();
+    while (stillGood && curPos < matched.length()) {
+      String newAddedCharacters = addedCharacters + matched.charAt(curPos);
+      String potStartString = userType + newAddedCharacters;
+      for (String currentString : completeMatches) {
+        if (!currentString.startsWith(potStartString)) {
+          stillGood = false;
+          break;
+        }
+      }
+
+      if (stillGood) {
+        addedCharacters = newAddedCharacters;
+        ++curPos;
+      }
+    }
+    // TODO: hmmm, no I don't think so, let the user choose what to insert
+    EditingUtils.insert(editorPane.getDocument(), addedCharacters, pos);
+
+    //report all matches to the user
+    RuleEditor.this.showInsertionDropdown(pos, userType, completeMatches);
+    if(completeMatches.isEmpty()) {
+      MainFrame.getMainFrame().getFeedbackManager().setStatusBarMsg("No auto-complete matches found.");
+    }
+
+
+  }//complete
+
+  private void attributeComplete(int pos, String userType, String prodSoFar) {
+    List<String> completeMatches = getMatchingStrings(userType, prodSoFar);
+    if (completeMatches.isEmpty()) {
+      return;
+    }
+    complete(pos, userType, completeMatches);
+
+  }//attributeComplete
 
 
   private JPopupMenu autocompletePopup = null;
@@ -2059,8 +2055,7 @@ public class RuleEditor extends CustomInternalFrame {
     /**
      * getMatchingStrings
      * <p>
-     * is a helper method for {@link TabCompleteAction#attributeComplete}
-     * and {@link AutoSoarCompleteAction#attributeComplete}.  It retrieves
+     * is a helper method for {@link TabCompleteAction#attributeComplete}. It retrieves
      * the strings associated with entries in the datamap with attributes
      * that match the user's current production.
      *
