@@ -17,9 +17,7 @@ import edu.umich.soar.visualsoar.util.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
+import java.awt.event.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyVetoException;
 import java.beans.VetoableChangeListener;
@@ -75,6 +73,8 @@ public class RuleEditor extends CustomInternalFrame {
     JMenuItem deleteSelectedTextItem = new JMenuItem("Delete");
 
     JMenuItem openDataMapItem = new JMenuItem("Open Corresponding Datamap");
+
+    private final JMenuItem tabCompleteItem = new JMenuItem("Soar Complete");
 
 	// last thing the user did was save the document; bookkeeping used by undo manager
 	private final BooleanProperty lastActionWasSave = new BooleanProperty(true);
@@ -1290,7 +1290,6 @@ public class RuleEditor extends CustomInternalFrame {
         checkProductionsItem.setMnemonic(KeyEvent.VK_P);
 
         // "Soar Complete" menu item
-        JMenuItem tabCompleteItem = new JMenuItem("Soar Complete");
         tabCompleteItem.addActionListener(tabCompleteAction);
         soarMenu.add(tabCompleteItem);
 
@@ -1818,6 +1817,7 @@ public class RuleEditor extends CustomInternalFrame {
                     ++curPos;
                 }
             }
+            // TODO: hmmm, no I don't think so, let the user choose what to insert
 			EditingUtils.insert(editorPane.getDocument(), addedCharacters, pos);
 
             //report all matches to the user
@@ -1830,7 +1830,9 @@ public class RuleEditor extends CustomInternalFrame {
 
         private void attributeComplete(int pos, String userType, String prodSoFar) {
             List<String> completeMatches = getMatchingStrings(userType, prodSoFar);
-            if (completeMatches == null) return;
+      if (completeMatches.isEmpty()) {
+        return;
+      }
             complete(pos, userType, completeMatches);
 
         }//attributeComplete
@@ -1838,30 +1840,143 @@ public class RuleEditor extends CustomInternalFrame {
     }//class TabCompleteAction
 
 
-  private void showInsertionDropdown(int pos, String userType, List<String> completeMatches) {
-    JPopupMenu popupMenu = new JPopupMenu();
+  private Popup autocompletePopup = null;
+  private KeyAdapter autocompletePopupKeyListener = null;
 
-    for (String match : completeMatches) {
-      JMenuItem menuItem = new JMenuItem(match);
-      menuItem.addActionListener(e -> {
-        try {
-          // Insert the selected suggestion into the document
-          String toInsert = match.substring(userType.length());
-          EditingUtils.insert(editorPane.getDocument(), toInsert, pos);
-        } catch (Exception ex) {
-          ex.printStackTrace();
+  private void showInsertionDropdown(int pos, String userType, List<String> completeMatches) {
+    hideAutocompletePopup();
+
+    if (completeMatches.isEmpty()) {
+      return;
+    }
+
+    // Create the suggestion list
+    JList<String> suggestionList = new JList<>(new Vector<>(completeMatches));
+    suggestionList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+    suggestionList.setFocusable(false); // Prevent the list from stealing focus
+
+    JScrollPane scrollPane = new JScrollPane(suggestionList);
+    scrollPane.setFocusable(false); // Prevent the scroll pane from stealing focus
+
+    // Add a mouse listener to handle selection
+    suggestionList.addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseClicked(MouseEvent e) {
+        if (e.getClickCount() == 2) { // Double-click to select
+          int index = suggestionList.locationToIndex(e.getPoint());
+          if (index >= 0) {
+            String selected = suggestionList.getModel().getElementAt(index);
+            insertCompletion(pos, userType, selected);
+          }
         }
-      });
-      popupMenu.add(menuItem);
+      }
+    });
+
+    // Calculate the popup location
+    Point popupLocation;
+    try {
+      Rectangle caretRect = editorPane.modelToView2D(pos).getBounds();
+      popupLocation = new Point(caretRect.x, caretRect.y + caretRect.height);
+    } catch (BadLocationException ex) {
+      ex.printStackTrace();
+      return;
+    }
+
+    // Create and show the popup
+    PopupFactory popupFactory = PopupFactory.getSharedInstance();
+    autocompletePopup = popupFactory.getPopup(editorPane, scrollPane, popupLocation.x, popupLocation.y);
+    autocompletePopup.show();
+
+    // Add a KeyListener to dynamically update the popup
+    autocompletePopupKeyListener =
+        new KeyAdapter() {
+          @Override
+          public void keyPressed(KeyEvent e) {
+            if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+              hideAutocompletePopup();
+              return;
+            }
+            KeyStroke eventKeyStroke = KeyStroke.getKeyStrokeForEvent(e);
+            if (Objects.equals(tabCompleteItem.getAccelerator(), eventKeyStroke)) {
+              return;
+            }
+            // else if is enter, insertCompletion()
+            else if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+              int index = suggestionList.getSelectedIndex();
+              if (index >= 0) {
+                String selected = suggestionList.getModel().getElementAt(index);
+                insertCompletion(pos, userType, selected);
+              }
+            }
+            // else if is up or down, select the next item
+            else if (e.getKeyCode() == KeyEvent.VK_UP || e.getKeyCode() == KeyEvent.VK_DOWN) {
+              int index = suggestionList.getSelectedIndex();
+              if (index == -1) {
+                index = 0;
+              } else {
+                index += (e.getKeyCode() == KeyEvent.VK_UP) ? -1 : 1;
+              }
+              if (index < 0) {
+                index = completeMatches.size() - 1;
+              } else if (index >= completeMatches.size()) {
+                index = 0;
+              }
+              suggestionList.setSelectedIndex(index);
+            }
+            // else if is any other key, update the popup
+            else {
+              String text = editorPane.getText();
+              int lastSeparator = Math.max(text.lastIndexOf(" "), text.lastIndexOf("."));
+              String currentUserType = text.substring(lastSeparator + 1);
+              List<String> filteredMatches = getMatchingStrings(currentUserType, text);
+              if (filteredMatches.isEmpty()) {
+                hideAutocompletePopup();
+              } else {
+                showInsertionDropdown(pos, currentUserType, filteredMatches);
+              }
+            }
+            // Repaint the popup to ensure it updates correctly
+            SwingUtilities.invokeLater(() -> updatePopupMenu(pos, userType));
+          }
+        };
+    editorPane.addKeyListener(autocompletePopupKeyListener);
+  }
+
+  private void hideAutocompletePopup() {
+    if (autocompletePopup != null) {
+      autocompletePopup.hide();
+      autocompletePopup = null;
+      editorPane.removeKeyListener(autocompletePopupKeyListener);
+    }
+  }
+
+  private void insertCompletion(int pos, String userType, String selected) {
+    try {
+      String toInsert = selected.substring(userType.length());
+      EditingUtils.insert(editorPane.getDocument(), toInsert, pos);
+      hideAutocompletePopup();
+    } catch (Exception ex) {
+      ex.printStackTrace();
+    }
+  }
+
+  private void updatePopupMenu(int pos, String initialUserType) {
+    if (autocompletePopup == null) {
+      return; // No active popup to update
     }
 
     try {
-      // Get the caret position on screen
-      Rectangle caretRect = editorPane.modelToView2D(pos).getBounds();
-      Point popupLocation = new Point(caretRect.x, caretRect.y + caretRect.height);
+      int caretPos = editorPane.getCaretPosition();
+      String text = editorPane.getText(0, caretPos);
+      int lastSeparator = Math.max(text.lastIndexOf(" "), text.lastIndexOf("."));
+      String currentUserType = text.substring(lastSeparator + 1);
 
-      // Show the popup menu at the caret location
-      popupMenu.show(editorPane, popupLocation.x, popupLocation.y);
+      List<String> filteredMatches = getMatchingStrings(currentUserType, text);
+      if (filteredMatches.isEmpty()) {
+        hideAutocompletePopup();
+      } else {
+        showInsertionDropdown(pos, currentUserType, filteredMatches);
+      }
     } catch (BadLocationException ex) {
       ex.printStackTrace();
     }
@@ -1887,7 +2002,7 @@ public class RuleEditor extends CustomInternalFrame {
         try {
             sp = soarParser.soarProduction();
         } catch (ParseException pe) {
-            return null;
+            return Collections.emptyList();
         }
 
         //Find all matching string via the datamap
@@ -1903,16 +2018,15 @@ public class RuleEditor extends CustomInternalFrame {
         List<String> completeMatches = new LinkedList<>();
         //Ignore Compiler Warning: This iterator can't be given a parameter.  See my note
         // below and in DataMapMatcher.addConstraint() -:AMN:
-        Iterator i = matches.iterator();
-        while (i.hasNext()) {
-            //This cast is wacky.  Let's take what *should* be a SoarVertex
-            //and cast it to a String because String objects have been
-            //inserted into the Set<SoarVertex> in 'matches'.
-            String matched = (String) i.next();
-            if (matched.startsWith(userType)) {
-                completeMatches.add(matched);
-            }
+      for (SoarVertex match : matches) {
+        //This cast is wacky.  Let's take what *should* be a SoarVertex
+        //and cast it to a String because String objects have been
+        //inserted into the Set<SoarVertex> in 'matches'.
+        String matched = match.toString();
+        if (matched.startsWith(userType)) {
+          completeMatches.add(matched);
         }
+      }
         return completeMatches;
     }
 
