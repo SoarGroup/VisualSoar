@@ -184,6 +184,7 @@ public class MainFrame extends JFrame
 		Container contentPane = getContentPane();
 		operatorDesktopSplit.setRightComponent(desktopPane);
 		operatorDesktopSplit.setOneTouchExpandable(true);
+    operatorDesktopSplit.setContinuousLayout(true);
 
       JLabel statusBar = new JLabel("  Welcome to Visual Soar.");
       feedbackManager =
