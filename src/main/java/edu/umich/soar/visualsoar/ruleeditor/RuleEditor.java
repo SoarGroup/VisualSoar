@@ -1879,10 +1879,12 @@ public class RuleEditor extends CustomInternalFrame {
     });
 
     // Calculate the popup location
+    // Calculate the popup location
     Point popupLocation;
     try {
       Rectangle caretRect = editorPane.modelToView2D(pos).getBounds();
       popupLocation = new Point(caretRect.x, caretRect.y + caretRect.height);
+      SwingUtilities.convertPointToScreen(popupLocation, editorPane);
     } catch (BadLocationException ex) {
       ex.printStackTrace();
       return;
