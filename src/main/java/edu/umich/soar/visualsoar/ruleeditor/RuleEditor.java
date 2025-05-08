@@ -1860,13 +1860,11 @@ public class RuleEditor extends CustomInternalFrame {
     suggestionList.addMouseListener(new MouseAdapter() {
       @Override
       public void mouseClicked(MouseEvent e) {
-//        if (e.getClickCount() == 2) { // Double-click to select
         int index = suggestionList.locationToIndex(e.getPoint());
         if (index >= 0) {
           String selected = suggestionList.getModel().getElementAt(index);
           insertCompletion(pos, userType, selected);
         }
-//        }
       }
     });
 
