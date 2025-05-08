@@ -1841,7 +1841,7 @@ public class RuleEditor extends CustomInternalFrame {
     }//class TabCompleteAction
 
 
-  private Popup autocompletePopup = null;
+  private JPopupMenu autocompletePopup = null;
   private KeyAdapter autocompletePopupKeyListener = null;
 
   private void showInsertionDropdown(int pos, String userType, List<String> completeMatches) {
@@ -1851,13 +1851,24 @@ public class RuleEditor extends CustomInternalFrame {
       return;
     }
 
+    int maxVisibleRows = Math.min(completeMatches.size(), 10); // Limit to 10 rows max
     // Create the suggestion list
     JList<String> suggestionList = new JList<>(new Vector<>(completeMatches));
     suggestionList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     suggestionList.setFocusable(false); // Prevent the list from stealing focus
+    suggestionList.setVisibleRowCount(maxVisibleRows);
 
+  // Calculate the preferred height based on the number of items
+    int rowHeight = suggestionList.getFixedCellHeight();
+    if (rowHeight == 0) {
+      rowHeight = suggestionList.getFontMetrics(suggestionList.getFont()).getHeight();
+    }
+    int preferredHeight = rowHeight * maxVisibleRows;
+
+    // Create the scroll pane and set its preferred size
     JScrollPane scrollPane = new JScrollPane(suggestionList);
     scrollPane.setFocusable(false); // Prevent the scroll pane from stealing focus
+    scrollPane.setPreferredSize(new Dimension(300, preferredHeight)); // Adjust width as needed
 
     // Add a border to the popup
     JPanel panel = new JPanel(new BorderLayout());
@@ -1878,22 +1889,20 @@ public class RuleEditor extends CustomInternalFrame {
       }
     });
 
-    // Calculate the popup location
-    // Calculate the popup location
-    Point popupLocation;
+    // Create the popup menu
+    autocompletePopup = new JPopupMenu();
+    autocompletePopup.add(new JScrollPane(suggestionList));
+
     try {
+      // Get the caret position and convert to component-relative coordinates
       Rectangle caretRect = editorPane.modelToView2D(pos).getBounds();
-      popupLocation = new Point(caretRect.x, caretRect.y + caretRect.height);
-      SwingUtilities.convertPointToScreen(popupLocation, editorPane);
+      Point popupLocation = new Point(caretRect.x, caretRect.y + caretRect.height);
+
+      // Show the popup menu
+      autocompletePopup.show(editorPane, popupLocation.x, popupLocation.y);
     } catch (BadLocationException ex) {
       ex.printStackTrace();
-      return;
     }
-
-    // Create and show the popup
-    PopupFactory popupFactory = PopupFactory.getSharedInstance();
-    autocompletePopup = popupFactory.getPopup(editorPane, scrollPane, popupLocation.x, popupLocation.y);
-    autocompletePopup.show();
 
     // Add a KeyListener to dynamically update the popup
     autocompletePopupKeyListener =
@@ -1952,7 +1961,7 @@ public class RuleEditor extends CustomInternalFrame {
 
   private void hideAutocompletePopup() {
     if (autocompletePopup != null) {
-      autocompletePopup.hide();
+      autocompletePopup.setVisible(false);
       autocompletePopup = null;
       editorPane.removeKeyListener(autocompletePopupKeyListener);
     }
