@@ -1835,10 +1835,8 @@ public class RuleEditor extends CustomInternalFrame {
     complete(pos, userType, completeMatches);
 
   }//attributeComplete
-
-
+  
   private JPopupMenu autocompletePopup = null;
-  private KeyAdapter autocompletePopupKeyListener = null;
 
   private void showInsertionDropdown(int pos, String userType, List<String> completeMatches) {
     hideAutocompletePopup();
@@ -1927,20 +1925,6 @@ public class RuleEditor extends CustomInternalFrame {
     panel.add(scrollPane, BorderLayout.CENTER);
     panel.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1)); // Add a gray border
 
-//    // Add a mouse listener to handle selection
-//    suggestionList.addMouseListener(new MouseAdapter() {
-//      @Override
-//      public void mouseClicked(MouseEvent e) {
-//        if (e.getClickCount() == 2) { // Double-click to select
-//          int index = suggestionList.locationToIndex(e.getPoint());
-//          if (index >= 0) {
-//            String selected = suggestionList.getModel().getElementAt(index);
-//            insertCompletion(pos, userType, selected);
-//          }
-//        }
-//      }
-//    });
-
     // Create the popup menu
     autocompletePopup = new JPopupMenu();
     autocompletePopup.add(new JScrollPane(suggestionList));
@@ -1955,67 +1939,12 @@ public class RuleEditor extends CustomInternalFrame {
     } catch (BadLocationException ex) {
       ex.printStackTrace();
     }
-
-    // Add a KeyListener to dynamically update the popup
-//    autocompletePopupKeyListener =
-//        new KeyAdapter() {
-//          @Override
-//          public void keyPressed(KeyEvent e) {
-//            if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
-//              hideAutocompletePopup();
-//              return;
-//            }
-//            KeyStroke eventKeyStroke = KeyStroke.getKeyStrokeForEvent(e);
-//            if (Objects.equals(tabCompleteItem.getAccelerator(), eventKeyStroke)) {
-//              return;
-//            }
-//            // else if is enter, insertCompletion()
-//            else if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-//              int index = suggestionList.getSelectedIndex();
-//              if (index >= 0) {
-//                String selected = suggestionList.getModel().getElementAt(index);
-//                insertCompletion(pos, userType, selected);
-//              }
-//            }
-//            // else if is up or down, select the next item
-//            else if (e.getKeyCode() == KeyEvent.VK_UP || e.getKeyCode() == KeyEvent.VK_DOWN) {
-//              int index = suggestionList.getSelectedIndex();
-//              if (index == -1) {
-//                index = 0;
-//              } else {
-//                index += (e.getKeyCode() == KeyEvent.VK_UP) ? -1 : 1;
-//              }
-//              if (index < 0) {
-//                index = completeMatches.size() - 1;
-//              } else if (index >= completeMatches.size()) {
-//                index = 0;
-//              }
-//              suggestionList.setSelectedIndex(index);
-//            }
-//            // else if is any other key, update the popup
-//            else {
-//              String text = editorPane.getText();
-//              int lastSeparator = Math.max(text.lastIndexOf(" "), text.lastIndexOf("."));
-//              String currentUserType = text.substring(lastSeparator + 1);
-//              List<String> filteredMatches = getMatchingStrings(currentUserType, text);
-//              if (filteredMatches.isEmpty()) {
-//                hideAutocompletePopup();
-//              } else {
-//                showInsertionDropdown(pos, currentUserType, filteredMatches);
-//              }
-//            }
-//            // Repaint the popup to ensure it updates correctly
-//            SwingUtilities.invokeLater(() -> updatePopupMenu(pos, userType));
-//          }
-//        };
-//    editorPane.addKeyListener(autocompletePopupKeyListener);
   }
 
   private void hideAutocompletePopup() {
     if (autocompletePopup != null) {
       autocompletePopup.setVisible(false);
       autocompletePopup = null;
-      editorPane.removeKeyListener(autocompletePopupKeyListener);
     }
   }
 
