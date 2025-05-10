@@ -1,12 +1,12 @@
 package edu.umich.soar.visualsoar.ruleeditor;
 
+import edu.umich.soar.visualsoar.components.AutocompletePopup;
 import edu.umich.soar.visualsoar.datamap.DataMapMatcher;
 import edu.umich.soar.visualsoar.mainframe.MainFrame;
 import edu.umich.soar.visualsoar.datamap.SoarWorkingMemoryModel;
 import edu.umich.soar.visualsoar.dialogs.EditCustomTemplatesDialog;
 import edu.umich.soar.visualsoar.graph.EnumerationVertex;
 import edu.umich.soar.visualsoar.graph.SoarIdentifierVertex;
-import edu.umich.soar.visualsoar.graph.SoarVertex;
 import edu.umich.soar.visualsoar.mainframe.feedback.FeedbackEntryOpNode;
 import edu.umich.soar.visualsoar.mainframe.feedback.FeedbackListEntry;
 import edu.umich.soar.visualsoar.misc.*;
@@ -1819,7 +1819,7 @@ public class RuleEditor extends CustomInternalFrame {
     EditingUtils.insert(editorPane.getDocument(), addedCharacters, pos);
 
     //report all matches to the user
-    RuleEditor.this.showInsertionDropdown(pos, userType, completeMatches);
+    RuleEditor.this.showAutocompletePopup(pos, userType, completeMatches);
     if(completeMatches.isEmpty()) {
       MainFrame.getMainFrame().getFeedbackManager().setStatusBarMsg("No auto-complete matches found.");
     }
@@ -1835,110 +1835,16 @@ public class RuleEditor extends CustomInternalFrame {
     complete(pos, userType, completeMatches);
 
   }//attributeComplete
-  
-  private JPopupMenu autocompletePopup = null;
 
-  private void showInsertionDropdown(int pos, String userType, List<String> completeMatches) {
+  private AutocompletePopup autocompletePopup = null;
+
+  private void showAutocompletePopup(int pos, String userType, List<String> completeMatches) {
     hideAutocompletePopup();
 
     if (completeMatches.isEmpty()) {
       return;
     }
-
-    int maxVisibleRows = Math.min(completeMatches.size(), 10); // Limit to 10 rows max
-    // Create the suggestion list
-    JList<String> suggestionList = new JList<>(new Vector<>(completeMatches));
-    suggestionList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-    suggestionList.setVisibleRowCount(maxVisibleRows);
-    // Add a mouse listener to handle selection
-    suggestionList.addMouseListener(new MouseAdapter() {
-      @Override
-      public void mouseClicked(MouseEvent e) {
-        int index = suggestionList.locationToIndex(e.getPoint());
-        if (index >= 0) {
-          String selected = suggestionList.getModel().getElementAt(index);
-          insertCompletion(pos, userType, selected);
-        }
-      }
-    });
-
-    // Add a mouse motion listener to highlight the hovered item
-    suggestionList.addMouseMotionListener(new MouseMotionAdapter() {
-      @Override
-      public void mouseMoved(MouseEvent e) {
-        int index = suggestionList.locationToIndex(e.getPoint());
-        if (index >= 0) {
-          suggestionList.setSelectedIndex(index); // Highlight the hovered item
-        }
-      }
-    });
-    // Add a key listener to handle keyboard navigation and selection
-    suggestionList.addKeyListener(new KeyAdapter() {
-      @Override
-      public void keyPressed(KeyEvent e) {
-        if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
-          hideAutocompletePopup();
-          e.consume();
-          return;
-        }
-        if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-          int index = suggestionList.getSelectedIndex();
-          if (index >= 0) {
-            String selected = suggestionList.getModel().getElementAt(index);
-            insertCompletion(pos, userType, selected);
-            e.consume();
-          }
-        }
-        if (e.getKeyCode() == KeyEvent.VK_UP || e.getKeyCode() == KeyEvent.VK_DOWN) {
-          int index = suggestionList.getSelectedIndex();
-          if (index == -1) {
-            index = 0;
-          } else {
-            index += (e.getKeyCode() == KeyEvent.VK_UP) ? -1 : 1;
-          }
-          if (index < 0) {
-            index = completeMatches.size() - 1;
-          } else if (index >= completeMatches.size()) {
-            index = 0;
-          }
-          suggestionList.setSelectedIndex(index);
-          suggestionList.ensureIndexIsVisible(index); // Ensure the selected item is visible
-          e.consume();
-        }
-      }
-    });
-
-  // Calculate the preferred height based on the number of items
-    int rowHeight = suggestionList.getFixedCellHeight();
-    if (rowHeight == 0) {
-      rowHeight = suggestionList.getFontMetrics(suggestionList.getFont()).getHeight();
-    }
-    int preferredHeight = rowHeight * maxVisibleRows;
-
-    // Create the scroll pane and set its preferred size
-    JScrollPane scrollPane = new JScrollPane(suggestionList);
-    scrollPane.setFocusable(false); // Prevent the scroll pane from stealing focus
-    scrollPane.setPreferredSize(new Dimension(300, preferredHeight)); // Adjust width as needed
-
-    // Add a border to the popup
-    JPanel panel = new JPanel(new BorderLayout());
-    panel.add(scrollPane, BorderLayout.CENTER);
-    panel.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1)); // Add a gray border
-
-    // Create the popup menu
-    autocompletePopup = new JPopupMenu();
-    autocompletePopup.add(new JScrollPane(suggestionList));
-
-    try {
-      // Get the caret position and convert to component-relative coordinates
-      Rectangle caretRect = editorPane.modelToView2D(pos).getBounds();
-      Point popupLocation = new Point(caretRect.x, caretRect.y + caretRect.height);
-
-      // Show the popup menu
-      autocompletePopup.show(editorPane, popupLocation.x, popupLocation.y);
-    } catch (BadLocationException ex) {
-      ex.printStackTrace();
-    }
+    autocompletePopup = new AutocompletePopup(editorPane, pos, completeMatches, (selected) -> insertCompletion(pos, userType, selected));
   }
 
   private void hideAutocompletePopup() {
@@ -1974,7 +1880,7 @@ public class RuleEditor extends CustomInternalFrame {
       if (filteredMatches.isEmpty()) {
         hideAutocompletePopup();
       } else {
-        showInsertionDropdown(pos, currentUserType, filteredMatches);
+        showAutocompletePopup(pos, currentUserType, filteredMatches);
       }
     } catch (BadLocationException ex) {
       ex.printStackTrace();
