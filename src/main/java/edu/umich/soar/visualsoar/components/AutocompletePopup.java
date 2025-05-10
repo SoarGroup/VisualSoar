@@ -19,11 +19,22 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 import java.util.List;
+import java.util.Set;
 import java.util.Vector;
 import java.util.function.Consumer;
 
 // WIP; need to draw out state diagram. Log 40 minutes.
 public class AutocompletePopup extends JPopupMenu {
+
+  private static final Set<Integer> CURSOR_MOVEMENT_PASSTHROUGH_KEYS =
+      Set.of(
+          KeyEvent.VK_LEFT,
+          KeyEvent.VK_RIGHT,
+          KeyEvent.VK_PAGE_UP,
+          KeyEvent.VK_PAGE_DOWN,
+          KeyEvent.VK_HOME,
+          KeyEvent.VK_END);
+
   public AutocompletePopup(
       JTextComponent parent, int position, List<String> suggestions, Consumer<String> onSelect) {
     super();
@@ -75,6 +86,7 @@ public class AutocompletePopup extends JPopupMenu {
                 onSelect.accept(selected);
                 setVisible(false);
                 e.consume();
+                return;
               }
             }
             if (e.getKeyCode() == KeyEvent.VK_UP || e.getKeyCode() == KeyEvent.VK_DOWN) {
@@ -92,6 +104,13 @@ public class AutocompletePopup extends JPopupMenu {
               suggestionList.setSelectedIndex(index);
               suggestionList.ensureIndexIsVisible(index); // Ensure the selected item is visible
               e.consume();
+              return;
+            }
+            if (CURSOR_MOVEMENT_PASSTHROUGH_KEYS.contains(e.getKeyCode())) {
+              setVisible(false);
+              // Pass the event to the parent component to handle cursor movement
+              parent.dispatchEvent(e);
+              return;
             }
           }
         });
