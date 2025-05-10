@@ -1777,6 +1777,8 @@ public class RuleEditor extends CustomInternalFrame {
           }
         }
       }
+
+      Collections.sort(completeMatches);
       complete(pos, userType, completeMatches);
     } catch (ParseException pe) {
       getToolkit().beep();
@@ -1816,11 +1818,12 @@ public class RuleEditor extends CustomInternalFrame {
         ++curPos;
       }
     }
-    // TODO: hmmm, no I don't think so, let the user choose what to insert
+    // TODO: hmmm, if the user decides they don't want the completion after all, then they have to undo. Not super smooth.
     EditingUtils.insert(editorPane.getDocument(), addedCharacters, pos);
+    editorPane.colorSyntax();
 
     //report all matches to the user
-    RuleEditor.this.showAutocompletePopup(pos, userType, completeMatches);
+    RuleEditor.this.showAutocompletePopup(pos + addedCharacters.length(), userType + addedCharacters, completeMatches);
     if(completeMatches.isEmpty()) {
       MainFrame.getMainFrame().getFeedbackManager().setStatusBarMsg("No auto-complete matches found.");
     }
@@ -1830,12 +1833,8 @@ public class RuleEditor extends CustomInternalFrame {
 
   private void attributeComplete(int pos, String userType, String prodSoFar) {
     List<String> completeMatches = getMatchingStrings(userType, prodSoFar);
-    if (completeMatches.isEmpty()) {
-      return;
-    }
     complete(pos, userType, completeMatches);
-
-  }//attributeComplete
+  }
 
   private AutocompletePopup autocompletePopup = null;
 
@@ -1927,6 +1926,7 @@ public class RuleEditor extends CustomInternalFrame {
           completeMatches.add(matched);
         }
       }
+      Collections.sort(completeMatches);
         return completeMatches;
     }
 
