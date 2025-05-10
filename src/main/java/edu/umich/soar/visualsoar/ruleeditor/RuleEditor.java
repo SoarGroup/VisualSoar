@@ -1792,6 +1792,7 @@ public class RuleEditor extends CustomInternalFrame {
     if (completeMatches.size() == 1) {
       String matched = completeMatches.get(0);
       EditingUtils.insert(editorPane.getDocument(), matched.substring(userType.length()), pos);
+      editorPane.colorSyntax();
       return;
     }
 
