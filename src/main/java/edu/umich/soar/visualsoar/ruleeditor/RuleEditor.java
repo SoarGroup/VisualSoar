@@ -1844,7 +1844,7 @@ public class RuleEditor extends CustomInternalFrame {
     if (completeMatches.isEmpty()) {
       return;
     }
-    autocompletePopup = new AutocompletePopup(editorPane, pos, completeMatches, (selected) -> insertCompletion(pos, userType, selected));
+    autocompletePopup = new AutocompletePopup(editorPane, pos, userType, completeMatches, (completion) -> insertCompletion(completion));
     MainFrame.getMainFrame().getFeedbackManager().setStatusBarMsg(autocompletePopup.shortInstructions());
     autocompletePopup.addPopupMenuListener(new PopupMenuListener() {
       @Override
@@ -1872,10 +1872,10 @@ public class RuleEditor extends CustomInternalFrame {
     }
   }
 
-  private void insertCompletion(int pos, String userType, String selected) {
+  private void insertCompletion(String completion) {
     try {
-      String toInsert = selected.substring(userType.length());
-      EditingUtils.insert(editorPane.getDocument(), toInsert, pos);
+      int pos = editorPane.getCaretPosition();
+      EditingUtils.insert(editorPane.getDocument(), completion, pos);
       editorPane.colorSyntax();
       hideAutocompletePopup();
     } catch (Exception ex) {

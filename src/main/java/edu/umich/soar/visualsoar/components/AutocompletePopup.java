@@ -1,5 +1,7 @@
 package edu.umich.soar.visualsoar.components;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -33,14 +35,20 @@ public class AutocompletePopup extends JPopupMenu {
           KeyEvent.VK_PAGE_DOWN,
           KeyEvent.VK_HOME,
           KeyEvent.VK_END);
+  private final JList<String> suggestionList = new JList<>();
+  private final AutocompleteData autocompleteData;
 
   public AutocompletePopup(
-      JTextComponent parent, int position, List<String> suggestions, Consumer<String> onSelect) {
+      @NotNull JTextComponent parent,
+      int initialPosition,
+      @NotNull String inputSoFar,
+      @NotNull List<String> suggestions,
+      @NotNull Consumer<String> onCompletion) {
     super();
+    this.autocompleteData = new AutocompleteData(inputSoFar, suggestions);
+
     int maxVisibleRows = Math.min(suggestions.size(), 10); // Limit to 10 rows max
-    // Create the suggestion list
-    JList<String> suggestionList = new JList<>(new Vector<>(suggestions));
-    suggestionList.setSelectedIndex(0);
+    updateSuggestionList();
     suggestionList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     suggestionList.setVisibleRowCount(maxVisibleRows);
 
@@ -51,8 +59,8 @@ public class AutocompletePopup extends JPopupMenu {
           public void mouseClicked(MouseEvent e) {
             int index = suggestionList.locationToIndex(e.getPoint());
             if (index >= 0) {
-              String selected = suggestionList.getModel().getElementAt(index);
-              onSelect.accept(selected);
+              String selected = autocompleteData.getCompletion(index);
+              onCompletion.accept(selected);
               setVisible(false);
             }
           }
@@ -77,8 +85,8 @@ public class AutocompletePopup extends JPopupMenu {
             if (e.getKeyCode() == KeyEvent.VK_ENTER) {
               int index = suggestionList.getSelectedIndex();
               if (index >= 0) {
-                String selected = suggestionList.getModel().getElementAt(index);
-                onSelect.accept(selected);
+                String selected = autocompleteData.getCompletion(index);
+                onCompletion.accept(selected);
                 setVisible(false);
                 e.consume();
                 return;
@@ -107,14 +115,29 @@ public class AutocompletePopup extends JPopupMenu {
             // popup
             if (CURSOR_MOVEMENT_PASSTHROUGH_KEYS.contains(e.getKeyCode())) {
               setVisible(false);
-              parent.dispatchEvent(e);
+              parent.dispatchEvent(e); // / TODO: is this needed?
+              return;
             }
           }
 
           @Override
           public void keyTyped(KeyEvent e) {
-            // typing closes the popup and types in the parent
-            setVisible(false);
+            char typedChar = e.getKeyChar();
+            if (e.getKeyCode() == KeyEvent.VK_BACK_SPACE) {
+              if (!autocompleteData.canDelete()) {
+                setVisible(false);
+                return;
+              }
+              autocompleteData.deleteInput();
+            } else {
+              autocompleteData.appendInput(typedChar);
+            }
+            if (autocompleteData.filteredSuggestions().isEmpty()) {
+              // Close the popup if no suggestions match
+              setVisible(false);
+            }
+            updateSuggestionList();
+            // enter the chars in the document
             parent.dispatchEvent(e);
           }
         });
@@ -140,7 +163,7 @@ public class AutocompletePopup extends JPopupMenu {
 
     try {
       // Get the caret position and convert to component-relative coordinates
-      Rectangle caretRect = parent.modelToView2D(position).getBounds();
+      Rectangle caretRect = parent.modelToView2D(initialPosition).getBounds();
       Point popupLocation = new Point(caretRect.x, caretRect.y + caretRect.height);
 
       // Show the popup menu
@@ -150,6 +173,10 @@ public class AutocompletePopup extends JPopupMenu {
     }
   }
 
+  private void updateSuggestionList() {
+    suggestionList.setListData(new Vector<>(autocompleteData.filteredSuggestions()));
+    suggestionList.setSelectedIndex(0);
+  }
 
   public String shortInstructions() {
     return "UP/DOWN to select; ENTER to confirm";
