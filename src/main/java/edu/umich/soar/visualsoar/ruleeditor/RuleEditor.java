@@ -1818,7 +1818,7 @@ public class RuleEditor extends CustomInternalFrame {
         ++curPos;
       }
     }
-    // TODO: hmmm, if the user decides they don't want the completion after all, then they have to undo. Not super smooth.
+
     EditingUtils.insert(editorPane.getDocument(), addedCharacters, pos);
     editorPane.colorSyntax();
 
@@ -1879,28 +1879,6 @@ public class RuleEditor extends CustomInternalFrame {
       editorPane.colorSyntax();
       hideAutocompletePopup();
     } catch (Exception ex) {
-      ex.printStackTrace();
-    }
-  }
-
-  private void updatePopupMenu(int pos, String initialUserType) {
-    if (autocompletePopup == null) {
-      return; // No active popup to update
-    }
-
-    try {
-      int caretPos = editorPane.getCaretPosition();
-      String text = editorPane.getText(0, caretPos);
-      int lastSeparator = Math.max(text.lastIndexOf(" "), text.lastIndexOf("."));
-      String currentUserType = text.substring(lastSeparator + 1);
-
-      List<String> filteredMatches = getMatchingStrings(currentUserType, text);
-      if (filteredMatches.isEmpty()) {
-        hideAutocompletePopup();
-      } else {
-        showAutocompletePopup(pos, currentUserType, filteredMatches);
-      }
-    } catch (BadLocationException ex) {
       ex.printStackTrace();
     }
   }

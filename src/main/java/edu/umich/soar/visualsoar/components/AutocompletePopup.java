@@ -36,7 +36,7 @@ public class AutocompletePopup extends JPopupMenu {
           KeyEvent.VK_HOME,
           KeyEvent.VK_END);
   private final JList<String> suggestionList = new JList<>();
-  private final AutocompleteData autocompleteData;
+  private final AutocompleteContext autocompleteContext;
 
   public AutocompletePopup(
       @NotNull JTextComponent parent,
@@ -45,7 +45,7 @@ public class AutocompletePopup extends JPopupMenu {
       @NotNull List<String> suggestions,
       @NotNull Consumer<String> onCompletion) {
     super();
-    this.autocompleteData = new AutocompleteData(inputSoFar, suggestions);
+    this.autocompleteContext = new AutocompleteContext(inputSoFar, suggestions);
 
     int maxVisibleRows = Math.min(suggestions.size(), 10); // Limit to 10 rows max
     updateSuggestionList();
@@ -59,7 +59,7 @@ public class AutocompletePopup extends JPopupMenu {
           public void mouseClicked(MouseEvent e) {
             int index = suggestionList.locationToIndex(e.getPoint());
             if (index >= 0) {
-              String selected = autocompleteData.getCompletion(index);
+              String selected = autocompleteContext.getCompletion(index);
               onCompletion.accept(selected);
               setVisible(false);
             }
@@ -82,10 +82,22 @@ public class AutocompletePopup extends JPopupMenu {
         new KeyAdapter() {
           @Override
           public void keyPressed(KeyEvent e) {
+            if (e.getKeyCode() == KeyEvent.VK_BACK_SPACE) {
+
+              if (autocompleteContext.canDelete()) {
+                autocompleteContext.deleteInput();
+                updateSuggestionList();
+              } else{
+                setVisible(false);
+              }
+
+              parent.dispatchEvent(e);
+              return;
+            }
             if (e.getKeyCode() == KeyEvent.VK_ENTER) {
               int index = suggestionList.getSelectedIndex();
               if (index >= 0) {
-                String selected = autocompleteData.getCompletion(index);
+                String selected = autocompleteContext.getCompletion(index);
                 onCompletion.accept(selected);
                 setVisible(false);
                 e.consume();
@@ -115,7 +127,7 @@ public class AutocompletePopup extends JPopupMenu {
             // popup
             if (CURSOR_MOVEMENT_PASSTHROUGH_KEYS.contains(e.getKeyCode())) {
               setVisible(false);
-              parent.dispatchEvent(e); // / TODO: is this needed?
+              parent.dispatchEvent(e);
               return;
             }
           }
@@ -123,16 +135,10 @@ public class AutocompletePopup extends JPopupMenu {
           @Override
           public void keyTyped(KeyEvent e) {
             char typedChar = e.getKeyChar();
-            if (e.getKeyCode() == KeyEvent.VK_BACK_SPACE) {
-              if (!autocompleteData.canDelete()) {
-                setVisible(false);
-                return;
-              }
-              autocompleteData.deleteInput();
-            } else {
-              autocompleteData.appendInput(typedChar);
+            if (Character.isDefined(typedChar) && !Character.isISOControl(typedChar)) {
+              autocompleteContext.appendInput(typedChar);
             }
-            if (autocompleteData.filteredSuggestions().isEmpty()) {
+            if (autocompleteContext.filteredSuggestions().isEmpty()) {
               // Close the popup if no suggestions match
               setVisible(false);
             }
@@ -174,7 +180,7 @@ public class AutocompletePopup extends JPopupMenu {
   }
 
   private void updateSuggestionList() {
-    suggestionList.setListData(new Vector<>(autocompleteData.filteredSuggestions()));
+    suggestionList.setListData(new Vector<>(autocompleteContext.filteredSuggestions()));
     suggestionList.setSelectedIndex(0);
   }
 

@@ -6,8 +6,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/** Manage the suggestion list for auto-completion of a user's typing. */
-public class AutocompleteData {
+/** Manages the suggestion list for auto-completion of a user's typing. */
+public class AutocompleteContext {
   private String currentInput;
   private final List<String> allSuggestions;
   private List<String> currentSuggestions = Collections.emptyList();
@@ -16,15 +16,15 @@ public class AutocompleteData {
    * @param currentInput The user's input so far this auto-completion.
    * @param allSuggestions All suggestions to be filtered down by the user's input
    */
-  public AutocompleteData(@NotNull String currentInput, @NotNull List<String> allSuggestions) {
+  public AutocompleteContext(@NotNull String currentInput, @NotNull List<String> allSuggestions) {
     this.currentInput = currentInput;
     this.allSuggestions = allSuggestions;
     updateSuggestions();
   }
 
   /**
-   * Append to current input string and re-filter the suggestion list to those matching the
-   * current input.
+   * Append to current input string and re-filter the suggestion list to those matching the current
+   * input.
    *
    * @param newInput character to append to the current input
    */
@@ -69,6 +69,10 @@ public class AutocompleteData {
     return currentSuggestions;
   }
 
+  /**
+   * @param index Index of selection in current filtered suggestions
+   * @return completion using that index and the current input
+   */
   public String getCompletion(int index) {
     String selection = currentSuggestions.get(index);
     return selection.substring(currentInput.length());
