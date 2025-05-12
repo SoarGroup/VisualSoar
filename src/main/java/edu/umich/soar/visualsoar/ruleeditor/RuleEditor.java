@@ -1845,6 +1845,24 @@ public class RuleEditor extends CustomInternalFrame {
       return;
     }
     autocompletePopup = new AutocompletePopup(editorPane, pos, completeMatches, (selected) -> insertCompletion(pos, userType, selected));
+    MainFrame.getMainFrame().getFeedbackManager().setStatusBarMsg(autocompletePopup.shortInstructions());
+    autocompletePopup.addPopupMenuListener(new PopupMenuListener() {
+      @Override
+      public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
+
+      }
+
+      @Override
+      public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
+        MainFrame.getMainFrame().getFeedbackManager().clearStatusBar();
+        autocompletePopup = null;
+      }
+
+      @Override
+      public void popupMenuCanceled(PopupMenuEvent e) {
+
+      }
+    });
   }
 
   private void hideAutocompletePopup() {

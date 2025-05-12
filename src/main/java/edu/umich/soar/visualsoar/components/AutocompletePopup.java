@@ -1,13 +1,5 @@
 package edu.umich.soar.visualsoar.components;
 
-import javax.swing.BorderFactory;
-import javax.swing.JList;
-import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
-import javax.swing.JScrollPane;
-import javax.swing.ListSelectionModel;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.JTextComponent;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -22,8 +14,15 @@ import java.util.List;
 import java.util.Set;
 import java.util.Vector;
 import java.util.function.Consumer;
+import javax.swing.BorderFactory;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
+import javax.swing.ListSelectionModel;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.JTextComponent;
 
-// WIP; need to draw out state diagram. Log 40 minutes.
 public class AutocompletePopup extends JPopupMenu {
 
   private static final Set<Integer> CURSOR_MOVEMENT_PASSTHROUGH_KEYS =
@@ -41,6 +40,7 @@ public class AutocompletePopup extends JPopupMenu {
     int maxVisibleRows = Math.min(suggestions.size(), 10); // Limit to 10 rows max
     // Create the suggestion list
     JList<String> suggestionList = new JList<>(new Vector<>(suggestions));
+    suggestionList.setSelectedIndex(0);
     suggestionList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     suggestionList.setVisibleRowCount(maxVisibleRows);
 
@@ -74,11 +74,6 @@ public class AutocompletePopup extends JPopupMenu {
         new KeyAdapter() {
           @Override
           public void keyPressed(KeyEvent e) {
-            if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
-              setVisible(false);
-              e.consume();
-              return;
-            }
             if (e.getKeyCode() == KeyEvent.VK_ENTER) {
               int index = suggestionList.getSelectedIndex();
               if (index >= 0) {
@@ -89,6 +84,8 @@ public class AutocompletePopup extends JPopupMenu {
                 return;
               }
             }
+            // UP/DOWN keys navigate selection; custom handling here allows wrapping between
+            // start/end of list
             if (e.getKeyCode() == KeyEvent.VK_UP || e.getKeyCode() == KeyEvent.VK_DOWN) {
               int index = suggestionList.getSelectedIndex();
               if (index == -1) {
@@ -106,12 +103,19 @@ public class AutocompletePopup extends JPopupMenu {
               e.consume();
               return;
             }
+            // Unambiguous cursor movement keys are passed through to parent after closing this
+            // popup
             if (CURSOR_MOVEMENT_PASSTHROUGH_KEYS.contains(e.getKeyCode())) {
               setVisible(false);
-              // Pass the event to the parent component to handle cursor movement
               parent.dispatchEvent(e);
-              return;
             }
+          }
+
+          @Override
+          public void keyTyped(KeyEvent e) {
+            // typing closes the popup and types in the parent
+            setVisible(false);
+            parent.dispatchEvent(e);
           }
         });
 
@@ -144,5 +148,10 @@ public class AutocompletePopup extends JPopupMenu {
     } catch (BadLocationException ex) {
       ex.printStackTrace();
     }
+  }
+
+
+  public String shortInstructions() {
+    return "UP/DOWN to select; ENTER to confirm";
   }
 }
