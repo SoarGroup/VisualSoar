@@ -1,5 +1,7 @@
 package edu.umich.soar.visualsoar.components;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -23,6 +25,9 @@ import javax.swing.ListSelectionModel;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.JTextComponent;
 
+/**
+ * Popup menu for auto-completing text in a document
+ */
 public class AutocompletePopup extends JPopupMenu {
 
   private static final Set<Integer> CURSOR_MOVEMENT_PASSTHROUGH_KEYS =
@@ -33,14 +38,27 @@ public class AutocompletePopup extends JPopupMenu {
           KeyEvent.VK_PAGE_DOWN,
           KeyEvent.VK_HOME,
           KeyEvent.VK_END);
+  private final JList<String> suggestionList = new JList<>();
+  private final AutocompleteContext autocompleteContext;
 
+  /**
+   *
+   * @param parent text component where completion will be performed
+   * @param position position to perform completion at
+   * @param inputSoFar text
+   * @param suggestions Full list of suggestions
+   * @param onCompletion
+   */
   public AutocompletePopup(
-      JTextComponent parent, int position, List<String> suggestions, Consumer<String> onSelect) {
+      @NotNull JTextComponent parent,
+      int position,
+      @NotNull String inputSoFar,
+      @NotNull List<String> suggestions,
+      @NotNull Consumer<String> onCompletion) {
     super();
-    int maxVisibleRows = Math.min(suggestions.size(), 10); // Limit to 10 rows max
-    // Create the suggestion list
-    JList<String> suggestionList = new JList<>(new Vector<>(suggestions));
-    suggestionList.setSelectedIndex(0);
+    autocompleteContext = new AutocompleteContext(inputSoFar, suggestions);
+    int maxVisibleRows = Math.min(autocompleteContext.unfilteredSuggestionsSize(), 10); // Limit to 10 rows max
+    updateSuggestionList();
     suggestionList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     suggestionList.setVisibleRowCount(maxVisibleRows);
 
@@ -51,8 +69,8 @@ public class AutocompletePopup extends JPopupMenu {
           public void mouseClicked(MouseEvent e) {
             int index = suggestionList.locationToIndex(e.getPoint());
             if (index >= 0) {
-              String selected = suggestionList.getModel().getElementAt(index);
-              onSelect.accept(selected);
+              String selected = autocompleteContext.getCompletion(index);
+              onCompletion.accept(selected);
               setVisible(false);
             }
           }
@@ -74,11 +92,30 @@ public class AutocompletePopup extends JPopupMenu {
         new KeyAdapter() {
           @Override
           public void keyPressed(KeyEvent e) {
+            if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+              setVisible(false);
+              e.consume();
+              return;
+            }
+            // Update auto-complete context and pass on to parent. Hide if nothing could be
+            // deleted from the auto-complete context.
+            if (e.getKeyCode() == KeyEvent.VK_BACK_SPACE) {
+              if (autocompleteContext.canDelete()) {
+                autocompleteContext.deleteInput();
+                updateSuggestionList();
+              } else{
+                setVisible(false);
+              }
+
+              parent.dispatchEvent(e);
+              return;
+            }
+            // ENTER triggers the current selected completion
             if (e.getKeyCode() == KeyEvent.VK_ENTER) {
               int index = suggestionList.getSelectedIndex();
               if (index >= 0) {
-                String selected = suggestionList.getModel().getElementAt(index);
-                onSelect.accept(selected);
+                String selected = autocompleteContext.getCompletion(index);
+                onCompletion.accept(selected);
                 setVisible(false);
                 e.consume();
                 return;
@@ -93,28 +130,37 @@ public class AutocompletePopup extends JPopupMenu {
               } else {
                 index += (e.getKeyCode() == KeyEvent.VK_UP) ? -1 : 1;
               }
+              int numSuggestions = suggestionList.getModel().getSize();
               if (index < 0) {
-                index = suggestions.size() - 1;
-              } else if (index >= suggestions.size()) {
+                index = numSuggestions - 1;
+              } else if (index >= numSuggestions) {
                 index = 0;
               }
               suggestionList.setSelectedIndex(index);
-              suggestionList.ensureIndexIsVisible(index); // Ensure the selected item is visible
+              suggestionList.ensureIndexIsVisible(index);
               e.consume();
               return;
             }
-            // Unambiguous cursor movement keys are passed through to parent after closing this
-            // popup
+            // Unambiguous cursor movement keys are passed through to parent after closing
             if (CURSOR_MOVEMENT_PASSTHROUGH_KEYS.contains(e.getKeyCode())) {
               setVisible(false);
               parent.dispatchEvent(e);
+              return;
             }
           }
 
           @Override
           public void keyTyped(KeyEvent e) {
-            // typing closes the popup and types in the parent
-            setVisible(false);
+            char typedChar = e.getKeyChar();
+            if (Character.isDefined(typedChar) && !Character.isISOControl(typedChar)) {
+              autocompleteContext.appendInput(typedChar);
+            }
+            if (autocompleteContext.filteredSuggestions().isEmpty()) {
+              // Close the popup if no suggestions match
+              setVisible(false);
+            }
+            updateSuggestionList();
+            // enter the chars in the document
             parent.dispatchEvent(e);
           }
         });
@@ -150,6 +196,10 @@ public class AutocompletePopup extends JPopupMenu {
     }
   }
 
+  private void updateSuggestionList() {
+    suggestionList.setListData(new Vector<>(autocompleteContext.filteredSuggestions()));
+    suggestionList.setSelectedIndex(0);
+  }
 
   public String shortInstructions() {
     return "UP/DOWN to select; ENTER to confirm";

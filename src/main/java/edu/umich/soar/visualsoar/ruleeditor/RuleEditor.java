@@ -1818,7 +1818,7 @@ public class RuleEditor extends CustomInternalFrame {
         ++curPos;
       }
     }
-    // TODO: hmmm, if the user decides they don't want the completion after all, then they have to undo. Not super smooth.
+
     EditingUtils.insert(editorPane.getDocument(), addedCharacters, pos);
     editorPane.colorSyntax();
 
@@ -1844,7 +1844,7 @@ public class RuleEditor extends CustomInternalFrame {
     if (completeMatches.isEmpty()) {
       return;
     }
-    autocompletePopup = new AutocompletePopup(editorPane, pos, completeMatches, (selected) -> insertCompletion(pos, userType, selected));
+    autocompletePopup = new AutocompletePopup(editorPane, pos, userType, completeMatches, (completion) -> insertCompletion(completion));
     MainFrame.getMainFrame().getFeedbackManager().setStatusBarMsg(autocompletePopup.shortInstructions());
     autocompletePopup.addPopupMenuListener(new PopupMenuListener() {
       @Override
@@ -1872,35 +1872,13 @@ public class RuleEditor extends CustomInternalFrame {
     }
   }
 
-  private void insertCompletion(int pos, String userType, String selected) {
+  private void insertCompletion(String completion) {
     try {
-      String toInsert = selected.substring(userType.length());
-      EditingUtils.insert(editorPane.getDocument(), toInsert, pos);
+      int pos = editorPane.getCaretPosition();
+      EditingUtils.insert(editorPane.getDocument(), completion, pos);
       editorPane.colorSyntax();
       hideAutocompletePopup();
     } catch (Exception ex) {
-      ex.printStackTrace();
-    }
-  }
-
-  private void updatePopupMenu(int pos, String initialUserType) {
-    if (autocompletePopup == null) {
-      return; // No active popup to update
-    }
-
-    try {
-      int caretPos = editorPane.getCaretPosition();
-      String text = editorPane.getText(0, caretPos);
-      int lastSeparator = Math.max(text.lastIndexOf(" "), text.lastIndexOf("."));
-      String currentUserType = text.substring(lastSeparator + 1);
-
-      List<String> filteredMatches = getMatchingStrings(currentUserType, text);
-      if (filteredMatches.isEmpty()) {
-        hideAutocompletePopup();
-      } else {
-        showAutocompletePopup(pos, currentUserType, filteredMatches);
-      }
-    } catch (BadLocationException ex) {
       ex.printStackTrace();
     }
   }
