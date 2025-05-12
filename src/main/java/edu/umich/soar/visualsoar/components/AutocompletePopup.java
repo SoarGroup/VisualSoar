@@ -25,9 +25,7 @@ import javax.swing.ListSelectionModel;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.JTextComponent;
 
-/**
- * Popup menu for auto-completing text in a document
- */
+/** Popup menu for auto-completing text in a document */
 public class AutocompletePopup extends JPopupMenu {
 
   private static final Set<Integer> CURSOR_MOVEMENT_PASSTHROUGH_KEYS =
@@ -42,7 +40,6 @@ public class AutocompletePopup extends JPopupMenu {
   private final AutocompleteContext autocompleteContext;
 
   /**
-   *
    * @param parent text component where completion will be performed
    * @param position position to perform completion at
    * @param inputSoFar text
@@ -57,7 +54,8 @@ public class AutocompletePopup extends JPopupMenu {
       @NotNull Consumer<String> onCompletion) {
     super();
     autocompleteContext = new AutocompleteContext(inputSoFar, suggestions);
-    int maxVisibleRows = Math.min(autocompleteContext.unfilteredSuggestionsSize(), 10); // Limit to 10 rows max
+    int maxVisibleRows =
+        Math.min(autocompleteContext.unfilteredSuggestionsSize(), 10); // Limit to 10 rows max
     updateSuggestionList();
     suggestionList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     suggestionList.setVisibleRowCount(maxVisibleRows);
@@ -67,12 +65,7 @@ public class AutocompletePopup extends JPopupMenu {
         new MouseAdapter() {
           @Override
           public void mouseClicked(MouseEvent e) {
-            int index = suggestionList.locationToIndex(e.getPoint());
-            if (index >= 0) {
-              String selected = autocompleteContext.getCompletion(index);
-              onCompletion.accept(selected);
-              setVisible(false);
-            }
+            executeCompletion(suggestionList.locationToIndex(e.getPoint()), onCompletion);
           }
         });
 
@@ -92,76 +85,13 @@ public class AutocompletePopup extends JPopupMenu {
         new KeyAdapter() {
           @Override
           public void keyPressed(KeyEvent e) {
-            if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
-              setVisible(false);
-              e.consume();
-              return;
-            }
-            // Update auto-complete context and pass on to parent. Hide if nothing could be
-            // deleted from the auto-complete context.
-            if (e.getKeyCode() == KeyEvent.VK_BACK_SPACE) {
-              if (autocompleteContext.canDelete()) {
-                autocompleteContext.deleteInput();
-                updateSuggestionList();
-              } else{
-                setVisible(false);
-              }
-
-              parent.dispatchEvent(e);
-              return;
-            }
-            // ENTER triggers the current selected completion
-            if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-              int index = suggestionList.getSelectedIndex();
-              if (index >= 0) {
-                String selected = autocompleteContext.getCompletion(index);
-                onCompletion.accept(selected);
-                setVisible(false);
-                e.consume();
-                return;
-              }
-            }
-            // UP/DOWN keys navigate selection; custom handling here allows wrapping between
-            // start/end of list
-            if (e.getKeyCode() == KeyEvent.VK_UP || e.getKeyCode() == KeyEvent.VK_DOWN) {
-              int index = suggestionList.getSelectedIndex();
-              if (index == -1) {
-                index = 0;
-              } else {
-                index += (e.getKeyCode() == KeyEvent.VK_UP) ? -1 : 1;
-              }
-              int numSuggestions = suggestionList.getModel().getSize();
-              if (index < 0) {
-                index = numSuggestions - 1;
-              } else if (index >= numSuggestions) {
-                index = 0;
-              }
-              suggestionList.setSelectedIndex(index);
-              suggestionList.ensureIndexIsVisible(index);
-              e.consume();
-              return;
-            }
-            // Unambiguous cursor movement keys are passed through to parent after closing
-            if (CURSOR_MOVEMENT_PASSTHROUGH_KEYS.contains(e.getKeyCode())) {
-              setVisible(false);
-              parent.dispatchEvent(e);
-              return;
-            }
+            handleKeyPressed(e, parent, onCompletion);
           }
 
           @Override
           public void keyTyped(KeyEvent e) {
             char typedChar = e.getKeyChar();
-            if (Character.isDefined(typedChar) && !Character.isISOControl(typedChar)) {
-              autocompleteContext.appendInput(typedChar);
-            }
-            if (autocompleteContext.filteredSuggestions().isEmpty()) {
-              // Close the popup if no suggestions match
-              setVisible(false);
-            }
-            updateSuggestionList();
-            // enter the chars in the document
-            parent.dispatchEvent(e);
+            handleKeyTyped(e, typedChar, parent);
           }
         });
 
@@ -194,6 +124,92 @@ public class AutocompletePopup extends JPopupMenu {
     } catch (BadLocationException ex) {
       ex.printStackTrace();
     }
+  }
+
+  private void handleKeyPressed(
+      @NotNull KeyEvent e, @NotNull JTextComponent parent, @NotNull Consumer<String> onCompletion) {
+    if (e.getKeyCode() == KeyEvent.VK_BACK_SPACE) {
+      handleBackspace(e, parent);
+      return;
+    }
+    // ENTER triggers the current selected completion
+    if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+      executeCompletion(suggestionList.getSelectedIndex(), onCompletion);
+      e.consume();
+      return;
+    }
+    if (e.getKeyCode() == KeyEvent.VK_UP || e.getKeyCode() == KeyEvent.VK_DOWN) {
+      handleUpDownKeys(e);
+      return;
+    }
+    // Unambiguous cursor movement keys are passed through to parent after closing
+    if (CURSOR_MOVEMENT_PASSTHROUGH_KEYS.contains(e.getKeyCode())) {
+      setVisible(false);
+      parent.dispatchEvent(e);
+      return;
+    }
+    parent.dispatchEvent(e);
+  }
+
+  /**
+   * When the user types, pass the typing through to the parent and update the suggestion list. If
+   * no more suggestions are available, close this popup.
+   */
+  private void handleKeyTyped(KeyEvent e, char typedChar, @NotNull JTextComponent parent) {
+    if (Character.isDefined(typedChar) && !Character.isISOControl(typedChar)) {
+      autocompleteContext.appendInput(typedChar);
+    }
+    if (autocompleteContext.filteredSuggestions().isEmpty()) {
+      // Close the popup if no suggestions match
+      setVisible(false);
+    }
+    updateSuggestionList();
+    // enter the chars in the document
+    parent.dispatchEvent(e);
+  }
+
+  /**
+   * Update auto-complete context and pass on to parent. Hide if nothing could be deleted from the
+   * auto-complete context.
+   */
+  private void handleBackspace(KeyEvent e, @NotNull JTextComponent parent) {
+    if (autocompleteContext.canDelete()) {
+      autocompleteContext.deleteInput();
+      updateSuggestionList();
+    } else {
+      setVisible(false);
+    }
+
+    parent.dispatchEvent(e);
+  }
+
+  private void executeCompletion(int suggestionIndex, @NotNull Consumer<String> onCompletion) {
+    if (suggestionIndex >= 0) {
+      String selected = autocompleteContext.getCompletion(suggestionIndex);
+      onCompletion.accept(selected);
+      setVisible(false);
+    }
+  }
+
+  /**
+   * UP/DOWN keys navigate selection; custom handling here allows wrapping between start/end of list
+   */
+  private void handleUpDownKeys(KeyEvent e) {
+    int index = suggestionList.getSelectedIndex();
+    if (index == -1) {
+      index = 0;
+    } else {
+      index += (e.getKeyCode() == KeyEvent.VK_UP) ? -1 : 1;
+    }
+    int numSuggestions = suggestionList.getModel().getSize();
+    if (index < 0) {
+      index = numSuggestions - 1;
+    } else if (index >= numSuggestions) {
+      index = 0;
+    }
+    suggestionList.setSelectedIndex(index);
+    suggestionList.ensureIndexIsVisible(index);
+    e.consume();
   }
 
   private void updateSuggestionList() {
