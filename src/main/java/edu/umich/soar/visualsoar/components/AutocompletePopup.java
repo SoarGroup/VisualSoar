@@ -120,6 +120,7 @@ public class AutocompletePopup extends JPopupMenu {
       show(parent, popupLocation.x, popupLocation.y);
     } catch (BadLocationException ex) {
       ex.printStackTrace();
+      setVisible(false);
     }
   }
 
@@ -141,6 +142,17 @@ public class AutocompletePopup extends JPopupMenu {
     }
     // Unambiguous cursor movement keys are passed through to parent after closing
     if (CURSOR_MOVEMENT_PASSTHROUGH_KEYS.contains(e.getKeyCode())) {
+      setVisible(false);
+      parent.dispatchEvent(e);
+      return;
+    }
+    // Close the popup if a meta key (Ctrl, Alt, Cmd) is pressed with another key, as this is likely
+    // the invocation of some other shortcut such as undo/redo, and we would need more logic to handle
+    // that gracefully
+    if ((e.getModifiersEx() & (KeyEvent.CTRL_DOWN_MASK | KeyEvent.ALT_DOWN_MASK | KeyEvent.META_DOWN_MASK)) != 0
+      && e.getKeyCode() != KeyEvent.VK_CONTROL
+      && e.getKeyCode() != KeyEvent.VK_ALT
+      && e.getKeyCode() != KeyEvent.VK_META) {
       setVisible(false);
       parent.dispatchEvent(e);
       return;
