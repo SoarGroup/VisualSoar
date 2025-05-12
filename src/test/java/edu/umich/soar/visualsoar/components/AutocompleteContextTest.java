@@ -38,6 +38,18 @@ class AutocompleteContextTest {
   }
 
   @Test
+  void testUnfilteredSuggestionsSize() {
+    AutocompleteContext autocompleteContext = new AutocompleteContext("ap", allSuggestions);
+    assertEquals(allSuggestions.size(), autocompleteContext.unfilteredSuggestionsSize());
+
+    autocompleteContext.appendInput('p');
+    assertEquals(allSuggestions.size(), autocompleteContext.unfilteredSuggestionsSize());
+
+    autocompleteContext.appendInput('p');
+    assertEquals(allSuggestions.size(), autocompleteContext.unfilteredSuggestionsSize());
+  }
+
+  @Test
   void testCanDelete() {
     AutocompleteContext autocompleteContext = new AutocompleteContext("", allSuggestions);
     assertFalse(autocompleteContext.canDelete());

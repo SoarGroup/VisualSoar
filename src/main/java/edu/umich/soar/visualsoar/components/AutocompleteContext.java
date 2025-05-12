@@ -18,8 +18,15 @@ public class AutocompleteContext {
    */
   public AutocompleteContext(@NotNull String currentInput, @NotNull List<String> allSuggestions) {
     this.currentInput = currentInput;
-    this.allSuggestions = allSuggestions;
+    this.allSuggestions = Collections.unmodifiableList(allSuggestions);
     updateSuggestions();
+  }
+
+  /**
+   * @return The number of total (unfiltered) suggestions available
+   */
+  public int unfilteredSuggestionsSize() {
+    return allSuggestions.size();
   }
 
   /**

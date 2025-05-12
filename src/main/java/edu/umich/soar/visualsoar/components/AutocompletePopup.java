@@ -25,6 +25,9 @@ import javax.swing.ListSelectionModel;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.JTextComponent;
 
+/**
+ * Popup menu for auto-completing text in a document
+ */
 public class AutocompletePopup extends JPopupMenu {
 
   private static final Set<Integer> CURSOR_MOVEMENT_PASSTHROUGH_KEYS =
@@ -38,16 +41,23 @@ public class AutocompletePopup extends JPopupMenu {
   private final JList<String> suggestionList = new JList<>();
   private final AutocompleteContext autocompleteContext;
 
+  /**
+   *
+   * @param parent text component where completion will be performed
+   * @param position position to perform completion at
+   * @param inputSoFar text
+   * @param suggestions Full list of suggestions
+   * @param onCompletion
+   */
   public AutocompletePopup(
       @NotNull JTextComponent parent,
-      int initialPosition,
+      int position,
       @NotNull String inputSoFar,
       @NotNull List<String> suggestions,
       @NotNull Consumer<String> onCompletion) {
     super();
-    this.autocompleteContext = new AutocompleteContext(inputSoFar, suggestions);
-
-    int maxVisibleRows = Math.min(suggestions.size(), 10); // Limit to 10 rows max
+    autocompleteContext = new AutocompleteContext(inputSoFar, suggestions);
+    int maxVisibleRows = Math.min(autocompleteContext.unfilteredSuggestionsSize(), 10); // Limit to 10 rows max
     updateSuggestionList();
     suggestionList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     suggestionList.setVisibleRowCount(maxVisibleRows);
@@ -82,8 +92,14 @@ public class AutocompletePopup extends JPopupMenu {
         new KeyAdapter() {
           @Override
           public void keyPressed(KeyEvent e) {
+            if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+              setVisible(false);
+              e.consume();
+              return;
+            }
+            // Update auto-complete context and pass on to parent. Hide if nothing could be
+            // deleted from the auto-complete context.
             if (e.getKeyCode() == KeyEvent.VK_BACK_SPACE) {
-
               if (autocompleteContext.canDelete()) {
                 autocompleteContext.deleteInput();
                 updateSuggestionList();
@@ -94,6 +110,7 @@ public class AutocompletePopup extends JPopupMenu {
               parent.dispatchEvent(e);
               return;
             }
+            // ENTER triggers the current selected completion
             if (e.getKeyCode() == KeyEvent.VK_ENTER) {
               int index = suggestionList.getSelectedIndex();
               if (index >= 0) {
@@ -113,18 +130,18 @@ public class AutocompletePopup extends JPopupMenu {
               } else {
                 index += (e.getKeyCode() == KeyEvent.VK_UP) ? -1 : 1;
               }
+              int numSuggestions = suggestionList.getModel().getSize();
               if (index < 0) {
-                index = suggestions.size() - 1;
-              } else if (index >= suggestions.size()) {
+                index = numSuggestions - 1;
+              } else if (index >= numSuggestions) {
                 index = 0;
               }
               suggestionList.setSelectedIndex(index);
-              suggestionList.ensureIndexIsVisible(index); // Ensure the selected item is visible
+              suggestionList.ensureIndexIsVisible(index);
               e.consume();
               return;
             }
-            // Unambiguous cursor movement keys are passed through to parent after closing this
-            // popup
+            // Unambiguous cursor movement keys are passed through to parent after closing
             if (CURSOR_MOVEMENT_PASSTHROUGH_KEYS.contains(e.getKeyCode())) {
               setVisible(false);
               parent.dispatchEvent(e);
@@ -169,7 +186,7 @@ public class AutocompletePopup extends JPopupMenu {
 
     try {
       // Get the caret position and convert to component-relative coordinates
-      Rectangle caretRect = parent.modelToView2D(initialPosition).getBounds();
+      Rectangle caretRect = parent.modelToView2D(position).getBounds();
       Point popupLocation = new Point(caretRect.x, caretRect.y + caretRect.height);
 
       // Show the popup menu
