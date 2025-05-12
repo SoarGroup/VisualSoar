@@ -42,18 +42,15 @@ public class AutocompletePopup extends JPopupMenu {
   /**
    * @param parent text component where completion will be performed
    * @param position position to perform completion at
-   * @param inputSoFar text
-   * @param suggestions Full list of suggestions
    * @param onCompletion
    */
   public AutocompletePopup(
       @NotNull JTextComponent parent,
       int position,
-      @NotNull String inputSoFar,
-      @NotNull List<String> suggestions,
+      @NotNull AutocompleteContext autocompleteContext,
       @NotNull Consumer<String> onCompletion) {
     super();
-    autocompleteContext = new AutocompleteContext(inputSoFar, suggestions);
+    this.autocompleteContext = autocompleteContext;
     int maxVisibleRows =
         Math.min(autocompleteContext.unfilteredSuggestionsSize(), 10); // Limit to 10 rows max
     updateSuggestionList();

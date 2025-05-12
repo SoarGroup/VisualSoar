@@ -1,5 +1,6 @@
 package edu.umich.soar.visualsoar.ruleeditor;
 
+import edu.umich.soar.visualsoar.components.AutocompleteContext;
 import edu.umich.soar.visualsoar.components.AutocompletePopup;
 import edu.umich.soar.visualsoar.datamap.DataMapMatcher;
 import edu.umich.soar.visualsoar.mainframe.MainFrame;
@@ -1662,8 +1663,8 @@ public class RuleEditor extends CustomInternalFrame {
             if (period != -1 && caret != -1 && space != -1 && period > caret && period > space) {
                 String userType = prodSoFar.substring(period + 1);
                 prodSoFar = prodSoFar.substring(0, period + 1) + "<$$>" + end;
-              List<String> completeMatches = getMatchingStrings(userType, prodSoFar);
-              display(completeMatches);
+              List<String> completeMatches = getMatchingStrings(prodSoFar);
+              complete(pos, userType, completeMatches);
             }
         } // end of actionPerformed()
 
@@ -1771,9 +1772,7 @@ public class RuleEditor extends CustomInternalFrame {
           Iterator<String> iter = ev.getEnumeration();
           while (iter.hasNext()) {
             String enumString = iter.next();
-            if (enumString.startsWith(userType)) {
-              completeMatches.add(enumString);
-            }
+            completeMatches.add(enumString);
           }
         }
       }
@@ -1832,7 +1831,7 @@ public class RuleEditor extends CustomInternalFrame {
   }//complete
 
   private void attributeComplete(int pos, String userType, String prodSoFar) {
-    List<String> completeMatches = getMatchingStrings(userType, prodSoFar);
+    List<String> completeMatches = getMatchingStrings(prodSoFar);
     complete(pos, userType, completeMatches);
   }
 
@@ -1841,10 +1840,12 @@ public class RuleEditor extends CustomInternalFrame {
   private void showAutocompletePopup(int pos, String userType, List<String> completeMatches) {
     hideAutocompletePopup();
 
-    if (completeMatches.isEmpty()) {
+    AutocompleteContext autocompleteContext = new AutocompleteContext(userType, completeMatches);
+    if (autocompleteContext.filteredSuggestions().isEmpty()) {
       return;
     }
-    autocompletePopup = new AutocompletePopup(editorPane, pos, userType, completeMatches, (completion) -> insertCompletion(completion));
+
+    autocompletePopup = new AutocompletePopup(editorPane, pos, autocompleteContext, (completion) -> insertCompletion(completion));
     MainFrame.getMainFrame().getFeedbackManager().setStatusBarMsg(autocompletePopup.shortInstructions());
     autocompletePopup.addPopupMenuListener(new PopupMenuListener() {
       @Override
@@ -1890,11 +1891,10 @@ public class RuleEditor extends CustomInternalFrame {
      * the strings associated with entries in the datamap with attributes
      * that match the user's current production.
      *
-     * @param userType  The characters the user has typed so far in the current expression
      * @param prodSoFar The content of the production so far
      * @return a list of possible completions (could be empty)
      */
-    private List<String> getMatchingStrings(String userType, String prodSoFar) {
+    private List<String> getMatchingStrings(String prodSoFar) {
         //parse the code the user has written so far
         prodSoFar = makeStringValidForParser(prodSoFar);
         SoarParser soarParser = new SoarParser(new StringReader(prodSoFar));
@@ -1917,10 +1917,7 @@ public class RuleEditor extends CustomInternalFrame {
         }
         List<String> completeMatches = new LinkedList<>();
       for (DataMapMatcher.Match match : matches) {
-        String matched = match.toString();
-        if (matched.startsWith(userType)) {
-          completeMatches.add(matched);
-        }
+        completeMatches.add(match.toString());
       }
       Collections.sort(completeMatches);
         return completeMatches;
