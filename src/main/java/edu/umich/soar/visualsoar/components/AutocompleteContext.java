@@ -33,11 +33,41 @@ public class AutocompleteContext {
    * Append to current input string and re-filter the suggestion list to those matching the current
    * input.
    *
-   * @param newInput character to append to the current input
+   * @param newInput append to the current input
    */
-  public void appendInput(char newInput) {
+  public void appendInput(String newInput) {
     currentInput += newInput;
     updateSuggestions();
+  }
+
+  /**
+   * Append to current input until it consists of the longest common prefix of all suggestion list
+   * members.
+   *
+   * @return the newly appended text.
+   */
+  public String appendCommonPrefix() {
+    boolean allMatchCurrentPrefix = true;
+    String addedCharacters = "";
+    String matched = currentSuggestions.get(0);
+    int curPos = currentInput.length();
+    while (allMatchCurrentPrefix && curPos < matched.length()) {
+      String newAddedCharacters = addedCharacters + matched.charAt(curPos);
+      String potStartString = currentInput + newAddedCharacters;
+      for (String currentString : currentSuggestions) {
+        if (!currentString.startsWith(potStartString)) {
+          allMatchCurrentPrefix = false;
+          break;
+        }
+      }
+
+      if (allMatchCurrentPrefix) {
+        addedCharacters = newAddedCharacters;
+        ++curPos;
+      }
+    }
+    appendInput(addedCharacters);
+    return addedCharacters;
   }
 
   /**

@@ -166,7 +166,7 @@ public class AutocompletePopup extends JPopupMenu {
    */
   private void handleKeyTyped(KeyEvent e, char typedChar, @NotNull JTextComponent parent) {
     if (Character.isDefined(typedChar) && !Character.isISOControl(typedChar)) {
-      autocompleteContext.appendInput(typedChar);
+      autocompleteContext.appendInput(String.valueOf(typedChar));
     }
     if (autocompleteContext.filteredSuggestions().isEmpty()) {
       // Close the popup if no suggestions match

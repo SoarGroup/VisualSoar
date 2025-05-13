@@ -1741,7 +1741,8 @@ public class RuleEditor extends CustomInternalFrame {
       return;
     }
 
-    //If we reach this point:  more than one match
+    // Multiple matches available
+    // Insert the common prefix, if any
     boolean stillGood = true;
     String addedCharacters = "";
     String matched = completeMatches.get(0);
@@ -1765,26 +1766,21 @@ public class RuleEditor extends CustomInternalFrame {
     EditingUtils.insert(editorPane.getDocument(), addedCharacters, pos);
     editorPane.colorSyntax();
 
-    //report all matches to the user
-    RuleEditor.this.showAutocompletePopup(pos + addedCharacters.length(), userType + addedCharacters, completeMatches);
-    if(completeMatches.isEmpty()) {
+    // report matches to the user, if any
+    AutocompleteContext autocompleteContext = new AutocompleteContext(userType + addedCharacters, completeMatches);
+    if (autocompleteContext.filteredSuggestions().isEmpty()) {
       MainFrame.getMainFrame().getFeedbackManager().setStatusBarMsg("No auto-complete matches found.");
+    } else {
+      showAutocompletePopup(pos + addedCharacters.length(), autocompleteContext);
     }
-
-
-  }//complete
+  }
 
   private AutocompletePopup autocompletePopup = null;
 
-  private void showAutocompletePopup(int pos, String userType, List<String> completeMatches) {
+  private void showAutocompletePopup(int pos, AutocompleteContext autocompleteContext) {
     hideAutocompletePopup();
 
-    AutocompleteContext autocompleteContext = new AutocompleteContext(userType, completeMatches);
-    if (autocompleteContext.filteredSuggestions().isEmpty()) {
-      return;
-    }
-
-    autocompletePopup = new AutocompletePopup(editorPane, pos, autocompleteContext, (completion) -> insertCompletion(completion));
+    autocompletePopup = new AutocompletePopup(editorPane, pos, autocompleteContext, this::insertCompletion);
     MainFrame.getMainFrame().getFeedbackManager().setStatusBarMsg(autocompletePopup.shortInstructions());
     autocompletePopup.addPopupMenuListener(new PopupMenuListener() {
       @Override

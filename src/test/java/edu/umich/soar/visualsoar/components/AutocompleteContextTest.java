@@ -27,12 +27,12 @@ class AutocompleteContextTest {
   @Test
   void testAppendInputUpdatesSuggestions() {
     AutocompleteContext autocompleteContext = new AutocompleteContext("", allSuggestions);
-    autocompleteContext.appendInput('a');
+    autocompleteContext.appendInput("a");
     List<String> filtered = autocompleteContext.filteredSuggestions();
     assertEquals(Arrays.asList("apple", "apricot"), filtered);
 
-    autocompleteContext.appendInput('p');
-    autocompleteContext.appendInput('p');
+    autocompleteContext.appendInput("p");
+    autocompleteContext.appendInput("p");
     filtered = autocompleteContext.filteredSuggestions();
     assertEquals(Collections.singletonList("apple"), filtered);
   }
@@ -42,10 +42,10 @@ class AutocompleteContextTest {
     AutocompleteContext autocompleteContext = new AutocompleteContext("ap", allSuggestions);
     assertEquals(allSuggestions.size(), autocompleteContext.unfilteredSuggestionsSize());
 
-    autocompleteContext.appendInput('p');
+    autocompleteContext.appendInput("p");
     assertEquals(allSuggestions.size(), autocompleteContext.unfilteredSuggestionsSize());
 
-    autocompleteContext.appendInput('p');
+    autocompleteContext.appendInput("p");
     assertEquals(allSuggestions.size(), autocompleteContext.unfilteredSuggestionsSize());
   }
 
@@ -54,7 +54,7 @@ class AutocompleteContextTest {
     AutocompleteContext autocompleteContext = new AutocompleteContext("", allSuggestions);
     assertFalse(autocompleteContext.canDelete());
 
-    autocompleteContext.appendInput('a');
+    autocompleteContext.appendInput("a");
     assertTrue(autocompleteContext.canDelete());
 
 
@@ -65,7 +65,7 @@ class AutocompleteContextTest {
   @Test
   void testDeleteInputUpdatesSuggestions() {
     AutocompleteContext autocompleteContext = new AutocompleteContext("ap", allSuggestions);
-    autocompleteContext.appendInput('p');
+    autocompleteContext.appendInput("p");
     assertEquals(Collections.singletonList("apple"), autocompleteContext.filteredSuggestions());
 
     autocompleteContext.deleteInput();
@@ -85,7 +85,7 @@ class AutocompleteContextTest {
   @Test
   void testGetCompletion() {
     AutocompleteContext autocompleteContext = new AutocompleteContext("b", allSuggestions);
-    autocompleteContext.appendInput('l');
+    autocompleteContext.appendInput("l");
     String completion = autocompleteContext.getCompletion(1);
     assertEquals("ackberry", completion);
   }
@@ -99,7 +99,7 @@ class AutocompleteContextTest {
   @Test
   void testNoMatchingSuggestions() {
     AutocompleteContext autocompleteContext = new AutocompleteContext("", allSuggestions);
-    autocompleteContext.appendInput('z');
+    autocompleteContext.appendInput("z");
     List<String> filtered = autocompleteContext.filteredSuggestions();
     assertEquals(Collections.emptyList(), filtered);
   }
@@ -107,8 +107,22 @@ class AutocompleteContextTest {
   @Test
   void testCaseSensitivity() {
     AutocompleteContext autocompleteContext = new AutocompleteContext("", allSuggestions);
-    autocompleteContext.appendInput('A');
+    autocompleteContext.appendInput("A");
     List<String> filtered = autocompleteContext.filteredSuggestions();
     assertEquals(Collections.emptyList(), filtered);
+  }
+
+  @Test
+  void testAppendCommonPrefixWithMatchingSuggestions() {
+    List<String> suggestions = List.of("apple", "applet", "application");
+    AutocompleteContext context = new AutocompleteContext("ap", suggestions);
+
+    String appended = context.appendCommonPrefix();
+
+    assertEquals("pl", appended);
+    assertEquals(List.of("apple", "applet", "application"), context.filteredSuggestions());
+
+    context.appendInput("e");
+    assertEquals(List.of("apple", "applet"), context.filteredSuggestions());
   }
 }
