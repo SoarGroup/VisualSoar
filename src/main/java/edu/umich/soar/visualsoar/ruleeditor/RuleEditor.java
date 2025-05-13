@@ -1596,6 +1596,7 @@ public class RuleEditor extends CustomInternalFrame {
      * typing a dot/period.
      * Unlike the TabCompleteAction, this action does not ever insert anything
      * into the rule editor, it only displays the attribute options in the feedback window.
+     * It also runs auto-justification.
      */
     class AutoSoarCompleteAction extends AbstractAction {
         private static final long serialVersionUID = 20221225L;
@@ -1638,53 +1639,9 @@ public class RuleEditor extends CustomInternalFrame {
                 editorPane.setCaretPosition(caretPos);
             }
 
-
-            // Advanced Soar Complete stuff
-            int pos = editorPane.getCaretPosition();
-            String text = editorPane.getText();
-            int sp_pos = text.lastIndexOf("sp ", pos);
-            if (sp_pos == -1) {
-                toolkit.beep();
-                return;
-            }
-            String prodSoFar = text.substring(sp_pos, pos);
-            int arrowPos = prodSoFar.indexOf("-->");
-            String end;
-            if (arrowPos == -1) {
-                end = ") --> }";
-            } else {
-                end = " <$$$>)}";
-            }
-            int caret = prodSoFar.lastIndexOf("^");
-            int period = prodSoFar.lastIndexOf(".");
-            int space = prodSoFar.lastIndexOf(" ");
-
-            // Guarantee that period is more relevant than space and caret
-            if (period != -1 && caret != -1 && space != -1 && period > caret && period > space) {
-                String userType = prodSoFar.substring(period + 1);
-                prodSoFar = prodSoFar.substring(0, period + 1) + "<$$>" + end;
-              List<String> completeMatches = getMatchingStrings(prodSoFar);
-              complete(pos, userType, completeMatches);
-            }
-        } // end of actionPerformed()
-
-        /**
-         * Displays all the possible attributes that can follow the dot/period to the
-         * feedback list.
-         *
-         * @param completeMatches List of Strings representing possible attributes to be displayed
-         */
-        private void display(List<String> completeMatches) {
-            if (completeMatches.isEmpty()) {
-                MainFrame.getMainFrame().getFeedbackManager().setStatusBarMsg("no auto-complete matches found");
-            }
-            else {
-                MainFrame.getMainFrame().getFeedbackManager().setStatusBarMsgList(completeMatches);
-            }
-        }    // end of display()
-
-
-    }//class AutoSoarCompleteAction
+            complete(true);
+        }
+    }
 
 
     class TabCompleteAction extends AbstractAction {
@@ -1696,15 +1653,16 @@ public class RuleEditor extends CustomInternalFrame {
 
 
         public void actionPerformed(ActionEvent e) {
-            RuleEditor.this.complete();
+            RuleEditor.this.complete(false);
         }
     }
 
-  private void complete() {
+  private void complete(boolean periodMustBeMostSignificant) {
     int pos = editorPane.getCaretPosition();
     String text = editorPane.getText();
     int sp_pos = text.lastIndexOf("sp ", pos);
     if (sp_pos == -1) {
+//      TODO: return false or something and let client beep and write a status message
       getToolkit().beep();
       return;
     }
@@ -1719,28 +1677,30 @@ public class RuleEditor extends CustomInternalFrame {
     int caret = prodSoFar.lastIndexOf("^");
     int period = prodSoFar.lastIndexOf(".");
     int space = prodSoFar.lastIndexOf(" ");
-    int leftAngle = prodSoFar.lastIndexOf("<");
+    // same so far
     String userType;
     // The most relevant is the caret
-    if ((period == -1 && caret != -1 && space != -1 && caret > space)
+    if (!periodMustBeMostSignificant && (period == -1 && caret != -1 && space != -1 && caret > space)
       || (period != -1 && caret != -1 && space != -1 && period < caret && space < caret)) {
       userType = prodSoFar.substring(caret + 1);
       prodSoFar = prodSoFar.substring(0, caret + 1) + "<$$>" + end;
       attributeComplete(pos, userType, prodSoFar);
     }
     // The most relevant is the period
+    // same as in auto-complete
     else if (period != -1 && caret != -1 && space != -1 && period > caret && period > space) {
       userType = prodSoFar.substring(period + 1);
       prodSoFar = prodSoFar.substring(0, period + 1) + "<$$>" + end;
       attributeComplete(pos, userType, prodSoFar);
     }
     // The most relevant is the space
-    else if ((period == -1 && caret != -1 && space != -1 && space > caret)
+    else if (!periodMustBeMostSignificant && (period == -1 && caret != -1 && space != -1 && space > caret)
       || (period != -1 && caret != -1 && space != -1 && space > caret && space > period)) {
       userType = prodSoFar.substring(space + 1);
       prodSoFar = prodSoFar.substring(0, space + 1) + "<$$>" + end;
       valueComplete(pos, userType, prodSoFar);
     }
+//      TODO: return false or something and let client beep and write a status message
     // Failure
     else {
       getToolkit().beep();
@@ -1785,6 +1745,7 @@ public class RuleEditor extends CustomInternalFrame {
   }//valueComplete
 
 
+//  TODO: take a flag to turn off auto-insertion and use that when auto-completing from regular typing
   private void complete(int pos, String userType, List<String> completeMatches) {
     if (completeMatches.isEmpty()) {
       return;
@@ -1884,17 +1845,14 @@ public class RuleEditor extends CustomInternalFrame {
     }
   }
 
-    /**
-     * getMatchingStrings
-     * <p>
-     * is a helper method for {@link TabCompleteAction#attributeComplete}. It retrieves
-     * the strings associated with entries in the datamap with attributes
-     * that match the user's current production.
-     *
-     * @param prodSoFar The content of the production so far
-     * @return a list of possible completions (could be empty)
-     */
-    private List<String> getMatchingStrings(String prodSoFar) {
+  /**
+   * Retrieves the strings associated with entries in the datamap with attributes that match the
+   * user's current production.
+   *
+   * @param prodSoFar The content of the production so far
+   * @return a list of possible completions (could be empty)
+   */
+  private List<String> getMatchingStrings(String prodSoFar) {
         //parse the code the user has written so far
         prodSoFar = makeStringValidForParser(prodSoFar);
         SoarParser soarParser = new SoarParser(new StringReader(prodSoFar));
