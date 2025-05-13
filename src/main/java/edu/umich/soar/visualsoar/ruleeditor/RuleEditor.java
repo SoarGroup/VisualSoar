@@ -1603,68 +1603,72 @@ public class RuleEditor extends CustomInternalFrame {
 		private final EditorPane editorPane;
 		private final Toolkit toolkit;
 
-		public AutoSoarCompleteAction(EditorPane editorPane, Toolkit toolkit) {
-            super("Auto Soar Complete");
-			this.editorPane = editorPane;
-			this.toolkit = toolkit;
-		}
-
-        public void actionPerformed(ActionEvent e) {
-            // Do character insertion and caret adjustment stuff
-            SoarDocument doc = editorPane.getSoarDocument();
-            String textTyped = e.getActionCommand();
-            int caretPos = editorPane.getCaretPosition();
-
-            //If there is text currently selected, adjust the caret position back
-            //to the beginning of the selection since it is about to be deleted
-            //(replaced) by what the user just typed.
-            String selText = editorPane.getSelectedText();
-            if (selText != null) {
-                caretPos -= selText.length();
-                if (caretPos < 0) {
-                    caretPos = 0;  //should never happen...but just in case
-                }
-            }
-
-            if (textTyped.equals("\n")) {
-                (new DefaultEditorKit.InsertBreakAction()).actionPerformed(e);
-                caretPos++;
-            } else if (!textTyped.equals("\t")) {
-                (new DefaultEditorKit.DefaultKeyTypedAction()).actionPerformed(e);
-                caretPos++;
-            }
-
-            caretPos = doc.autoJustify(caretPos);
-            if (caretPos > 0) {
-                editorPane.setCaretPosition(caretPos);
-            }
-
-            complete(true);
-        }
+    public AutoSoarCompleteAction(EditorPane editorPane, Toolkit toolkit) {
+      super("Auto Soar Complete");
+      this.editorPane = editorPane;
+      this.toolkit = toolkit;
     }
 
+    public void actionPerformed(ActionEvent e) {
+      // Do character insertion and caret adjustment stuff
+      SoarDocument doc = editorPane.getSoarDocument();
+      String textTyped = e.getActionCommand();
+      int caretPos = editorPane.getCaretPosition();
 
-    class TabCompleteAction extends AbstractAction {
-        private static final long serialVersionUID = 20221225L;
-
-        public TabCompleteAction() {
-            super("Tab Complete");
+      // If there is text currently selected, adjust the caret position back
+      // to the beginning of the selection since it is about to be deleted
+      // (replaced) by what the user just typed.
+      String selText = editorPane.getSelectedText();
+      if (selText != null) {
+        caretPos -= selText.length();
+        if (caretPos < 0) {
+          caretPos = 0; // should never happen...but just in case
         }
+      }
 
+      if (textTyped.equals("\n")) {
+        (new DefaultEditorKit.InsertBreakAction()).actionPerformed(e);
+        caretPos++;
+      } else if (!textTyped.equals("\t")) {
+        (new DefaultEditorKit.DefaultKeyTypedAction()).actionPerformed(e);
+        caretPos++;
+      }
 
-        public void actionPerformed(ActionEvent e) {
-            RuleEditor.this.complete(false);
-        }
+      caretPos = doc.autoJustify(caretPos);
+      if (caretPos > 0) {
+        editorPane.setCaretPosition(caretPos);
+      }
+
+      if (!complete(true)) {
+        toolkit.beep();
+      }
+    }
+  }
+
+  class TabCompleteAction extends AbstractAction {
+    private static final long serialVersionUID = 20221225L;
+
+    public TabCompleteAction() {
+      super("Tab Complete");
     }
 
-  private void complete(boolean periodMustBeMostSignificant) {
+    public void actionPerformed(ActionEvent e) {
+      if (!complete(false)) {
+        getToolkit().beep();
+      }
+    }
+  }
+
+  /**
+   * @param periodMustBeMostSignificant
+   * @return True if ran non-exceptionally; false if something failed
+   */
+  private boolean complete(boolean periodMustBeMostSignificant) {
     int pos = editorPane.getCaretPosition();
     String text = editorPane.getText();
     int sp_pos = text.lastIndexOf("sp ", pos);
     if (sp_pos == -1) {
-//      TODO: return false or something and let client beep and write a status message
-      getToolkit().beep();
-      return;
+      return false;
     }
     String prodSoFar = text.substring(sp_pos, pos);
     int arrowPos = prodSoFar.indexOf("-->");
@@ -1677,72 +1681,51 @@ public class RuleEditor extends CustomInternalFrame {
     int caret = prodSoFar.lastIndexOf("^");
     int period = prodSoFar.lastIndexOf(".");
     int space = prodSoFar.lastIndexOf(" ");
-    // same so far
-    String userType;
-    // The most relevant is the caret
-    if (!periodMustBeMostSignificant && (period == -1 && caret != -1 && space != -1 && caret > space)
-      || (period != -1 && caret != -1 && space != -1 && period < caret && space < caret)) {
-      userType = prodSoFar.substring(caret + 1);
-      prodSoFar = prodSoFar.substring(0, caret + 1) + "<$$>" + end;
-      attributeComplete(pos, userType, prodSoFar);
+
+    try {
+      // The most relevant is the caret
+      if (!periodMustBeMostSignificant
+              && (period == -1 && caret != -1 && space != -1 && caret > space)
+          || (period != -1 && caret != -1 && space != -1 && period < caret && space < caret)) {
+        String userType = prodSoFar.substring(caret + 1);
+        prodSoFar = prodSoFar.substring(0, caret + 1) + "<$$>" + end;
+        attributeComplete(pos, userType, prodSoFar);
+      }
+      // The most relevant is the period
+      // same as in auto-complete
+      else if (period != -1 && caret != -1 && space != -1 && period > caret && period > space) {
+        String userType = prodSoFar.substring(period + 1);
+        prodSoFar = prodSoFar.substring(0, period + 1) + "<$$>" + end;
+        attributeComplete(pos, userType, prodSoFar);
+      }
+      // The most relevant is the space
+      else if (!periodMustBeMostSignificant
+              && (period == -1 && caret != -1 && space != -1 && space > caret)
+          || (period != -1 && caret != -1 && space != -1 && space > caret && space > period)) {
+        String userType = prodSoFar.substring(space + 1);
+        prodSoFar = prodSoFar.substring(0, space + 1) + "<$$>" + end;
+        valueComplete(pos, userType, prodSoFar);
+      }
+      // Failure
+      else {
+        return false;
+      }
+    } catch (ParseException e) {
+      return false;
     }
-    // The most relevant is the period
-    // same as in auto-complete
-    else if (period != -1 && caret != -1 && space != -1 && period > caret && period > space) {
-      userType = prodSoFar.substring(period + 1);
-      prodSoFar = prodSoFar.substring(0, period + 1) + "<$$>" + end;
-      attributeComplete(pos, userType, prodSoFar);
-    }
-    // The most relevant is the space
-    else if (!periodMustBeMostSignificant && (period == -1 && caret != -1 && space != -1 && space > caret)
-      || (period != -1 && caret != -1 && space != -1 && space > caret && space > period)) {
-      userType = prodSoFar.substring(space + 1);
-      prodSoFar = prodSoFar.substring(0, space + 1) + "<$$>" + end;
-      valueComplete(pos, userType, prodSoFar);
-    }
-//      TODO: return false or something and let client beep and write a status message
-    // Failure
-    else {
-      getToolkit().beep();
-    }
+    return true;
   }
 
-
-  private void valueComplete(int pos, String userType, String prodSoFar) {
-//          TODO: here we should also suggest a <variable> with the name of its matched attribute
-//          TODO: It should not be suggested if the user has typed something that doesn't start with <
-    try {
-      SoarWorkingMemoryModel dataMap = MainFrame.getMainFrame().getOperatorWindow().getDatamap();
-      prodSoFar = makeStringValidForParser(prodSoFar);
-      SoarParser soarParser = new SoarParser(new StringReader(prodSoFar));
-      SoarProduction sp = soarParser.soarProduction();
-      OperatorNode on = getNode();
-      OperatorNode parent = (OperatorNode) on.getParent();
-      List<DataMapMatcher.Match> matches;
-      SoarIdentifierVertex siv = parent.getStateIdVertex(dataMap);
-      if (siv != null) {
-        matches = dataMap.matches(siv, sp, "<$$>");
-      } else {
-        matches = dataMap.matches(dataMap.getTopstate(), sp, "<$$>");
-      }
-      List<String> completeMatches = new LinkedList<>();
-      for (DataMapMatcher.Match match : matches) {
-        if (match.getVertex() instanceof EnumerationVertex) {
-          EnumerationVertex ev = (EnumerationVertex) match.getVertex();
-          Iterator<String> iter = ev.getEnumeration();
-          while (iter.hasNext()) {
-            String enumString = iter.next();
-            completeMatches.add(enumString);
-          }
-        }
-      }
-
-      Collections.sort(completeMatches);
+  private void valueComplete(int pos, String userType, String prodSoFar) throws ParseException {
+    List<String> completeMatches = SoarAutocomplete.getValueMatches(prodSoFar, editorPane.getText(), getNode());
       complete(pos, userType, completeMatches);
-    } catch (ParseException pe) {
-      getToolkit().beep();
-    }
-  }//valueComplete
+  }
+
+  private void attributeComplete(int pos, String userType, String prodSoFar) throws ParseException {
+    List<String> completeMatches =
+        SoarAutocomplete.getAttributeMatches(prodSoFar, editorPane.getText(), getNode());
+    complete(pos, userType, completeMatches);
+  }
 
 
 //  TODO: take a flag to turn off auto-insertion and use that when auto-completing from regular typing
@@ -1790,11 +1773,6 @@ public class RuleEditor extends CustomInternalFrame {
 
 
   }//complete
-
-  private void attributeComplete(int pos, String userType, String prodSoFar) {
-    List<String> completeMatches = getMatchingStrings(prodSoFar);
-    complete(pos, userType, completeMatches);
-  }
 
   private AutocompletePopup autocompletePopup = null;
 
@@ -1844,42 +1822,6 @@ public class RuleEditor extends CustomInternalFrame {
       ex.printStackTrace();
     }
   }
-
-  /**
-   * Retrieves the strings associated with entries in the datamap with attributes that match the
-   * user's current production.
-   *
-   * @param prodSoFar The content of the production so far
-   * @return a list of possible completions (could be empty)
-   */
-  private List<String> getMatchingStrings(String prodSoFar) {
-        //parse the code the user has written so far
-        prodSoFar = makeStringValidForParser(prodSoFar);
-        SoarParser soarParser = new SoarParser(new StringReader(prodSoFar));
-        SoarProduction sp;
-        try {
-            sp = soarParser.soarProduction();
-        } catch (ParseException pe) {
-            return Collections.emptyList();
-        }
-
-        //Find all matching string via the datamap
-        OperatorNode on = getNode();
-        List<DataMapMatcher.Match> matches;
-        SoarWorkingMemoryModel dataMap = MainFrame.getMainFrame().getOperatorWindow().getDatamap();
-        SoarIdentifierVertex siv = ((OperatorNode) on.getParent()).getStateIdVertex(dataMap);
-        if (siv != null) {
-            matches = dataMap.matches(siv, sp, "<$$>");
-        } else {
-            matches = dataMap.matches(dataMap.getTopstate(), sp, "<$$>");
-        }
-        List<String> completeMatches = new LinkedList<>();
-      for (DataMapMatcher.Match match : matches) {
-        completeMatches.add(match.toString());
-      }
-      Collections.sort(completeMatches);
-        return completeMatches;
-    }
 
     // 3P
     // Handles the "Runtime|Send Production" menu item
