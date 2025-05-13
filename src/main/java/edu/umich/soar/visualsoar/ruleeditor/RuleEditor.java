@@ -1587,18 +1587,15 @@ public class RuleEditor extends CustomInternalFrame {
         }
     }
 
-	/**
-     * A simplified version of the TabCompleteAction that only displays
-     * the next possible attribute in the feedback window following the user
-     * typing a dot/period.
-     * Unlike the TabCompleteAction, this action does not ever insert anything
-     * into the rule editor, it only displays the attribute options in the feedback window.
-     * It also runs auto-justification.
-     */
-    class AutoSoarCompleteAction extends AbstractAction {
-        private static final long serialVersionUID = 20221225L;
-		private final EditorPane editorPane;
-		private final Toolkit toolkit;
+  /**
+   * Similar to TabCompleteAction, but it never auto-inserts text, and it auto-justifies the text.
+   * This is run automatically when the user types a dot or left angle bracket. It also runs
+   * auto-justification.
+   */
+  class AutoSoarCompleteAction extends AbstractAction {
+    private static final long serialVersionUID = 20221225L;
+    private final EditorPane editorPane;
+    private final Toolkit toolkit;
 
     public AutoSoarCompleteAction(EditorPane editorPane, Toolkit toolkit) {
       super("Auto Soar Complete");

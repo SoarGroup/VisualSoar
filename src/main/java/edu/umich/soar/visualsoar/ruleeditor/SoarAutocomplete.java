@@ -13,11 +13,13 @@ import edu.umich.soar.visualsoar.parser.SoarProduction;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.StringReader;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+// TODO: Next: Write some tests. For variables, be sure to test "^ " (empty attribute name).
 public class SoarAutocomplete {
 
   /**
@@ -87,7 +89,8 @@ public class SoarAutocomplete {
   private static AutocompleteContext valueComplete(
       String userType, String prodSoFar, String fullText, OperatorNode associatedNode)
       throws ParseException {
-    List<String> completeMatches = getValueMatches(prodSoFar, fullText, associatedNode);
+    List<String> completeMatches = getVariableMatches(prodSoFar);
+    completeMatches.addAll(getValueMatches(prodSoFar, fullText, associatedNode));
     return new AutocompleteContext(userType, completeMatches);
   }
 
@@ -130,6 +133,24 @@ public class SoarAutocomplete {
     }
     Collections.sort(completeMatches);
     return completeMatches;
+  }
+
+  private static List<String> getVariableMatches(String prodSoFar) {
+    // given logic in caller, we know for a fact that there is a caret and a space, maybe a period
+    int attStart = prodSoFar.lastIndexOf("^");
+    int period = prodSoFar.lastIndexOf(".");
+    if (period > attStart) {
+      attStart = period;
+    }
+    attStart += 1;
+    int attEnd = prodSoFar.lastIndexOf(" <$$>");
+
+    String attName = prodSoFar.substring(attStart, attEnd);
+    List<String> variableMatches = new ArrayList<>();
+    if (!attName.isEmpty()) {
+      variableMatches.add("<" + attName + ">");
+    }
+    return variableMatches;
   }
 
   /**
