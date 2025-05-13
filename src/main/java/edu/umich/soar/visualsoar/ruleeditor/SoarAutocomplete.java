@@ -1,5 +1,6 @@
 package edu.umich.soar.visualsoar.ruleeditor;
 
+import edu.umich.soar.visualsoar.components.AutocompleteContext;
 import edu.umich.soar.visualsoar.datamap.DataMapMatcher;
 import edu.umich.soar.visualsoar.datamap.SoarWorkingMemoryModel;
 import edu.umich.soar.visualsoar.graph.EnumerationVertex;
@@ -9,6 +10,7 @@ import edu.umich.soar.visualsoar.operatorwindow.OperatorNode;
 import edu.umich.soar.visualsoar.parser.ParseException;
 import edu.umich.soar.visualsoar.parser.SoarParser;
 import edu.umich.soar.visualsoar.parser.SoarProduction;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.StringReader;
 import java.util.Collections;
@@ -19,6 +21,84 @@ import java.util.List;
 public class SoarAutocomplete {
 
   /**
+   * Populate an auto-complete context for the document at the given position.
+   *
+   * @param periodMustBeMostSignificant
+   * @param caretPos current caret position
+   * @param document entire document text
+   * @return the constructed context, or null if no heuristic construction was possible or there was
+   *     a parse error
+   */
+  @Nullable
+  public static AutocompleteContext getAutocompleteContext(
+      boolean periodMustBeMostSignificant,
+      int caretPos,
+      String document,
+      OperatorNode associatedNode) {
+    int sp_pos = document.lastIndexOf("sp ", caretPos);
+    if (sp_pos == -1) {
+      return null;
+    }
+    String prodSoFar = document.substring(sp_pos, caretPos);
+    int arrowPos = prodSoFar.indexOf("-->");
+    String end;
+    if (arrowPos == -1) {
+      end = ") --> }";
+    } else {
+      end = " <$$$>)}";
+    }
+    int caret = prodSoFar.lastIndexOf("^");
+    int period = prodSoFar.lastIndexOf(".");
+    int space = prodSoFar.lastIndexOf(" ");
+
+    try {
+      AutocompleteContext autocompleteContext;
+      // The most relevant is the caret
+      if (!periodMustBeMostSignificant
+              && (period == -1 && caret != -1 && space != -1 && caret > space)
+          || (period != -1 && caret != -1 && space != -1 && period < caret && space < caret)) {
+        String userType = prodSoFar.substring(caret + 1);
+        prodSoFar = prodSoFar.substring(0, caret + 1) + "<$$>" + end;
+        return SoarAutocomplete.attributeComplete(userType, prodSoFar, document, associatedNode);
+      }
+      // The most relevant is the period
+      else if (period != -1 && caret != -1 && space != -1 && period > caret && period > space) {
+        String userType = prodSoFar.substring(period + 1);
+        prodSoFar = prodSoFar.substring(0, period + 1) + "<$$>" + end;
+        return SoarAutocomplete.attributeComplete(userType, prodSoFar, document, associatedNode);
+      }
+      // The most relevant is the space
+      else if (!periodMustBeMostSignificant
+              && (period == -1 && caret != -1 && space != -1 && space > caret)
+          || (period != -1 && caret != -1 && space != -1 && space > caret && space > period)) {
+        String userType = prodSoFar.substring(space + 1);
+        prodSoFar = prodSoFar.substring(0, space + 1) + "<$$>" + end;
+        return SoarAutocomplete.valueComplete(userType, prodSoFar, document, associatedNode);
+      }
+      // Failure
+      else {
+        return null;
+      }
+    } catch (ParseException e) {
+      return null;
+    }
+  }
+
+  private static AutocompleteContext valueComplete(
+      String userType, String prodSoFar, String fullText, OperatorNode associatedNode)
+      throws ParseException {
+    List<String> completeMatches = getValueMatches(prodSoFar, fullText, associatedNode);
+    return new AutocompleteContext(userType, completeMatches);
+  }
+
+  private static AutocompleteContext attributeComplete(
+      String userType, String prodSoFar, String fullText, OperatorNode associatedNode)
+      throws ParseException {
+    List<String> completeMatches = getAttributeMatches(prodSoFar, fullText, associatedNode);
+    return new AutocompleteContext(userType, completeMatches);
+  }
+
+  /**
    * Retrieves the strings associated with entries in the datamap with attributes that match the
    * user's current production.
    *
@@ -27,7 +107,7 @@ public class SoarAutocomplete {
    * @param associatedNode the node the rule editor is associated with
    * @return a list of possible completions (could be empty)
    */
-  public static List<String> getAttributeMatches(
+  private static List<String> getAttributeMatches(
       String prodSoFar, String fullText, OperatorNode associatedNode) throws ParseException {
     // parse the code the user has written so far
     prodSoFar = makeStringValidForParser(prodSoFar, fullText);
@@ -63,7 +143,7 @@ public class SoarAutocomplete {
 
   // TODO: here we should also suggest a <variable> with the name of its matched attribute
   // TODO: It should not be suggested if the user has typed something that doesn't start with <
-  public static List<String> getValueMatches(
+  private static List<String> getValueMatches(
       String prodSoFar, String fullText, OperatorNode associatedNode) throws ParseException {
     SoarWorkingMemoryModel dataMap = MainFrame.getMainFrame().getOperatorWindow().getDatamap();
     prodSoFar = makeStringValidForParser(prodSoFar, fullText);

@@ -2,12 +2,9 @@ package edu.umich.soar.visualsoar.ruleeditor;
 
 import edu.umich.soar.visualsoar.components.AutocompleteContext;
 import edu.umich.soar.visualsoar.components.AutocompletePopup;
-import edu.umich.soar.visualsoar.datamap.DataMapMatcher;
 import edu.umich.soar.visualsoar.mainframe.MainFrame;
 import edu.umich.soar.visualsoar.datamap.SoarWorkingMemoryModel;
 import edu.umich.soar.visualsoar.dialogs.EditCustomTemplatesDialog;
-import edu.umich.soar.visualsoar.graph.EnumerationVertex;
-import edu.umich.soar.visualsoar.graph.SoarIdentifierVertex;
 import edu.umich.soar.visualsoar.mainframe.feedback.FeedbackEntryOpNode;
 import edu.umich.soar.visualsoar.mainframe.feedback.FeedbackListEntry;
 import edu.umich.soar.visualsoar.misc.*;
@@ -1639,7 +1636,12 @@ public class RuleEditor extends CustomInternalFrame {
         editorPane.setCaretPosition(caretPos);
       }
 
-      if (!complete(true)) {
+      AutocompleteContext autocompleteContext =
+          SoarAutocomplete.getAutocompleteContext(
+              true, editorPane.getCaretPosition(), editorPane.getText(), getNode());
+      if (autocompleteContext != null) {
+        autocomplete(autocompleteContext, false);
+      } else {
         toolkit.beep();
       }
     }
@@ -1653,126 +1655,39 @@ public class RuleEditor extends CustomInternalFrame {
     }
 
     public void actionPerformed(ActionEvent e) {
-      if (!complete(false)) {
+      AutocompleteContext autocompleteContext =
+          SoarAutocomplete.getAutocompleteContext(
+              true, editorPane.getCaretPosition(), editorPane.getText(), getNode());
+      if (autocompleteContext != null) {
+        autocomplete(autocompleteContext, true);
+      } else {
         getToolkit().beep();
       }
     }
   }
 
-  /**
-   * @param periodMustBeMostSignificant
-   * @return True if ran non-exceptionally; false if something failed
-   */
-  private boolean complete(boolean periodMustBeMostSignificant) {
-    int pos = editorPane.getCaretPosition();
-    String text = editorPane.getText();
-    int sp_pos = text.lastIndexOf("sp ", pos);
-    if (sp_pos == -1) {
-      return false;
-    }
-    String prodSoFar = text.substring(sp_pos, pos);
-    int arrowPos = prodSoFar.indexOf("-->");
-    String end;
-    if (arrowPos == -1) {
-      end = ") --> }";
-    } else {
-      end = " <$$$>)}";
-    }
-    int caret = prodSoFar.lastIndexOf("^");
-    int period = prodSoFar.lastIndexOf(".");
-    int space = prodSoFar.lastIndexOf(" ");
-
-    try {
-      // The most relevant is the caret
-      if (!periodMustBeMostSignificant
-              && (period == -1 && caret != -1 && space != -1 && caret > space)
-          || (period != -1 && caret != -1 && space != -1 && period < caret && space < caret)) {
-        String userType = prodSoFar.substring(caret + 1);
-        prodSoFar = prodSoFar.substring(0, caret + 1) + "<$$>" + end;
-        attributeComplete(pos, userType, prodSoFar);
-      }
-      // The most relevant is the period
-      // same as in auto-complete
-      else if (period != -1 && caret != -1 && space != -1 && period > caret && period > space) {
-        String userType = prodSoFar.substring(period + 1);
-        prodSoFar = prodSoFar.substring(0, period + 1) + "<$$>" + end;
-        attributeComplete(pos, userType, prodSoFar);
-      }
-      // The most relevant is the space
-      else if (!periodMustBeMostSignificant
-              && (period == -1 && caret != -1 && space != -1 && space > caret)
-          || (period != -1 && caret != -1 && space != -1 && space > caret && space > period)) {
-        String userType = prodSoFar.substring(space + 1);
-        prodSoFar = prodSoFar.substring(0, space + 1) + "<$$>" + end;
-        valueComplete(pos, userType, prodSoFar);
-      }
-      // Failure
-      else {
-        return false;
-      }
-    } catch (ParseException e) {
-      return false;
-    }
-    return true;
-  }
-
-  private void valueComplete(int pos, String userType, String prodSoFar) throws ParseException {
-    List<String> completeMatches = SoarAutocomplete.getValueMatches(prodSoFar, editorPane.getText(), getNode());
-      complete(pos, userType, completeMatches);
-  }
-
-  private void attributeComplete(int pos, String userType, String prodSoFar) throws ParseException {
-    List<String> completeMatches =
-        SoarAutocomplete.getAttributeMatches(prodSoFar, editorPane.getText(), getNode());
-    complete(pos, userType, completeMatches);
-  }
-
-
-//  TODO: take a flag to turn off auto-insertion and use that when auto-completing from regular typing
-  private void complete(int pos, String userType, List<String> completeMatches) {
-    if (completeMatches.isEmpty()) {
-      return;
-    }
-
-    if (completeMatches.size() == 1) {
-      String matched = completeMatches.get(0);
-      EditingUtils.insert(editorPane.getDocument(), matched.substring(userType.length()), pos);
-      editorPane.colorSyntax();
-      return;
-    }
-
-    // Multiple matches available
-    // Insert the common prefix, if any
-    boolean stillGood = true;
-    String addedCharacters = "";
-    String matched = completeMatches.get(0);
-    int curPos = userType.length();
-    while (stillGood && curPos < matched.length()) {
-      String newAddedCharacters = addedCharacters + matched.charAt(curPos);
-      String potStartString = userType + newAddedCharacters;
-      for (String currentString : completeMatches) {
-        if (!currentString.startsWith(potStartString)) {
-          stillGood = false;
-          break;
-        }
-      }
-
-      if (stillGood) {
-        addedCharacters = newAddedCharacters;
-        ++curPos;
-      }
-    }
-
-    EditingUtils.insert(editorPane.getDocument(), addedCharacters, pos);
-    editorPane.colorSyntax();
-
-    // report matches to the user, if any
-    AutocompleteContext autocompleteContext = new AutocompleteContext(userType + addedCharacters, completeMatches);
+  private void autocomplete(AutocompleteContext autocompleteContext, boolean autoInsertPrefix) {
     if (autocompleteContext.filteredSuggestions().isEmpty()) {
-      MainFrame.getMainFrame().getFeedbackManager().setStatusBarMsg("No auto-complete matches found.");
-    } else {
-      showAutocompletePopup(pos + addedCharacters.length(), autocompleteContext);
+      MainFrame.getMainFrame()
+          .getFeedbackManager()
+          .setStatusBarMsg("No auto-getAutocompleteContext matches found.");
+      return;
     }
+
+    if (autoInsertPrefix) {
+      if (autocompleteContext.filteredSuggestions().size() == 1) {
+        EditingUtils.insert(
+            editorPane.getDocument(),
+            autocompleteContext.getCompletion(0),
+            editorPane.getCaretPosition());
+        editorPane.colorSyntax();
+        return;
+      }
+      String commonPrefix = autocompleteContext.appendCommonPrefix();
+      EditingUtils.insert(editorPane.getDocument(), commonPrefix, editorPane.getCaretPosition());
+      editorPane.colorSyntax();
+    }
+    showAutocompletePopup(editorPane.getCaretPosition(), autocompleteContext);
   }
 
   private AutocompletePopup autocompletePopup = null;
