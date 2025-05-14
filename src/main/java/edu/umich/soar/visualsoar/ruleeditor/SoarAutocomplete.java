@@ -54,7 +54,6 @@ public class SoarAutocomplete {
     int space = prodSoFar.lastIndexOf(" ");
 
     try {
-      AutocompleteContext autocompleteContext;
       // The most relevant is the caret
       if (!periodMustBeMostSignificant
               && (period == -1 && caret != -1 && space != -1 && caret > space)

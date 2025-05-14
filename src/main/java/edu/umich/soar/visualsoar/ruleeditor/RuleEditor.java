@@ -1636,10 +1636,12 @@ public class RuleEditor extends CustomInternalFrame {
       AutocompleteContext autocompleteContext =
           SoarAutocomplete.getAutocompleteContext(
               true, editorPane.getCaretPosition(), editorPane.getText(), getNode());
-      if (autocompleteContext != null) {
+      if (autocompleteContext != null && !autocompleteContext.filteredSuggestions().isEmpty()) {
         autocomplete(autocompleteContext, false);
       } else {
-        toolkit.beep();
+        MainFrame.getMainFrame()
+            .getFeedbackManager()
+            .setStatusBarMsg("No auto-complete matches found.");
       }
     }
   }
@@ -1655,9 +1657,12 @@ public class RuleEditor extends CustomInternalFrame {
       AutocompleteContext autocompleteContext =
           SoarAutocomplete.getAutocompleteContext(
               true, editorPane.getCaretPosition(), editorPane.getText(), getNode());
-      if (autocompleteContext != null) {
+      if (autocompleteContext != null && !autocompleteContext.filteredSuggestions().isEmpty()) {
         autocomplete(autocompleteContext, true);
       } else {
+        MainFrame.getMainFrame()
+          .getFeedbackManager()
+          .setStatusBarMsg("No auto-complete matches found.");
         getToolkit().beep();
       }
     }
@@ -1666,8 +1671,8 @@ public class RuleEditor extends CustomInternalFrame {
   private void autocomplete(AutocompleteContext autocompleteContext, boolean autoInsertPrefix) {
     if (autocompleteContext.filteredSuggestions().isEmpty()) {
       MainFrame.getMainFrame()
-          .getFeedbackManager()
-          .setStatusBarMsg("No auto-getAutocompleteContext matches found.");
+        .getFeedbackManager()
+        .setStatusBarMsg("No auto-complete matches found.");
       return;
     }
 
