@@ -12,7 +12,6 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
-import java.util.List;
 import java.util.Set;
 import java.util.Vector;
 import java.util.function.Consumer;
@@ -22,6 +21,9 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
+import javax.swing.event.PopupMenuEvent;
+import javax.swing.event.PopupMenuListener;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.JTextComponent;
 
@@ -42,7 +44,7 @@ public class AutocompletePopup extends JPopupMenu {
   /**
    * @param parent text component where completion will be performed
    * @param position position to perform completion at
-   * @param onCompletion
+   * @param onCompletion to pass the final selected completion string to
    */
   public AutocompletePopup(
       @NotNull JTextComponent parent,
@@ -58,7 +60,7 @@ public class AutocompletePopup extends JPopupMenu {
     suggestionList.setVisibleRowCount(maxVisibleRows);
 
     // single-click to accept selection
-    suggestionList.addMouseListener(
+    addMouseListener(
         new MouseAdapter() {
           @Override
           public void mouseClicked(MouseEvent e) {
@@ -67,7 +69,7 @@ public class AutocompletePopup extends JPopupMenu {
         });
 
     // highlight item hovered over with mouse
-    suggestionList.addMouseMotionListener(
+    addMouseMotionListener(
         new MouseMotionAdapter() {
           @Override
           public void mouseMoved(MouseEvent e) {
@@ -78,7 +80,7 @@ public class AutocompletePopup extends JPopupMenu {
           }
         });
 
-    suggestionList.addKeyListener(
+    addKeyListener(
         new KeyAdapter() {
           @Override
           public void keyPressed(KeyEvent e) {
@@ -90,6 +92,22 @@ public class AutocompletePopup extends JPopupMenu {
             char typedChar = e.getKeyChar();
             handleKeyTyped(e, typedChar, parent);
           }
+        });
+
+    // Ensure the suggestion list gains focus
+    // Without this, on Windows the popup shows but the keyboard becomes unresponsive
+    addPopupMenuListener(
+        new PopupMenuListener() {
+          @Override
+          public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
+            SwingUtilities.invokeLater(() -> requestFocusInWindow());
+          }
+
+          @Override
+          public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {}
+
+          @Override
+          public void popupMenuCanceled(PopupMenuEvent e) {}
         });
 
     // Calculate the preferred height based on the number of items
@@ -147,12 +165,14 @@ public class AutocompletePopup extends JPopupMenu {
       return;
     }
     // Close the popup if a meta key (Ctrl, Alt, Cmd) is pressed with another key, as this is likely
-    // the invocation of some other shortcut such as undo/redo, and we would need more logic to handle
-    // that gracefully
-    if ((e.getModifiersEx() & (KeyEvent.CTRL_DOWN_MASK | KeyEvent.ALT_DOWN_MASK | KeyEvent.META_DOWN_MASK)) != 0
-      && e.getKeyCode() != KeyEvent.VK_CONTROL
-      && e.getKeyCode() != KeyEvent.VK_ALT
-      && e.getKeyCode() != KeyEvent.VK_META) {
+    // the invocation of some other shortcut such as undo/redo, and we would need more logic to
+    // handle that gracefully
+    if ((e.getModifiersEx()
+                & (KeyEvent.CTRL_DOWN_MASK | KeyEvent.ALT_DOWN_MASK | KeyEvent.META_DOWN_MASK))
+            != 0
+        && e.getKeyCode() != KeyEvent.VK_CONTROL
+        && e.getKeyCode() != KeyEvent.VK_ALT
+        && e.getKeyCode() != KeyEvent.VK_META) {
       setVisible(false);
       parent.dispatchEvent(e);
       return;
