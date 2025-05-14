@@ -25,7 +25,6 @@ public class SoarAutocomplete {
   /**
    * Populate an auto-complete context for the document at the given position.
    *
-   * @param periodMustBeMostSignificant
    * @param caretPos current caret position
    * @param document entire document text
    * @return the constructed context, or null if no heuristic construction was possible or there was
@@ -33,7 +32,6 @@ public class SoarAutocomplete {
    */
   @Nullable
   public static AutocompleteContext getAutocompleteContext(
-      boolean periodMustBeMostSignificant,
       int caretPos,
       String document,
       OperatorNode associatedNode) {
@@ -55,8 +53,7 @@ public class SoarAutocomplete {
 
     try {
       // The most relevant is the caret
-      if (!periodMustBeMostSignificant
-              && (period == -1 && caret != -1 && space != -1 && caret > space)
+      if ((period == -1 && caret != -1 && space != -1 && caret > space)
           || (period != -1 && caret != -1 && space != -1 && period < caret && space < caret)) {
         String userType = prodSoFar.substring(caret + 1);
         prodSoFar = prodSoFar.substring(0, caret + 1) + "<$$>" + end;
@@ -69,8 +66,7 @@ public class SoarAutocomplete {
         return SoarAutocomplete.attributeComplete(userType, prodSoFar, document, associatedNode);
       }
       // The most relevant is the space
-      else if (!periodMustBeMostSignificant
-              && (period == -1 && caret != -1 && space != -1 && space > caret)
+      else if ((period == -1 && caret != -1 && space != -1 && space > caret)
           || (period != -1 && caret != -1 && space != -1 && space > caret && space > period)) {
         String userType = prodSoFar.substring(space + 1);
         prodSoFar = prodSoFar.substring(0, space + 1) + "<$$>" + end;

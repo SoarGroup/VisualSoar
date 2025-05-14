@@ -1635,7 +1635,7 @@ public class RuleEditor extends CustomInternalFrame {
 
       AutocompleteContext autocompleteContext =
           SoarAutocomplete.getAutocompleteContext(
-              true, editorPane.getCaretPosition(), editorPane.getText(), getNode());
+              editorPane.getCaretPosition(), editorPane.getText(), getNode());
       if (autocompleteContext != null && !autocompleteContext.filteredSuggestions().isEmpty()) {
         autocomplete(autocompleteContext, false);
       } else {
@@ -1656,7 +1656,7 @@ public class RuleEditor extends CustomInternalFrame {
     public void actionPerformed(ActionEvent e) {
       AutocompleteContext autocompleteContext =
           SoarAutocomplete.getAutocompleteContext(
-              true, editorPane.getCaretPosition(), editorPane.getText(), getNode());
+              editorPane.getCaretPosition(), editorPane.getText(), getNode());
       if (autocompleteContext != null && !autocompleteContext.filteredSuggestions().isEmpty()) {
         autocomplete(autocompleteContext, true);
       } else {
