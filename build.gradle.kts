@@ -55,7 +55,11 @@ tasks.jar {
         "Version" to "${project.version}",
         "Copyright" to "(c) The Regents of the University of Michigan, 2024",
         "Main-Class" to application.mainClass.get(),
-        "Class-Path" to ". java/sml.jar bin/java/sml.jar lib/sml.jar"
+        // Dynamically include all JARs in the lib/ directory
+        "Class-Path" to (file("lib").takeIf { it.exists() && it.isDirectory }
+          ?.listFiles()
+          ?.filter { it.extension == "jar" }
+          ?.joinToString(" ") { "java/${it.name}" } ?: "")
       )
     )
   }
