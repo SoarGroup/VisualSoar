@@ -345,49 +345,49 @@ public abstract class OperatorNode extends VSTreeNode implements java.io.Seriali
   private JPopupMenu createContextMenu() {
     JPopupMenu contextMenu = new JPopupMenu();
     contextMenu.add(addSubOperatorItem);
-    addSubOperatorItem.addActionListener(
+    setMenuItemAction(addSubOperatorItem,
       e -> {
         OperatorWindow ow = (OperatorWindow) contextMenu.getInvoker();
         ow.addSubOperator();
       });
 
     contextMenu.add(addTopFolderItem);
-    addTopFolderItem.addActionListener(
+    setMenuItemAction(addTopFolderItem,
       e -> {
         OperatorWindow ow = (OperatorWindow) contextMenu.getInvoker();
         ow.addTopFolder();
       });
 
     contextMenu.add(addFileItem);
-    addFileItem.addActionListener(
+    setMenuItemAction(addFileItem,
       e -> {
         OperatorWindow ow = (OperatorWindow) contextMenu.getInvoker();
         ow.addFile();
       });
 
     impasseSubMenu.add(tieImpasseItem);
-    tieImpasseItem.addActionListener(
+    setMenuItemAction(tieImpasseItem,
       e -> {
         OperatorWindow ow = (OperatorWindow) contextMenu.getInvoker();
         ow.addImpasse("Impasse__Operator_Tie");
       });
 
     impasseSubMenu.add(conflictImpasseItem);
-    conflictImpasseItem.addActionListener(
+    setMenuItemAction(conflictImpasseItem,
       e -> {
         OperatorWindow ow = (OperatorWindow) contextMenu.getInvoker();
         ow.addImpasse("Impasse__Operator_Conflict");
       });
 
     impasseSubMenu.add(constraintImpasseItem);
-    constraintImpasseItem.addActionListener(
+    setMenuItemAction(constraintImpasseItem,
       e -> {
         OperatorWindow ow = (OperatorWindow) contextMenu.getInvoker();
         ow.addImpasse("Impasse__Operator_Constraint-Failure");
       });
 
     impasseSubMenu.add(stateNoChangeImpasseItem);
-    stateNoChangeImpasseItem.addActionListener(
+    setMenuItemAction(stateNoChangeImpasseItem,
       e -> {
         OperatorWindow ow = (OperatorWindow) contextMenu.getInvoker();
         ow.addImpasse("Impasse__State_No-Change");
@@ -396,14 +396,14 @@ public abstract class OperatorNode extends VSTreeNode implements java.io.Seriali
     contextMenu.add(impasseSubMenu);
 
     contextMenu.add(openRulesItem);
-    openRulesItem.addActionListener(
+    setMenuItemAction(openRulesItem,
       e -> {
         OperatorWindow ow = (OperatorWindow) contextMenu.getInvoker();
         ow.openRules();
       });
 
     contextMenu.add(openDataMapItem);
-    openDataMapItem.addActionListener(
+    setMenuItemAction(openDataMapItem,
       e -> {
         OperatorWindow ow = (OperatorWindow) contextMenu.getInvoker();
         ow.openDataMap();
@@ -412,14 +412,14 @@ public abstract class OperatorNode extends VSTreeNode implements java.io.Seriali
     contextMenu.addSeparator();
 
     contextMenu.add(searchItem);
-    searchItem.addActionListener(
+    setMenuItemAction(searchItem,
       e -> {
         OperatorWindow ow = (OperatorWindow) contextMenu.getInvoker();
         ow.searchFiles();
       });
 
     contextMenu.add(replaceItem);
-    replaceItem.addActionListener(
+    setMenuItemAction(replaceItem,
       e -> {
         OperatorWindow ow = (OperatorWindow) contextMenu.getInvoker();
         ow.replaceFiles();
@@ -428,28 +428,28 @@ public abstract class OperatorNode extends VSTreeNode implements java.io.Seriali
     contextMenu.addSeparator();
 
     contextMenu.add(deleteItem);
-    deleteItem.addActionListener(
+    setMenuItemAction(deleteItem,
       e -> {
         OperatorWindow ow = (OperatorWindow) contextMenu.getInvoker();
         ow.delete();
       });
 
     contextMenu.add(renameItem);
-    renameItem.addActionListener(
+    setMenuItemAction(renameItem,
       e -> {
         OperatorWindow ow = (OperatorWindow) contextMenu.getInvoker();
         ow.rename();
       });
 
     contextMenu.add(exportItem);
-    exportItem.addActionListener(
+    setMenuItemAction(exportItem,
       e -> {
         OperatorWindow ow = (OperatorWindow) contextMenu.getInvoker();
         ow.export();
       });
 
     contextMenu.add(importItem);
-    importItem.addActionListener(
+    setMenuItemAction(importItem,
       e -> {
         OperatorWindow ow = (OperatorWindow) contextMenu.getInvoker();
         ow.importFunc();
@@ -457,7 +457,7 @@ public abstract class OperatorNode extends VSTreeNode implements java.io.Seriali
 
     contextMenu.add(generateDataMapItem);
     // actionPerformed
-    generateDataMapItem.addActionListener(
+    setMenuItemAction(generateDataMapItem,
       ae -> {
         Vector<FeedbackListEntry> parseErrors = new Vector<>();
         Vector<FeedbackListEntry> vecGenerations = new Vector<>();
@@ -471,7 +471,7 @@ public abstract class OperatorNode extends VSTreeNode implements java.io.Seriali
       });
 
     contextMenu.add(checkChildrenAgainstDataMapItem);
-    checkChildrenAgainstDataMapItem.addActionListener(
+    setMenuItemAction(checkChildrenAgainstDataMapItem,
         new ActionListener() {
           public void actionPerformed(ActionEvent e) {
             OperatorWindow ow = (OperatorWindow) contextMenu.getInvoker();
@@ -479,6 +479,13 @@ public abstract class OperatorNode extends VSTreeNode implements java.io.Seriali
           }
         });
     return contextMenu;
+  }
+
+  private void setMenuItemAction(JMenuItem menuItem, ActionListener newListener) {
+    for (ActionListener listener : menuItem.getActionListeners()) {
+      menuItem.removeActionListener(listener);
+    }
+    menuItem.addActionListener(newListener);
   }
 
     /**
