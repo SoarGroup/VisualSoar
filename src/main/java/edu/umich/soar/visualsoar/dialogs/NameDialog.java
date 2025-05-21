@@ -98,7 +98,7 @@ public class NameDialog extends JDialog {
 
         addWindowListener(new WindowAdapter() {
             public void windowActivated(WindowEvent e) {
-                namePanel.requestFocus();
+                SwingUtilities.invokeLater(() -> namePanel.requestFocus());
             }
         });
 
@@ -120,6 +120,4 @@ public class NameDialog extends JDialog {
         namePanel.setText(s);
         setVisible(true);
     }
-
-
 }
