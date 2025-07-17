@@ -53,6 +53,8 @@ public class IdentifierDialog extends JDialog {
         pack();
         getRootPane().setDefaultButton(buttonPanel.okButton);
 
+        DialogUtils.closeOnEscapeKeyWithFocus(this, owner, namePanel);
+
         addWindowListener(new WindowAdapter() {
             public void windowOpened(WindowEvent we) {
                 setLocationRelativeTo(owner);
