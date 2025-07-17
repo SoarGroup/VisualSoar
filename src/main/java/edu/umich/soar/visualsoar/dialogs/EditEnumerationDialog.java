@@ -50,7 +50,7 @@ public class EditEnumerationDialog extends JDialog {
         pack();
         getRootPane().setDefaultButton(buttonPanel.addButton);
 
-        DialogUtils.closeOnEscapeKey(this, owner);
+        DialogUtils.setUpDialogFocus(this, owner, null);
 
         //Special handling for the Enter key
         KeyStroke enter = KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0);

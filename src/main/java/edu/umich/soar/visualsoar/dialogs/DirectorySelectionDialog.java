@@ -48,7 +48,7 @@ public class DirectorySelectionDialog extends JDialog {
         createButtonPanel();
         contentPane.add(buttonPanel, BorderLayout.SOUTH);
 
-        DialogUtils.closeOnEscapeKey(this, owner);
+        DialogUtils.setUpDialogFocus(this, owner, null);
 
         pack();
     }

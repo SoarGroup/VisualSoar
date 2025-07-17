@@ -223,7 +223,7 @@ public class OperatorWindow extends JTree {
         NameDialog theDialog = new NameDialog(MainFrame.getMainFrame());
         theDialog.setTitle("Enter Operator Name");
         theDialog.setVisible(true);
-        DialogUtils.closeOnEscapeKey(theDialog, this);
+        DialogUtils.setUpDialogFocus(theDialog, this, null);
         if (! theDialog.wasApproved()) return;  //User hit Cancel button
         opName = theDialog.getText();
 

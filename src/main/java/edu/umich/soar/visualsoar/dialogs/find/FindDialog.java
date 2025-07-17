@@ -48,7 +48,7 @@ public class FindDialog extends JDialog {
     pack();
     getRootPane().setDefaultButton(buttonPanel.findButton);
 
-    DialogUtils.closeOnEscapeKeyWithFocus(this, owner, findPanel.findField);
+    DialogUtils.setUpDialogFocus(this, owner, findPanel.findField);
 
     // Remove the windowOpened listener and let DialogUtils handle focus
     // This provides more consistent behavior across platforms

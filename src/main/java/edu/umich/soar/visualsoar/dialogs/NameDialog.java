@@ -49,7 +49,7 @@ public class NameDialog extends JDialog {
         pack();
         getRootPane().setDefaultButton(buttonPanel.okButton);
 
-        DialogUtils.closeOnEscapeKeyWithFocus(this, owner, namePanel.nameField);
+        DialogUtils.setUpDialogFocus(this, owner, namePanel.nameField);
 
         addWindowListener(new WindowAdapter() {
             public void windowOpened(WindowEvent we) {
@@ -95,11 +95,6 @@ public class NameDialog extends JDialog {
                 }
             }
         });
-
-        // Remove the windowActivated listener and let DialogUtils handle focus
-        // This provides more consistent behavior across platforms
-        // The focus will be managed by DialogUtils.closeOnEscapeKey method
-
     }
 
     public boolean wasApproved() {

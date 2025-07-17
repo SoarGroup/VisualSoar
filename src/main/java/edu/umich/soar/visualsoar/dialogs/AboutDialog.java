@@ -53,7 +53,7 @@ public class AboutDialog extends JDialog {
         pack();
         getRootPane().setDefaultButton(buttonPanel.greatButton);
 
-        DialogUtils.closeOnEscapeKey(this, owner);
+        DialogUtils.setUpDialogFocus(this, owner, null);
 
         addWindowListener(new WindowAdapter() {
             public void windowActivated(WindowEvent we) {

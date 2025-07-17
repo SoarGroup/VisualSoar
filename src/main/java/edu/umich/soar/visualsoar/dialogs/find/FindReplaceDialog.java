@@ -53,7 +53,7 @@ public class FindReplaceDialog extends JDialog {
     pack();
     getRootPane().setDefaultButton(buttonPanel.findButton);
 
-    DialogUtils.closeOnEscapeKey(this, owner);
+    DialogUtils.setUpDialogFocus(this, owner, null);
     // Set the options components as unfocusable so user can
     // quickly tab between the find & replace fields
     findPanel.optionsPanel.upButton.setFocusable(false);
