@@ -37,9 +37,7 @@ class AgentNamePanel extends JPanel {
      */
     public String getName() {
         return nameField.getText();
-    }
-
-    public void requestFocus() {
-        nameField.requestFocus();
+    }    public void requestFocus() {
+        nameField.requestFocusInWindow();
     }
 }

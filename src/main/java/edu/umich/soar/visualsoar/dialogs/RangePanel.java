@@ -163,10 +163,10 @@ class RangePanel extends JPanel {
     public void requestFocus(int field) {
         if (field == LOW) {
             lowField.selectAll();
-            lowField.requestFocus();
+            lowField.requestFocusInWindow();
         } else { // field == HIGH
             highField.selectAll();
-            highField.requestFocus();
+            highField.requestFocusInWindow();
         }
     }
 }

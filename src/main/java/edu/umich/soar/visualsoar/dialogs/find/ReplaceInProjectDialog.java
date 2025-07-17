@@ -97,14 +97,9 @@ public class ReplaceInProjectDialog extends JDialog {
     // quickly tab between the find & replace fields
     findPanel.optionsPanel.matchCase.setFocusable(false);
 
-    DialogUtils.closeOnEscapeKey(this, owner);
-    addWindowListener(
-        new WindowAdapter() {
-          public void windowOpened(WindowEvent we) {
-            setLocationRelativeTo(owner);
-            findPanel.requestFocus();
-          }
-        });
+    DialogUtils.closeOnEscapeKeyWithFocus(this, owner, findPanel);
+    // Remove the windowOpened listener and let DialogUtils handle focus
+    // This provides more consistent behavior across platforms
 
     buttonPanel.cancelButton.addActionListener(
         new ActionListener() {

@@ -50,15 +50,10 @@ public class SaveProjectAsDialog extends JDialog {
         pack();
         getRootPane().setDefaultButton(buttonPanel.newButton);
 
-        DialogUtils.closeOnEscapeKey(this, owner);
+        DialogUtils.closeOnEscapeKeyWithFocus(this, owner, namePanel);
 
-        addWindowListener(new WindowAdapter() {
-            public void windowActivated(WindowEvent we) {
-                setLocationRelativeTo(owner);
-                namePanel.requestFocus();
-                owner.repaint();
-            }
-        });
+        // Remove the windowActivated listener and let DialogUtils handle focus
+        // This provides more consistent behavior across platforms
 
         buttonPanel.cancelButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {

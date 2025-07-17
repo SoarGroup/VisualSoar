@@ -46,10 +46,8 @@ class NamePanel extends JPanel {
     public void setText(String s) {
         nameField.setText(s);
         nameField.selectAll();
-    }
-
-    public void requestFocus() {
+    }    public void requestFocus() {
         nameField.selectAll();
-        nameField.requestFocus();
+        nameField.requestFocusInWindow();
     }
 }

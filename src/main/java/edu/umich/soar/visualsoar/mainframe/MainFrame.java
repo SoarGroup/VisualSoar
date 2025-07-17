@@ -1079,20 +1079,26 @@ public class MainFrame extends JFrame
         {
             if(jif[i].isShowing())
             {
-                try
-                {
-                    if (jif[i].isIcon())
-                    {
-                        jif[i].setIcon(false);
-                    }
-                    jif[i].setSelected(true);
-                    jif[i].moveToFront();
-                    break;
-                }
-                catch (java.beans.PropertyVetoException pve)
-                {
-                    //Don't break;
-                }
+            	// Use SwingUtilities.invokeLater for better Windows compatibility
+              final int iInternal = i;
+              SwingUtilities.invokeLater(() -> {
+	                try
+	                {
+	                    if (jif[iInternal].isIcon())
+	                    {
+	                        jif[iInternal].setIcon(false);
+	                    }
+	                    jif[iInternal].setSelected(true);
+	                    jif[iInternal].moveToFront();
+	                    // Request focus for better Windows behavior
+	                    jif[iInternal].requestFocusInWindow();
+	                }
+	                catch (java.beans.PropertyVetoException pve)
+	                {
+	                    pve.printStackTrace();
+	                }
+            	});
+                break;
             }
         }//for
 
@@ -1114,14 +1120,19 @@ public class MainFrame extends JFrame
 
 		public void actionPerformed(ActionEvent e)
         {
-			internalFrame.toFront();
-			try
-            {
-				internalFrame.setIcon(false);
-				internalFrame.setSelected(true);
-				internalFrame.moveToFront();
-			} catch (java.beans.PropertyVetoException pve) {
-				System.err.println("Guess we can't do that"); }
+			// Use SwingUtilities.invokeLater for better Windows compatibility
+			SwingUtilities.invokeLater(() -> {
+				internalFrame.toFront();
+				try
+	            {
+					internalFrame.setIcon(false);
+					internalFrame.setSelected(true);
+					internalFrame.moveToFront();
+					// Request focus for better Windows behavior
+					internalFrame.requestFocusInWindow();
+				} catch (java.beans.PropertyVetoException pve) {
+					System.err.println("Guess we can't do that"); }
+			});
 		}
 	}
 

@@ -51,6 +51,6 @@ class FindPanel extends JPanel {
   }
 
   public void requestFocus() {
-    findField.requestFocus();
+    findField.requestFocusInWindow();
   }
 }

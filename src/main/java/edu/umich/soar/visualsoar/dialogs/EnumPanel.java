@@ -95,11 +95,9 @@ class EnumPanel extends JPanel {
         Object val = theList.getSelectedValue();
         theStrings.remove(val);
         theList.setListData(theStrings);
-    }
-
-    public void requestFocus() {
+    }    public void requestFocus() {
         newString.selectAll();
-        newString.requestFocus();
+        newString.requestFocusInWindow();
     }
 
 }
