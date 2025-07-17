@@ -1,5 +1,6 @@
 package edu.umich.soar.visualsoar.ruleeditor;
 
+import edu.umich.soar.visualsoar.dialogs.find.FindUtils;
 import edu.umich.soar.visualsoar.misc.Prefs;
 import org.jetbrains.annotations.Nullable;
 
@@ -80,6 +81,8 @@ public class EditorPane extends javax.swing.JEditorPane {
           }
         });
     lastUsedOccurrenceHighlighter = occurrenceHighlightPainter;
+
+    FindUtils.registerTextComponentFocus(this);
   }
 
   /**

@@ -1,5 +1,6 @@
 package edu.umich.soar.visualsoar.mainframe.feedback;
 
+import edu.umich.soar.visualsoar.dialogs.find.FindUtils;
 import edu.umich.soar.visualsoar.mainframe.MainFrame;
 import edu.umich.soar.visualsoar.misc.Prefs;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorNode;
@@ -97,6 +98,7 @@ public class FeedbackList extends JList<FeedbackListEntry> implements ActionList
                 });
 
         setCellRenderer(cellRenderer);
+      FindUtils.registerTextComponentFocus(this);
 
       setFontSize(Prefs.editorFontSize.getInt());
       Prefs.editorFontSize.addChangeListener(

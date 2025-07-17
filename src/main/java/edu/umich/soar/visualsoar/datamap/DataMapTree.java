@@ -1,6 +1,7 @@
 package edu.umich.soar.visualsoar.datamap;
 
 import edu.umich.soar.visualsoar.components.FontUtils;
+import edu.umich.soar.visualsoar.dialogs.find.FindUtils;
 import edu.umich.soar.visualsoar.dialogs.searchdm.SearchDataMapDialog;
 import edu.umich.soar.visualsoar.mainframe.MainFrame;
 import edu.umich.soar.visualsoar.dialogs.*;
@@ -343,40 +344,41 @@ public class DataMapTree extends JTree implements ClipboardOwner, PopupMenuListe
 
     }//static
 
+  /**
+   * The lone constructor. Creating new DataMaps and reading in saved DataMaps are the same
+   * operation, so there is only one constructor. This constructor sets some data fields as well as
+   * specifying the custom cell renderer for italicizing links and add the mouse adapter for
+   * right-clicking.
+   *
+   * @param initParent datamap window that displays this tree
+   * @param model the model which specifies the contents of the tree.
+   * @param _swmm datamap data (loaded from .dm file)
+   * @param forEditing set to 'true' to allow the user to edit the datamap
+   */
+  public DataMapTree(
+      DataMap initParent, TreeModel model, SoarWorkingMemoryModel _swmm, boolean forEditing) {
+    super(model);
+    parentWindow = initParent;
+    swmm = _swmm;
+    s_DataMapTree = this;
 
-    /**
-     * The lone constructor. Creating new DataMaps and reading in saved DataMaps
-     * are the same operation, so there is only one constructor. This constructor
-     * sets some data fields as well as specifying the custom cell renderer for
-     * italicizing links and add the mouse adapter for right-clicking.
-     *
-     * @param initParent datamap window that displays this tree
-     * @param model      the model which specifies the contents of the tree.
-     * @param _swmm      datamap data (loaded from .dm file)
-     * @param forEditing set to 'true' to allow the user to edit the datamap
-     */
-    public DataMapTree(DataMap initParent, TreeModel model, SoarWorkingMemoryModel _swmm, boolean forEditing) {
-        super(model);
-        parentWindow = initParent;
-        swmm = _swmm;
-        s_DataMapTree = this;
+    contextMenu.addPopupMenuListener(this);
 
-        contextMenu.addPopupMenuListener(this);
+    getSelectionModel().setSelectionMode(TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION);
 
-        getSelectionModel().setSelectionMode(TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION);
-
-        //When a datamap tree is being used to select nodes (i.e., import from foreign datamap)
-        //it should not respond to editing related events.
-        if (forEditing) {
-            setupEditingEventHandling();
-            displayGeneratedNodes();
+    // When a datamap tree is being used to select nodes (i.e., import from foreign datamap)
+    // it should not respond to editing related events.
+    if (forEditing) {
+      setupEditingEventHandling();
+      displayGeneratedNodes();
     }
     setFontSize(Prefs.editorFontSize.getInt());
     Prefs.editorFontSize.addChangeListener(
         newValue -> {
           setFontSize((int) newValue);
         });
-    }//ctor
+    FindUtils.registerTextComponentFocus(this);
+  } // ctor
 
   private void setFontSize(int fontSize) {
     final Font newSizedFont = new Font(getFont().getName(), getFont().getStyle(), fontSize);

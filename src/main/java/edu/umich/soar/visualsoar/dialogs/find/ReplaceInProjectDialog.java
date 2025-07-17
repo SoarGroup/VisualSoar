@@ -85,7 +85,7 @@ public class ReplaceInProjectDialog extends JDialog {
     c.gridwidth = GridBagConstraints.REMAINDER;
     c.fill = GridBagConstraints.HORIZONTAL;
 
-    findPanel = new FindInProjectPanel(Util.getSelectedText());
+    findPanel = new FindInProjectPanel(FindUtils.getSelectedText());
     contentPane.add(findPanel, c);
     contentPane.add(replacePanel, c);
     FindReplaceButtonPanel buttonPanel = new FindReplaceButtonPanel();
