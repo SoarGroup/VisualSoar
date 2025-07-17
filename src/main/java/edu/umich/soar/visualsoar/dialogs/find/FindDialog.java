@@ -50,9 +50,6 @@ public class FindDialog extends JDialog {
 
     DialogUtils.setUpDialogFocus(this, owner, findPanel.findField);
 
-    // Remove the windowOpened listener and let DialogUtils handle focus
-    // This provides more consistent behavior across platforms
-
     buttonPanel.cancelButton.addActionListener(
         new ActionListener() {
           public void actionPerformed(ActionEvent e) {

@@ -70,7 +70,7 @@ public class SearchDataMapDialog extends JDialog {
     pack();
     getRootPane().setDefaultButton(buttonPanel.findNextButton);
 
-    DialogUtils.setUpDialogFocus(this, owner, null);
+    DialogUtils.setUpDialogFocus(this, owner, findPanel.findField);
 
     addWindowListener(
         new WindowAdapter() {

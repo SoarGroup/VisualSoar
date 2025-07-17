@@ -55,10 +55,7 @@ public class NewAgentDialog extends JDialog {
         pack();
         getRootPane().setDefaultButton(buttonPanel.newButton);
 
-        DialogUtils.setUpDialogFocus(this, owner, namePanel);
-
-        // Remove the windowActivated listener and let DialogUtils handle focus
-        // This provides more consistent behavior across platforms
+        DialogUtils.setUpDialogFocus(this, owner, namePanel.nameField);
 
         buttonPanel.cancelButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {

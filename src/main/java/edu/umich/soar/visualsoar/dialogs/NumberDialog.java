@@ -85,7 +85,7 @@ public class NumberDialog extends JDialog {
         pack();
         getRootPane().setDefaultButton(buttonPanel.okButton);
 
-        DialogUtils.setUpDialogFocus(this, owner, null);
+        DialogUtils.setUpDialogFocus(this, owner, namePanel.nameField);
         addWindowListener(new WindowAdapter() {
             public void windowActivated(WindowEvent we) {
                 setLocationRelativeTo(owner);

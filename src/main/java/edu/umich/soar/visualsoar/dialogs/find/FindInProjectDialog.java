@@ -56,7 +56,7 @@ public class FindInProjectDialog extends JDialog {
         pack();
         getRootPane().setDefaultButton(buttonPanel.findButton);
 
-        DialogUtils.setUpDialogFocus(this, owner, null);
+        DialogUtils.setUpDialogFocus(this, owner, findPanel.findField);
 
         addWindowListener(
                 new WindowAdapter() {
