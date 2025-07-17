@@ -3,6 +3,7 @@ package edu.umich.soar.visualsoar.operatorwindow;
 
 import edu.umich.soar.visualsoar.ProjectModel;
 import edu.umich.soar.visualsoar.dialogs.DialogUtils;
+import edu.umich.soar.visualsoar.dialogs.find.FindUtils;
 import edu.umich.soar.visualsoar.mainframe.MainFrame;
 import edu.umich.soar.visualsoar.datamap.SoarWorkingMemoryModel;
 import edu.umich.soar.visualsoar.dialogs.find.FindInProjectDialog;
@@ -122,6 +123,7 @@ public class OperatorWindow extends JTree {
     setFontSize(Prefs.editorFontSize.getInt());
     Prefs.editorFontSize.addChangeListener(
         newValue -> setFontSize((int) newValue));
+    FindUtils.registerTextComponentFocus(this);
   }
 
   private void setFontSize(int fontSize) {

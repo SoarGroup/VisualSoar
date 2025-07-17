@@ -1,6 +1,5 @@
 package edu.umich.soar.visualsoar.dialogs.find;
 
-import edu.umich.soar.visualsoar.datamap.DataMapTree;
 import edu.umich.soar.visualsoar.dialogs.DialogUtils;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorNode;
 import edu.umich.soar.visualsoar.operatorwindow.OperatorWindow;
@@ -38,7 +37,7 @@ public class FindInProjectDialog extends JDialog {
         super(owner, "Find in Project", false);
         // Get the currently focused window and its selected text
 
-        findPanel = new FindInProjectPanel(Util.getSelectedText());
+        findPanel = new FindInProjectPanel(FindUtils.getSelectedText());
         FindButtonPanel buttonPanel = new FindButtonPanel();
         opWin = operators;
         root = opNode;
