@@ -74,7 +74,7 @@ public class EditNumberDialog extends JDialog {
         pack();
         getRootPane().setDefaultButton(buttonPanel.okButton);
 
-        DialogUtils.closeOnEscapeKey(this, owner);
+        DialogUtils.setUpDialogFocus(this, owner, rangePanel.lowField);
 
         addWindowListener(new WindowAdapter() {
             public void windowActivated(WindowEvent we) {

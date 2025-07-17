@@ -42,7 +42,7 @@ public class FileAlreadyExistsDialog extends JDialog {
         contentPane.add(buttonPanel, c);
         pack();
 
-        DialogUtils.closeOnEscapeKey(this, owner);
+        DialogUtils.setUpDialogFocus(this, owner, null);
 
         addWindowListener(new WindowAdapter() {
             public void windowOpened(WindowEvent we) {

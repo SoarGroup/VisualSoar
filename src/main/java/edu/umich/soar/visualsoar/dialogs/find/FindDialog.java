@@ -48,15 +48,7 @@ public class FindDialog extends JDialog {
     pack();
     getRootPane().setDefaultButton(buttonPanel.findButton);
 
-    DialogUtils.closeOnEscapeKey(this, owner);
-
-    addWindowListener(
-        new WindowAdapter() {
-          public void windowOpened(WindowEvent we) {
-            setLocationRelativeTo(owner);
-            findPanel.requestFocus();
-          }
-        });
+    DialogUtils.setUpDialogFocus(this, owner, findPanel.findField);
 
     buttonPanel.cancelButton.addActionListener(
         new ActionListener() {

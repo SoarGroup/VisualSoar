@@ -49,7 +49,7 @@ public class NameDialog extends JDialog {
         pack();
         getRootPane().setDefaultButton(buttonPanel.okButton);
 
-        DialogUtils.closeOnEscapeKey(this, owner);
+        DialogUtils.setUpDialogFocus(this, owner, namePanel.nameField);
 
         addWindowListener(new WindowAdapter() {
             public void windowOpened(WindowEvent we) {
@@ -95,13 +95,6 @@ public class NameDialog extends JDialog {
                 }
             }
         });
-
-        addWindowListener(new WindowAdapter() {
-            public void windowActivated(WindowEvent e) {
-                SwingUtilities.invokeLater(() -> namePanel.requestFocus());
-            }
-        });
-
     }
 
     public boolean wasApproved() {

@@ -115,7 +115,7 @@ public class PreferencesDialog extends JDialog {
     pack();
     getRootPane().setDefaultButton(buttonPanel.okButton);
 
-    DialogUtils.closeOnEscapeKey(this, owner);
+    DialogUtils.setUpDialogFocus(this, owner, null);
     addWindowListener(
         new WindowAdapter() {
           public void windowOpened(WindowEvent we) {

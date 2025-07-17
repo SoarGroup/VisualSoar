@@ -95,7 +95,7 @@ public class EditCustomTemplatesDialog extends JDialog implements ActionListener
         dirButton.addActionListener(this);
         closeButton.addActionListener(this);
 
-        DialogUtils.closeOnEscapeKey(this, owner);
+        DialogUtils.setUpDialogFocus(this, owner, null);
 
     }//ctor
 

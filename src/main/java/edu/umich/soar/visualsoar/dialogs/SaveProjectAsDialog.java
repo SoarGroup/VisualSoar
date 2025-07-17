@@ -50,15 +50,7 @@ public class SaveProjectAsDialog extends JDialog {
         pack();
         getRootPane().setDefaultButton(buttonPanel.newButton);
 
-        DialogUtils.closeOnEscapeKey(this, owner);
-
-        addWindowListener(new WindowAdapter() {
-            public void windowActivated(WindowEvent we) {
-                setLocationRelativeTo(owner);
-                namePanel.requestFocus();
-                owner.repaint();
-            }
-        });
+        DialogUtils.setUpDialogFocus(this, owner, namePanel.nameField);
 
         buttonPanel.cancelButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {

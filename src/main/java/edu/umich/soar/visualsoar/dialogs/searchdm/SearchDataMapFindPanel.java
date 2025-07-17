@@ -15,7 +15,7 @@ import java.awt.event.KeyEvent;
 class SearchDataMapFindPanel extends JPanel {
   private static final long serialVersionUID = 20221225L;
 
-  private final JTextField findField = new JTextField(20);
+  public final JTextField findField = new JTextField(20);
   private final FindInProjectOptionsPanel optionsPanel;
 
   public SearchDataMapFindPanel() {
