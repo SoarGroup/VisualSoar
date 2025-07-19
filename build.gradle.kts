@@ -3,7 +3,7 @@ import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.util.*
 
-version = "4.6.22"
+version = "4.6.23"
 
 plugins {
   java
