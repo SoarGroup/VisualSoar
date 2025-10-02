@@ -84,6 +84,8 @@ TOKEN:
 	 |<ATPLUS:		"@+">
 	 |<ATMINUS:		"@-">
 	 |<BANGAT:		"!@">
+	 |<DOLLARDOUBLE:	"$$">
+	 |<DOLLAR:		"$">
      |<RBRACE:		"}">
 	 |<RPAREN:		")">
 	 |<TILDE:		"~">
@@ -449,15 +451,22 @@ SingleTest singleTest() :
 {
 	Token t;
 	Constant c;
+	int dollarType = 0; // 0 = none, 1 = $, 2 = $$
 }
 {
-	t = <VARIABLE>	{
-		return new SingleTest(new Pair(t.image,t.beginLine));
+	(<DOLLARDOUBLE> { dollarType = 2; }
+	| <DOLLAR> { dollarType = 1; })?
+	
+	(t = <VARIABLE>	{
+		return new SingleTest(new Pair(t.image,t.beginLine), dollarType);
 	}
 	|
 	c = constant() {
+		if (dollarType != 0) {
+			throw new ParseException("Dollar modifier can only be used with variables");
+		}
 	  	return new SingleTest(c);
-	}
+	})
 }
 
 // Ok
